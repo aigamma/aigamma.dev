@@ -1,80 +1,117 @@
 // netlify/functions/data.mjs
-// Thin proxy to Massive API. Replaced by Supabase reads in Phase 4.
-// Sets CDN cache headers so Netlify edge absorbs repeat traffic.
-
-const MASSIVE_BASE = 'https://api.massive.com'; 
+// Reads options chain data and computed levels from Supabase.
+// n8n is the sole Massive API consumer; this function never calls Massive.
+// CDN cache headers ensure edge caching absorbs read traffic.
 
 export default async function handler(request) {
   const url = new URL(request.url);
   const underlying = url.searchParams.get('underlying') || 'SPY';
-  const expiration = url.searchParams.get('expiration') || '';
-  const apiKey = process.env.MASSIVE_API_KEY;
+  const date = url.searchParams.get('date') || null; // optional: YYYY-MM-DD for historical
 
-  if (!apiKey) {
-    return new Response(JSON.stringify({ error: 'MASSIVE_API_KEY not configured' }), {
+  const supabaseUrl = process.env.SUPABASE_URL;
+  const supabaseKey = process.env.SUPABASE_KEY;
+
+  if (!supabaseUrl || !supabaseKey) {
+    return new Response(JSON.stringify({ error: 'Supabase not configured' }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' },
     });
   }
 
+  const headers = {
+    apikey: supabaseKey,
+    Authorization: `Bearer ${supabaseKey}`,
+    'Content-Type': 'application/json',
+  };
+
   try {
-    // Fetch all pages of the options chain snapshot
-    let allResults = [];
-    let nextUrl = buildUrl(underlying, expiration, apiKey);
+    // Determine which snapshot to fetch
+    const snapshotType = date ? 'daily' : 'intraday';
+    const capturedAt = date || new Date().toISOString().split('T')[0];
 
-    while (nextUrl) {
-      const res = await fetch(nextUrl);
-      if (!res.ok) {
-        throw new Error(`Massive API returned ${res.status}`);
-      }
-      const json = await res.json();
-      if (json.results) {
-        allResults = allResults.concat(json.results);
-      }
-      nextUrl = json.next_url ? `${json.next_url}&apiKey=${apiKey}` : null;
+    // Fetch snapshots
+    const snapshotParams = new URLSearchParams({
+      underlying: `eq.${underlying}`,
+      snapshot_type: `eq.${snapshotType}`,
+      captured_at: `eq.${capturedAt}`,
+      order: 'strike.asc',
+    });
+
+    const snapshotRes = await fetch(
+      `${supabaseUrl}/rest/v1/snapshots?${snapshotParams}`,
+      { headers }
+    );
+
+    if (!snapshotRes.ok) {
+      throw new Error(`Supabase snapshots returned ${snapshotRes.status}`);
     }
 
-    // Extract spot price from the first result that has it
+    const contracts = await snapshotRes.json();
+
+    // Fetch computed levels
+    const levelsParams = new URLSearchParams({
+      underlying: `eq.${underlying}`,
+      computed_at: `eq.${capturedAt}`,
+    });
+
+    const levelsRes = await fetch(
+      `${supabaseUrl}/rest/v1/computed_levels?${levelsParams}`,
+      { headers }
+    );
+
+    const levels = await levelsRes.json();
+
+    // Extract spot price from computed levels or first contract
     let spotPrice = null;
-    for (const r of allResults) {
-      if (r.underlying_asset?.price) {
-        spotPrice = r.underlying_asset.price;
-        break;
-      }
+    if (levels.length > 0 && levels[0].spot_price) {
+      spotPrice = parseFloat(levels[0].spot_price);
+    } else if (contracts.length > 0 && contracts[0].spot_price) {
+      spotPrice = parseFloat(contracts[0].spot_price);
     }
 
-    // Normalize contracts to flat structure for frontend
-    const contracts = allResults.map((r) => ({
-      strike_price: r.details?.strike_price,
-      contract_type: r.details?.contract_type,
-      expiration_date: r.details?.expiration_date,
-      ticker: r.details?.ticker,
-      implied_volatility: r.implied_volatility,
-      delta: r.greeks?.delta,
-      gamma: r.greeks?.gamma,
-      theta: r.greeks?.theta,
-      vega: r.greeks?.vega,
-      open_interest: r.open_interest,
-      volume: r.day?.volume,
-      close_price: r.day?.close,
-    }));
-
-    // Determine expiration label from data
+    // Get unique expirations
     const expirations = [...new Set(contracts.map((c) => c.expiration_date).filter(Boolean))];
+
+    // Normalize contract fields to match frontend expectations
+    const normalizedContracts = contracts.map((c) => ({
+      strike_price: parseFloat(c.strike),
+      contract_type: c.contract_type,
+      expiration_date: c.expiration_date,
+      implied_volatility: parseFloat(c.implied_volatility),
+      delta: parseFloat(c.delta),
+      gamma: parseFloat(c.gamma),
+      theta: parseFloat(c.theta),
+      vega: parseFloat(c.vega),
+      open_interest: c.open_interest,
+      volume: c.volume,
+      close_price: c.close_price ? parseFloat(c.close_price) : null,
+    }));
 
     const payload = {
       underlying,
       spotPrice,
       expiration: expirations.length === 1 ? expirations[0] : expirations.join(', '),
-      contractCount: contracts.length,
-      contracts,
+      contractCount: normalizedContracts.length,
+      contracts: normalizedContracts,
+      levels: levels.length > 0 ? {
+        call_wall: parseFloat(levels[0].call_wall_strike),
+        put_wall: parseFloat(levels[0].put_wall_strike),
+        abs_gamma_strike: parseFloat(levels[0].abs_gamma_strike),
+        zero_gamma_level: levels[0].zero_gamma_level ? parseFloat(levels[0].zero_gamma_level) : null,
+        net_gamma_notional: parseFloat(levels[0].net_gamma_notional),
+        gamma_tilt: levels[0].gamma_tilt ? parseFloat(levels[0].gamma_tilt) : null,
+        atm_iv: levels[0].atm_iv ? parseFloat(levels[0].atm_iv) : null,
+        skew_25d_rr: levels[0].skew_25d_rr ? parseFloat(levels[0].skew_25d_rr) : null,
+      } : null,
+      capturedAt,
+      snapshotType,
     };
 
     return new Response(JSON.stringify(payload), {
       status: 200,
       headers: {
         'Content-Type': 'application/json',
-        'Cache-Control': 'public, max-age=900',
+        'Cache-Control': 'public, max-age=300',
       },
     });
   } catch (err) {
@@ -83,45 +120,4 @@ export default async function handler(request) {
       headers: { 'Content-Type': 'application/json' },
     });
   }
-}
-
-function buildUrl(underlying, expiration, apiKey) {
-  const base = `${MASSIVE_BASE}/v3/snapshot/options/${underlying}?apiKey=${apiKey}&limit=250`;
-  if (expiration) {
-    return `${base}&expiration_date=${expiration}`;
-  }
-  // Default: get nearest monthly expiration by not filtering
-  // The API returns all expirations; frontend can filter.
-  // For now, fetch a specific near-term expiration to keep payload manageable.
-  return `${base}&expiration_date.gte=${getNextMonthlyExpiration()}`;
-}
-
-function getNextMonthlyExpiration() {
-  // Returns the next third-Friday monthly expiration in YYYY-MM-DD format
-  const now = new Date();
-  let year = now.getFullYear();
-  let month = now.getMonth(); // 0-indexed
-
-  for (let i = 0; i < 3; i++) {
-    const candidate = getThirdFriday(year, month + i);
-    if (candidate > now) {
-      return candidate.toISOString().split('T')[0];
-    }
-  }
-  // Fallback: 30 days out
-  const fallback = new Date(now.getTime() + 30 * 86400000);
-  return fallback.toISOString().split('T')[0];
-}
-
-function getThirdFriday(year, month) {
-  // month is 0-indexed
-  if (month > 11) {
-    year += Math.floor(month / 12);
-    month = month % 12;
-  }
-  const first = new Date(year, month, 1);
-  // Day of week: 0=Sun, 5=Fri
-  let firstFriday = 1 + ((5 - first.getDay() + 7) % 7);
-  let thirdFriday = firstFriday + 14;
-  return new Date(year, month, thirdFriday);
 }
