@@ -1,5 +1,7 @@
 # aigamma.dev
 
+This is a staging site for what will be deployed on aigamma.com. As a quick note, the whole project is available here in this public repo however it depends on connectivity with n8n (to preserve memory on database storage), Supabase to act as a Redis and cache accumulating market data, and then Netlify for DNS, hosting, and builds. 
+
 Open-source volatility dashboard for equity options, built with React, Plotly, and live OPRA data from the Massive API (formerly Polygon.io). MIT license.
 
 ## What This Is
