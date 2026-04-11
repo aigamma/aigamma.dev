@@ -235,17 +235,22 @@ for (const K of strikes) {
   if (absGex > absGammaMax) { absGammaMax = absGex; absGammaStrike = K; }
 }
 
-let zeroGammaLevel = null;
-let closestToSpot = Infinity;
+// Pick the structurally dominant sign change, not whichever zero-crossing
+// happens to sit closest to spot — a small wobble near spot would otherwise
+// mask the real dealer-hedging regime boundary.
+let volatilityFlip = null;
+let maxBoundaryMagnitude = 0;
 for (let i = 1; i < netGexArray.length; i++) {
   const prev = netGexArray[i - 1];
   const curr = netGexArray[i];
   if ((prev.netGex > 0 && curr.netGex < 0) || (prev.netGex < 0 && curr.netGex > 0)) {
-    const ratio = Math.abs(prev.netGex) / (Math.abs(prev.netGex) + Math.abs(curr.netGex));
-    const crossing = prev.strike + ratio * (curr.strike - prev.strike);
-    if (Math.abs(crossing - spotPrice) < closestToSpot) {
-      closestToSpot = Math.abs(crossing - spotPrice);
-      zeroGammaLevel = crossing;
+    const absPrev = Math.abs(prev.netGex);
+    const absCurr = Math.abs(curr.netGex);
+    const boundaryMagnitude = absPrev + absCurr;
+    if (boundaryMagnitude > maxBoundaryMagnitude) {
+      const ratio = absPrev / boundaryMagnitude;
+      maxBoundaryMagnitude = boundaryMagnitude;
+      volatilityFlip = prev.strike + ratio * (curr.strike - prev.strike);
     }
   }
 }
@@ -333,7 +338,7 @@ const computedLevels = {
   call_wall_strike: callWallStrike,
   put_wall_strike: putWallStrike,
   abs_gamma_strike: absGammaStrike,
-  zero_gamma_level: zeroGammaLevel != null ? Math.round(zeroGammaLevel * 100) / 100 : null,
+  volatility_flip: volatilityFlip != null ? Math.round(volatilityFlip * 100) / 100 : null,
   gamma_tilt: gammaTilt != null ? Math.round(gammaTilt * 1000000) / 1000000 : null,
   max_pain_strike: maxPainStrike,
   put_call_ratio_oi: putCallRatioOi != null ? Math.round(putCallRatioOi * 10000) / 10000 : null,
@@ -465,7 +470,7 @@ const computeGex = node({
         call_wall_strike: 685,
         put_wall_strike: 665,
         abs_gamma_strike: 670,
-        zero_gamma_level: 675.72,
+        volatility_flip: 675.72,
         gamma_tilt: 0.921,
         max_pain_strike: 669,
         put_call_ratio_oi: 3.2,
