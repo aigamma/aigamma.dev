@@ -4,7 +4,6 @@ import VolSmile from './components/VolSmile';
 import LevelsPanel from './components/LevelsPanel';
 import GexProfile from './components/GexProfile';
 import TermStructure from './components/TermStructure';
-import GexHistory from './components/GexHistory';
 import ExposureProfile from './components/ExposureProfile';
 import FixedStrikeIvMatrix from './components/FixedStrikeIvMatrix';
 import RiskNeutralDensity from './components/RiskNeutralDensity';
@@ -177,8 +176,6 @@ export default function App() {
             selectedExpiration={displayExpiration}
             capturedAt={data.capturedAt}
           />
-
-          <GexHistory lookback="24h" />
 
           <GexProfile
             contracts={data.contracts}
