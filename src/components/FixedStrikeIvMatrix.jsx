@@ -1,27 +1,29 @@
 import { useEffect, useMemo, useRef } from 'react';
 import usePlotly from '../hooks/usePlotly';
+import {
+  PLOTLY_BASE_LAYOUT_2D,
+  PLOTLY_COLORBAR,
+  PLOTLY_FONT_FAMILY,
+  PLOTLY_FONTS,
+  PLOTLY_HEATMAP_COLORSCALE,
+  plotlyAxis,
+  plotlyTitle,
+} from '../lib/plotlyTheme';
 
 const OFFSETS = [-0.05, -0.04, -0.03, -0.02, -0.01, 0, 0.01, 0.02, 0.03, 0.04, 0.05];
 
 const BASE_LAYOUT = {
-  paper_bgcolor: 'transparent',
-  plot_bgcolor: '#141820',
-  font: { family: 'Courier New, monospace', color: '#e0e0e0', size: 12 },
+  ...PLOTLY_BASE_LAYOUT_2D,
   margin: { t: 40, r: 40, b: 60, l: 110 },
-  xaxis: {
-    title: { text: 'Expiration', font: { color: '#8a8f9c' } },
-    gridcolor: '#1e2230',
-    tickfont: { color: '#8a8f9c' },
+  hovermode: 'closest',
+  xaxis: plotlyAxis('Expiration', {
     side: 'bottom',
     type: 'category',
-  },
-  yaxis: {
-    title: { text: 'Strike offset vs spot', font: { color: '#8a8f9c' } },
-    gridcolor: '#1e2230',
-    tickfont: { color: '#8a8f9c' },
+  }),
+  yaxis: plotlyAxis('Strike offset vs spot', {
     type: 'category',
     autorange: 'reversed',
-  },
+  }),
 };
 
 function daysBetween(expirationDate, capturedAt) {
@@ -123,21 +125,18 @@ export default function FixedStrikeIvMatrix({ contracts, spotPrice, expirations,
       y: matrix.yLabels,
       text: matrix.textCells,
       texttemplate: '%{text}',
-      textfont: { family: 'Courier New, monospace', size: 11, color: '#0f1319' },
-      colorscale: [
-        [0, '#6ee7b7'],
-        [0.5, '#fef3c7'],
-        [1, '#fb7185'],
-      ],
+      textfont: { family: PLOTLY_FONT_FAMILY, size: 11, color: '#0d0f13' },
+      colorscale: PLOTLY_HEATMAP_COLORSCALE,
       zmin: zMin,
       zmax: zMax,
       hoverongaps: false,
       hovertemplate: '%{x}<br>Offset %{y}<br>IV %{text}<extra></extra>',
       xgap: 2,
       ygap: 2,
+      opacity: 0.85,
       colorbar: {
-        title: { text: 'IV %', font: { color: '#8a8f9c' } },
-        tickfont: { color: '#8a8f9c' },
+        ...PLOTLY_COLORBAR,
+        title: { text: 'IV %', font: PLOTLY_FONTS.axisTitle },
         thickness: 14,
         len: 0.9,
         outlinewidth: 0,
@@ -146,10 +145,7 @@ export default function FixedStrikeIvMatrix({ contracts, spotPrice, expirations,
 
     const layout = {
       ...BASE_LAYOUT,
-      title: {
-        text: 'Fixed-Strike IV Matrix (OTM skew per expiration)',
-        font: { color: '#e0e0e0', size: 14, family: 'Courier New, monospace' },
-      },
+      title: plotlyTitle('Fixed-Strike IV Matrix (OTM skew per expiration)'),
     };
 
     Plotly.newPlot(chartRef.current, [trace], layout, {

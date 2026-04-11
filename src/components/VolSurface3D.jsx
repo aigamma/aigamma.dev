@@ -1,6 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import usePlotly from '../hooks/usePlotly';
 import { sviTotalVariance } from '../lib/svi';
+import {
+  PLOTLY_BASE_LAYOUT_3D,
+  PLOTLY_COLORBAR,
+  PLOTLY_COLORS,
+  PLOTLY_FONTS,
+  plotly3DAxis,
+  plotlyTitle,
+} from '../lib/plotlyTheme';
 
 // Strike grid is spot-relative ±12% so the surface lines up across expirations
 // regardless of the absolute strike ladder at any given tenor. 12% is wider than
@@ -19,40 +27,19 @@ const IV_CLAMP_MAX = 1.2;
 const LOG_IV_TICKVALS = [5, 8, 12, 16, 20, 25, 30, 40, 55, 75, 100];
 
 const BASE_LAYOUT_3D = {
-  paper_bgcolor: 'transparent',
-  font: { family: 'Courier New, monospace', color: '#e0e0e0', size: 11 },
-  margin: { t: 30, r: 10, b: 10, l: 10 },
+  ...PLOTLY_BASE_LAYOUT_3D,
   scene: {
-    bgcolor: '#141820',
-    xaxis: {
-      title: { text: 'strike', font: { color: '#8a8f9c', size: 10 } },
-      gridcolor: '#1e2230',
-      zerolinecolor: '#2a3040',
-      tickfont: { color: '#8a8f9c', size: 9 },
-      backgroundcolor: '#141820',
-      showbackground: true,
-    },
-    yaxis: {
-      title: { text: 'days to expiration', font: { color: '#8a8f9c', size: 10 } },
-      gridcolor: '#1e2230',
-      zerolinecolor: '#2a3040',
-      tickfont: { color: '#8a8f9c', size: 9 },
-      backgroundcolor: '#141820',
-      showbackground: true,
-    },
-    zaxis: {
+    bgcolor: PLOTLY_COLORS.plot,
+    xaxis: plotly3DAxis('strike'),
+    yaxis: plotly3DAxis('days to expiration'),
+    zaxis: plotly3DAxis('implied volatility (%)', {
       type: 'log',
-      title: { text: 'implied volatility (%)', font: { color: '#8a8f9c', size: 10 } },
-      gridcolor: '#1e2230',
-      zerolinecolor: '#4a9eff',
+      zerolinecolor: PLOTLY_COLORS.primary,
       zerolinewidth: 1.5,
-      tickfont: { color: '#8a8f9c', size: 9 },
-      backgroundcolor: '#141820',
-      showbackground: true,
       tickmode: 'array',
       tickvals: LOG_IV_TICKVALS,
       ticktext: LOG_IV_TICKVALS.map((v) => `${v}%`),
-    },
+    }),
     camera: { eye: { x: 1.55, y: -1.85, z: 0.85 } },
     aspectmode: 'manual',
     aspectratio: { x: 1.4, y: 1.0, z: 0.85 },
@@ -298,23 +285,20 @@ export default function VolSurface3D({ contracts, spotPrice, capturedAt, fits, s
         cmid: cMid,
         cmax: cMax,
         showscale: true,
-        opacity: 0.92,
+        opacity: 0.85,
         contours: {
           z: {
             show: true,
             usecolormap: true,
-            highlightcolor: '#ffffff',
+            highlightcolor: PLOTLY_COLORS.titleText,
             project: { z: false },
             width: 1,
           },
         },
         colorbar: {
-          title: { text: 'log₁₀ IV%', font: { color: '#8a8f9c', size: 10 } },
-          tickfont: { color: '#8a8f9c', size: 9 },
-          len: 0.65,
-          thickness: 10,
+          ...PLOTLY_COLORBAR,
+          title: { text: 'log₁₀ IV%', font: PLOTLY_FONTS.axisTitle },
           x: 1.02,
-          outlinecolor: '#2a3040',
         },
         hovertemplate:
           'strike %{x:.2f}<br>' +
@@ -333,8 +317,8 @@ export default function VolSurface3D({ contracts, spotPrice, capturedAt, fits, s
           x: ridge.x,
           y: ridge.y,
           z: ridge.z,
-          line: { color: '#f0a030', width: 5 },
-          marker: { color: '#f0a030', size: 5, symbol: 'diamond' },
+          line: { color: PLOTLY_COLORS.highlight, width: 5 },
+          marker: { color: PLOTLY_COLORS.highlight, size: 5, symbol: 'diamond' },
           name: 'ATM ridge',
           hovertemplate:
             'ATM · strike %{x:.2f}<br>DTE %{y:.0f}d<br>IV %{z:.2f}%<extra></extra>',
@@ -361,12 +345,9 @@ export default function VolSurface3D({ contracts, spotPrice, capturedAt, fits, s
           showscale: true,
           opacity: 0.85,
           colorbar: {
-            title: { text: 'log₁₀ IV%', font: { color: '#8a8f9c', size: 10 } },
-            tickfont: { color: '#8a8f9c', size: 9 },
-            len: 0.65,
-            thickness: 10,
+            ...PLOTLY_COLORBAR,
+            title: { text: 'log₁₀ IV%', font: PLOTLY_FONTS.axisTitle },
             x: 1.02,
-            outlinecolor: '#2a3040',
           },
         },
         hovertemplate:
@@ -382,13 +363,11 @@ export default function VolSurface3D({ contracts, spotPrice, capturedAt, fits, s
 
     const layout = {
       ...BASE_LAYOUT_3D,
-      title: {
-        text:
-          effectiveMode === 'svi' && hasSviFits
-            ? `${underlying || 'SPX'} Volatility Surface — SVI interpolation`
-            : `${underlying || 'SPX'} Volatility Surface — raw IV scatter`,
-        font: { color: '#e0e0e0', size: 13, family: 'Courier New, monospace' },
-      },
+      title: plotlyTitle(
+        effectiveMode === 'svi' && hasSviFits
+          ? `${underlying || 'SPX'} Volatility Surface — SVI interpolation`
+          : `${underlying || 'SPX'} Volatility Surface — raw IV scatter`
+      ),
     };
 
     Plotly.newPlot(chartRef.current, traces, layout, {

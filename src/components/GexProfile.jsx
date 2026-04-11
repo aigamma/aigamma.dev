@@ -1,34 +1,23 @@
 import { useEffect, useMemo, useRef } from 'react';
 import usePlotly from '../hooks/usePlotly';
+import {
+  PLOTLY_BASE_LAYOUT_2D,
+  PLOTLY_COLORS,
+  PLOTLY_FONTS,
+  PLOTLY_SERIES_OPACITY,
+  plotlyAxis,
+  plotlyTitle,
+} from '../lib/plotlyTheme';
 
 const PLOTLY_LAYOUT_BASE = {
-  paper_bgcolor: 'transparent',
-  plot_bgcolor: '#141820',
-  font: { family: 'Courier New, monospace', color: '#e0e0e0', size: 12 },
-  xaxis: {
-    title: { text: 'Strike Price', font: { color: '#8a8f9c' } },
-    gridcolor: '#1e2230',
-    zerolinecolor: '#2a3040',
-    tickfont: { color: '#8a8f9c' },
-  },
-  yaxis: {
-    title: { text: 'Gamma Exposure ($ notional)', font: { color: '#8a8f9c' } },
-    gridcolor: '#1e2230',
-    zerolinecolor: '#3a4050',
-    zerolinewidth: 2,
-    tickfont: { color: '#8a8f9c' },
-    tickformat: '.2s',
-  },
+  ...PLOTLY_BASE_LAYOUT_2D,
   margin: { t: 40, r: 30, b: 60, l: 80 },
-  legend: {
-    orientation: 'h',
-    y: -0.18,
-    x: 0.5,
-    xanchor: 'center',
-    font: { color: '#8a8f9c' },
-  },
+  xaxis: plotlyAxis('Strike Price'),
+  yaxis: plotlyAxis('Gamma Exposure ($ notional)', {
+    zerolinewidth: 2,
+    tickformat: '.2s',
+  }),
   barmode: 'relative',
-  hovermode: 'x unified',
 };
 
 // GEX notional = gamma * OI * 100 * spot^2 * 0.01. Convention: calls positive, puts negative,
@@ -71,7 +60,7 @@ function refLine(x, color, label) {
       yanchor: 'bottom',
       text: label,
       showarrow: false,
-      font: { color, size: 10, family: 'Courier New, monospace' },
+      font: { ...PLOTLY_FONTS.axisTitle, color },
     },
   };
 }
@@ -101,7 +90,7 @@ export default function GexProfile({ contracts, spotPrice, levels }) {
         y: callGex,
         type: 'bar',
         name: 'Call GEX',
-        marker: { color: '#2ecc71' },
+        marker: { color: PLOTLY_COLORS.positive, opacity: PLOTLY_SERIES_OPACITY },
         hovertemplate: 'Strike %{x}<br>Call GEX: %{y:.3s}<extra></extra>',
       },
       {
@@ -109,7 +98,7 @@ export default function GexProfile({ contracts, spotPrice, levels }) {
         y: putGex,
         type: 'bar',
         name: 'Put GEX',
-        marker: { color: '#d85a30' },
+        marker: { color: PLOTLY_COLORS.negative, opacity: PLOTLY_SERIES_OPACITY },
         hovertemplate: 'Strike %{x}<br>Put GEX: %{y:.3s}<extra></extra>',
       },
     ];
@@ -122,20 +111,17 @@ export default function GexProfile({ contracts, spotPrice, levels }) {
       annotations.push(entry.annotation);
     };
 
-    push(refLine(spotPrice, '#4a9eff', 'SPOT'));
+    push(refLine(spotPrice, PLOTLY_COLORS.primary, 'SPOT'));
     if (levels) {
-      push(refLine(levels.call_wall, '#2ecc71', 'CW'));
-      push(refLine(levels.put_wall, '#d85a30', 'PW'));
-      push(refLine(levels.abs_gamma_strike, '#f0a030', 'AG'));
-      push(refLine(levels.volatility_flip, '#a0a6b4', 'VF'));
+      push(refLine(levels.call_wall, PLOTLY_COLORS.positive, 'CW'));
+      push(refLine(levels.put_wall, PLOTLY_COLORS.negative, 'PW'));
+      push(refLine(levels.abs_gamma_strike, PLOTLY_COLORS.highlight, 'AG'));
+      push(refLine(levels.volatility_flip, PLOTLY_COLORS.axisText, 'VF'));
     }
 
     const layout = {
       ...PLOTLY_LAYOUT_BASE,
-      title: {
-        text: 'Gamma Exposure Profile (all expirations)',
-        font: { color: '#e0e0e0', size: 14, family: 'Courier New, monospace' },
-      },
+      title: plotlyTitle('Gamma Exposure Profile (all expirations)'),
       shapes,
       annotations,
     };

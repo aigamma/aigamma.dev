@@ -198,7 +198,7 @@ export default function LevelsPanel({ levels, spotPrice, expirationMetrics, sele
         <Stat
           label="Max Pain"
           value={formatStrike(levels.max_pain_strike)}
-          accent="#c586c0"
+          accent="var(--text-primary)"
           sub={maxPainSub}
         />
         <Stat
@@ -284,7 +284,7 @@ export default function LevelsPanel({ levels, spotPrice, expirationMetrics, sele
               sub={expMoveSub}
             />
             <Stat label="ATM Strike" value={formatStrike(relevantMetric.atm_strike)} />
-            <Stat label="Max Pain (exp)" value={formatStrike(relevantMetric.max_pain_strike)} accent="#c586c0" />
+            <Stat label="Max Pain (exp)" value={formatStrike(relevantMetric.max_pain_strike)} accent="var(--text-primary)" />
             <Stat label="25Δ Put IV" value={formatPercent(relevantMetric.put_25d_iv)} />
             <Stat label="25Δ Call IV" value={formatPercent(relevantMetric.call_25d_iv)} />
             <Stat

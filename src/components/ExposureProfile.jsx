@@ -1,48 +1,32 @@
 import { useEffect, useMemo, useRef } from 'react';
 import usePlotly from '../hooks/usePlotly';
+import {
+  PLOTLY_BASE_LAYOUT_2D,
+  PLOTLY_COLORS,
+  PLOTLY_FONTS,
+  PLOTLY_SERIES_OPACITY,
+  plotlyAxis,
+  plotlyTitle,
+} from '../lib/plotlyTheme';
 
 const BASE_LAYOUT = {
-  paper_bgcolor: 'transparent',
-  plot_bgcolor: '#141820',
-  font: { family: 'Courier New, monospace', color: '#e0e0e0', size: 12 },
+  ...PLOTLY_BASE_LAYOUT_2D,
   margin: { t: 60, r: 30, b: 60, l: 80 },
   barmode: 'relative',
-  hovermode: 'x unified',
   showlegend: true,
-  legend: {
-    orientation: 'h',
-    y: -0.18,
-    x: 0.5,
-    xanchor: 'center',
-    font: { color: '#8a8f9c' },
-  },
-  xaxis: {
-    title: { text: 'Strike Price', font: { color: '#8a8f9c' } },
-    gridcolor: '#1e2230',
-    zerolinecolor: '#2a3040',
-    tickfont: { color: '#8a8f9c' },
-    anchor: 'y',
-  },
-  yaxis: {
+  xaxis: plotlyAxis('Strike Price', { anchor: 'y' }),
+  yaxis: plotlyAxis('Charm ($/day notional)', {
     domain: [0, 0.46],
-    title: { text: 'Charm ($/day notional)', font: { color: '#f28b82' } },
-    gridcolor: '#1e2230',
-    zerolinecolor: '#3a4050',
     zerolinewidth: 2,
-    tickfont: { color: '#f28b82' },
     tickformat: '.2s',
-  },
-  yaxis2: {
+  }),
+  yaxis2: plotlyAxis('Vanna ($/%vol notional)', {
     domain: [0.54, 1],
     anchor: 'free',
     position: 0,
-    title: { text: 'Vanna ($/%vol notional)', font: { color: '#82b1ff' } },
-    gridcolor: '#1e2230',
-    zerolinecolor: '#3a4050',
     zerolinewidth: 2,
-    tickfont: { color: '#82b1ff' },
     tickformat: '.2s',
-  },
+  }),
 };
 
 function computeExposureByStrike(contracts, spotPrice) {
@@ -87,7 +71,7 @@ function refLine(x, color, label, yref) {
       yanchor: 'bottom',
       text: label,
       showarrow: false,
-      font: { color, size: 10, family: 'Courier New, monospace' },
+      font: { ...PLOTLY_FONTS.axisTitle, color },
     },
   };
 }
@@ -117,7 +101,7 @@ export default function ExposureProfile({ contracts, spotPrice, levels }) {
         y: rows.map((r) => r.callVanna),
         type: 'bar',
         name: 'Call Vanna',
-        marker: { color: '#4a9eff' },
+        marker: { color: PLOTLY_COLORS.primary, opacity: PLOTLY_SERIES_OPACITY },
         yaxis: 'y2',
         hovertemplate: 'Strike %{x}<br>Call Vanna: %{y:.3s}<extra></extra>',
       },
@@ -126,7 +110,7 @@ export default function ExposureProfile({ contracts, spotPrice, levels }) {
         y: rows.map((r) => -r.putVanna),
         type: 'bar',
         name: 'Put Vanna',
-        marker: { color: '#82b1ff' },
+        marker: { color: PLOTLY_COLORS.secondary, opacity: PLOTLY_SERIES_OPACITY },
         yaxis: 'y2',
         hovertemplate: 'Strike %{x}<br>Put Vanna: %{y:.3s}<extra></extra>',
       },
@@ -135,7 +119,7 @@ export default function ExposureProfile({ contracts, spotPrice, levels }) {
         y: rows.map((r) => r.callCharm),
         type: 'bar',
         name: 'Call Charm',
-        marker: { color: '#e06c75' },
+        marker: { color: PLOTLY_COLORS.positive, opacity: PLOTLY_SERIES_OPACITY },
         yaxis: 'y',
         hovertemplate: 'Strike %{x}<br>Call Charm: %{y:.3s}<extra></extra>',
       },
@@ -144,7 +128,7 @@ export default function ExposureProfile({ contracts, spotPrice, levels }) {
         y: rows.map((r) => -r.putCharm),
         type: 'bar',
         name: 'Put Charm',
-        marker: { color: '#f28b82' },
+        marker: { color: PLOTLY_COLORS.highlight, opacity: PLOTLY_SERIES_OPACITY },
         yaxis: 'y',
         hovertemplate: 'Strike %{x}<br>Put Charm: %{y:.3s}<extra></extra>',
       },
@@ -157,18 +141,15 @@ export default function ExposureProfile({ contracts, spotPrice, levels }) {
       shapes.push(entry.shape);
       annotations.push(entry.annotation);
     };
-    push(refLine(spotPrice, '#4a9eff', 'SPOT'));
+    push(refLine(spotPrice, PLOTLY_COLORS.primary, 'SPOT'));
     if (levels) {
-      push(refLine(levels.call_wall, '#2ecc71', 'CW'));
-      push(refLine(levels.put_wall, '#d85a30', 'PW'));
+      push(refLine(levels.call_wall, PLOTLY_COLORS.positive, 'CW'));
+      push(refLine(levels.put_wall, PLOTLY_COLORS.negative, 'PW'));
     }
 
     const layout = {
       ...BASE_LAYOUT,
-      title: {
-        text: 'Dealer Exposure Profile — Vanna & Charm',
-        font: { color: '#e0e0e0', size: 14, family: 'Courier New, monospace' },
-      },
+      title: plotlyTitle('Dealer Exposure Profile — Vanna & Charm'),
       shapes,
       annotations,
     };

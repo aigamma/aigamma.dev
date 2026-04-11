@@ -1,33 +1,20 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import usePlotly from '../hooks/usePlotly';
 import { lognormalDensity, sviTotalVariance } from '../lib/svi';
+import {
+  PLOTLY_BASE_LAYOUT_2D,
+  PLOTLY_COLORS,
+  PLOTLY_FONTS,
+  PLOTLY_SERIES_PALETTE,
+  plotlyAxis,
+  plotlyTitle,
+} from '../lib/plotlyTheme';
 
 const BASE_LAYOUT = {
-  paper_bgcolor: 'transparent',
-  plot_bgcolor: '#141820',
-  font: { family: 'Courier New, monospace', color: '#e0e0e0', size: 12 },
-  xaxis: {
-    title: { text: 'Strike Price', font: { color: '#8a8f9c' } },
-    gridcolor: '#1e2230',
-    zerolinecolor: '#2a3040',
-    tickfont: { color: '#8a8f9c' },
-  },
-  yaxis: {
-    title: { text: 'Risk-Neutral Density', font: { color: '#8a8f9c' } },
-    gridcolor: '#1e2230',
-    zerolinecolor: '#2a3040',
-    tickfont: { color: '#8a8f9c' },
-    tickformat: '.2s',
-  },
+  ...PLOTLY_BASE_LAYOUT_2D,
   margin: { t: 40, r: 30, b: 60, l: 80 },
-  legend: {
-    orientation: 'h',
-    y: -0.2,
-    x: 0.5,
-    xanchor: 'center',
-    font: { color: '#8a8f9c' },
-  },
-  hovermode: 'x unified',
+  xaxis: plotlyAxis('Strike Price'),
+  yaxis: plotlyAxis('Risk-Neutral Density', { tickformat: '.2s' }),
 };
 
 function computeAtmIv(fit) {
@@ -78,7 +65,6 @@ export default function RiskNeutralDensity({ fits, spotPrice, capturedAt }) {
   useEffect(() => {
     if (!Plotly || !chartRef.current || sortedExps.length === 0 || !spotPrice) return;
 
-    const palette = ['#4a9eff', '#f0a030', '#9b8cff', '#2ecc71', '#d85a30'];
     const traces = [];
 
     sortedExps.forEach((fit, idx) => {
@@ -86,7 +72,7 @@ export default function RiskNeutralDensity({ fits, spotPrice, capturedAt }) {
         { strikes: fit.density.strikes, values: fit.density.values },
         spotPrice
       );
-      const color = palette[idx % palette.length];
+      const color = PLOTLY_SERIES_PALETTE[idx % PLOTLY_SERIES_PALETTE.length];
       const label = `${fit.expirationDate} (${fit.dte.toFixed(0)}d)`;
 
       traces.push({
@@ -128,10 +114,7 @@ export default function RiskNeutralDensity({ fits, spotPrice, capturedAt }) {
     // Spot line as a Plotly shape so it sits across all traces.
     const layout = {
       ...BASE_LAYOUT,
-      title: {
-        text: 'Risk-Neutral Density (Breeden-Litzenberger)',
-        font: { color: '#e0e0e0', size: 14, family: 'Courier New, monospace' },
-      },
+      title: plotlyTitle('Risk-Neutral Density (Breeden-Litzenberger)'),
       shapes: [
         {
           type: 'line',
@@ -140,7 +123,7 @@ export default function RiskNeutralDensity({ fits, spotPrice, capturedAt }) {
           yref: 'paper',
           y0: 0,
           y1: 1,
-          line: { color: '#4a9eff', width: 1.5, dash: 'dash' },
+          line: { color: PLOTLY_COLORS.primary, width: 1.5, dash: 'dash' },
         },
       ],
       annotations: [
@@ -152,7 +135,7 @@ export default function RiskNeutralDensity({ fits, spotPrice, capturedAt }) {
           yanchor: 'bottom',
           text: 'SPOT',
           showarrow: false,
-          font: { color: '#4a9eff', size: 10, family: 'Courier New, monospace' },
+          font: { ...PLOTLY_FONTS.axisTitle, color: PLOTLY_COLORS.primary },
         },
       ],
     };

@@ -1,32 +1,17 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import usePlotly from '../hooks/usePlotly';
 import { sviTotalVariance } from '../lib/svi';
+import {
+  PLOTLY_BASE_LAYOUT_2D,
+  PLOTLY_COLORS,
+  plotlyAxis,
+  plotlyTitle,
+} from '../lib/plotlyTheme';
 
 const PLOTLY_LAYOUT = {
-  paper_bgcolor: 'transparent',
-  plot_bgcolor: '#141820',
-  font: { family: 'Courier New, monospace', color: '#e0e0e0', size: 12 },
-  xaxis: {
-    title: { text: 'Strike Price', font: { color: '#8a8f9c' } },
-    gridcolor: '#1e2230',
-    zerolinecolor: '#2a3040',
-    tickfont: { color: '#8a8f9c' },
-  },
-  yaxis: {
-    title: { text: 'Implied Volatility (%)', font: { color: '#8a8f9c' } },
-    gridcolor: '#1e2230',
-    zerolinecolor: '#2a3040',
-    tickfont: { color: '#8a8f9c' },
-    tickformat: '.1f',
-  },
-  margin: { t: 40, r: 30, b: 60, l: 70 },
-  legend: {
-    orientation: 'h',
-    y: -0.15,
-    x: 0.5,
-    xanchor: 'center',
-    font: { color: '#8a8f9c' },
-  },
+  ...PLOTLY_BASE_LAYOUT_2D,
+  xaxis: plotlyAxis('Strike Price'),
+  yaxis: plotlyAxis('Implied Volatility (%)', { tickformat: '.1f' }),
   hovermode: 'closest',
 };
 
@@ -52,7 +37,7 @@ function buildSmileTraces(contracts, spotPrice) {
       y: puts.map((c) => c.implied_volatility * 100),
       mode: 'lines+markers',
       name: 'OTM Put IV',
-      line: { color: '#4a9eff', width: 2 },
+      line: { color: PLOTLY_COLORS.primary, width: 2 },
       marker: { size: 3 },
       hovertemplate: 'Strike: %{x}<br>IV: %{y:.2f}%<extra>OTM Put</extra>',
     },
@@ -61,7 +46,7 @@ function buildSmileTraces(contracts, spotPrice) {
       y: calls.map((c) => c.implied_volatility * 100),
       mode: 'lines+markers',
       name: 'OTM Call IV',
-      line: { color: '#d85a30', width: 2 },
+      line: { color: PLOTLY_COLORS.secondary, width: 2 },
       marker: { size: 3 },
       hovertemplate: 'Strike: %{x}<br>IV: %{y:.2f}%<extra>OTM Call</extra>',
     },
@@ -73,7 +58,7 @@ function buildSmileTraces(contracts, spotPrice) {
       y: [atm.implied_volatility * 100],
       mode: 'markers',
       name: 'ATM',
-      marker: { color: '#2ecc71', size: 12, symbol: 'diamond' },
+      marker: { color: PLOTLY_COLORS.positive, size: 12, symbol: 'diamond' },
       hovertemplate: 'ATM Strike: %{x}<br>IV: %{y:.2f}%<extra></extra>',
     });
   }
@@ -125,17 +110,14 @@ export default function VolSmile({ contracts, spotPrice, expiration, sviFit, und
         y: sviCurve.iv,
         mode: 'lines',
         name: 'SVI fit',
-        line: { color: '#f0a030', width: 2.25, dash: 'solid' },
+        line: { color: PLOTLY_COLORS.highlight, width: 2.25, dash: 'solid' },
         hovertemplate: 'K %{x:.2f}<br>SVI IV %{y:.2f}%<extra></extra>',
       });
     }
 
     const layout = {
       ...PLOTLY_LAYOUT,
-      title: {
-        text: `${underlying || 'SPX'} Volatility Smile — ${expiration || 'Latest'}`,
-        font: { color: '#e0e0e0', size: 14, family: 'Courier New, monospace' },
-      },
+      title: plotlyTitle(`${underlying || 'SPX'} Volatility Smile — ${expiration || 'Latest'}`),
     };
 
     Plotly.newPlot(chartRef.current, traces, layout, {

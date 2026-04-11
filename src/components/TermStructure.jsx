@@ -1,42 +1,24 @@
 import { useEffect, useMemo, useRef } from 'react';
 import usePlotly from '../hooks/usePlotly';
+import {
+  PLOTLY_BASE_LAYOUT_2D,
+  PLOTLY_COLORS,
+  plotlyAxis,
+  plotlyTitle,
+} from '../lib/plotlyTheme';
 
 const PLOTLY_LAYOUT_BASE = {
-  paper_bgcolor: 'transparent',
-  plot_bgcolor: '#141820',
-  font: { family: 'Courier New, monospace', color: '#e0e0e0', size: 12 },
-  xaxis: {
-    title: { text: 'Days to Expiration', font: { color: '#8a8f9c' } },
-    gridcolor: '#1e2230',
-    zerolinecolor: '#2a3040',
-    tickfont: { color: '#8a8f9c' },
-  },
-  yaxis: {
-    title: { text: 'ATM IV (%)', font: { color: '#4a9eff' } },
-    gridcolor: '#1e2230',
-    zerolinecolor: '#2a3040',
-    tickfont: { color: '#4a9eff' },
-    tickformat: '.1f',
-  },
-  yaxis2: {
-    title: { text: '25Δ Risk Reversal (%)', font: { color: '#f0a030' } },
+  ...PLOTLY_BASE_LAYOUT_2D,
+  margin: { t: 40, r: 70, b: 60, l: 70 },
+  xaxis: plotlyAxis('Days to Expiration'),
+  yaxis: plotlyAxis('ATM IV (%)', { tickformat: '.1f' }),
+  yaxis2: plotlyAxis('25Δ Risk Reversal (%)', {
     overlaying: 'y',
     side: 'right',
     gridcolor: 'transparent',
-    zerolinecolor: '#3a4050',
     zerolinewidth: 1.5,
-    tickfont: { color: '#f0a030' },
     tickformat: '.2f',
-  },
-  margin: { t: 40, r: 70, b: 60, l: 70 },
-  legend: {
-    orientation: 'h',
-    y: -0.2,
-    x: 0.5,
-    xanchor: 'center',
-    font: { color: '#8a8f9c' },
-  },
-  hovermode: 'x unified',
+  }),
 };
 
 function daysBetween(isoDate, referenceMs) {
@@ -76,8 +58,8 @@ export default function TermStructure({ expirationMetrics, capturedAt }) {
         mode: 'lines+markers',
         type: 'scatter',
         name: 'ATM IV',
-        line: { color: '#4a9eff', width: 2 },
-        marker: { color: '#4a9eff', size: 9, symbol: 'circle' },
+        line: { color: PLOTLY_COLORS.primary, width: 2 },
+        marker: { color: PLOTLY_COLORS.primary, size: 9, symbol: 'circle' },
         yaxis: 'y',
         text: rows.map((r) => r.expiration),
         hovertemplate: '%{text}<br>DTE %{x}<br>ATM IV: %{y:.2f}%<extra></extra>',
@@ -88,8 +70,8 @@ export default function TermStructure({ expirationMetrics, capturedAt }) {
         mode: 'lines+markers',
         type: 'scatter',
         name: '25Δ Risk Reversal',
-        line: { color: '#f0a030', width: 2, dash: 'dot' },
-        marker: { color: '#f0a030', size: 9, symbol: 'diamond' },
+        line: { color: PLOTLY_COLORS.highlight, width: 2, dash: 'dot' },
+        marker: { color: PLOTLY_COLORS.highlight, size: 9, symbol: 'diamond' },
         yaxis: 'y2',
         text: rows.map((r) => r.expiration),
         hovertemplate: '%{text}<br>DTE %{x}<br>25Δ RR: %{y:.2f}%<extra></extra>',
@@ -98,10 +80,7 @@ export default function TermStructure({ expirationMetrics, capturedAt }) {
 
     const layout = {
       ...PLOTLY_LAYOUT_BASE,
-      title: {
-        text: 'Term Structure',
-        font: { color: '#e0e0e0', size: 14, family: 'Courier New, monospace' },
-      },
+      title: plotlyTitle('Term Structure'),
     };
 
     Plotly.newPlot(chartRef.current, traces, layout, {
