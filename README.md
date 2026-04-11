@@ -67,4 +67,4 @@ MIT. The code is free. The expertise is what employers are hiring.
 
 Eric Allione / AI Gamma LLC / Prescott, AZ
 
-Former Principal Analyst at a derivatives analytics firm. Designed the volatility tools (fixed strike IV matrix, volatility smile, term structure), oversaw development of live gamma and charm tools, wrote 585 institutional-grade evening market analyses, built a 700-page public knowledge base, and individually trained hundreds of paying professional subscribers on derivatives mechanics. All without generative AI.
+Revenue systems architect and former DoD architect and Principal Analyst at a derivatives analytics firm. Designed the volatility tools (fixed strike IV matrix, volatility smile, term structure), oversaw development of live gamma and charm tools, wrote 585 institutional-grade evening market analyses, built a 700-page public knowledge base, and individually trained hundreds of paying professional subscribers on derivatives mechanics. All without generative AI.
