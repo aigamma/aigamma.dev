@@ -8,5 +8,7 @@
       "mcp__claude_ai_n8n__update_workflow",
       "Bash(npm run:*)"
     ]
-  }
+  },
+  "model": "opus",
+  "effort": "max"
 }
