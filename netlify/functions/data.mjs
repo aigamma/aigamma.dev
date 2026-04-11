@@ -56,11 +56,15 @@ export default async function handler(request) {
     });
     if (expirationFilter) snapParams.set('expiration_date', `eq.${expirationFilter}`);
 
-    const [snapRes, levelsRes, expMetricsRes] = await Promise.all([
+    const [snapRes, levelsRes, expMetricsRes, sviRes] = await Promise.all([
       fetch(`${supabaseUrl}/rest/v1/snapshots?${snapParams}`, { headers }),
       fetch(`${supabaseUrl}/rest/v1/computed_levels?run_id=eq.${run.id}`, { headers }),
       fetch(
         `${supabaseUrl}/rest/v1/expiration_metrics?run_id=eq.${run.id}&order=expiration_date.asc`,
+        { headers }
+      ),
+      fetch(
+        `${supabaseUrl}/rest/v1/svi_fits?run_id=eq.${run.id}&order=expiration_date.asc`,
         { headers }
       ),
     ]);
@@ -68,11 +72,13 @@ export default async function handler(request) {
     if (!snapRes.ok) throw new Error(`snapshots query failed: ${snapRes.status}`);
     if (!levelsRes.ok) throw new Error(`computed_levels query failed: ${levelsRes.status}`);
     if (!expMetricsRes.ok) throw new Error(`expiration_metrics query failed: ${expMetricsRes.status}`);
+    if (!sviRes.ok) throw new Error(`svi_fits query failed: ${sviRes.status}`);
 
-    const [contractRows, levelsRows, expMetricsRows] = await Promise.all([
+    const [contractRows, levelsRows, expMetricsRows, sviRows] = await Promise.all([
       snapRes.json(),
       levelsRes.json(),
       expMetricsRes.json(),
+      sviRes.json(),
     ]);
 
     const contracts = contractRows.map((c) => ({
@@ -124,6 +130,31 @@ export default async function handler(request) {
 
     const expirations = [...new Set(contractRows.map((c) => c.expiration_date).filter(Boolean))].sort();
 
+    const sviFits = sviRows.map((r) => ({
+      expiration_date: r.expiration_date,
+      t_years: toNum(r.t_years),
+      forward_price: toNum(r.forward_price),
+      params: {
+        a: toNum(r.a),
+        b: toNum(r.b),
+        rho: toNum(r.rho),
+        m: toNum(r.m),
+        sigma: toNum(r.sigma),
+      },
+      rmse_iv: toNum(r.rmse_iv),
+      sample_count: r.sample_count,
+      iterations: r.iterations,
+      converged: r.converged,
+      tenor_window: toNum(r.tenor_window),
+      non_negative_variance: r.non_negative_variance,
+      butterfly_arb_free: r.butterfly_arb_free,
+      min_durrleman_g: toNum(r.min_durrleman_g),
+      density_strikes: Array.isArray(r.density_strikes) ? r.density_strikes.map(toNum) : null,
+      density_values: Array.isArray(r.density_values) ? r.density_values.map(toNum) : null,
+      density_integral: toNum(r.density_integral),
+      fitted_at: r.fitted_at,
+    }));
+
     const payload = {
       underlying: run.underlying,
       spotPrice: toNum(run.spot_price),
@@ -138,6 +169,7 @@ export default async function handler(request) {
       contracts,
       levels,
       expirationMetrics,
+      sviFits,
     };
 
     return new Response(JSON.stringify(payload), {

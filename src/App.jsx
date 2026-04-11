@@ -7,7 +7,10 @@ import TermStructure from './components/TermStructure';
 import GexHistory from './components/GexHistory';
 import ExposureProfile from './components/ExposureProfile';
 import FixedStrikeIvMatrix from './components/FixedStrikeIvMatrix';
+import RiskNeutralDensity from './components/RiskNeutralDensity';
+import VolSurface3D from './components/VolSurface3D';
 import useOptionsData from './hooks/useOptionsData';
+import useSviFits from './hooks/useSviFits';
 
 function formatFreshness(isoString) {
   if (!isoString) return null;
@@ -63,6 +66,17 @@ export default function App() {
     if (!displayExpiration) return data.contracts;
     return data.contracts.filter((c) => c.expiration_date === displayExpiration);
   }, [data, displayExpiration]);
+
+  const sviFits = useSviFits({
+    contracts: data?.contracts,
+    spotPrice: data?.spotPrice,
+    capturedAt: data?.capturedAt,
+    backendFits: data?.sviFits,
+  });
+
+  const currentSviFit = displayExpiration
+    ? sviFits.byExpiration[displayExpiration] ?? null
+    : null;
 
   const freshness = data ? formatFreshness(data.capturedAt) : null;
   const isSynthetic = data && data.source === 'synthetic';
@@ -238,6 +252,21 @@ export default function App() {
             contracts={filteredContracts}
             spotPrice={data.spotPrice}
             expiration={displayExpiration}
+            sviFit={currentSviFit}
+          />
+
+          <RiskNeutralDensity
+            fits={sviFits.byExpiration}
+            spotPrice={data.spotPrice}
+            capturedAt={data.capturedAt}
+          />
+
+          <VolSurface3D
+            contracts={data.contracts}
+            spotPrice={data.spotPrice}
+            capturedAt={data.capturedAt}
+            fits={sviFits.byExpiration}
+            sviSource={sviFits.source}
           />
         </>
       )}

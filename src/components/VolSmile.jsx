@@ -1,5 +1,6 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import usePlotly from '../hooks/usePlotly';
+import { sviTotalVariance } from '../lib/svi';
 
 const PLOTLY_LAYOUT = {
   paper_bgcolor: 'transparent',
@@ -80,14 +81,55 @@ function buildSmileTraces(contracts, spotPrice) {
   return traces;
 }
 
-export default function VolSmile({ contracts, spotPrice, expiration }) {
+function buildSviCurve(sviFit, spotPrice, contracts) {
+  if (!sviFit?.params || !sviFit.T || !contracts || contracts.length === 0) return null;
+  const forward = sviFit.forward || spotPrice;
+  const strikes = contracts
+    .map((c) => c.strike_price)
+    .filter((k) => k > 0 && !Number.isNaN(k));
+  if (strikes.length === 0) return null;
+  const kMin = Math.log(Math.min(...strikes) / forward);
+  const kMax = Math.log(Math.max(...strikes) / forward);
+  // Plot the curve a touch wider than the raw strikes so the overlay shows where
+  // the SVI model extrapolates past the observable chain.
+  const pad = 0.05;
+  const steps = 200;
+  const ks = [];
+  const iv = [];
+  const K = [];
+  for (let i = 0; i < steps; i++) {
+    const k = kMin - pad + ((kMax - kMin + 2 * pad) * i) / (steps - 1);
+    const w = sviTotalVariance(sviFit.params, k);
+    if (!(w > 0)) continue;
+    ks.push(k);
+    K.push(forward * Math.exp(k));
+    iv.push(Math.sqrt(w / sviFit.T) * 100);
+  }
+  return { strikes: K, iv };
+}
+
+export default function VolSmile({ contracts, spotPrice, expiration, sviFit }) {
   const chartRef = useRef(null);
   const Plotly = usePlotly();
+  const [showSvi, setShowSvi] = useState(true);
+
+  const sviCurve = useMemo(() => buildSviCurve(sviFit, spotPrice, contracts), [sviFit, spotPrice, contracts]);
 
   useEffect(() => {
     if (!Plotly || !chartRef.current || !contracts || contracts.length === 0) return;
 
     const traces = buildSmileTraces(contracts, spotPrice);
+    if (showSvi && sviCurve) {
+      traces.push({
+        x: sviCurve.strikes,
+        y: sviCurve.iv,
+        mode: 'lines',
+        name: 'SVI fit',
+        line: { color: '#f0a030', width: 2.25, dash: 'solid' },
+        hovertemplate: 'K %{x:.2f}<br>SVI IV %{y:.2f}%<extra></extra>',
+      });
+    }
+
     const layout = {
       ...PLOTLY_LAYOUT,
       title: {
@@ -100,7 +142,7 @@ export default function VolSmile({ contracts, spotPrice, expiration }) {
       responsive: true,
       displayModeBar: false,
     });
-  }, [Plotly, contracts, spotPrice, expiration]);
+  }, [Plotly, contracts, spotPrice, expiration, showSvi, sviCurve]);
 
   if (!contracts || contracts.length === 0) {
     return <div className="card text-muted">No contract data available.</div>;
@@ -108,6 +150,71 @@ export default function VolSmile({ contracts, spotPrice, expiration }) {
 
   return (
     <div className="card">
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: '0.5rem',
+          marginBottom: '0.35rem',
+        }}
+      >
+        <div
+          style={{
+            fontSize: '0.7rem',
+            color: 'var(--text-secondary)',
+            letterSpacing: '0.08em',
+            textTransform: 'uppercase',
+          }}
+        >
+          {sviFit ? (
+            <>
+              SVI {sviFit.source === 'client' ? '(client fit)' : '(cached)'}
+              {typeof sviFit.rmseIv === 'number' && (
+                <> · RMSE {(sviFit.rmseIv * 100).toFixed(2)}% IV</>
+              )}
+              {sviFit.diagnostics && (
+                <>
+                  {' · '}
+                  <span
+                    style={{
+                      color: sviFit.diagnostics.butterflyArbFree
+                        ? 'var(--accent-green)'
+                        : 'var(--accent-amber)',
+                    }}
+                  >
+                    {sviFit.diagnostics.butterflyArbFree ? 'no-arb ok' : 'butterfly warn'}
+                  </span>
+                </>
+              )}
+            </>
+          ) : (
+            'SVI fit unavailable for this expiration'
+          )}
+        </div>
+        <label
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '0.35rem',
+            cursor: sviFit ? 'pointer' : 'not-allowed',
+            opacity: sviFit ? 1 : 0.5,
+            fontSize: '0.72rem',
+            color: 'var(--text-secondary)',
+            letterSpacing: '0.08em',
+            textTransform: 'uppercase',
+          }}
+        >
+          <input
+            type="checkbox"
+            checked={showSvi && !!sviFit}
+            disabled={!sviFit}
+            onChange={(e) => setShowSvi(e.target.checked)}
+          />
+          Overlay SVI
+        </label>
+      </div>
       <div ref={chartRef} style={{ width: '100%', height: '500px' }} />
     </div>
   );
