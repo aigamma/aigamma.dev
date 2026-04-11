@@ -1,6 +1,8 @@
-import { workflow, node, trigger, newCredential, expr } from '@n8n/workflow-sdk';
+import { workflow, node, trigger, expr } from '@n8n/workflow-sdk';
 
 const SUPABASE_URL = 'https://tbxhvpoyyyhbvoyefggu.supabase.co';
+const SUPABASE_SERVICE_KEY = 'sb_secret_DVrk0RlntzDePeLzyFRLTA_eLHbtgeP';
+const MASSIVE_API_KEY = '4bWOQKzd3I0WmTJzW39z0hF8K0Cls46O';
 
 const MARKET_HOURS_FILTER_JS = `
 const now = new Date();
@@ -16,11 +18,13 @@ if (isScheduled) {
   if (day === 0 || day === 6) return [];
   if (timeDecimal < 9.5 || timeDecimal > 16.25) return [];
 }
-return [{ json: { timestamp: now.toISOString(), etTime: etString, underlying: 'SPY', mode, bypass: !isScheduled } }];
+return [{ json: { timestamp: now.toISOString(), etTime: etString, underlying: 'SPX', mode, bypass: !isScheduled } }];
 `;
 
 const COMPUTE_TARGETS_JS = `
 const UNDERLYING = $input.first().json.underlying;
+const INDEX_TICKERS = new Set(['SPX', 'NDX', 'RUT', 'VIX', 'DJX']);
+const API_TICKER = INDEX_TICKERS.has(UNDERLYING) ? 'I:' + UNDERLYING : UNDERLYING;
 const startedAt = Date.now();
 const capturedAtDate = new Date();
 const capturedAtIso = capturedAtDate.toISOString();
@@ -88,9 +92,41 @@ return [...targets].sort().map((exp) => ({
     captured_at: capturedAtIso,
     trading_date: tradingDate,
     started_at: startedAt,
-    fetch_url: 'https://api.massive.com/v3/snapshot/options/' + UNDERLYING + '?limit=250&expiration_date=' + exp,
+    fetch_url: 'https://api.massive.com/v3/snapshot/options/' + API_TICKER + '?limit=250&expiration_date=' + exp,
   },
 }));
+`;
+
+const FETCH_CHAIN_JS = `
+const MASSIVE_API_KEY = '4bWOQKzd3I0WmTJzW39z0hF8K0Cls46O';
+const MAX_PAGES_PER_EXPIRATION = 20;
+
+const targets = $input.all();
+const pages = [];
+
+for (const targetItem of targets) {
+  let url = targetItem.json.fetch_url;
+  let pageCount = 0;
+  while (url && pageCount < MAX_PAGES_PER_EXPIRATION) {
+    const response = await this.helpers.httpRequest({
+      method: 'GET',
+      url: url,
+      headers: {
+        'Authorization': 'Bearer ' + MASSIVE_API_KEY,
+      },
+      json: true,
+    });
+    pages.push({ json: response });
+    pageCount = pageCount + 1;
+    if (response && response.next_url) {
+      url = response.next_url;
+    } else {
+      break;
+    }
+  }
+}
+
+return pages;
 `;
 
 const COMPUTE_GEX_JS = `
@@ -154,13 +190,25 @@ function computeMaxPain(contracts) {
   return maxPainStrike;
 }
 
+// Massive/Polygon next_url pagination can return the same contract across
+// overlapping pages, so dedupe on (expiration, strike, type) as we build the
+// raw contract list — otherwise the snapshots unique constraint
+// (run_id, expiration_date, strike, contract_type) will reject the insert.
 const pages = $input.all();
 const allRaw = [];
+const seenKeys = new Set();
 let spotPrice = null;
 for (const p of pages) {
   const body = p.json;
   if (body && Array.isArray(body.results)) {
-    for (const r of body.results) allRaw.push(r);
+    for (const r of body.results) {
+      if (r && r.details) {
+        const key = r.details.expiration_date + '|' + r.details.strike_price + '|' + r.details.contract_type;
+        if (seenKeys.has(key)) continue;
+        seenKeys.add(key);
+      }
+      allRaw.push(r);
+    }
     if (!spotPrice) {
       for (const r of body.results) {
         if (r.underlying_asset && r.underlying_asset.price) { spotPrice = r.underlying_asset.price; break; }
@@ -235,9 +283,9 @@ for (const K of strikes) {
   if (absGex > absGammaMax) { absGammaMax = absGex; absGammaStrike = K; }
 }
 
-// Pick the structurally dominant sign change, not whichever zero-crossing
-// happens to sit closest to spot — a small wobble near spot would otherwise
-// mask the real dealer-hedging regime boundary.
+// Volatility flip = the net-GEX sign change bounded by the largest absolute
+// values on either side. Picks the structurally dominant regime boundary
+// instead of whichever zero-crossing happens to sit closest to spot.
 let volatilityFlip = null;
 let maxBoundaryMagnitude = 0;
 for (let i = 1; i < netGexArray.length; i++) {
@@ -354,6 +402,12 @@ const computedLevels = {
 return [{ json: { run, contracts, computedLevels, expirationMetrics } }];
 `;
 
+const SUPABASE_HEADERS = [
+  { name: 'apikey', value: SUPABASE_SERVICE_KEY },
+  { name: 'Authorization', value: 'Bearer ' + SUPABASE_SERVICE_KEY },
+  { name: 'Content-Type', value: 'application/json' },
+];
+
 const scheduleTrigger = trigger({
   type: 'n8n-nodes-base.scheduleTrigger',
   version: 1.3,
@@ -381,7 +435,7 @@ const marketHoursFilter = node({
       jsCode: MARKET_HOURS_FILTER_JS,
     },
   },
-  output: [{ timestamp: '2026-04-13T13:00:00.000Z', etTime: 'Apr 13 9:00 AM', underlying: 'SPY', mode: 'trigger', bypass: false }],
+  output: [{ timestamp: '2026-04-13T13:00:00.000Z', etTime: 'Apr 13 9:00 AM', underlying: 'SPX', mode: 'trigger', bypass: false }],
 });
 
 const computeTargets = node({
@@ -397,43 +451,26 @@ const computeTargets = node({
     },
   },
   output: [
-    { underlying: 'SPY', expiration: '2026-04-17', captured_at: '2026-04-13T13:00:00.000Z', trading_date: '2026-04-13', started_at: 1744548000000, fetch_url: 'https://api.massive.com/v3/snapshot/options/SPY?limit=250&expiration_date=2026-04-17' },
-    { underlying: 'SPY', expiration: '2026-05-15', captured_at: '2026-04-13T13:00:00.000Z', trading_date: '2026-04-13', started_at: 1744548000000, fetch_url: 'https://api.massive.com/v3/snapshot/options/SPY?limit=250&expiration_date=2026-05-15' },
-    { underlying: 'SPY', expiration: '2026-06-18', captured_at: '2026-04-13T13:00:00.000Z', trading_date: '2026-04-13', started_at: 1744548000000, fetch_url: 'https://api.massive.com/v3/snapshot/options/SPY?limit=250&expiration_date=2026-06-18' },
-    { underlying: 'SPY', expiration: '2026-09-18', captured_at: '2026-04-13T13:00:00.000Z', trading_date: '2026-04-13', started_at: 1744548000000, fetch_url: 'https://api.massive.com/v3/snapshot/options/SPY?limit=250&expiration_date=2026-09-18' },
+    { underlying: 'SPX', expiration: '2026-04-17', captured_at: '2026-04-13T13:00:00.000Z', trading_date: '2026-04-13', started_at: 1744548000000, fetch_url: 'https://api.massive.com/v3/snapshot/options/I:SPX?limit=250&expiration_date=2026-04-17' },
+    { underlying: 'SPX', expiration: '2026-05-15', captured_at: '2026-04-13T13:00:00.000Z', trading_date: '2026-04-13', started_at: 1744548000000, fetch_url: 'https://api.massive.com/v3/snapshot/options/I:SPX?limit=250&expiration_date=2026-05-15' },
+    { underlying: 'SPX', expiration: '2026-06-18', captured_at: '2026-04-13T13:00:00.000Z', trading_date: '2026-04-13', started_at: 1744548000000, fetch_url: 'https://api.massive.com/v3/snapshot/options/I:SPX?limit=250&expiration_date=2026-06-18' },
   ],
 });
 
 const fetchChain = node({
-  type: 'n8n-nodes-base.httpRequest',
-  version: 4.4,
+  type: 'n8n-nodes-base.code',
+  version: 2,
   config: {
     name: 'Fetch Chain',
     position: [-440, 120],
     parameters: {
-      method: 'GET',
-      url: expr('{{ $json.fetch_url }}'),
-      authentication: 'genericCredentialType',
-      genericAuthType: 'httpQueryAuth',
-      options: {
-        pagination: {
-          pagination: {
-            paginationMode: 'responseContainsNextURL',
-            nextURL: expr('{{ $response.body.next_url }}'),
-            paginationCompleteWhen: 'other',
-            completeExpression: expr('{{ !$response.body.next_url }}'),
-            limitPagesFetched: true,
-            maxRequests: 20,
-          },
-        },
-      },
-    },
-    credentials: {
-      httpQueryAuth: newCredential('Massive API Query Auth'),
+      mode: 'runOnceForAllItems',
+      language: 'javaScript',
+      jsCode: FETCH_CHAIN_JS,
     },
   },
   output: [
-    { status: 'OK', request_id: 'abc', results: [{ details: { contract_type: 'call', strike_price: 680, expiration_date: '2026-04-17' }, greeks: { delta: 0.5, gamma: 0.02, theta: -0.1, vega: 0.3 }, implied_volatility: 0.15, open_interest: 1000, day: { volume: 500, close: 3.5 }, underlying_asset: { price: 680 } }], next_url: null },
+    { status: 'OK', request_id: 'abc', results: [{ details: { contract_type: 'call', strike_price: 6200, expiration_date: '2026-04-17' }, greeks: { delta: 0.5, gamma: 0.02, theta: -0.1, vega: 0.3 }, implied_volatility: 0.15, open_interest: 1000, day: { volume: 500, close: 3.5 } }], next_url: null },
   ],
 });
 
@@ -443,7 +480,6 @@ const computeGex = node({
   config: {
     name: 'Compute GEX',
     position: [-220, 120],
-    executeOnce: true,
     parameters: {
       mode: 'runOnceForAllItems',
       language: 'javaScript',
@@ -453,36 +489,36 @@ const computeGex = node({
   output: [
     {
       run: {
-        underlying: 'SPY',
+        underlying: 'SPX',
         captured_at: '2026-04-13T13:00:00.000Z',
         trading_date: '2026-04-13',
         snapshot_type: 'intraday',
-        spot_price: 680,
-        contract_count: 1160,
-        expiration_count: 4,
+        spot_price: 6200,
+        contract_count: 2966,
+        expiration_count: 3,
         source: 'massive',
         status: 'success',
         duration_ms: 12500,
       },
-      contracts: [{ expiration_date: '2026-04-17', strike: 680, contract_type: 'call', implied_volatility: 0.15, delta: 0.5, gamma: 0.02, vanna: 0.001, charm: -0.0001, open_interest: 1000, volume: 500 }],
+      contracts: [{ expiration_date: '2026-04-17', strike: 6200, contract_type: 'call', implied_volatility: 0.15, delta: 0.5, gamma: 0.02, vanna: 0.001, charm: -0.0001, open_interest: 1000, volume: 500 }],
       computedLevels: {
         net_gamma_notional: -488800000,
-        call_wall_strike: 685,
-        put_wall_strike: 665,
-        abs_gamma_strike: 670,
-        volatility_flip: 675.72,
+        call_wall_strike: 6300,
+        put_wall_strike: 6100,
+        abs_gamma_strike: 6200,
+        volatility_flip: 6175.72,
         gamma_tilt: 0.921,
-        max_pain_strike: 669,
-        put_call_ratio_oi: 3.2,
-        put_call_ratio_volume: 2.1,
+        max_pain_strike: 6195,
+        put_call_ratio_oi: 1.2,
+        put_call_ratio_volume: 1.1,
         total_call_oi: 500000,
-        total_put_oi: 1600000,
+        total_put_oi: 600000,
         total_call_volume: 100000,
-        total_put_volume: 210000,
+        total_put_volume: 110000,
         net_vanna_notional: 1896872097.43,
         net_charm_notional: -1378026551.89,
       },
-      expirationMetrics: [{ expiration_date: '2026-04-17', atm_iv: 0.15, atm_strike: 680, put_25d_iv: 0.17, call_25d_iv: 0.13, skew_25d_rr: -0.04, max_pain_strike: 669, contract_count: 450 }],
+      expirationMetrics: [{ expiration_date: '2026-04-17', atm_iv: 0.15, atm_strike: 6200, put_25d_iv: 0.17, call_25d_iv: 0.13, skew_25d_rr: -0.04, max_pain_strike: 6195, contract_count: 1040 }],
     },
   ],
 });
@@ -496,13 +532,12 @@ const insertRunHeader = node({
     parameters: {
       method: 'POST',
       url: SUPABASE_URL + '/rest/v1/ingest_runs',
-      authentication: 'genericCredentialType',
-      genericAuthType: 'httpCustomAuth',
+      authentication: 'none',
       sendHeaders: true,
       specifyHeaders: 'keypair',
       headerParameters: {
         parameters: [
-          { name: 'Content-Type', value: 'application/json' },
+          ...SUPABASE_HEADERS,
           { name: 'Prefer', value: 'return=representation' },
         ],
       },
@@ -511,11 +546,8 @@ const insertRunHeader = node({
       contentType: 'json',
       jsonBody: expr('{{ JSON.stringify([$json.run]) }}'),
     },
-    credentials: {
-      httpCustomAuth: newCredential('Supabase Service Role'),
-    },
   },
-  output: [{ id: 12, underlying: 'SPY', captured_at: '2026-04-13T13:00:00.000Z' }],
+  output: [{ id: 15, underlying: 'SPX', captured_at: '2026-04-13T13:00:00.000Z' }],
 });
 
 const insertSnapshots = node({
@@ -527,13 +559,12 @@ const insertSnapshots = node({
     parameters: {
       method: 'POST',
       url: SUPABASE_URL + '/rest/v1/snapshots',
-      authentication: 'genericCredentialType',
-      genericAuthType: 'httpCustomAuth',
+      authentication: 'none',
       sendHeaders: true,
       specifyHeaders: 'keypair',
       headerParameters: {
         parameters: [
-          { name: 'Content-Type', value: 'application/json' },
+          ...SUPABASE_HEADERS,
           { name: 'Prefer', value: 'return=minimal' },
         ],
       },
@@ -541,9 +572,6 @@ const insertSnapshots = node({
       specifyBody: 'json',
       contentType: 'json',
       jsonBody: expr('{{ JSON.stringify($("Compute GEX").item.json.contracts.map(c => Object.assign({}, c, { run_id: $json.id }))) }}'),
-    },
-    credentials: {
-      httpCustomAuth: newCredential('Supabase Service Role'),
     },
   },
   output: [{}],
@@ -558,13 +586,12 @@ const insertComputedLevels = node({
     parameters: {
       method: 'POST',
       url: SUPABASE_URL + '/rest/v1/computed_levels',
-      authentication: 'genericCredentialType',
-      genericAuthType: 'httpCustomAuth',
+      authentication: 'none',
       sendHeaders: true,
       specifyHeaders: 'keypair',
       headerParameters: {
         parameters: [
-          { name: 'Content-Type', value: 'application/json' },
+          ...SUPABASE_HEADERS,
           { name: 'Prefer', value: 'return=minimal' },
         ],
       },
@@ -572,9 +599,6 @@ const insertComputedLevels = node({
       specifyBody: 'json',
       contentType: 'json',
       jsonBody: expr('{{ JSON.stringify([Object.assign({}, $("Compute GEX").item.json.computedLevels, { run_id: $json.id })]) }}'),
-    },
-    credentials: {
-      httpCustomAuth: newCredential('Supabase Service Role'),
     },
   },
   output: [{}],
@@ -589,13 +613,12 @@ const insertExpirationMetrics = node({
     parameters: {
       method: 'POST',
       url: SUPABASE_URL + '/rest/v1/expiration_metrics',
-      authentication: 'genericCredentialType',
-      genericAuthType: 'httpCustomAuth',
+      authentication: 'none',
       sendHeaders: true,
       specifyHeaders: 'keypair',
       headerParameters: {
         parameters: [
-          { name: 'Content-Type', value: 'application/json' },
+          ...SUPABASE_HEADERS,
           { name: 'Prefer', value: 'return=minimal' },
         ],
       },
@@ -603,9 +626,6 @@ const insertExpirationMetrics = node({
       specifyBody: 'json',
       contentType: 'json',
       jsonBody: expr('{{ JSON.stringify($("Compute GEX").item.json.expirationMetrics.map(m => Object.assign({}, m, { run_id: $json.id }))) }}'),
-    },
-    credentials: {
-      httpCustomAuth: newCredential('Supabase Service Role'),
     },
   },
   output: [{}],
