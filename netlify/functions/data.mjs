@@ -76,8 +76,7 @@ export default async function handler(request) {
     });
     if (expirationFilter) snapParams.set('expiration_date', `eq.${expirationFilter}`);
 
-    const [snapRes, levelsRes, expMetricsRes, sviRes] = await Promise.all([
-      fetchWithTimeout(`${supabaseUrl}/rest/v1/snapshots?${snapParams}`, { headers }, 'snapshots'),
+    const [levelsRes, expMetricsRes, sviRes] = await Promise.all([
       fetchWithTimeout(
         `${supabaseUrl}/rest/v1/computed_levels?run_id=eq.${run.id}`,
         { headers },
@@ -95,13 +94,33 @@ export default async function handler(request) {
       ),
     ]);
 
-    if (!snapRes.ok) throw new Error(`snapshots query failed: ${snapRes.status}`);
     if (!levelsRes.ok) throw new Error(`computed_levels query failed: ${levelsRes.status}`);
     if (!expMetricsRes.ok) throw new Error(`expiration_metrics query failed: ${expMetricsRes.status}`);
     if (!sviRes.ok) throw new Error(`svi_fits query failed: ${sviRes.status}`);
 
-    const [contractRows, levelsRows, expMetricsRows, sviRows] = await Promise.all([
-      snapRes.json(),
+    // Page through snapshots via Range header. PostgREST/Supabase caps single
+    // responses (default 1000 rows), and run 19 has 9k+ contracts — fetching a
+    // single unpaginated page silently truncates to the lowest strikes of the
+    // earliest expirations, which collapses the GEX profile onto one side of spot.
+    const PAGE_SIZE = 1000;
+    const contractRows = [];
+    for (let offset = 0; ; offset += PAGE_SIZE) {
+      const end = offset + PAGE_SIZE - 1;
+      const pageRes = await fetchWithTimeout(
+        `${supabaseUrl}/rest/v1/snapshots?${snapParams}`,
+        { headers: { ...headers, Range: `${offset}-${end}`, 'Range-Unit': 'items' } },
+        'snapshots'
+      );
+      if (!pageRes.ok && pageRes.status !== 206) {
+        throw new Error(`snapshots query failed: ${pageRes.status}`);
+      }
+      const page = await pageRes.json();
+      if (!Array.isArray(page) || page.length === 0) break;
+      contractRows.push(...page);
+      if (page.length < PAGE_SIZE) break;
+    }
+
+    const [levelsRows, expMetricsRows, sviRows] = await Promise.all([
       levelsRes.json(),
       expMetricsRes.json(),
       sviRes.json(),
