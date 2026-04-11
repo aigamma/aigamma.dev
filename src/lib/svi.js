@@ -159,7 +159,7 @@ function solveSymmetric(A, b) {
 }
 
 // ---------------------------------------------------------------------------
-// Heuristic initial guess. Robust enough for SPY-like slices with a visible
+// Heuristic initial guess. Robust enough for index-option slices with a visible
 // kink and negative skew. The LM solver refines from here.
 
 function initialGuess(samples) {

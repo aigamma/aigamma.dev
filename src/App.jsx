@@ -54,7 +54,7 @@ const REGIME_COLORS = {
 export default function App() {
   const [selectedExpiration, setSelectedExpiration] = useState(null);
   const { data, loading, error } = useOptionsData({
-    underlying: 'SPY',
+    underlying: 'SPX',
     snapshotType: 'intraday',
   });
 
@@ -253,6 +253,7 @@ export default function App() {
             spotPrice={data.spotPrice}
             expiration={displayExpiration}
             sviFit={currentSviFit}
+            underlying={data.underlying}
           />
 
           <RiskNeutralDensity
@@ -267,6 +268,7 @@ export default function App() {
             capturedAt={data.capturedAt}
             fits={sviFits.byExpiration}
             sviSource={sviFits.source}
+            underlying={data.underlying}
           />
         </>
       )}

@@ -4,14 +4,14 @@
 // session.
 //
 // Query params:
-//   underlying    — ticker (default SPY)
+//   underlying    — ticker (default SPX)
 //   snapshot_type — 'intraday' | 'daily' | 'synthetic_backfill' (default 'intraday')
 //   lookback      — ISO-8601 duration fragment; accepts "Nh" or "Nd" (default '24h')
 //   limit         — max rows to return (default 500, cap 2000)
 
 export default async function handler(request) {
   const url = new URL(request.url);
-  const underlying = url.searchParams.get('underlying') || 'SPY';
+  const underlying = url.searchParams.get('underlying') || 'SPX';
   const snapshotType = url.searchParams.get('snapshot_type') || 'intraday';
   const lookbackParam = url.searchParams.get('lookback') || '24h';
   const limitParam = parseInt(url.searchParams.get('limit') || '500', 10);

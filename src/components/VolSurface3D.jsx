@@ -244,7 +244,7 @@ function computeColorRange(surface, scatter, atmIv) {
   return { cMid, cMin: cMid - halfRange, cMax: cMid + halfRange };
 }
 
-export default function VolSurface3D({ contracts, spotPrice, capturedAt, fits, sviSource }) {
+export default function VolSurface3D({ contracts, spotPrice, capturedAt, fits, sviSource, underlying }) {
   const chartRef = useRef(null);
   const { plotly: Plotly, error: plotlyError } = usePlotly();
   const [mode, setMode] = useState('svi');
@@ -385,8 +385,8 @@ export default function VolSurface3D({ contracts, spotPrice, capturedAt, fits, s
       title: {
         text:
           effectiveMode === 'svi' && hasSviFits
-            ? 'SPY Volatility Surface — SVI interpolation'
-            : 'SPY Volatility Surface — raw IV scatter',
+            ? `${underlying || 'SPX'} Volatility Surface — SVI interpolation`
+            : `${underlying || 'SPX'} Volatility Surface — raw IV scatter`,
         font: { color: '#e0e0e0', size: 13, family: 'Courier New, monospace' },
       },
     };
@@ -395,7 +395,7 @@ export default function VolSurface3D({ contracts, spotPrice, capturedAt, fits, s
       responsive: true,
       displayModeBar: false,
     });
-  }, [Plotly, effectiveMode, sviSurface, rawScatter, spotPrice, atmIv, sortedFits, hasSviFits]);
+  }, [Plotly, effectiveMode, sviSurface, rawScatter, spotPrice, atmIv, sortedFits, hasSviFits, underlying]);
 
   if (plotlyError) {
     return (

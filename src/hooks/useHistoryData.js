@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 
-export default function useHistoryData({ underlying = 'SPY', snapshotType = 'intraday', lookback = '24h', limit = 500 } = {}) {
+export default function useHistoryData({ underlying = 'SPX', snapshotType = 'intraday', lookback = '24h', limit = 500 } = {}) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);

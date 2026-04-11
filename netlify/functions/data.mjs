@@ -3,7 +3,7 @@
 // of contracts, aggregate GEX levels, and per-expiration skew metrics.
 //
 // Query params:
-//   underlying    — ticker (default SPY)
+//   underlying    — ticker (default SPX)
 //   snapshot_type — 'intraday' | 'daily' | 'synthetic_backfill' (default 'intraday')
 //   date          — YYYY-MM-DD trading date filter (optional; without it, returns most recent run)
 //   expiration    — YYYY-MM-DD expiration filter on contracts (optional; without it, returns all expirations in the run)
@@ -26,7 +26,7 @@ async function fetchWithTimeout(url, options, label) {
 
 export default async function handler(request) {
   const url = new URL(request.url);
-  const underlying = url.searchParams.get('underlying') || 'SPY';
+  const underlying = url.searchParams.get('underlying') || 'SPX';
   const snapshotType = url.searchParams.get('snapshot_type') || 'intraday';
   const tradingDate = url.searchParams.get('date');
   const expirationFilter = url.searchParams.get('expiration');

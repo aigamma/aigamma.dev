@@ -108,7 +108,7 @@ function buildSviCurve(sviFit, spotPrice, contracts) {
   return { strikes: K, iv };
 }
 
-export default function VolSmile({ contracts, spotPrice, expiration, sviFit }) {
+export default function VolSmile({ contracts, spotPrice, expiration, sviFit, underlying }) {
   const chartRef = useRef(null);
   const { plotly: Plotly, error: plotlyError } = usePlotly();
   const [showSvi, setShowSvi] = useState(true);
@@ -133,7 +133,7 @@ export default function VolSmile({ contracts, spotPrice, expiration, sviFit }) {
     const layout = {
       ...PLOTLY_LAYOUT,
       title: {
-        text: `SPY Volatility Smile — ${expiration || 'Latest'}`,
+        text: `${underlying || 'SPX'} Volatility Smile — ${expiration || 'Latest'}`,
         font: { color: '#e0e0e0', size: 14, family: 'Courier New, monospace' },
       },
     };
@@ -142,7 +142,7 @@ export default function VolSmile({ contracts, spotPrice, expiration, sviFit }) {
       responsive: true,
       displayModeBar: false,
     });
-  }, [Plotly, contracts, spotPrice, expiration, showSvi, sviCurve]);
+  }, [Plotly, contracts, spotPrice, expiration, showSvi, sviCurve, underlying]);
 
   if (plotlyError) {
     return (
