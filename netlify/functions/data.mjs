@@ -168,7 +168,6 @@ export default async function handler(request) {
       atm_strike: toNum(m.atm_strike),
       put_25d_iv: toNum(m.put_25d_iv),
       call_25d_iv: toNum(m.call_25d_iv),
-      skew_25d_rr: toNum(m.skew_25d_rr),
       max_pain_strike: toNum(m.max_pain_strike),
       contract_count: m.contract_count,
     }));

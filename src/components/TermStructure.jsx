@@ -9,16 +9,9 @@ import {
 
 const PLOTLY_LAYOUT_BASE = {
   ...PLOTLY_BASE_LAYOUT_2D,
-  margin: { t: 40, r: 70, b: 60, l: 70 },
+  margin: { t: 40, r: 40, b: 60, l: 70 },
   xaxis: plotlyAxis('Days to Expiration'),
   yaxis: plotlyAxis('ATM IV (%)', { tickformat: '.1f' }),
-  yaxis2: plotlyAxis('25Δ Risk Reversal (%)', {
-    overlaying: 'y',
-    side: 'right',
-    gridcolor: 'transparent',
-    zerolinewidth: 1.5,
-    tickformat: '.2f',
-  }),
 };
 
 function daysBetween(isoDate, referenceMs) {
@@ -42,7 +35,6 @@ export default function TermStructure({ expirationMetrics, capturedAt }) {
         expiration: m.expiration_date,
         dte: daysBetween(m.expiration_date, refMs),
         atmIv: m.atm_iv,
-        rr25: m.skew_25d_rr,
       }))
       .filter((r) => r.dte != null)
       .sort((a, b) => a.dte - b.dte);
@@ -63,18 +55,6 @@ export default function TermStructure({ expirationMetrics, capturedAt }) {
         yaxis: 'y',
         text: rows.map((r) => r.expiration),
         hovertemplate: '%{text}<br>DTE %{x}<br>ATM IV: %{y:.2f}%<extra></extra>',
-      },
-      {
-        x: rows.map((r) => r.dte),
-        y: rows.map((r) => (r.rr25 == null ? null : r.rr25 * 100)),
-        mode: 'lines+markers',
-        type: 'scatter',
-        name: '25Δ Risk Reversal',
-        line: { color: PLOTLY_COLORS.highlight, width: 2, dash: 'dot' },
-        marker: { color: PLOTLY_COLORS.highlight, size: 9, symbol: 'diamond' },
-        yaxis: 'y2',
-        text: rows.map((r) => r.expiration),
-        hovertemplate: '%{text}<br>DTE %{x}<br>25Δ RR: %{y:.2f}%<extra></extra>',
       },
     ];
 

@@ -287,17 +287,6 @@ export default function LevelsPanel({ levels, spotPrice, expirationMetrics, sele
             <Stat label="Max Pain (exp)" value={formatStrike(relevantMetric.max_pain_strike)} accent="var(--text-primary)" />
             <Stat label="25Δ Put IV" value={formatPercent(relevantMetric.put_25d_iv)} />
             <Stat label="25Δ Call IV" value={formatPercent(relevantMetric.call_25d_iv)} />
-            <Stat
-              label="25Δ Risk Reversal"
-              value={formatPercent(relevantMetric.skew_25d_rr, 3)}
-              accent={
-                relevantMetric.skew_25d_rr == null
-                  ? undefined
-                  : relevantMetric.skew_25d_rr >= 0
-                    ? 'var(--accent-green)'
-                    : 'var(--accent-coral)'
-              }
-            />
           </div>
         </>
       )}
