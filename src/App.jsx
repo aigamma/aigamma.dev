@@ -94,19 +94,14 @@ export default function App() {
         }}
       >
         <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.75rem', flexWrap: 'wrap' }}>
-          <h1
+          <img
+            src="/logo.png"
+            alt="aigamma.com"
             style={{
-              fontFamily: 'Courier New, monospace',
-              fontSize: '1.2rem',
-              fontWeight: 400,
-              color: 'var(--text-secondary)',
-              letterSpacing: '0.08em',
-              textTransform: 'uppercase',
-              margin: 0,
+              height: '1.6rem',
+              display: 'block',
             }}
-          >
-            aigamma.com
-          </h1>
+          />
           {regime && (
             <span
               title={regime.hint}
