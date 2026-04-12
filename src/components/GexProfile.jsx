@@ -182,6 +182,10 @@ export default function GexProfile({ contracts, spotPrice, levels }) {
     Plotly.newPlot(chartRef.current, traces, layout, {
       responsive: true,
       displayModeBar: false,
+    }).then(() => {
+      chartRef.current
+        .querySelectorAll('.annotation rect')
+        .forEach((r) => r.setAttribute('fill', '#10131A'));
     });
   }, [Plotly, gexData, spotPrice, levels]);
 
