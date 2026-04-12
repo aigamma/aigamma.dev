@@ -207,7 +207,7 @@ export default function LevelsPanel({ levels, spotPrice, prevClose, expirationMe
         <>
           <Divider />
           <div style={ROW_GRID}>
-            <Stat label="ATM Strike" value={formatStrike(relevantMetric.atm_strike)} />
+            <Stat label="ATM Strike" value={formatInteger(relevantMetric.atm_strike)} />
             <Stat label="25Δ Put IV" value={formatPercent(relevantMetric.put_25d_iv)} />
             <Stat label="ATM IV" value={formatPercent(relevantMetric.atm_iv)} />
             <Stat label="25Δ Call IV" value={formatPercent(relevantMetric.call_25d_iv)} />
