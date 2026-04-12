@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import './styles/theme.css';
 import VolSmile from './components/VolSmile';
+import LevelsHistory from './components/LevelsHistory';
 import LevelsPanel from './components/LevelsPanel';
 import GexProfile from './components/GexProfile';
 import TermStructure from './components/TermStructure';
@@ -153,6 +154,8 @@ export default function App() {
           )}
         </div>
       </header>
+
+      <LevelsHistory underlying="SPX" snapshotType="intraday" />
 
       {loading && (
         <div className="card text-muted" style={{ padding: '2rem', textAlign: 'center' }}>
