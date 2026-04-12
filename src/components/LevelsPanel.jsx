@@ -8,6 +8,11 @@ function formatStrike(value) {
   return value.toFixed(2);
 }
 
+function formatInteger(value) {
+  if (value == null) return '—';
+  return Math.round(value).toLocaleString('en-US');
+}
+
 function formatGamma(value) {
   if (value == null) return '—';
   const abs = Math.abs(value);
@@ -133,26 +138,26 @@ export default function LevelsPanel({ levels, spotPrice, expirationMetrics, sele
       <div style={ROW_GRID}>
         <Stat
           label="Put Wall"
-          value={formatStrike(levels.put_wall)}
+          value={formatInteger(levels.put_wall)}
           accent="var(--accent-coral)"
           sub={putWallSub}
         />
         <Stat
           label="Vol Flip"
-          value={formatStrike(levels.volatility_flip)}
+          value={formatInteger(levels.volatility_flip)}
           accent="var(--accent-amber)"
           sub={volFlipSub}
         />
-        <Stat label="Spot" value={formatCurrency(spotPrice)} accent="var(--accent-blue)" />
+        <Stat label="Spot" value={formatInteger(spotPrice)} accent="var(--accent-blue)" />
         <Stat
           label="Largest Gamma"
-          value={formatStrike(levels.abs_gamma_strike)}
+          value={formatInteger(levels.abs_gamma_strike)}
           accent="var(--accent-amber)"
           sub={absGammaSub}
         />
         <Stat
           label="Call Wall"
-          value={formatStrike(levels.call_wall)}
+          value={formatInteger(levels.call_wall)}
           accent="var(--accent-green)"
           sub={callWallSub}
         />
@@ -163,7 +168,7 @@ export default function LevelsPanel({ levels, spotPrice, expirationMetrics, sele
       <div style={ROW_GRID}>
         <Stat
           label="Expected Move"
-          value={expMoveDollar != null ? `±$${expMoveDollar.toFixed(2)}` : '—'}
+          value={expMoveDollar != null ? expMoveDollar.toFixed(2) : '—'}
           accent="var(--accent-purple)"
           sub={expMoveSub}
           bold
