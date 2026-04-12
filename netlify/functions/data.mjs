@@ -149,16 +149,12 @@ export default async function handler(request) {
           abs_gamma_strike: toNum(levelsRows[0].abs_gamma_strike),
           volatility_flip: toNum(levelsRows[0].volatility_flip),
           net_gamma_notional: toNum(levelsRows[0].net_gamma_notional),
-          gamma_tilt: toNum(levelsRows[0].gamma_tilt),
-          max_pain_strike: toNum(levelsRows[0].max_pain_strike),
           put_call_ratio_oi: toNum(levelsRows[0].put_call_ratio_oi),
           put_call_ratio_volume: toNum(levelsRows[0].put_call_ratio_volume),
           total_call_oi: levelsRows[0].total_call_oi,
           total_put_oi: levelsRows[0].total_put_oi,
           total_call_volume: levelsRows[0].total_call_volume,
           total_put_volume: levelsRows[0].total_put_volume,
-          net_vanna_notional: toNum(levelsRows[0].net_vanna_notional),
-          net_charm_notional: toNum(levelsRows[0].net_charm_notional),
         }
       : null;
 
@@ -168,8 +164,6 @@ export default async function handler(request) {
       atm_strike: toNum(m.atm_strike),
       put_25d_iv: toNum(m.put_25d_iv),
       call_25d_iv: toNum(m.call_25d_iv),
-      max_pain_strike: toNum(m.max_pain_strike),
-      contract_count: m.contract_count,
     }));
 
     const expirations = [...new Set(contractRows.map((c) => c.expiration_date).filter(Boolean))].sort();

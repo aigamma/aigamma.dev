@@ -22,11 +22,6 @@ function formatPercent(value, digits = 2) {
   return `${(value * 100).toFixed(digits)}%`;
 }
 
-function formatTilt(value) {
-  if (value == null) return '—';
-  return value.toFixed(3);
-}
-
 function formatRatio(value) {
   if (value == null) return '—';
   return value.toFixed(2);
@@ -98,6 +93,12 @@ function Divider() {
   );
 }
 
+const ROW_GRID = {
+  display: 'grid',
+  gridTemplateColumns: 'repeat(5, minmax(0, 1fr))',
+  gap: '1rem',
+};
+
 export default function LevelsPanel({ levels, spotPrice, expirationMetrics, selectedExpiration, capturedAt }) {
   if (!levels) {
     return (
@@ -107,18 +108,10 @@ export default function LevelsPanel({ levels, spotPrice, expirationMetrics, sele
     );
   }
 
-  const netGammaColor =
-    levels.net_gamma_notional == null
-      ? undefined
-      : levels.net_gamma_notional >= 0
-        ? 'var(--accent-green)'
-        : 'var(--accent-coral)';
-
   const callWallSub = distanceSub(levels.call_wall, spotPrice);
   const putWallSub = distanceSub(levels.put_wall, spotPrice);
   const absGammaSub = distanceSub(levels.abs_gamma_strike, spotPrice);
   const volFlipSub = distanceSub(levels.volatility_flip, spotPrice);
-  const maxPainSub = distanceSub(levels.max_pain_strike, spotPrice);
 
   const pcrOiColor =
     levels.put_call_ratio_oi == null
@@ -132,19 +125,6 @@ export default function LevelsPanel({ levels, spotPrice, expirationMetrics, sele
       : levels.put_call_ratio_volume >= 1
         ? 'var(--accent-coral)'
         : 'var(--accent-green)';
-
-  const netVannaColor =
-    levels.net_vanna_notional == null
-      ? undefined
-      : levels.net_vanna_notional >= 0
-        ? 'var(--accent-green)'
-        : 'var(--accent-coral)';
-  const netCharmColor =
-    levels.net_charm_notional == null
-      ? undefined
-      : levels.net_charm_notional >= 0
-        ? 'var(--accent-green)'
-        : 'var(--accent-coral)';
 
   const relevantMetric =
     expirationMetrics && expirationMetrics.length > 0
@@ -160,28 +140,9 @@ export default function LevelsPanel({ levels, spotPrice, expirationMetrics, sele
       ? `${expMoveLow.toFixed(2)} – ${expMoveHigh.toFixed(2)}  ·  ${dte != null ? dte.toFixed(1) : '—'}d`
       : null;
 
-  const hasFlowRow =
-    levels.put_call_ratio_oi != null ||
-    levels.put_call_ratio_volume != null ||
-    levels.net_vanna_notional != null ||
-    levels.net_charm_notional != null;
-
   return (
     <div className="card" style={{ marginBottom: '1rem' }}>
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))',
-          gap: '1rem',
-        }}
-      >
-        <Stat label="Spot" value={formatCurrency(spotPrice)} accent="var(--accent-blue)" />
-        <Stat
-          label="Call Wall"
-          value={formatStrike(levels.call_wall)}
-          accent="var(--accent-green)"
-          sub={callWallSub}
-        />
+      <div style={ROW_GRID}>
         <Stat
           label="Put Wall"
           value={formatStrike(levels.put_wall)}
@@ -189,96 +150,64 @@ export default function LevelsPanel({ levels, spotPrice, expirationMetrics, sele
           sub={putWallSub}
         />
         <Stat
-          label="Max Pain"
-          value={formatStrike(levels.max_pain_strike)}
-          accent="var(--text-primary)"
-          sub={maxPainSub}
-        />
-        <Stat
-          label="Abs Gamma"
-          value={formatStrike(levels.abs_gamma_strike)}
-          accent="var(--accent-amber)"
-          sub={absGammaSub}
-        />
-        <Stat
           label="Vol Flip"
           value={formatStrike(levels.volatility_flip)}
           accent="var(--accent-amber)"
           sub={volFlipSub}
         />
-        <Stat label="Net GEX ($)" value={formatGamma(levels.net_gamma_notional)} accent={netGammaColor} />
-        <Stat label="Gamma Tilt" value={formatTilt(levels.gamma_tilt)} />
+        <Stat label="Spot" value={formatCurrency(spotPrice)} accent="var(--accent-blue)" />
+        <Stat
+          label="Largest Gamma"
+          value={formatStrike(levels.abs_gamma_strike)}
+          accent="var(--accent-amber)"
+          sub={absGammaSub}
+        />
+        <Stat
+          label="Call Wall"
+          value={formatStrike(levels.call_wall)}
+          accent="var(--accent-green)"
+          sub={callWallSub}
+        />
       </div>
 
-      {hasFlowRow && (
-        <>
-          <Divider />
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
-              gap: '1rem',
-            }}
-          >
-            <Stat
-              label="P/C Ratio (OI)"
-              value={formatRatio(levels.put_call_ratio_oi)}
-              accent={pcrOiColor}
-              sub={
-                levels.total_put_oi != null && levels.total_call_oi != null
-                  ? `${formatGamma(levels.total_put_oi)}P / ${formatGamma(levels.total_call_oi)}C`
-                  : null
-              }
-            />
-            <Stat
-              label="P/C Ratio (Vol)"
-              value={formatRatio(levels.put_call_ratio_volume)}
-              accent={pcrVolColor}
-              sub={
-                levels.total_put_volume != null && levels.total_call_volume != null
-                  ? `${formatGamma(levels.total_put_volume)}P / ${formatGamma(levels.total_call_volume)}C`
-                  : null
-              }
-            />
-            <Stat
-              label="Net Vanna"
-              value={formatGamma(levels.net_vanna_notional)}
-              accent={netVannaColor}
-              sub="∂Δ/∂σ notional"
-            />
-            <Stat
-              label="Net Charm"
-              value={formatGamma(levels.net_charm_notional)}
-              accent={netCharmColor}
-              sub="∂Δ/∂t notional"
-            />
-          </div>
-        </>
-      )}
+      <Divider />
+
+      <div style={ROW_GRID}>
+        <Stat
+          label="Expected Move"
+          value={expMoveDollar != null ? `±$${expMoveDollar.toFixed(2)}` : '—'}
+          accent="var(--accent-amber)"
+          sub={expMoveSub}
+        />
+        <Stat
+          label="P/C Ratio (Volume)"
+          value={formatRatio(levels.put_call_ratio_volume)}
+          accent={pcrVolColor}
+          sub={
+            levels.total_put_volume != null && levels.total_call_volume != null
+              ? `${formatGamma(levels.total_put_volume)}P / ${formatGamma(levels.total_call_volume)}C`
+              : null
+          }
+        />
+        <Stat
+          label="P/C Ratio (OI)"
+          value={formatRatio(levels.put_call_ratio_oi)}
+          accent={pcrOiColor}
+          sub={
+            levels.total_put_oi != null && levels.total_call_oi != null
+              ? `${formatGamma(levels.total_put_oi)}P / ${formatGamma(levels.total_call_oi)}C`
+              : null
+          }
+        />
+      </div>
 
       {relevantMetric && (
         <>
           <Divider />
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))',
-              gap: '1rem',
-            }}
-          >
-            <Stat
-              label={`ATM IV (${relevantMetric.expiration_date})`}
-              value={formatPercent(relevantMetric.atm_iv)}
-            />
-            <Stat
-              label="Expected Move"
-              value={expMoveDollar != null ? `±$${expMoveDollar.toFixed(2)}` : '—'}
-              accent="var(--accent-amber)"
-              sub={expMoveSub}
-            />
+          <div style={ROW_GRID}>
             <Stat label="ATM Strike" value={formatStrike(relevantMetric.atm_strike)} />
-            <Stat label="Max Pain (exp)" value={formatStrike(relevantMetric.max_pain_strike)} accent="var(--text-primary)" />
             <Stat label="25Δ Put IV" value={formatPercent(relevantMetric.put_25d_iv)} />
+            <Stat label="ATM IV" value={formatPercent(relevantMetric.atm_iv)} />
             <Stat label="25Δ Call IV" value={formatPercent(relevantMetric.call_25d_iv)} />
           </div>
         </>
