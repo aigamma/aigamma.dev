@@ -144,14 +144,12 @@ export default function GexProfile({ contracts, spotPrice, levels }) {
         yref: 'paper',
         y0: 0,
         y1: 1,
-        line: { color, width: 1.5, dash: 'dash' },
+        line: { color, width: 3, dash: 'dash' },
       });
     };
 
     pushLine(spotPrice, PLOTLY_COLORS.primary);
     if (levels) {
-      pushLine(levels.call_wall, PLOTLY_COLORS.positive);
-      pushLine(levels.put_wall, PLOTLY_COLORS.negative);
       pushLine(levels.volatility_flip, PLOTLY_COLORS.highlight);
     }
 
