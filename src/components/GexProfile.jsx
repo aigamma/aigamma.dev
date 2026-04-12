@@ -157,7 +157,11 @@ export default function GexProfile({ contracts, spotPrice, levels }) {
 
     const layout = {
       ...PLOTLY_LAYOUT_BASE,
-      title: plotlyTitle('Gamma Exposure Profile (Symlog Adjustment)'),
+      title: {
+        ...plotlyTitle('Gamma Exposure Profile (Symlog Adjustment)'),
+        y: 0.97,
+        yanchor: 'top',
+      },
       yaxis: plotlyAxis('Gamma Exposure ($ notional)', {
         zerolinewidth: 2,
         tickvals,
