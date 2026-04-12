@@ -124,8 +124,7 @@ export default function LevelsPanel({ levels, spotPrice, prevClose, expirationMe
 
   const callWallSub = distanceSub(levels.call_wall, spotPrice);
   const putWallSub = distanceSub(levels.put_wall, spotPrice);
-  const absGammaSub = distanceSub(levels.abs_gamma_strike, spotPrice);
-  const volFlipSub = distanceSub(levels.volatility_flip, spotPrice);
+const volFlipSub = distanceSub(levels.volatility_flip, spotPrice);
 
   const relevantMetric =
     expirationMetrics && expirationMetrics.length > 0
@@ -157,12 +156,6 @@ export default function LevelsPanel({ levels, spotPrice, prevClose, expirationMe
           sub={volFlipSub}
         />
         <Stat label="Spot" value={formatInteger(spotPrice)} accent="var(--accent-blue)" sub={spotDeltaSub(spotPrice, prevClose)} />
-        <Stat
-          label="Largest Gamma"
-          value={formatInteger(levels.abs_gamma_strike)}
-          accent="var(--accent-amber)"
-          sub={absGammaSub}
-        />
         <Stat
           label="Call Wall"
           value={formatInteger(levels.call_wall)}
@@ -207,7 +200,6 @@ export default function LevelsPanel({ levels, spotPrice, prevClose, expirationMe
         <>
           <Divider />
           <div style={ROW_GRID}>
-            <Stat label="ATM Strike" value={formatInteger(relevantMetric.atm_strike)} />
             <Stat label="25Δ Put IV" value={formatPercent(relevantMetric.put_25d_iv)} />
             <Stat label="ATM IV" value={formatPercent(relevantMetric.atm_iv)} />
             <Stat label="25Δ Call IV" value={formatPercent(relevantMetric.call_25d_iv)} />
