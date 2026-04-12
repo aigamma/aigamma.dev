@@ -11,7 +11,7 @@ import {
 
 const PLOTLY_LAYOUT_BASE = {
   ...PLOTLY_BASE_LAYOUT_2D,
-  margin: { t: 55, r: 30, b: 70, l: 80 },
+  margin: { t: 75, r: 30, b: 70, l: 80 },
   xaxis: plotlyAxis('', { title: '' }),
   yaxis: plotlyAxis('Gamma Exposure ($ notional)', {
     zerolinewidth: 2,
@@ -222,7 +222,7 @@ export default function GexProfile({ contracts, spotPrice, levels }) {
       <div style={{ position: 'relative' }}>
         <div
           ref={chartRef}
-          style={{ width: '100%', height: '480px', backgroundColor: '#141820' }}
+          style={{ width: '100%', height: '520px', backgroundColor: '#141820' }}
         />
         {labels.map((l, i) => (
           <div
