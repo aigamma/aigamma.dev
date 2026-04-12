@@ -114,13 +114,6 @@ export default function LevelsPanel({ levels, spotPrice, expirationMetrics, sele
         ? 'var(--accent-green)'
         : 'var(--accent-coral)';
 
-  const volFlipColor =
-    levels.volatility_flip != null && spotPrice != null
-      ? spotPrice >= levels.volatility_flip
-        ? 'var(--accent-green)'
-        : 'var(--accent-coral)'
-      : undefined;
-
   const callWallSub = distanceSub(levels.call_wall, spotPrice);
   const putWallSub = distanceSub(levels.put_wall, spotPrice);
   const absGammaSub = distanceSub(levels.abs_gamma_strike, spotPrice);
@@ -210,7 +203,7 @@ export default function LevelsPanel({ levels, spotPrice, expirationMetrics, sele
         <Stat
           label="Vol Flip"
           value={formatStrike(levels.volatility_flip)}
-          accent={volFlipColor}
+          accent="var(--accent-amber)"
           sub={volFlipSub}
         />
         <Stat label="Net GEX ($)" value={formatGamma(levels.net_gamma_notional)} accent={netGammaColor} />
