@@ -173,7 +173,9 @@ export default function App() {
             spotPrice={data.spotPrice}
             prevClose={data.prevClose}
             expirationMetrics={data.expirationMetrics}
+            expirations={data.expirations}
             selectedExpiration={displayExpiration}
+            onExpirationChange={setSelectedExpiration}
             capturedAt={data.capturedAt}
           />
 
@@ -194,50 +196,6 @@ export default function App() {
             expirationMetrics={data.expirationMetrics}
             capturedAt={data.capturedAt}
           />
-
-          {data.expirations && data.expirations.length > 1 && (
-            <div
-              className="card"
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.75rem',
-                marginBottom: '1rem',
-              }}
-            >
-              <label
-                htmlFor="expiration-select"
-                style={{
-                  fontSize: '0.7rem',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.08em',
-                  color: 'var(--text-secondary)',
-                }}
-              >
-                Expiration
-              </label>
-              <select
-                id="expiration-select"
-                value={selectedExpiration || data.expirations[0]}
-                onChange={(e) => setSelectedExpiration(e.target.value)}
-                style={{
-                  background: 'var(--bg-primary)',
-                  color: 'var(--text-primary)',
-                  border: '1px solid var(--bg-card-border)',
-                  borderRadius: '4px',
-                  padding: '0.35rem 0.5rem',
-                  fontFamily: 'Courier New, monospace',
-                  fontSize: '0.85rem',
-                }}
-              >
-                {data.expirations.map((exp) => (
-                  <option key={exp} value={exp}>
-                    {exp}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
 
           <VolSmile
             contracts={filteredContracts}

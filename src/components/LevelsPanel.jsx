@@ -113,7 +113,7 @@ const ROW_GRID = {
   gap: '1rem',
 };
 
-export default function LevelsPanel({ levels, spotPrice, prevClose, expirationMetrics, selectedExpiration, capturedAt }) {
+export default function LevelsPanel({ levels, spotPrice, prevClose, expirationMetrics, expirations, selectedExpiration, onExpirationChange, capturedAt }) {
   if (!levels) {
     return (
       <div className="card text-muted" style={{ marginBottom: '1rem' }}>
@@ -200,6 +200,37 @@ const volFlipSub = distanceSub(levels.volatility_flip, spotPrice);
         <>
           <Divider />
           <div style={ROW_GRID}>
+            <div style={{ minWidth: 0 }}>
+              <div
+                style={{
+                  fontSize: '0.7rem',
+                  color: 'var(--text-secondary)',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.08em',
+                  marginBottom: '0.25rem',
+                }}
+              >
+                Expiration
+              </div>
+              <select
+                value={selectedExpiration || ''}
+                onChange={(e) => onExpirationChange?.(e.target.value)}
+                style={{
+                  background: 'var(--bg-primary)',
+                  color: 'var(--text-primary)',
+                  border: '1px solid var(--bg-card-border)',
+                  borderRadius: '4px',
+                  padding: '0.35rem 0.5rem',
+                  fontFamily: 'Courier New, monospace',
+                  fontSize: '0.85rem',
+                  width: '100%',
+                }}
+              >
+                {(expirations || []).map((exp) => (
+                  <option key={exp} value={exp}>{exp}</option>
+                ))}
+              </select>
+            </div>
             <Stat label="25Δ Put IV" value={formatPercent(relevantMetric.put_25d_iv)} />
             <Stat label="ATM IV" value={formatPercent(relevantMetric.atm_iv)} />
             <Stat label="25Δ Call IV" value={formatPercent(relevantMetric.call_25d_iv)} />
