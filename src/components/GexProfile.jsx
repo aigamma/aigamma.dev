@@ -41,6 +41,37 @@ function computeGexByStrike(contracts, spotPrice) {
   return Array.from(byStrike.values()).sort((a, b) => a.strike - b.strike);
 }
 
+// Symmetric log: compresses extreme magnitudes while preserving sign.
+// f(0) = 0 and smooth through the origin, so a 200M spike at one strike
+// no longer flattens the proportionate detail of every other bar.
+const symlog = (v) => Math.sign(v) * Math.log10(1 + Math.abs(v));
+
+function formatSI(v) {
+  const abs = Math.abs(v);
+  const sign = v < 0 ? '\u2212' : '';
+  if (abs >= 1e12) return sign + +(abs / 1e12).toFixed(1) + 'T';
+  if (abs >= 1e9) return sign + +(abs / 1e9).toFixed(1) + 'G';
+  if (abs >= 1e6) return sign + +(abs / 1e6).toFixed(1) + 'M';
+  if (abs >= 1e3) return sign + +(abs / 1e3).toFixed(1) + 'k';
+  if (abs >= 1) return sign + abs.toFixed(0);
+  return '0';
+}
+
+function symlogTicks(rawValues) {
+  const maxAbs = Math.max(...rawValues.map(Math.abs), 1);
+  const decades = Math.ceil(Math.log10(maxAbs));
+  const step = decades <= 4 ? 1 : decades <= 8 ? 2 : 3;
+  const tickvals = [0];
+  const ticktext = ['0'];
+  for (let p = 0; p <= decades + 1; p += step) {
+    const v = Math.pow(10, p);
+    if (v > maxAbs * 2) break;
+    tickvals.push(symlog(v), symlog(-v));
+    ticktext.push(formatSI(v), formatSI(-v));
+  }
+  return { tickvals, ticktext };
+}
+
 function refLine(x, color, label) {
   return {
     shape: {
@@ -81,25 +112,29 @@ export default function GexProfile({ contracts, spotPrice, levels }) {
     if (!Plotly || !chartRef.current || !gexData || gexData.length === 0) return;
 
     const strikes = gexData.map((e) => e.strike);
-    const callGex = gexData.map((e) => e.callGex);
-    const putGex = gexData.map((e) => -e.putGex);
+    const callGexRaw = gexData.map((e) => e.callGex);
+    const putGexRaw = gexData.map((e) => -e.putGex);
+
+    const { tickvals, ticktext } = symlogTicks([...callGexRaw, ...putGexRaw]);
 
     const traces = [
       {
         x: strikes,
-        y: callGex,
+        y: callGexRaw.map(symlog),
+        customdata: callGexRaw,
         type: 'bar',
         name: 'Call GEX',
         marker: { color: PLOTLY_COLORS.positive, opacity: PLOTLY_SERIES_OPACITY },
-        hovertemplate: 'Strike %{x}<br>Call GEX: %{y:.3s}<extra></extra>',
+        hovertemplate: 'Strike %{x}<br>Call GEX: %{customdata:.3s}<extra></extra>',
       },
       {
         x: strikes,
-        y: putGex,
+        y: putGexRaw.map(symlog),
+        customdata: putGexRaw,
         type: 'bar',
         name: 'Put GEX',
         marker: { color: PLOTLY_COLORS.negative, opacity: PLOTLY_SERIES_OPACITY },
-        hovertemplate: 'Strike %{x}<br>Put GEX: %{y:.3s}<extra></extra>',
+        hovertemplate: 'Strike %{x}<br>Put GEX: %{customdata:.3s}<extra></extra>',
       },
     ];
 
@@ -121,7 +156,12 @@ export default function GexProfile({ contracts, spotPrice, levels }) {
 
     const layout = {
       ...PLOTLY_LAYOUT_BASE,
-      title: plotlyTitle('Gamma Exposure Profile (all expirations)'),
+      title: plotlyTitle('Gamma Exposure Profile'),
+      yaxis: plotlyAxis('Gamma Exposure ($ notional)', {
+        zerolinewidth: 2,
+        tickvals,
+        ticktext,
+      }),
       shapes,
       annotations,
       paper_bgcolor: 'rgba(0,0,0,0)',
