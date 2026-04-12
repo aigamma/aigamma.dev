@@ -86,7 +86,7 @@ function refLine(x, color, label, bottom = false) {
     annotation: {
       x,
       xref: 'x',
-      y: bottom ? 0 : 1,
+      y: bottom ? -0.12 : 1,
       yref: 'paper',
       yanchor: bottom ? 'top' : 'bottom',
       text: label,
