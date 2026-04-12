@@ -168,13 +168,6 @@ const volFlipSub = distanceSub(levels.volatility_flip, spotPrice);
 
       <div style={ROW_GRID}>
         <Stat
-          label="Expected Move"
-          value={expMoveDollar != null ? expMoveDollar.toFixed(2) : '—'}
-          accent="var(--accent-purple)"
-          sub={expMoveSub}
-          bold
-        />
-        <Stat
           label="P/C Ratio (Volume)"
           value={formatRatio(levels.put_call_ratio_volume)}
           accent="var(--accent-cyan)"
@@ -231,6 +224,13 @@ const volFlipSub = distanceSub(levels.volatility_flip, spotPrice);
                 ))}
               </select>
             </div>
+            <Stat
+              label="Expected Move"
+              value={expMoveDollar != null ? expMoveDollar.toFixed(2) : '—'}
+              accent="var(--accent-purple)"
+              sub={expMoveSub}
+              bold
+            />
             <Stat label="25Δ Put IV" value={formatPercent(relevantMetric.put_25d_iv)} />
             <Stat label="ATM IV" value={formatPercent(relevantMetric.atm_iv)} />
             <Stat label="25Δ Call IV" value={formatPercent(relevantMetric.call_25d_iv)} />
