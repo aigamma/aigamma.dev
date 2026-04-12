@@ -11,7 +11,7 @@ import {
 
 const PLOTLY_LAYOUT_BASE = {
   ...PLOTLY_BASE_LAYOUT_2D,
-  margin: { t: 80, r: 30, b: 70, l: 80 },
+  margin: { t: 55, r: 30, b: 70, l: 80 },
   xaxis: plotlyAxis('', { title: '' }),
   yaxis: plotlyAxis('Gamma Exposure ($ notional)', {
     zerolinewidth: 2,
