@@ -183,9 +183,21 @@ export default function GexProfile({ contracts, spotPrice, levels }) {
       responsive: true,
       displayModeBar: false,
     }).then(() => {
-      chartRef.current
-        .querySelectorAll('.annotation rect')
-        .forEach((r) => r.setAttribute('fill', '#10131A'));
+      requestAnimationFrame(() => {
+        const el = chartRef.current;
+        if (!el) return;
+        // Plotly sets fill via element.style, not the fill attribute —
+        // override the same way so inline style wins.
+        el.querySelectorAll('.annotation rect').forEach((r) => {
+          r.style.fill = '#10131A';
+        });
+        // Fallback: catch any remaining white-filled rects
+        el.querySelectorAll('rect').forEach((r) => {
+          if (r.style.fill === 'rgb(255, 255, 255)') {
+            r.style.fill = '#10131A';
+          }
+        });
+      });
     });
   }, [Plotly, gexData, spotPrice, levels]);
 
