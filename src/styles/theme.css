@@ -38,15 +38,3 @@ body {
 .data-value {
   font-family: 'Courier New', monospace;
 }
-
-/* Plotly 2.35.2 renders each subplot's plot_bgcolor fill as an <rect class="bg">
-   appended to <g class="bglayer">, which in turn is a direct child of the root
-   <svg class="main-svg"> — see plotly-2.35.2.js lines 35620 and 36989. There is
-   no <g class="plot"> between .plot-container and .main-svg, so any selector
-   that assumed that intermediate class matched nothing. This selector walks the
-   actual DOM path and forces the SVG fill with !important regardless of the
-   plot_bgcolor layout property Plotly paints internally. */
-.gex-chart .main-svg .bglayer .bg,
-.exposure-chart .main-svg .bglayer .bg {
-  fill: #141820 !important;
-}

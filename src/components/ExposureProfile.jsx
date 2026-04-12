@@ -157,6 +157,9 @@ export default function ExposureProfile({ contracts, spotPrice, levels }) {
     Plotly.newPlot(chartRef.current, traces, layout, {
       responsive: true,
       displayModeBar: false,
+    }).then(() => {
+      const bg = chartRef.current?.querySelector('.bglayer .bg');
+      if (bg) bg.setAttribute('fill', '#141820');
     });
   }, [Plotly, rows, spotPrice, levels]);
 
@@ -182,7 +185,6 @@ export default function ExposureProfile({ contracts, spotPrice, levels }) {
     <div className="card" style={{ marginBottom: '1rem' }}>
       <div
         ref={chartRef}
-        className="exposure-chart"
         style={{ width: '100%', height: '520px' }}
       />
     </div>
