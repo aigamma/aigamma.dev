@@ -35,6 +35,24 @@ export default async function handler(request) {
   const url = new URL(request.url);
   const force = url.searchParams.get('force') === '1';
 
+  // Diagnostic endpoint — reports env var presence at the function runtime
+  // without exposing any values. Useful when the Netlify dashboard/MCP env
+  // var list is stale or unreliable.
+  if (url.searchParams.get('diag') === '1') {
+    return new Response(
+      JSON.stringify({
+        hasIngestSecret: Boolean(INGEST_SECRET),
+        hasMassiveApiKey: Boolean(process.env.MASSIVE_API_KEY),
+        hasSupabaseUrl: Boolean(process.env.SUPABASE_URL),
+        hasSupabaseKey: Boolean(process.env.SUPABASE_KEY),
+        hasBackgroundUrl: Boolean(BACKGROUND_URL),
+        netlifyUrl: process.env.URL || null,
+        nowEt: etString,
+      }),
+      { status: 200, headers: { 'Content-Type': 'application/json' } }
+    );
+  }
+
   if (!force) {
     const et = new Date(etString);
     const day = et.getDay();
