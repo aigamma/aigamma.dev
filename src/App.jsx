@@ -4,7 +4,6 @@ import VolSmile from './components/VolSmile';
 import LevelsPanel from './components/LevelsPanel';
 import GexProfile from './components/GexProfile';
 import TermStructure from './components/TermStructure';
-import ExposureProfile from './components/ExposureProfile';
 import FixedStrikeIvMatrix from './components/FixedStrikeIvMatrix';
 import RiskNeutralDensity from './components/RiskNeutralDensity';
 import VolSurface3D from './components/VolSurface3D';
@@ -178,12 +177,6 @@ export default function App() {
           />
 
           <GexProfile
-            contracts={data.contracts}
-            spotPrice={data.spotPrice}
-            levels={data.levels}
-          />
-
-          <ExposureProfile
             contracts={data.contracts}
             spotPrice={data.spotPrice}
             levels={data.levels}
