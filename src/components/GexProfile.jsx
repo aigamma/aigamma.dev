@@ -89,13 +89,14 @@ function refLine(x, color, label, bottom = false) {
       y: bottom ? -0.07 : 1.02,
       yref: 'paper',
       yanchor: bottom ? 'top' : 'bottom',
-      text: `<b>${label}</b>`,
+      text: `<b> ${label} </b>`,
       showarrow: false,
       font: { ...PLOTLY_FONTS.axisTitle, color, size: 12 },
       bordercolor: color,
-      borderwidth: 1,
-      borderpad: 2,
-      bgcolor: '#10131A',
+      borderwidth: 1.5,
+      borderpad: 3,
+      bgcolor: 'rgba(16,19,26,1)',
+      opacity: 1,
     },
   };
 }
