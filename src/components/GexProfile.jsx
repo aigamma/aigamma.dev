@@ -130,18 +130,18 @@ export default function GexProfile({ contracts, spotPrice, levels }) {
         y: callGexRaw.map((v) => symlog(v, C)),
         customdata: callGexRaw,
         type: 'bar',
-        name: 'Call GEX',
+        name: 'Call Gamma',
         marker: { color: PLOTLY_COLORS.positive, opacity: PLOTLY_SERIES_OPACITY },
-        hovertemplate: 'Strike %{x}<br>Call GEX: %{customdata:.3s}<extra></extra>',
+        hovertemplate: 'Strike %{x}<br>Call Gamma: %{customdata:.3s}<extra></extra>',
       },
       {
         x: strikes,
         y: putGexRaw.map((v) => symlog(v, C)),
         customdata: putGexRaw,
         type: 'bar',
-        name: 'Put GEX',
+        name: 'Put Gamma',
         marker: { color: PLOTLY_COLORS.negative, opacity: PLOTLY_SERIES_OPACITY },
-        hovertemplate: 'Strike %{x}<br>Put GEX: %{customdata:.3s}<extra></extra>',
+        hovertemplate: 'Strike %{x}<br>Put Gamma: %{customdata:.3s}<extra></extra>',
       },
     ];
 
@@ -157,8 +157,7 @@ export default function GexProfile({ contracts, spotPrice, levels }) {
     if (levels) {
       push(refLine(levels.call_wall, PLOTLY_COLORS.positive, 'CW'));
       push(refLine(levels.put_wall, PLOTLY_COLORS.negative, 'PW'));
-      push(refLine(levels.abs_gamma_strike, PLOTLY_COLORS.highlight, 'AG'));
-      push(refLine(levels.volatility_flip, PLOTLY_COLORS.axisText, 'VF'));
+      push(refLine(levels.volatility_flip, PLOTLY_COLORS.axisText, 'Flip'));
     }
 
     const layout = {
