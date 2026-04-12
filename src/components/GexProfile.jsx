@@ -182,7 +182,7 @@ export default function GexProfile({ contracts, spotPrice, levels }) {
       const px = (dataX) => ml + (dataX - xMin) * xScale;
 
       const topY = mt - 5;
-      const bottomY = mt + plotH + 14;
+      const bottomY = mt + plotH + 2;
 
       const newLabels = [
         { left: px(spotPrice), top: topY, color: PLOTLY_COLORS.primary, text: 'SPOT', bottom: false },
