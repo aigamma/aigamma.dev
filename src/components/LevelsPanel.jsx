@@ -113,19 +113,6 @@ export default function LevelsPanel({ levels, spotPrice, expirationMetrics, sele
   const absGammaSub = distanceSub(levels.abs_gamma_strike, spotPrice);
   const volFlipSub = distanceSub(levels.volatility_flip, spotPrice);
 
-  const pcrOiColor =
-    levels.put_call_ratio_oi == null
-      ? undefined
-      : levels.put_call_ratio_oi >= 1
-        ? 'var(--accent-coral)'
-        : 'var(--accent-green)';
-  const pcrVolColor =
-    levels.put_call_ratio_volume == null
-      ? undefined
-      : levels.put_call_ratio_volume >= 1
-        ? 'var(--accent-coral)'
-        : 'var(--accent-green)';
-
   const relevantMetric =
     expirationMetrics && expirationMetrics.length > 0
       ? expirationMetrics.find((m) => m.expiration_date === selectedExpiration) || expirationMetrics[0]
@@ -176,13 +163,13 @@ export default function LevelsPanel({ levels, spotPrice, expirationMetrics, sele
         <Stat
           label="Expected Move"
           value={expMoveDollar != null ? `±$${expMoveDollar.toFixed(2)}` : '—'}
-          accent="var(--accent-amber)"
+          accent="var(--accent-purple)"
           sub={expMoveSub}
         />
         <Stat
           label="P/C Ratio (Volume)"
           value={formatRatio(levels.put_call_ratio_volume)}
-          accent={pcrVolColor}
+          accent="var(--accent-cyan)"
           sub={
             levels.total_put_volume != null && levels.total_call_volume != null
               ? `${formatGamma(levels.total_put_volume)}P / ${formatGamma(levels.total_call_volume)}C`
@@ -192,7 +179,7 @@ export default function LevelsPanel({ levels, spotPrice, expirationMetrics, sele
         <Stat
           label="P/C Ratio (OI)"
           value={formatRatio(levels.put_call_ratio_oi)}
-          accent={pcrOiColor}
+          accent="var(--accent-cyan)"
           sub={
             levels.total_put_oi != null && levels.total_call_oi != null
               ? `${formatGamma(levels.total_put_oi)}P / ${formatGamma(levels.total_call_oi)}C`
