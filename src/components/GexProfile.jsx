@@ -91,8 +91,8 @@ export default function GexProfile({ contracts, spotPrice, levels }) {
   const gexData = useMemo(() => {
     if (!contracts || contracts.length === 0 || !spotPrice) return null;
     const all = computeGexByStrike(contracts, spotPrice);
-    const lower = spotPrice * 0.9;
-    const upper = spotPrice * 1.1;
+    const lower = spotPrice * 0.8;
+    const upper = spotPrice * 1.2;
     return all.filter((e) => e.strike >= lower && e.strike <= upper);
   }, [contracts, spotPrice]);
 
