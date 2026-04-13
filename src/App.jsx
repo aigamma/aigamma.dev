@@ -11,6 +11,7 @@ import RiskNeutralDensity from './components/RiskNeutralDensity';
 import VolSurface3D from './components/VolSurface3D';
 import useOptionsData from './hooks/useOptionsData';
 import useSviFits from './hooks/useSviFits';
+import { computeGammaProfile, findFlipFromProfile } from './lib/gammaProfile';
 
 function formatFreshness(isoString) {
   if (!isoString) return null;
@@ -78,9 +79,29 @@ export default function App() {
     ? sviFits.byExpiration[displayExpiration] ?? null
     : null;
 
+  // Client-side override of the gamma inflection profile and volatility flip.
+  // The backend pass that writes `gamma_profile` and recomputes
+  // `volatility_flip` from the zero crossing was shipped but the deployed
+  // ingest has not been able to persist new runs since then (missing service
+  // key breaks RLS INSERT), so every run in the database still carries a null
+  // profile and the old gamma-max-based flip. Recomputing here guarantees the
+  // chart lights up correctly on every run, past and future, independent of
+  // backend state.
+  const correctedLevels = useMemo(() => {
+    if (!data?.levels || !data?.contracts || !(data.spotPrice > 0)) return data?.levels || null;
+    const profile = computeGammaProfile(data.contracts, data.spotPrice, data.capturedAt);
+    if (!profile || profile.length === 0) return data.levels;
+    const flip = findFlipFromProfile(profile);
+    return {
+      ...data.levels,
+      gamma_profile: profile,
+      volatility_flip: flip ?? data.levels.volatility_flip,
+    };
+  }, [data?.levels, data?.contracts, data?.spotPrice, data?.capturedAt]);
+
   const freshness = data ? formatFreshness(data.capturedAt) : null;
   const isSynthetic = data && data.source === 'synthetic';
-  const regime = data ? classifyGammaRegime(data.levels, data.spotPrice) : null;
+  const regime = data ? classifyGammaRegime(correctedLevels, data.spotPrice) : null;
 
   return (
     <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '1.5rem' }}>
@@ -170,7 +191,7 @@ export default function App() {
       {data && (
         <>
           <LevelsPanel
-            levels={data.levels}
+            levels={correctedLevels}
             spotPrice={data.spotPrice}
             prevClose={data.prevClose}
             expirationMetrics={data.expirationMetrics}
@@ -183,12 +204,12 @@ export default function App() {
           <GexProfile
             contracts={data.contracts}
             spotPrice={data.spotPrice}
-            levels={data.levels}
+            levels={correctedLevels}
           />
 
           <GammaInflectionChart
             spotPrice={data.spotPrice}
-            levels={data.levels}
+            levels={correctedLevels}
           />
 
           <FixedStrikeIvMatrix
