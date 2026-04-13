@@ -45,6 +45,7 @@ export default async function handler(request) {
         hasMassiveApiKey: Boolean(process.env.MASSIVE_API_KEY),
         hasSupabaseUrl: Boolean(process.env.SUPABASE_URL),
         hasSupabaseKey: Boolean(process.env.SUPABASE_KEY),
+        hasSupabaseServiceKey: Boolean(process.env.SUPABASE_SERVICE_KEY),
         hasBackgroundUrl: Boolean(BACKGROUND_URL),
         netlifyUrl: process.env.URL || null,
         nowEt: etString,
