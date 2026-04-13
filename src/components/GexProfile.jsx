@@ -156,7 +156,7 @@ export default function GexProfile({ contracts, spotPrice, levels }) {
     const layout = {
       ...PLOTLY_LAYOUT_BASE,
       title: {
-        ...plotlyTitle('Gamma Exposure Profile (Symlog Adjustment)'),
+        ...plotlyTitle('AI Gamma Map'),
         y: 0.97,
         yanchor: 'top',
       },

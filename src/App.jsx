@@ -201,13 +201,13 @@ export default function App() {
             capturedAt={data.capturedAt}
           />
 
-          <GexProfile
-            contracts={data.contracts}
+          <GammaInflectionChart
             spotPrice={data.spotPrice}
             levels={correctedLevels}
           />
 
-          <GammaInflectionChart
+          <GexProfile
+            contracts={data.contracts}
             spotPrice={data.spotPrice}
             levels={correctedLevels}
           />
