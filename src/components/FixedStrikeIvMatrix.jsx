@@ -150,6 +150,10 @@ export default function FixedStrikeIvMatrix({ contracts, spotPrice, expirations 
       title: plotlyTitle('Fixed-Strike IV Matrix'),
       paper_bgcolor: 'rgba(0,0,0,0)',
       plot_bgcolor: 'rgba(0,0,0,0)',
+      xaxis: {
+        ...BASE_LAYOUT.xaxis,
+        ...(matrix.xLabels.length > 10 ? { range: [-0.5, 9.5] } : {}),
+      },
     };
 
     Plotly.newPlot(chartRef.current, [trace], layout, {
