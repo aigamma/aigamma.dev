@@ -60,8 +60,8 @@ export default function TermStructure({ expirationMetrics, capturedAt }) {
     ];
 
     const maxDte = rows[rows.length - 1].dte;
-    const zoomLow = maxDte * 0.175;
-    const zoomHigh = maxDte * 0.825;
+    const zoomLow = 0;
+    const zoomHigh = Math.min(100, maxDte);
 
     const layout = {
       ...PLOTLY_LAYOUT_BASE,
