@@ -211,26 +211,18 @@ export default function App() {
           )}
         </div>
 
-        <nav className="site-nav">
-          <a href="https://about.aigamma.com/">About</a>
-          <a
-            href="https://calendar.app.google/iR8J2gEs8mUMxEct6"
-            target="_blank"
-            rel="noopener"
-          >
-            Schedule a Meeting
-          </a>
-        </nav>
-
-        <div
-          style={{
-            fontFamily: 'Courier New, monospace',
-            fontSize: '0.8rem',
-            color: 'var(--text-secondary)',
-          }}
-        >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+          <nav className="site-nav">
+            <a href="https://about.aigamma.com/">About</a>
+          </nav>
           {freshness && (
-            <>
+            <div
+              style={{
+                fontFamily: 'Courier New, monospace',
+                fontSize: '0.8rem',
+                color: 'var(--text-secondary)',
+              }}
+            >
               <span>{marketClosed ? 'Final:' : 'Last updated:'} {freshness}</span>
               {isSynthetic && (
                 <span
@@ -245,7 +237,7 @@ export default function App() {
                   SYNTHETIC
                 </span>
               )}
-            </>
+            </div>
           )}
         </div>
       </header>
