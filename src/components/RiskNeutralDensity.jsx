@@ -12,9 +12,26 @@ import {
 
 const BASE_LAYOUT = {
   ...PLOTLY_BASE_LAYOUT_2D,
-  margin: { t: 40, r: 30, b: 60, l: 80 },
-  xaxis: plotlyAxis('Strike Price', { rangeslider: plotlyRangeslider() }),
+  margin: { t: 40, r: 30, b: 35, l: 80 },
+  xaxis: plotlyAxis('', { rangeslider: plotlyRangeslider() }),
   yaxis: plotlyAxis('Risk-Neutral Density', { tickformat: '.2s' }),
+  // Legend floats inside the top-right of the plot area instead of the
+  // shared horizontal-below-plot slot from PLOTLY_BASE_LAYOUT_2D. The
+  // rangeslider pins the horizontal legend right on top of the x-axis tick
+  // labels with nowhere to push it down to without also growing margin.b,
+  // so we overlay the (typically empty) upper-right corner where the RND
+  // curves have already decayed into the far-OTM wing.
+  legend: {
+    orientation: 'v',
+    x: 0.98,
+    xanchor: 'right',
+    y: 0.98,
+    yanchor: 'top',
+    bgcolor: 'rgba(20, 24, 32, 0.7)',
+    bordercolor: PLOTLY_COLORS.grid,
+    borderwidth: 1,
+    font: PLOTLY_FONTS.legend,
+  },
 };
 
 // Windows the density to within +/- 25% of spot so the chart does not waste
