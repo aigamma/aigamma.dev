@@ -251,8 +251,15 @@ export default function App() {
       </header>
 
       {loading && (
-        <div className="card text-muted" style={{ padding: '2rem', textAlign: 'center' }}>
-          Loading options data...
+        <div aria-busy="true" aria-label="Loading options data">
+          <div className="skeleton-card" style={{ height: '260px' }} />
+          <div className="skeleton-card" style={{ height: '564px' }} />
+          <div className="skeleton-card" style={{ height: '564px' }} />
+          <div className="skeleton-card" style={{ height: '434px' }} />
+          <div className="skeleton-card" style={{ height: '394px' }} />
+          <div className="skeleton-card" style={{ height: '534px' }} />
+          <div className="skeleton-card" style={{ height: '454px' }} />
+          <div className="skeleton-card" style={{ height: '574px' }} />
         </div>
       )}
 
