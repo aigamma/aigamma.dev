@@ -237,8 +237,8 @@ export default function App() {
           <div className="skeleton-card" style={{ height: '260px' }} />
           <div className="skeleton-card" style={{ height: '564px' }} />
           <div className="skeleton-card" style={{ height: '564px' }} />
-          <div className="skeleton-card" style={{ height: '434px' }} />
           <div className="skeleton-card" style={{ height: '394px' }} />
+          <div className="skeleton-card" style={{ height: '434px' }} />
           <div className="skeleton-card" style={{ height: '454px' }} />
           <div className="skeleton-card" style={{ height: '574px' }} />
         </div>
@@ -294,15 +294,15 @@ export default function App() {
             levels={correctedLevels}
           />
 
+          <TermStructure
+            expirationMetrics={data.expirationMetrics}
+            capturedAt={data.capturedAt}
+          />
+
           <FixedStrikeIvMatrix
             contracts={data.contracts}
             spotPrice={data.spotPrice}
             expirations={data.expirations}
-            capturedAt={data.capturedAt}
-          />
-
-          <TermStructure
-            expirationMetrics={data.expirationMetrics}
             capturedAt={data.capturedAt}
           />
 
