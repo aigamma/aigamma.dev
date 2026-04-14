@@ -190,18 +190,18 @@ export default function GexProfile({ contracts, spotPrice, levels }) {
       const dataTopY = mt + plotH * (1 - yDomain[1]);
       const dataBotY = mt + plotH * (1 - yDomain[0]);
       const topY = dataTopY - 5;
-      const bottomY = dataBotY - 2;
+      const bottomY = dataBotY - 8;
 
       const newLabels = [
-        { left: px(spotPrice), top: topY, color: PLOTLY_COLORS.primary, text: 'SPOT', bottom: false },
+        { left: px(spotPrice), top: topY, color: PLOTLY_COLORS.primary, text: 'SPOT' },
       ];
       if (levels) {
         if (levels.call_wall != null)
-          newLabels.push({ left: px(levels.call_wall), top: topY, color: PLOTLY_COLORS.positive, text: 'CW', bottom: false });
+          newLabels.push({ left: px(levels.call_wall), top: topY, color: PLOTLY_COLORS.positive, text: 'CW' });
         if (levels.put_wall != null)
-          newLabels.push({ left: px(levels.put_wall), top: topY, color: PLOTLY_COLORS.negative, text: 'PW', bottom: false });
+          newLabels.push({ left: px(levels.put_wall), top: topY, color: PLOTLY_COLORS.negative, text: 'PW' });
         if (levels.volatility_flip != null)
-          newLabels.push({ left: px(levels.volatility_flip), top: bottomY, color: PLOTLY_COLORS.highlight, text: 'FLIP', bottom: true });
+          newLabels.push({ left: px(levels.volatility_flip), top: bottomY, color: PLOTLY_COLORS.highlight, text: 'FLIP' });
       }
       setLabels(newLabels);
     });
@@ -226,7 +226,7 @@ export default function GexProfile({ contracts, spotPrice, levels }) {
       <div style={{ position: 'relative' }}>
         <div
           ref={chartRef}
-          style={{ width: '100%', height: '580px', backgroundColor: 'var(--bg-card)' }}
+          style={{ width: '100%', height: '620px', backgroundColor: 'var(--bg-card)' }}
         />
         {labels.map((l, i) => (
           <div
@@ -235,7 +235,7 @@ export default function GexProfile({ contracts, spotPrice, levels }) {
               ...LABEL_STYLE,
               left: l.left,
               top: l.top,
-              transform: l.bottom ? 'translateX(-50%)' : 'translate(-50%, -100%)',
+              transform: 'translate(-50%, -100%)',
               color: l.color,
               border: `1.5px solid ${l.color}`,
             }}
