@@ -7,6 +7,7 @@ import {
   PLOTLY_FONTS,
   PLOTLY_HEATMAP_COLORSCALE,
   plotlyAxis,
+  plotlyRangeslider,
   plotlyTitle,
 } from '../lib/plotlyTheme';
 
@@ -22,6 +23,7 @@ const BASE_LAYOUT = {
     side: 'bottom',
     type: 'category',
     tickangle: 0,
+    rangeslider: plotlyRangeslider(),
   }),
   yaxis: plotlyAxis('Strike offset vs spot', {
     type: 'category',
@@ -176,7 +178,7 @@ export default function FixedStrikeIvMatrix({ contracts, spotPrice, expirations 
 
   return (
     <div className="card" style={{ marginBottom: '1rem' }}>
-      <div ref={chartRef} style={{ width: '100%', height: '400px', backgroundColor: 'var(--bg-card)' }} />
+      <div ref={chartRef} style={{ width: '100%', height: '440px', backgroundColor: 'var(--bg-card)' }} />
     </div>
   );
 }

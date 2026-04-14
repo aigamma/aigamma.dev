@@ -6,13 +6,14 @@ import {
   PLOTLY_FONTS,
   PLOTLY_SERIES_PALETTE,
   plotlyAxis,
+  plotlyRangeslider,
   plotlyTitle,
 } from '../lib/plotlyTheme';
 
 const BASE_LAYOUT = {
   ...PLOTLY_BASE_LAYOUT_2D,
   margin: { t: 40, r: 30, b: 60, l: 80 },
-  xaxis: plotlyAxis('Strike Price'),
+  xaxis: plotlyAxis('Strike Price', { rangeslider: plotlyRangeslider() }),
   yaxis: plotlyAxis('Risk-Neutral Density', { tickformat: '.2s' }),
 };
 
@@ -147,7 +148,7 @@ export default function RiskNeutralDensity({ fits, spotPrice, capturedAt }) {
       >
         {sortedExps.length} expiration{sortedExps.length === 1 ? '' : 's'} — second derivative of SVI call-price curve
       </div>
-      <div ref={chartRef} style={{ width: '100%', height: '420px', backgroundColor: 'var(--bg-card)' }} />
+      <div ref={chartRef} style={{ width: '100%', height: '460px', backgroundColor: 'var(--bg-card)' }} />
     </div>
   );
 }

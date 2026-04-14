@@ -4,13 +4,14 @@ import {
   PLOTLY_BASE_LAYOUT_2D,
   PLOTLY_COLORS,
   plotlyAxis,
+  plotlyRangeslider,
   plotlyTitle,
 } from '../lib/plotlyTheme';
 
 const PLOTLY_LAYOUT_BASE = {
   ...PLOTLY_BASE_LAYOUT_2D,
   margin: { t: 40, r: 40, b: 60, l: 70 },
-  xaxis: plotlyAxis('Days to Expiration'),
+  xaxis: plotlyAxis('Days to Expiration', { rangeslider: plotlyRangeslider() }),
   yaxis: plotlyAxis('ATM IV (%)', { tickformat: '.1f' }),
 };
 
@@ -87,7 +88,7 @@ export default function TermStructure({ expirationMetrics, capturedAt }) {
 
   return (
     <div className="card" style={{ marginBottom: '1rem' }}>
-      <div ref={chartRef} style={{ width: '100%', height: '360px', backgroundColor: 'var(--bg-card)' }} />
+      <div ref={chartRef} style={{ width: '100%', height: '400px', backgroundColor: 'var(--bg-card)' }} />
     </div>
   );
 }

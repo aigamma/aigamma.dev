@@ -102,3 +102,19 @@ export const PLOTLY_HEATMAP_COLORSCALE = [
   [0.5, PLOTLY_COLORS.highlight],
   [1, PLOTLY_COLORS.secondary],
 ];
+
+// Brush-zoom rangeslider styled to fit the dark theme. Returns a fresh object
+// each call so individual charts can override fields without mutating shared
+// state. Thickness is the slider's share of the full plot region (0..1) — 0.08
+// keeps the navigator strip compact so the data plot retains most of its
+// vertical real estate.
+export function plotlyRangeslider(extras = {}) {
+  return {
+    visible: true,
+    bgcolor: 'rgba(20, 24, 32, 0.55)',
+    bordercolor: PLOTLY_COLORS.grid,
+    borderwidth: 1,
+    thickness: 0.08,
+    ...extras,
+  };
+}

@@ -4,6 +4,7 @@ import {
   PLOTLY_BASE_LAYOUT_2D,
   PLOTLY_COLORS,
   plotlyAxis,
+  plotlyRangeslider,
   plotlyTitle,
 } from '../lib/plotlyTheme';
 
@@ -147,7 +148,7 @@ export default function GammaInflectionChart({ spotPrice, levels }) {
         y: 0.97,
         yanchor: 'top',
       },
-      xaxis: plotlyAxis('', { title: '' }),
+      xaxis: plotlyAxis('', { title: '', rangeslider: plotlyRangeslider() }),
       yaxis: plotlyAxis('Dealer Gamma Notional ($ per 1% move)', {
         zerolinewidth: 2,
         tickformat: '.2s',
@@ -171,8 +172,13 @@ export default function GammaInflectionChart({ spotPrice, levels }) {
       const xScale = plotW / (xMax - xMin);
       const px = (dataX) => ml + (dataX - xMin) * xScale;
 
-      const topY = mt - 5;
-      const bottomY = mt + plotH - 2;
+      // The rangeslider eats into the y-domain from below, so the data plot
+      // bottom edge sits above the rangeslider strip rather than at mt+plotH.
+      const yDomain = fl.yaxis?.domain || [0, 1];
+      const dataTopY = mt + plotH * (1 - yDomain[1]);
+      const dataBotY = mt + plotH * (1 - yDomain[0]);
+      const topY = dataTopY - 5;
+      const bottomY = dataBotY - 2;
 
       const newLabels = [];
       if (spotPrice != null) {
@@ -222,7 +228,7 @@ export default function GammaInflectionChart({ spotPrice, levels }) {
       <div style={{ position: 'relative' }}>
         <div
           ref={chartRef}
-          style={{ width: '100%', height: '530px', backgroundColor: 'var(--bg-card)' }}
+          style={{ width: '100%', height: '580px', backgroundColor: 'var(--bg-card)' }}
         />
         {labels.map((l, i) => (
           <div
