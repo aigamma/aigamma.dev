@@ -180,8 +180,10 @@ const volFlipSub = distanceSub(levels.volatility_flip, spotPrice);
           <Divider />
           <div className={ROW_GRID_CLASS}>
             <div style={{ minWidth: 0 }}>
-              <div
+              <label
+                htmlFor="expiration-select"
                 style={{
+                  display: 'block',
                   fontSize: '0.8rem',
                   color: 'var(--text-secondary)',
                   textTransform: 'uppercase',
@@ -190,8 +192,9 @@ const volFlipSub = distanceSub(levels.volatility_flip, spotPrice);
                 }}
               >
                 Expiration
-              </div>
+              </label>
               <select
+                id="expiration-select"
                 value={selectedExpiration || ''}
                 onChange={(e) => onExpirationChange?.(e.target.value)}
                 style={{
