@@ -11,7 +11,9 @@ import {
   plotlyTitle,
 } from '../lib/plotlyTheme';
 
-const OFFSETS = [-0.05, -0.04, -0.03, -0.02, -0.01, 0, 0.01, 0.02, 0.03, 0.04, 0.05];
+const NUM_STRIKE_ROWS = 11;
+const HALF_ROWS = Math.floor(NUM_STRIKE_ROWS / 2);
+const STRIKE_INCREMENT_CANDIDATES = [5, 10, 25, 50, 100, 250, 500, 1000];
 
 const MONTH_ABBR = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
@@ -25,7 +27,7 @@ const BASE_LAYOUT = {
     tickangle: 0,
     rangeslider: plotlyRangeslider(),
   }),
-  yaxis: plotlyAxis('Strike offset vs spot', {
+  yaxis: plotlyAxis('Strike', {
     type: 'category',
     autorange: 'reversed',
   }),
@@ -64,10 +66,18 @@ function interpolateIv(contracts, targetStrike, preferCall) {
   return null;
 }
 
-function offsetLabel(offset) {
-  if (offset === 0) return 'ATM';
-  const sign = offset > 0 ? '+' : '';
-  return `${sign}${(offset * 100).toFixed(0)}%`;
+function niceStrikeIncrement(spot) {
+  const target = spot * 0.01;
+  return STRIKE_INCREMENT_CANDIDATES.reduce(
+    (best, c) => (Math.abs(c - target) < Math.abs(best - target) ? c : best),
+    STRIKE_INCREMENT_CANDIDATES[0],
+  );
+}
+
+function buildStrikeLadder(spot) {
+  const inc = niceStrikeIncrement(spot);
+  const center = Math.round(spot / inc) * inc;
+  return Array.from({ length: NUM_STRIKE_ROWS }, (_, i) => center + (i - HALF_ROWS) * inc);
 }
 
 export default function FixedStrikeIvMatrix({ contracts, spotPrice, expirations }) {
@@ -87,25 +97,24 @@ export default function FixedStrikeIvMatrix({ contracts, spotPrice, expirations 
 
     const sortedExps = [...expirations].sort();
     const xLabels = sortedExps.map(formatExpLabel);
-    const yLabels = OFFSETS.map(offsetLabel);
 
-    const z = OFFSETS.map(() => []);
-    const textCells = OFFSETS.map(() => []);
+    const strikes = buildStrikeLadder(spotPrice);
+    const yLabels = strikes.map((s) => s.toString());
+
+    const z = strikes.map(() => []);
+    const textCells = strikes.map(() => []);
 
     for (let col = 0; col < sortedExps.length; col++) {
       const expContracts = byExp.get(sortedExps[col]) || [];
-      for (let row = 0; row < OFFSETS.length; row++) {
-        const offset = OFFSETS[row];
-        const targetStrike = spotPrice * (1 + offset);
-        const preferCall = offset > 0;
-        const iv = interpolateIv(expContracts, targetStrike, preferCall);
-        const neutralIv =
-          iv == null && offset === 0
-            ? interpolateIv(expContracts, targetStrike, false) || interpolateIv(expContracts, targetStrike, true)
-            : iv;
-        const finalIv = iv != null ? iv : neutralIv;
-        z[row].push(finalIv != null ? finalIv * 100 : null);
-        textCells[row].push(finalIv != null ? `${(finalIv * 100).toFixed(2)}%` : '—');
+      for (let row = 0; row < strikes.length; row++) {
+        const targetStrike = strikes[row];
+        const preferCall = targetStrike > spotPrice;
+        let iv = interpolateIv(expContracts, targetStrike, preferCall);
+        if (iv == null) {
+          iv = interpolateIv(expContracts, targetStrike, !preferCall);
+        }
+        z[row].push(iv != null ? iv * 100 : null);
+        textCells[row].push(iv != null ? `${(iv * 100).toFixed(2)}%` : '—');
       }
     }
 
@@ -132,7 +141,7 @@ export default function FixedStrikeIvMatrix({ contracts, spotPrice, expirations 
       zmin: zMin,
       zmax: zMax,
       hoverongaps: false,
-      hovertemplate: '%{x}<br>Offset %{y}<br>IV %{text}<extra></extra>',
+      hovertemplate: '%{x}<br>Strike %{y}<br>IV %{text}<extra></extra>',
       xgap: 2,
       ygap: 2,
       opacity: 0.85,
