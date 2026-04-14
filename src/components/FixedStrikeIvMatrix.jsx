@@ -12,13 +12,16 @@ import {
 
 const OFFSETS = [-0.05, -0.04, -0.03, -0.02, -0.01, 0, 0.01, 0.02, 0.03, 0.04, 0.05];
 
+const MONTH_ABBR = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
 const BASE_LAYOUT = {
   ...PLOTLY_BASE_LAYOUT_2D,
   margin: { t: 40, r: 40, b: 60, l: 110 },
   hovermode: 'closest',
-  xaxis: plotlyAxis('Expiration', {
+  xaxis: plotlyAxis('', {
     side: 'bottom',
     type: 'category',
+    tickangle: 0,
   }),
   yaxis: plotlyAxis('Strike offset vs spot', {
     type: 'category',
@@ -26,12 +29,12 @@ const BASE_LAYOUT = {
   }),
 };
 
-function daysBetween(expirationDate, capturedAt) {
-  if (!expirationDate || !capturedAt) return null;
-  const target = new Date(`${expirationDate}T16:00:00-04:00`).getTime();
-  const ref = new Date(capturedAt).getTime();
-  if (Number.isNaN(target) || Number.isNaN(ref)) return null;
-  return Math.max(0, Math.round(((target - ref) / 86400000) * 10) / 10);
+function formatExpLabel(expirationDate) {
+  const parts = expirationDate.split('-');
+  if (parts.length !== 3) return expirationDate;
+  const monthIdx = parseInt(parts[1], 10) - 1;
+  if (monthIdx < 0 || monthIdx > 11) return expirationDate;
+  return `${MONTH_ABBR[monthIdx]} ${parseInt(parts[2], 10)}`;
 }
 
 function interpolateIv(contracts, targetStrike, preferCall) {
@@ -65,7 +68,7 @@ function offsetLabel(offset) {
   return `${sign}${(offset * 100).toFixed(0)}%`;
 }
 
-export default function FixedStrikeIvMatrix({ contracts, spotPrice, expirations, capturedAt }) {
+export default function FixedStrikeIvMatrix({ contracts, spotPrice, expirations }) {
   const chartRef = useRef(null);
   const { plotly: Plotly, error: plotlyError } = usePlotly();
 
@@ -81,10 +84,7 @@ export default function FixedStrikeIvMatrix({ contracts, spotPrice, expirations,
     }
 
     const sortedExps = [...expirations].sort();
-    const xLabels = sortedExps.map((exp) => {
-      const dte = daysBetween(exp, capturedAt);
-      return dte != null ? `${exp}\n${dte.toFixed(0)}d` : exp;
-    });
+    const xLabels = sortedExps.map(formatExpLabel);
     const yLabels = OFFSETS.map(offsetLabel);
 
     const z = OFFSETS.map(() => []);
@@ -108,7 +108,7 @@ export default function FixedStrikeIvMatrix({ contracts, spotPrice, expirations,
     }
 
     return { xLabels, yLabels, z, textCells };
-  }, [contracts, spotPrice, expirations, capturedAt]);
+  }, [contracts, spotPrice, expirations]);
 
   useEffect(() => {
     if (!Plotly || !chartRef.current || !matrix) return;
