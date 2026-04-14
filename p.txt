@@ -1,0 +1,7 @@
+Before starting, run git log --oneline -10 in both C:\aigamma.com and C:\about.aigamma.com to see what has already been committed. Skip any tasks that are already done.
+Remaining Phase 3 work:
+Add loading skeletons to replace the plain "Loading options data..." text in the React app. Match the approximate card heights of the final rendered state so the layout does not jump when data arrives. Use the existing theme CSS variables for colors. Verify build and lint pass. Commit and push.
+Review the mobile experience at 768px breakpoint width. Fix any chart container overflow, unreadable sub-12px labels, or layout breaks you find. Most styling is in theme.css and inline styles in App.jsx. Verify build and lint pass. Commit and push.
+Phase 4: Explore and improve
+After completing the above, crawl both codebases and the live Supabase state via MCP. Look for dead code, stale references, inconsistencies between the two sites, accessibility issues, performance opportunities, and anything else that can be improved. Fix anything you are confident about. For anything you are uncertain about, document it but do not change it. Commit each fix individually with descriptive commit messages in past tense ending with a period.
+When finished, write a full summary of everything you did and everything you found but chose not to touch.

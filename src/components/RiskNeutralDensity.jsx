@@ -1,6 +1,5 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import usePlotly from '../hooks/usePlotly';
-import { lognormalDensity, sviTotalVariance } from '../lib/svi';
 import {
   PLOTLY_BASE_LAYOUT_2D,
   PLOTLY_COLORS,
@@ -17,16 +16,9 @@ const BASE_LAYOUT = {
   yaxis: plotlyAxis('Risk-Neutral Density', { tickformat: '.2s' }),
 };
 
-function computeAtmIv(fit) {
-  if (!fit?.params || !fit.T) return null;
-  const w = sviTotalVariance(fit.params, 0);
-  if (!(w > 0) || !(fit.T > 0)) return null;
-  return Math.sqrt(w / fit.T);
-}
-
 // Windows the density to within +/- 25% of spot so the chart does not waste
-// horizontal space on the near-zero wings of the lognormal / RND. 25% is wide
-// enough to see the fat left tail while still keeping the mode visible.
+// horizontal space on the near-zero wings of the RND. 25% is wide enough to
+// see the fat left tail while still keeping the mode visible.
 function windowDensity({ strikes, values }, spotPrice) {
   const lo = spotPrice * 0.75;
   const hi = spotPrice * 1.25;
@@ -44,7 +36,6 @@ function windowDensity({ strikes, values }, spotPrice) {
 export default function RiskNeutralDensity({ fits, spotPrice, capturedAt }) {
   const chartRef = useRef(null);
   const { plotly: Plotly, error: plotlyError } = usePlotly();
-  const [showLognormal, setShowLognormal] = useState(true);
 
   const sortedExps = useMemo(() => {
     if (!fits || !capturedAt) return [];
@@ -86,29 +77,6 @@ export default function RiskNeutralDensity({ fits, spotPrice, capturedAt }) {
         fillcolor: `${color}22`,
         hovertemplate: 'K %{x:.2f}<br>density %{y:.3s}<extra>' + label + '</extra>',
       });
-
-      if (showLognormal) {
-        const atmIv = computeAtmIv(fit);
-        if (atmIv) {
-          const ln = lognormalDensity({
-            spotPrice,
-            atmIv,
-            T: fit.T,
-            strikes: windowed.strikes,
-          });
-          traces.push({
-            x: windowed.strikes,
-            y: ln,
-            mode: 'lines',
-            type: 'scatter',
-            name: `${label} · lognormal @ ATM IV`,
-            line: { color, width: 1.5, dash: 'dot' },
-            opacity: 0.8,
-            hovertemplate: 'K %{x:.2f}<br>LN density %{y:.3s}<extra>ref</extra>',
-            showlegend: idx === 0,
-          });
-        }
-      }
     });
 
     // Spot line as a Plotly shape so it sits across all traces.
@@ -146,7 +114,7 @@ export default function RiskNeutralDensity({ fits, spotPrice, capturedAt }) {
       responsive: true,
       displayModeBar: false,
     });
-  }, [Plotly, sortedExps, spotPrice, showLognormal]);
+  }, [Plotly, sortedExps, spotPrice]);
 
   if (plotlyError) {
     return (
@@ -170,43 +138,14 @@ export default function RiskNeutralDensity({ fits, spotPrice, capturedAt }) {
     <div className="card" style={{ marginBottom: '1rem' }}>
       <div
         style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          flexWrap: 'wrap',
-          gap: '0.5rem',
+          fontSize: '0.8rem',
+          color: 'var(--text-secondary)',
+          letterSpacing: '0.08em',
+          textTransform: 'uppercase',
           marginBottom: '0.35rem',
         }}
       >
-        <div
-          style={{
-            fontSize: '0.8rem',
-            color: 'var(--text-secondary)',
-            letterSpacing: '0.08em',
-            textTransform: 'uppercase',
-          }}
-        >
-          {sortedExps.length} expiration{sortedExps.length === 1 ? '' : 's'} — second derivative of SVI call-price curve
-        </div>
-        <label
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '0.35rem',
-            cursor: 'pointer',
-            fontSize: '0.8rem',
-            color: 'var(--text-secondary)',
-            letterSpacing: '0.08em',
-            textTransform: 'uppercase',
-          }}
-        >
-          <input
-            type="checkbox"
-            checked={showLognormal}
-            onChange={(e) => setShowLognormal(e.target.checked)}
-          />
-          Lognormal reference
-        </label>
+        {sortedExps.length} expiration{sortedExps.length === 1 ? '' : 's'} — second derivative of SVI call-price curve
       </div>
       <div ref={chartRef} style={{ width: '100%', height: '420px', backgroundColor: 'var(--bg-card)' }} />
     </div>
