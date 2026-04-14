@@ -83,16 +83,29 @@ export default function App() {
     underlying: 'SPX',
     snapshotType: 'intraday',
   });
+  const [prevData, setPrevData] = useState(data);
+
+  // React's recommended "adjust state during render" pattern for deriving
+  // state from props — when a new options payload arrives and the user's
+  // previously selected expiration is no longer in the list (e.g., the date
+  // expired between sessions), clear the selection so the UI falls back to
+  // the freshest expiration on the next render. Calling setState here rather
+  // than in a useEffect avoids the cascading-render warning from the
+  // react-hooks/set-state-in-effect lint rule.
+  if (data !== prevData) {
+    setPrevData(data);
+    if (
+      data &&
+      selectedExpiration &&
+      Array.isArray(data.expirations) &&
+      !data.expirations.includes(selectedExpiration)
+    ) {
+      setSelectedExpiration(null);
+    }
+  }
 
   const displayExpiration =
     selectedExpiration || (data && data.expirations && data.expirations[0]) || null;
-
-  useEffect(() => {
-    if (!data || !Array.isArray(data.expirations) || data.expirations.length === 0) return;
-    if (selectedExpiration && !data.expirations.includes(selectedExpiration)) {
-      setSelectedExpiration(null);
-    }
-  }, [data, selectedExpiration]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
