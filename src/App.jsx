@@ -211,35 +211,36 @@ export default function App() {
           )}
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
-          <nav className="site-nav">
-            <a href="https://about.aigamma.com/">About</a>
-          </nav>
-          {freshness && (
-            <div
-              style={{
-                fontFamily: 'Courier New, monospace',
-                fontSize: '0.8rem',
-                color: 'var(--text-secondary)',
-              }}
-            >
-              <span>{marketClosed ? 'Final:' : 'Last updated:'} {freshness}</span>
-              {isSynthetic && (
-                <span
-                  style={{
-                    marginLeft: '0.5rem',
-                    padding: '0.1rem 0.4rem',
-                    border: '1px solid var(--accent-amber)',
-                    color: 'var(--accent-amber)',
-                    borderRadius: '3px',
-                  }}
-                >
-                  SYNTHETIC
-                </span>
-              )}
-            </div>
-          )}
-        </div>
+        <nav className="site-nav">
+          <a href="https://about.aigamma.com/">About</a>
+        </nav>
+
+        {freshness && (
+          <div
+            style={{
+              fontFamily: 'Courier New, monospace',
+              fontSize: '0.8rem',
+              color: 'var(--text-secondary)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+            }}
+          >
+            <span>{marketClosed ? 'Final:' : 'Last updated:'} {freshness}</span>
+            {isSynthetic && (
+              <span
+                style={{
+                  padding: '0.1rem 0.4rem',
+                  border: '1px solid var(--accent-amber)',
+                  color: 'var(--accent-amber)',
+                  borderRadius: '3px',
+                }}
+              >
+                SYNTHETIC
+              </span>
+            )}
+          </div>
+        )}
       </header>
 
       {loading && (
