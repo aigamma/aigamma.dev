@@ -1,11 +1,48 @@
-// Scaffolds for the historical-data hooks. The VRP model needs realized
-// vol from an underlying-price series, and a historical-levels chart needs
-// the rolling put wall / call wall / vol flip trajectory from daily_levels
-// — neither reader endpoint exists yet, so these hooks stand up the shape
-// the consumers will use and return inert `{ data: null }` until the
-// /api/history/* endpoints land. Keeping the hook surface stable means the
-// first model commit that needs one of these flips `data: null` to a real
-// fetch in one place instead of redesigning the contract across callers.
+import { useEffect, useState } from 'react';
+
+// Historical-data hooks backing the VRP and historical-levels charts. Each
+// hook wraps a single `/api/*` reader endpoint and returns the standard
+// `{ data, loading, error }` triple. Keeping the hook surface aligned with
+// useOptionsData means consumers don't have to special-case history vs. live.
+
+export function useVrpHistory({ from = null, to = null } = {}) {
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function run() {
+      setLoading(true);
+      setError(null);
+      try {
+        const params = new URLSearchParams();
+        if (from) params.set('from', from);
+        if (to) params.set('to', to);
+        const qs = params.toString();
+        const response = await fetch(`/api/vrp-history${qs ? `?${qs}` : ''}`);
+        if (!response.ok) {
+          const text = await response.text();
+          throw new Error(`API ${response.status}: ${text}`);
+        }
+        const json = await response.json();
+        if (!cancelled) setData(json);
+      } catch (err) {
+        if (!cancelled) setError(err.message);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+
+    run();
+    return () => {
+      cancelled = true;
+    };
+  }, [from, to]);
+
+  return { data, loading, error };
+}
 
 export function useHistoricalTermStructure(/* { fromDate, toDate } */) {
   return { data: null, loading: false, error: null };

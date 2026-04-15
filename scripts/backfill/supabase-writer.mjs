@@ -55,6 +55,61 @@ export function createBackfillWriter({ url, serviceKey, fetchImpl = fetch }) {
     return upsert('/rest/v1/daily_cloud_bands', payload);
   }
 
+  // SPX OHLC upsert for daily_volatility_stats. One row per trading date.
+  // Keeps derived columns (hv_20d_yz, iv_30d_cm, vrp_spread, sample_count,
+  // computed_at) untouched on existing rows because the compute-vol-stats
+  // pass writes them separately against the same primary key.
+  async function upsertDailyVolatilityOhlc(rows) {
+    const payload = rows.map((r) => ({
+      trading_date: r.trading_date,
+      spx_open: r.spx_open,
+      spx_high: r.spx_high,
+      spx_low: r.spx_low,
+      spx_close: r.spx_close,
+    }));
+    return upsert('/rest/v1/daily_volatility_stats', payload);
+  }
+
+  // Derived-scalar upsert for daily_volatility_stats. Writes HV, 30d CM IV,
+  // VRP spread, and sample count against the same trading_date primary key
+  // so it merges onto the OHLC row written by upsertDailyVolatilityOhlc.
+  async function upsertDailyVolatilityDerived(rows) {
+    const payload = rows.map((r) => ({
+      trading_date: r.trading_date,
+      hv_20d_yz: r.hv_20d_yz,
+      iv_30d_cm: r.iv_30d_cm,
+      vrp_spread: r.vrp_spread,
+      sample_count: r.sample_count ?? null,
+      computed_at: new Date().toISOString(),
+    }));
+    return upsert('/rest/v1/daily_volatility_stats', payload);
+  }
+
+  // Pages through daily_volatility_stats the same way
+  // getHistoricalTermStructure pages through daily_term_structure — a full
+  // year of OHLC is only ~250 rows, so pagination is belt-and-suspenders,
+  // but consistency with the rest of the writer wins over micro-tuning.
+  async function getDailyVolatilityOhlc({ from, to }) {
+    const PAGE_SIZE = 1000;
+    const query = `select=trading_date,spx_open,spx_high,spx_low,spx_close&trading_date=gte.${from}&trading_date=lte.${to}&order=trading_date.asc`;
+    const out = [];
+    for (let offset = 0; ; offset += PAGE_SIZE) {
+      const end = offset + PAGE_SIZE - 1;
+      const res = await fetchImpl(
+        `${url}/rest/v1/daily_volatility_stats?${query}`,
+        { headers: { ...headers, Range: `${offset}-${end}`, 'Range-Unit': 'items' } },
+      );
+      if (!res.ok && res.status !== 206) {
+        throw new Error(`supabase vol_stats window fetch HTTP ${res.status}`);
+      }
+      const page = await res.json();
+      if (!Array.isArray(page) || page.length === 0) break;
+      out.push(...page);
+      if (page.length < PAGE_SIZE) break;
+    }
+    return out;
+  }
+
   // Paginated for the same reason as getHistoricalTermStructure. On a
   // partially-populated resume the full table scan is ~10k rows; the
   // 1000-row PostgREST cap would otherwise truncate to the oldest
@@ -108,6 +163,9 @@ export function createBackfillWriter({ url, serviceKey, fetchImpl = fetch }) {
   return {
     upsertDailyTermStructure,
     upsertDailyCloudBands,
+    upsertDailyVolatilityOhlc,
+    upsertDailyVolatilityDerived,
+    getDailyVolatilityOhlc,
     getExistingTermStructureDates,
     getHistoricalTermStructure,
   };

@@ -7,6 +7,7 @@ import TermStructure from './components/TermStructure';
 import FixedStrikeIvMatrix from './components/FixedStrikeIvMatrix';
 import RiskNeutralDensity from './components/RiskNeutralDensity';
 import VolSurface3D from './components/VolSurface3D';
+import VolatilityRiskPremium from './components/VolatilityRiskPremium';
 import useOptionsData from './hooks/useOptionsData';
 import useSviFits from './hooks/useSviFits';
 import { computeGammaProfile, findFlipFromProfile } from './lib/gammaProfile';
@@ -303,6 +304,8 @@ export default function App() {
             sviSource={sviFits.source}
             underlying={data.underlying}
           />
+
+          <VolatilityRiskPremium />
         </>
       )}
     </div>
