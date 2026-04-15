@@ -26,7 +26,7 @@
 --   "ts_inserts":     [{ trading_date, expiration_date, dte, atm_iv, source }],
 --   "ts_events":      [audit rows],
 --   "ts_percentile_updates": [{ trading_date, expiration_date, percentile_rank }],
---   "bands":          [{ dte, iv_p10, iv_p25, iv_p50, iv_p75, iv_p90, sample_count }],
+--   "bands":          [{ dte, iv_p10, iv_p30, iv_p50, iv_p70, iv_p90, sample_count }],
 --   "cascade_updates":[{ trading_date, directions, coordination, events: [audit] }]
 -- }
 -- ============================================================================
@@ -105,21 +105,21 @@ begin
   for v_band in select * from jsonb_array_elements(coalesce(payload -> 'bands', '[]'::jsonb))
   loop
     insert into public.daily_cloud_bands
-           (trading_date, dte, iv_p10, iv_p25, iv_p50, iv_p75, iv_p90, sample_count, computed_at)
+           (trading_date, dte, iv_p10, iv_p30, iv_p50, iv_p70, iv_p90, sample_count, computed_at)
     values (target_date,
             (v_band ->> 'dte')::int,
             nullif(v_band ->> 'iv_p10', '')::numeric,
-            nullif(v_band ->> 'iv_p25', '')::numeric,
+            nullif(v_band ->> 'iv_p30', '')::numeric,
             nullif(v_band ->> 'iv_p50', '')::numeric,
-            nullif(v_band ->> 'iv_p75', '')::numeric,
+            nullif(v_band ->> 'iv_p70', '')::numeric,
             nullif(v_band ->> 'iv_p90', '')::numeric,
             (v_band ->> 'sample_count')::int,
             now())
     on conflict (trading_date, dte) do update
        set iv_p10       = excluded.iv_p10,
-           iv_p25       = excluded.iv_p25,
+           iv_p30       = excluded.iv_p30,
            iv_p50       = excluded.iv_p50,
-           iv_p75       = excluded.iv_p75,
+           iv_p70       = excluded.iv_p70,
            iv_p90       = excluded.iv_p90,
            sample_count = excluded.sample_count,
            computed_at  = excluded.computed_at;

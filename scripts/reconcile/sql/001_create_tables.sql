@@ -50,16 +50,19 @@ create index if not exists daily_term_structure_dte_idx
 -- once at reconciliation time from the rolling 1-year window ending the
 -- day before trading_date. NEVER updated retroactively, even when
 -- underlying daily_term_structure values are corrected downstream.
--- Five percentiles so the frontend can render four discrete quartile
--- bands (p10-p25, p25-p50, p50-p75, p75-p90) with hard boundaries the
--- eye can reference.
+-- Five percentiles so the frontend can render four equal-mass 20-
+-- percentile-point bands (p10-p30, p30-p50, p50-p70, p70-p90). The
+-- interior split points are at p30/p70 not p25/p75 so each band holds
+-- exactly the same 20 percentile points of probability mass — a
+-- visually wider upper band is then entirely distributional skew and
+-- not a bin-size artifact.
 create table if not exists public.daily_cloud_bands (
   trading_date date    not null,
   dte          integer not null check (dte between 0 and 280),
   iv_p10       numeric,
-  iv_p25       numeric,
+  iv_p30       numeric,
   iv_p50       numeric,
-  iv_p75       numeric,
+  iv_p70       numeric,
   iv_p90       numeric,
   sample_count integer not null default 0,
   computed_at  timestamptz not null default now(),

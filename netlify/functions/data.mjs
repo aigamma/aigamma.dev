@@ -152,7 +152,7 @@ export default async function handler(request) {
       if (Array.isArray(latest) && latest.length > 0) {
         cloudBandsTradingDate = latest[0].trading_date;
         const bandsFullRes = await fetchWithTimeout(
-          `${supabaseUrl}/rest/v1/daily_cloud_bands?trading_date=eq.${cloudBandsTradingDate}&select=dte,iv_p10,iv_p25,iv_p50,iv_p75,iv_p90,sample_count&order=dte.asc`,
+          `${supabaseUrl}/rest/v1/daily_cloud_bands?trading_date=eq.${cloudBandsTradingDate}&select=dte,iv_p10,iv_p30,iv_p50,iv_p70,iv_p90,sample_count&order=dte.asc`,
           { headers },
           'daily_cloud_bands_rows'
         );
@@ -251,9 +251,9 @@ export default async function handler(request) {
       .map((b) => ({
         dte: b.dte,
         iv_p10: toNum(b.iv_p10),
-        iv_p25: toNum(b.iv_p25),
+        iv_p30: toNum(b.iv_p30),
         iv_p50: toNum(b.iv_p50),
-        iv_p75: toNum(b.iv_p75),
+        iv_p70: toNum(b.iv_p70),
         iv_p90: toNum(b.iv_p90),
         sample_count: b.sample_count,
       }))

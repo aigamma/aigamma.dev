@@ -10,39 +10,38 @@ import {
 import { addDaysIso, daysBetween, tradingDateFromCapturedAt } from '../lib/dates';
 
 // Cloud-band visual language:
-// - Four discrete percentile bands, each an independent fill: 'toself'
+// - Four equal-mass percentile bands, each an independent fill: 'toself'
 //   closed polygon so there is no alpha accumulation between adjacent
 //   regions — each band renders as exactly its assigned color.
 // - Hot-to-cold palette carves out the regions by color alone:
-//   green (p10-p25) → yellow (p25-p50) → orange (p50-p75) → red (p75-p90).
-//   A point sitting in the red band is visibly stressed, a point in the
-//   green band is visibly subdued, and the color edges are the
-//   boundaries — no p25/p50/p75 stroke lines needed.
+//   green (p10-p30) → yellow (p30-p50) → orange (p50-p70) → red (p70-p90).
+//   Each band holds exactly the same 20 percentile points of probability
+//   mass, so the four regions are strictly comparable. A point sitting in
+//   the red band is visibly stressed, a point in the green band is
+//   visibly subdued, and the color edges are the boundaries — no stroke
+//   lines needed.
 // - Alphas held low (0.28 each) so the cloud reads as atmospheric
 //   context wash rather than hard colored walls, and the observed ATM
 //   IV trace in primary blue stays the clear foreground element.
 //
 // On the "why are the bands not even height":
 // Percentile bands on a right-skewed distribution are inherently
-// asymmetric — the top band is wider than the bottom band because the
-// real IV distribution has a heavy right tail. At DTE 30 on the 1yr
-// lookback the empirical spans are p10→p25=0.90, p25→p50=1.25,
-// p50→p75=2.81, p75→p90=3.97 — the red band is ~4x the green band
-// because stress regimes push IV up much harder than calm regimes push
-// it down. This is the real shape of the distribution, not a math bug;
-// verified by recomputing percentile_cont directly from the underlying
-// daily_term_structure rows and matching bit-for-bit. Forcing the bands
-// to visually equal heights would require abandoning the percentile
-// semantic entirely, which would lose the "where does today's curve
-// sit in the historical distribution" reading the cloud exists to give.
+// asymmetric even when each band carries equal probability mass — the
+// top band is wider than the bottom band because the real IV
+// distribution has a heavy right tail. Stress regimes push IV up much
+// harder than calm regimes push it down. Because each band now covers
+// exactly 20 percentile points (p10-p30, p30-p50, p50-p70, p70-p90),
+// any visual asymmetry is entirely distributional skew and not a
+// bin-size artifact — the earlier p25/p75 split put 15 / 25 / 25 / 15
+// percentile points in the four bands and conflated those two effects.
 //
 // The observed ATM IV curve sits ON TOP of the bands in the same chart —
 // cloud is historical context for today's term structure, not a separate
 // view. One chart, one scale.
-const BAND_TOP      = 'rgba(231, 76, 60, 0.32)';   // p75-p90 (stress band, red)
-const BAND_UPPER    = 'rgba(230, 126, 34, 0.28)';  // p50-p75 (upper-mid, orange)
-const BAND_LOWER    = 'rgba(241, 196, 15, 0.28)';  // p25-p50 (lower-mid, yellow)
-const BAND_BOTTOM   = 'rgba(46, 204, 113, 0.32)';  // p10-p25 (calm band, green)
+const BAND_TOP      = 'rgba(231, 76, 60, 0.32)';   // p70-p90 (stress band, red)
+const BAND_UPPER    = 'rgba(230, 126, 34, 0.28)';  // p50-p70 (upper-mid, orange)
+const BAND_LOWER    = 'rgba(241, 196, 15, 0.28)';  // p30-p50 (lower-mid, yellow)
+const BAND_BOTTOM   = 'rgba(46, 204, 113, 0.32)';  // p10-p30 (calm band, green)
 
 // Bands arrive from the backend as DTE-keyed rows (see daily_cloud_bands
 // schema). Calendar x values are derived from the observed trading date
@@ -98,22 +97,22 @@ export default function TermStructure({ expirationMetrics, capturedAt, cloudBand
     if (cloudBands && cloudBands.length > 0 && tradingDate) {
       const sorted = cloudBands
         .filter((b) =>
-          b.iv_p10 != null && b.iv_p25 != null && b.iv_p50 != null &&
-          b.iv_p75 != null && b.iv_p90 != null)
+          b.iv_p10 != null && b.iv_p30 != null && b.iv_p50 != null &&
+          b.iv_p70 != null && b.iv_p90 != null)
         .sort((a, b) => a.dte - b.dte);
       const xDates = sorted.map((b) => addDaysIso(tradingDate, b.dte));
       const p10 = sorted.map((b) => toPct(b.iv_p10));
-      const p25 = sorted.map((b) => toPct(b.iv_p25));
+      const p30 = sorted.map((b) => toPct(b.iv_p30));
       const p50 = sorted.map((b) => toPct(b.iv_p50));
-      const p75 = sorted.map((b) => toPct(b.iv_p75));
+      const p70 = sorted.map((b) => toPct(b.iv_p70));
       const p90 = sorted.map((b) => toPct(b.iv_p90));
 
       if (xDates.length > 0) {
         traces.push(
-          closedPolygon(xDates, p10, p25, BAND_BOTTOM),
-          closedPolygon(xDates, p25, p50, BAND_LOWER),
-          closedPolygon(xDates, p50, p75, BAND_UPPER),
-          closedPolygon(xDates, p75, p90, BAND_TOP),
+          closedPolygon(xDates, p10, p30, BAND_BOTTOM),
+          closedPolygon(xDates, p30, p50, BAND_LOWER),
+          closedPolygon(xDates, p50, p70, BAND_UPPER),
+          closedPolygon(xDates, p70, p90, BAND_TOP),
         );
       }
     }

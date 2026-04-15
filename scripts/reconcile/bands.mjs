@@ -40,22 +40,24 @@ export function computeBand(targetDte, historicalRows) {
     return {
       dte: targetDte,
       iv_p10: null,
-      iv_p25: null,
+      iv_p30: null,
       iv_p50: null,
-      iv_p75: null,
+      iv_p70: null,
       iv_p90: null,
       sample_count: 0,
     };
   }
-  // p25/p75 exist so the frontend can render four discrete quartile
-  // bands (p10-p25, p25-p50, p50-p75, p75-p90) with hard boundaries
-  // the eye can reference, instead of a flat or gradient fill.
+  // Interior split points are p30/p70 (not p25/p75) so the four
+  // rendered bands (p10-p30, p30-p50, p50-p70, p70-p90) each hold
+  // exactly 20 percentile points of probability mass. A visually
+  // wider upper band is then purely distributional skew, not a
+  // bin-size artifact.
   return {
     dte: targetDte,
     iv_p10: percentile(samples, 0.10),
-    iv_p25: percentile(samples, 0.25),
+    iv_p30: percentile(samples, 0.30),
     iv_p50: percentile(samples, 0.50),
-    iv_p75: percentile(samples, 0.75),
+    iv_p70: percentile(samples, 0.70),
     iv_p90: percentile(samples, 0.90),
     sample_count: samples.length,
   };

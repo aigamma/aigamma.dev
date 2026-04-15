@@ -46,9 +46,9 @@ export function createBackfillWriter({ url, serviceKey, fetchImpl = fetch }) {
       trading_date: tradingDate,
       dte: b.dte,
       iv_p10: b.iv_p10,
-      iv_p25: b.iv_p25,
+      iv_p30: b.iv_p30,
       iv_p50: b.iv_p50,
-      iv_p75: b.iv_p75,
+      iv_p70: b.iv_p70,
       iv_p90: b.iv_p90,
       sample_count: b.sample_count ?? 0,
     }));
