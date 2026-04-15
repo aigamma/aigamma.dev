@@ -9,21 +9,19 @@ import {
 } from '../lib/plotlyTheme';
 
 // Four discrete quartile bands render behind the observed ATM-IV curve.
-// Darker fills at the extreme quartiles (p10-p25, p75-p90) make traces that
-// leave the central zone visually loud; lighter fills in the middle
-// quartiles (p25-p50, p50-p75) keep traces near the median visually calm.
-// This replaces a continuous opacity gradient with hard, eye-referenceable
-// boundaries at p25, p50, and p75.
-const BAND_FILL = {
-  p10p25: 'rgba(74, 158, 255, 0.28)',
-  p25p50: 'rgba(74, 158, 255, 0.10)',
-  p50p75: 'rgba(74, 158, 255, 0.10)',
-  p75p90: 'rgba(74, 158, 255, 0.28)',
-};
+// Drawn as independent fill: 'toself' closed polygons rather than stacked
+// fill: 'tonexty' traces so each band is its own compositing-independent
+// region — no accidental alpha accumulation across adjacent bands, which
+// was the root cause of the "continuous gradient" look. Outer bands
+// (p10-p25, p75-p90) are darker; inner bands (p25-p50, p50-p75) are
+// lighter; the alpha gap is wide so the p25 and p75 boundaries read as
+// hard edges. Thin boundary strokes at p25, p50, p75 guarantee the p50
+// line is visible even though the two adjacent inner bands share a shade.
+const BAND_OUTER = 'rgba(74, 158, 255, 0.55)';
+const BAND_INNER = 'rgba(74, 158, 255, 0.12)';
+const BOUNDARY_COLOR = 'rgba(74, 158, 255, 0.75)';
+const MEDIAN_COLOR   = 'rgba(74, 158, 255, 0.90)';
 
-// Observed-curve marker tint by percentile_rank: amber below p25, coral
-// above p75, primary blue in the interior. Aligns exactly with the quartile
-// band boundaries, so a marker's tint always matches the band it sits in.
 function markerColorForRank(p) {
   if (p == null) return PLOTLY_COLORS.primary;
   if (p < 0.25) return PLOTLY_COLORS.highlight;
@@ -35,6 +33,32 @@ function toPct(iv) {
   return iv == null ? null : iv * 100;
 }
 
+function closedPolygon(xDates, yLower, yUpper, fillcolor) {
+  return {
+    x: [...xDates, ...xDates.slice().reverse()],
+    y: [...yLower, ...yUpper.slice().reverse()],
+    fill: 'toself',
+    fillcolor,
+    line: { color: 'rgba(0,0,0,0)', width: 0 },
+    mode: 'lines',
+    type: 'scatter',
+    hoverinfo: 'skip',
+    showlegend: false,
+  };
+}
+
+function boundaryLine(xDates, y, color, width) {
+  return {
+    x: xDates,
+    y,
+    mode: 'lines',
+    type: 'scatter',
+    line: { color, width },
+    hoverinfo: 'skip',
+    showlegend: false,
+  };
+}
+
 export default function ProbabilityCloud({ tradingDate, bands, observed }) {
   const chartRef = useRef(null);
   const { plotly: Plotly, error: plotlyError } = usePlotly();
@@ -44,53 +68,27 @@ export default function ProbabilityCloud({ tradingDate, bands, observed }) {
       return { traces: [], layout: null };
     }
 
-    const xDates   = bands.map((b) => b.expiration_date);
-    const p10      = bands.map((b) => toPct(b.iv_p10));
-    const p25      = bands.map((b) => toPct(b.iv_p25));
-    const p50      = bands.map((b) => toPct(b.iv_p50));
-    const p75      = bands.map((b) => toPct(b.iv_p75));
-    const p90      = bands.map((b) => toPct(b.iv_p90));
+    const xDates = bands.map((b) => b.expiration_date);
+    const p10 = bands.map((b) => toPct(b.iv_p10));
+    const p25 = bands.map((b) => toPct(b.iv_p25));
+    const p50 = bands.map((b) => toPct(b.iv_p50));
+    const p75 = bands.map((b) => toPct(b.iv_p75));
+    const p90 = bands.map((b) => toPct(b.iv_p90));
 
-    // Draw order matters: each fill: 'tonexty' fills down to the PREVIOUS
-    // trace. So we walk the boundaries bottom-up: p10 (invisible floor),
-    // p25 fills p10-p25, p50 fills p25-p50, p75 fills p50-p75, p90 fills
-    // p75-p90. All boundary lines are themselves invisible — only the
-    // filled regions are visible.
-    const lowerFloor = {
-      x: xDates, y: p10, mode: 'lines', type: 'scatter',
-      line: { color: 'rgba(0,0,0,0)', width: 0 },
-      hoverinfo: 'skip', showlegend: false,
-    };
-    const bandP10P25 = {
-      x: xDates, y: p25, mode: 'lines', type: 'scatter',
-      fill: 'tonexty', fillcolor: BAND_FILL.p10p25,
-      line: { color: 'rgba(0,0,0,0)', width: 0 },
-      hoverinfo: 'skip', showlegend: false, name: 'p10-p25',
-    };
-    const bandP25P50 = {
-      x: xDates, y: p50, mode: 'lines', type: 'scatter',
-      fill: 'tonexty', fillcolor: BAND_FILL.p25p50,
-      line: { color: 'rgba(0,0,0,0)', width: 0 },
-      hoverinfo: 'skip', showlegend: false, name: 'p25-p50',
-    };
-    const bandP50P75 = {
-      x: xDates, y: p75, mode: 'lines', type: 'scatter',
-      fill: 'tonexty', fillcolor: BAND_FILL.p50p75,
-      line: { color: 'rgba(0,0,0,0)', width: 0 },
-      hoverinfo: 'skip', showlegend: false, name: 'p50-p75',
-    };
-    const bandP75P90 = {
-      x: xDates, y: p90, mode: 'lines', type: 'scatter',
-      fill: 'tonexty', fillcolor: BAND_FILL.p75p90,
-      line: { color: 'rgba(0,0,0,0)', width: 0 },
-      hoverinfo: 'skip', showlegend: false, name: 'p75-p90',
-    };
+    const bandP10P25 = closedPolygon(xDates, p10, p25, BAND_OUTER);
+    const bandP25P50 = closedPolygon(xDates, p25, p50, BAND_INNER);
+    const bandP50P75 = closedPolygon(xDates, p50, p75, BAND_INNER);
+    const bandP75P90 = closedPolygon(xDates, p75, p90, BAND_OUTER);
+
+    const lineP25 = boundaryLine(xDates, p25, BOUNDARY_COLOR, 1);
+    const lineP50 = boundaryLine(xDates, p50, MEDIAN_COLOR, 1.25);
+    const lineP75 = boundaryLine(xDates, p75, BOUNDARY_COLOR, 1);
 
     const observedRows = observed || [];
-    const obsX      = observedRows.map((o) => o.expiration_date);
-    const obsY      = observedRows.map((o) => toPct(o.atm_iv));
+    const obsX = observedRows.map((o) => o.expiration_date);
+    const obsY = observedRows.map((o) => toPct(o.atm_iv));
     const obsColors = observedRows.map((o) => markerColorForRank(o.percentile_rank));
-    const obsText   = observedRows.map((o) => {
+    const obsText = observedRows.map((o) => {
       const pct = o.percentile_rank == null
         ? '—'
         : `p${Math.round(o.percentile_rank * 100)}`;
@@ -109,24 +107,26 @@ export default function ProbabilityCloud({ tradingDate, bands, observed }) {
     };
 
     const allTraces = [
-      lowerFloor,
       bandP10P25,
       bandP25P50,
       bandP50P75,
       bandP75P90,
+      lineP25,
+      lineP50,
+      lineP75,
       observedTrace,
     ];
 
     const firstDate = xDates[0];
-    const lastDate  = xDates[xDates.length - 1];
+    const lastDate = xDates[xDates.length - 1];
     const initialWindowEnd = xDates[Math.min(90, xDates.length - 1)];
 
     const computedLayout = {
       ...PLOTLY_BASE_LAYOUT_2D,
-      margin: { t: 40, r: 40, b: 80, l: 70 },
+      margin: { t: 50, r: 40, b: 90, l: 70 },
       title: plotlyTitle('Probability Cloud'),
       paper_bgcolor: 'rgba(0,0,0,0)',
-      plot_bgcolor:  'rgba(0,0,0,0)',
+      plot_bgcolor: 'rgba(0,0,0,0)',
       hovermode: 'x unified',
       xaxis: plotlyAxis('', {
         type: 'date',
@@ -191,7 +191,7 @@ export default function ProbabilityCloud({ tradingDate, bands, observed }) {
     <div className="card" style={{ marginBottom: '1rem' }}>
       <div
         ref={chartRef}
-        style={{ width: '100%', height: '440px', backgroundColor: 'var(--bg-card)' }}
+        style={{ width: '100%', height: '880px', backgroundColor: 'var(--bg-card)' }}
       />
     </div>
   );
