@@ -32,7 +32,6 @@ dist-ssr
 .env.*.local
 
 #Blocked files and folders
-n8n/workflow.mjs
 p/
 tmp/
 .claude/
