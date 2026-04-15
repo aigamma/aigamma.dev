@@ -36,4 +36,5 @@ p/
 tmp/
 .claude/
 scripts/test-ingest.mjs
+scripts/backfill/.cache/
 CLAUDE.md

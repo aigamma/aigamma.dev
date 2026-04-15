@@ -97,7 +97,24 @@ export default async function handler(request) {
         }).toString()
       : null;
 
-    const [levelsRes, expMetricsRes, sviRes, prevCloseRes] = await Promise.all([
+    // Cloud bands use a rolling historical window computed at EOD by the
+    // reconciliation / backfill job (see scripts/backfill). They are
+    // trading-date-keyed, not run-keyed, so the query is a two-step
+    // "latest trading_date ≤ run.trading_date, then all 281 DTE rows at
+    // that date". Falls back to the most recent day with bands so an
+    // intraday run on a day whose EOD reconcile hasn't happened yet
+    // still gets yesterday's frozen bands as historical context. A 404
+    // or empty response is non-fatal: the frontend just skips the
+    // overlay and renders the observed curve alone.
+    const cloudBandsDateRes = run.trading_date
+      ? fetchWithTimeout(
+          `${supabaseUrl}/rest/v1/daily_cloud_bands?trading_date=lte.${run.trading_date}&select=trading_date&order=trading_date.desc&limit=1`,
+          { headers },
+          'daily_cloud_bands_latest'
+        )
+      : Promise.resolve(null);
+
+    const [levelsRes, expMetricsRes, sviRes, prevCloseRes, cloudBandsDateResolved] = await Promise.all([
       fetchWithTimeout(
         `${supabaseUrl}/rest/v1/computed_levels?run_id=eq.${run.id}`,
         { headers },
@@ -120,12 +137,31 @@ export default async function handler(request) {
             'prev_close'
           )
         : Promise.resolve(null),
+      cloudBandsDateRes,
     ]);
 
     if (!levelsRes.ok) throw new Error(`computed_levels query failed: ${levelsRes.status}`);
     if (!expMetricsRes.ok) throw new Error(`expiration_metrics query failed: ${expMetricsRes.status}`);
     if (!sviRes.ok) throw new Error(`svi_fits query failed: ${sviRes.status}`);
     if (prevCloseRes && !prevCloseRes.ok) throw new Error(`prev_close query failed: ${prevCloseRes.status}`);
+
+    let cloudBandsRows = [];
+    let cloudBandsTradingDate = null;
+    if (cloudBandsDateResolved?.ok) {
+      const latest = await cloudBandsDateResolved.json();
+      if (Array.isArray(latest) && latest.length > 0) {
+        cloudBandsTradingDate = latest[0].trading_date;
+        const bandsFullRes = await fetchWithTimeout(
+          `${supabaseUrl}/rest/v1/daily_cloud_bands?trading_date=eq.${cloudBandsTradingDate}&select=dte,iv_p10,iv_p25,iv_p50,iv_p75,iv_p90,sample_count&order=dte.asc`,
+          { headers },
+          'daily_cloud_bands_rows'
+        );
+        if (bandsFullRes.ok) {
+          const rows = await bandsFullRes.json();
+          cloudBandsRows = Array.isArray(rows) ? rows : [];
+        }
+      }
+    }
 
     // Page through snapshots via Range header. PostgREST/Supabase caps single
     // responses (default 1000 rows), and run 19 has 9k+ contracts — fetching a
@@ -206,6 +242,23 @@ export default async function handler(request) {
       call_25d_iv: toNum(m.call_25d_iv),
     }));
 
+    // Bands are DTE-keyed on the wire. Trading-date → expiration-date
+    // resolution happens client-side in TermStructure (it already
+    // derives a trading date from capturedAt). Drop DTE rows that
+    // have no underlying samples so the frontend doesn't have to
+    // filter holes out of its polygon paths.
+    const cloudBands = cloudBandsRows
+      .map((b) => ({
+        dte: b.dte,
+        iv_p10: toNum(b.iv_p10),
+        iv_p25: toNum(b.iv_p25),
+        iv_p50: toNum(b.iv_p50),
+        iv_p75: toNum(b.iv_p75),
+        iv_p90: toNum(b.iv_p90),
+        sample_count: b.sample_count,
+      }))
+      .filter((b) => b.sample_count > 0 && b.iv_p50 != null);
+
     const expirations = [...new Set(contractRows.map((c) => c.expiration_date).filter(Boolean))].sort();
 
     const sviFits = sviRows.map((r) => ({
@@ -249,6 +302,8 @@ export default async function handler(request) {
       levels,
       expirationMetrics,
       sviFits,
+      cloudBands,
+      cloudBandsTradingDate,
     };
 
     return new Response(JSON.stringify(payload), {

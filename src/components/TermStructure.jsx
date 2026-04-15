@@ -51,6 +51,18 @@ function daysBetween(isoDate, referenceMs) {
   return Math.max(0, Math.round(diff * 10) / 10);
 }
 
+// Bands arrive from the backend as DTE-keyed rows (see
+// daily_cloud_bands schema). Calendar x values are derived from the
+// observed trading date plus integer DTE, so the cloud lines up with
+// the live term-structure trace that uses the same anchor date.
+function addDaysIso(isoDate, days) {
+  if (!isoDate) return null;
+  const d = new Date(`${isoDate}T00:00:00Z`);
+  if (Number.isNaN(d.getTime())) return null;
+  d.setUTCDate(d.getUTCDate() + days);
+  return d.toISOString().slice(0, 10);
+}
+
 function toPct(iv) {
   return iv == null ? null : iv * 100;
 }
@@ -109,23 +121,30 @@ export default function TermStructure({ expirationMetrics, capturedAt, cloudBand
 
     const traces = [];
 
-    if (cloudBands && cloudBands.length > 0) {
-      const xDates = cloudBands.map((b) => b.expiration_date);
-      const p10 = cloudBands.map((b) => toPct(b.iv_p10));
-      const p25 = cloudBands.map((b) => toPct(b.iv_p25));
-      const p50 = cloudBands.map((b) => toPct(b.iv_p50));
-      const p75 = cloudBands.map((b) => toPct(b.iv_p75));
-      const p90 = cloudBands.map((b) => toPct(b.iv_p90));
+    if (cloudBands && cloudBands.length > 0 && tradingDate) {
+      const sorted = cloudBands
+        .filter((b) =>
+          b.iv_p10 != null && b.iv_p25 != null && b.iv_p50 != null &&
+          b.iv_p75 != null && b.iv_p90 != null)
+        .sort((a, b) => a.dte - b.dte);
+      const xDates = sorted.map((b) => addDaysIso(tradingDate, b.dte));
+      const p10 = sorted.map((b) => toPct(b.iv_p10));
+      const p25 = sorted.map((b) => toPct(b.iv_p25));
+      const p50 = sorted.map((b) => toPct(b.iv_p50));
+      const p75 = sorted.map((b) => toPct(b.iv_p75));
+      const p90 = sorted.map((b) => toPct(b.iv_p90));
 
-      traces.push(
-        closedPolygon(xDates, p10, p25, BAND_OUTER),
-        closedPolygon(xDates, p25, p50, BAND_INNER),
-        closedPolygon(xDates, p50, p75, BAND_INNER),
-        closedPolygon(xDates, p75, p90, BAND_OUTER),
-        boundaryLine(xDates, p25, BOUNDARY_COLOR, 1),
-        boundaryLine(xDates, p50, MEDIAN_COLOR,   1.25),
-        boundaryLine(xDates, p75, BOUNDARY_COLOR, 1),
-      );
+      if (xDates.length > 0) {
+        traces.push(
+          closedPolygon(xDates, p10, p25, BAND_OUTER),
+          closedPolygon(xDates, p25, p50, BAND_INNER),
+          closedPolygon(xDates, p50, p75, BAND_INNER),
+          closedPolygon(xDates, p75, p90, BAND_OUTER),
+          boundaryLine(xDates, p25, BOUNDARY_COLOR, 1),
+          boundaryLine(xDates, p50, MEDIAN_COLOR,   1.25),
+          boundaryLine(xDates, p75, BOUNDARY_COLOR, 1),
+        );
+      }
     }
 
     // Observed ATM IV curve — calendar-date x, DTE shown in hover tooltip.
@@ -141,12 +160,15 @@ export default function TermStructure({ expirationMetrics, capturedAt, cloudBand
       hovertemplate: '%{x}<br>%{text}<br>ATM IV: %{y:.2f}%<extra></extra>',
     });
 
-    const cloudLast = cloudBands && cloudBands.length > 0
-      ? cloudBands[cloudBands.length - 1].expiration_date
+    const maxBandDte = (cloudBands && cloudBands.length > 0 && tradingDate)
+      ? Math.max(...cloudBands.map((b) => b.dte))
+      : null;
+    const cloudLast = (maxBandDte != null && tradingDate)
+      ? addDaysIso(tradingDate, maxBandDte)
       : rows[rows.length - 1].expiration;
     const startDate = tradingDate || rows[0].expiration;
-    const initialWindowEnd = cloudBands && cloudBands.length > 90
-      ? cloudBands[90].expiration_date
+    const initialWindowEnd = (maxBandDte != null && maxBandDte >= 90 && tradingDate)
+      ? addDaysIso(tradingDate, 90)
       : cloudLast;
 
     const shapes = [];
