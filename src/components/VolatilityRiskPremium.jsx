@@ -150,7 +150,7 @@ export default function VolatilityRiskPremium() {
     const spxClose = spxSeries.map((r) => r.spx_close);
     const spxAreaTrace = {
       x: [...spxDates, ...spxDates.slice().reverse()],
-      y: [...spxClose, ...spxDates.map(() => spxLo)],
+      y: [...spxClose, ...spxClose.map(() => spxLo)],
       fill: 'toself',
       fillcolor: SPX_AREA_FILL,
       line: { color: 'rgba(0,0,0,0)', width: 0 },
