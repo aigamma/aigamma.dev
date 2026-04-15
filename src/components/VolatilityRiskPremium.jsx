@@ -254,14 +254,14 @@ export default function VolatilityRiskPremium() {
           autorange: false,
         }),
       }),
-      yaxis: plotlyAxis('S&P 500', {
+      yaxis: plotlyAxis('SPX', {
         range: [spxLo, spxHi],
         autorange: false,
         tickformat: ',.0f',
         side: 'left',
         showgrid: false,
       }),
-      yaxis2: plotlyAxis('Annualized Vol', {
+      yaxis2: plotlyAxis('Implied Volatility', {
         range: [volLo, volHi],
         autorange: false,
         tickformat: '.1f',
