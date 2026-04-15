@@ -28,59 +28,78 @@ const SPX_LINE      = 'rgba(74, 158, 255, 0.55)';
 const RV_COLOR      = PLOTLY_COLORS.highlight;
 const IV_COLOR      = PLOTLY_COLORS.titleText;
 
-// Walk the (iv, hv) series and emit four parallel y-arrays that share a
-// common x-axis. Each sign change in (iv - hv) gets an interpolated zero-
-// crossing point pushed to all arrays, so the colored fill pairs meet
-// cleanly at the crossing instead of stepping across it. Inactive-region
-// entries are null to break the fill with a hard gap — consumers then
-// pair (posHvLower, posIvUpper) and (negIvLower, negHvUpper) as two
-// adjacent Plotly traces with `fill: 'tonexty'` on each upper trace.
-function splitVrpShading(series) {
-  const xs = [];
-  const posIv = [];
-  const posHv = [];
-  const negIv = [];
-  const negHv = [];
-  if (!series || series.length === 0) return { xs, posIv, posHv, negIv, negHv };
+// Walk the (iv, hv) series and emit a list of contiguous same-sign
+// segments, splitting at each zero crossing of (iv - hv). Each segment
+// carries its own x / iv / hv arrays so the consumer can render it as
+// an independent closed polygon (fill: 'toself') bounded by the two
+// vol lines on both edges — no fill-down-to-axis ambiguity, no
+// null-gap fragility. The zero-crossing point is computed by linear
+// interpolation on both x (time) and y (iv=hv at the crossing) and
+// appears as the LAST point of the outgoing segment AND the FIRST
+// point of the incoming one, so adjacent polygons meet on a shared
+// vertex with no gap and no overlap.
+function buildVrpSegments(series) {
+  const segments = [];
+  if (!series || series.length === 0) return segments;
 
-  const pushActive = (iv, hv, sign) => {
-    if (sign >= 0) {
-      posIv.push(iv); posHv.push(hv);
-      negIv.push(null); negHv.push(null);
-    } else {
-      negIv.push(iv); negHv.push(hv);
-      posIv.push(null); posHv.push(null);
-    }
+  let current = null;
+  const open = (kind) => {
+    current = { kind, xs: [], ivs: [], hvs: [] };
+    segments.push(current);
   };
-  const pushCrossing = (yCross) => {
-    posIv.push(yCross); posHv.push(yCross);
-    negIv.push(yCross); negHv.push(yCross);
+  const push = (x, iv, hv) => {
+    current.xs.push(x);
+    current.ivs.push(iv);
+    current.hvs.push(hv);
   };
 
   const first = series[0];
-  xs.push(first.trading_date);
-  pushActive(first.iv, first.hv, first.iv - first.hv);
-  let prevSign = first.iv - first.hv;
+  open(first.iv - first.hv >= 0 ? 'positive' : 'negative');
+  push(first.trading_date, first.iv, first.hv);
+  let prevKind = current.kind;
 
   for (let i = 1; i < series.length; i++) {
     const curr = series[i];
-    const currSign = curr.iv - curr.hv;
-    if ((prevSign < 0 && currSign > 0) || (prevSign > 0 && currSign < 0)) {
+    const currKind = curr.iv - curr.hv >= 0 ? 'positive' : 'negative';
+    if (currKind !== prevKind) {
       const prev = series[i - 1];
-      const t = Math.abs(prevSign) / (Math.abs(prevSign) + Math.abs(currSign));
+      const prevDelta = prev.iv - prev.hv;
+      const currDelta = curr.iv - curr.hv;
+      const t = Math.abs(prevDelta) / (Math.abs(prevDelta) + Math.abs(currDelta));
       const prevMs = new Date(`${prev.trading_date}T00:00:00Z`).getTime();
       const currMs = new Date(`${curr.trading_date}T00:00:00Z`).getTime();
-      const xMs = prevMs + t * (currMs - prevMs);
-      const xCross = new Date(xMs).toISOString().slice(0, 10);
+      const xCross = new Date(prevMs + t * (currMs - prevMs)).toISOString().slice(0, 10);
       const yCross = prev.iv + t * (curr.iv - prev.iv);
-      xs.push(xCross);
-      pushCrossing(yCross);
+      push(xCross, yCross, yCross);
+      open(currKind);
+      push(xCross, yCross, yCross);
     }
-    xs.push(curr.trading_date);
-    pushActive(curr.iv, curr.hv, currSign);
-    prevSign = currSign;
+    push(curr.trading_date, curr.iv, curr.hv);
+    prevKind = currKind;
   }
-  return { xs, posIv, posHv, negIv, negHv };
+  return segments;
+}
+
+// Wrap one segment as a single fill:'toself' closed polygon. The
+// polygon walks the IV edge forward in time and the HV edge backward,
+// so the filled region is exactly the area between the two lines over
+// this segment's x-range — never reaching the axis floor, never
+// extending past the segment's boundaries.
+function vrpSegmentTrace(segment, fillcolor, name, showlegend, legendgroup) {
+  return {
+    x: [...segment.xs, ...segment.xs.slice().reverse()],
+    y: [...segment.ivs, ...segment.hvs.slice().reverse()],
+    fill: 'toself',
+    fillcolor,
+    line: { color: 'rgba(0,0,0,0)', width: 0 },
+    mode: 'lines',
+    type: 'scatter',
+    yaxis: 'y2',
+    name,
+    legendgroup,
+    showlegend,
+    hoverinfo: 'skip',
+  };
 }
 
 function addMonthsIso(iso, months) {
@@ -113,7 +132,7 @@ export default function VolatilityRiskPremium() {
       .map((r) => ({ trading_date: r.trading_date, spx_close: r.spx_close }));
   }, [data]);
 
-  const split = useMemo(() => splitVrpShading(series), [series]);
+  const vrpSegments = useMemo(() => buildVrpSegments(series), [series]);
 
   useEffect(() => {
     if (!Plotly || !chartRef.current || series.length === 0 || spxSeries.length === 0) return;
@@ -152,59 +171,27 @@ export default function VolatilityRiskPremium() {
       hovertemplate: '%{x}<br>SPX: %{y:,.2f}<extra></extra>',
     };
 
-    // VRP shading pairs. Each pair is a transparent lower-bound trace
-    // followed directly by a filled upper-bound trace using `fill: 'tonexty'`,
-    // which in Plotly means "fill to the immediately previous trace in the
-    // data array". The two pairs must sit consecutively so each upper trace's
-    // fill references its correct companion lower trace.
-    const posHvLower = {
-      x: split.xs,
-      y: split.posHv,
-      mode: 'lines',
-      type: 'scatter',
-      line: { color: 'rgba(0,0,0,0)', width: 0 },
-      yaxis: 'y2',
-      showlegend: false,
-      hoverinfo: 'skip',
-      connectgaps: false,
-    };
-    const posIvUpper = {
-      x: split.xs,
-      y: split.posIv,
-      mode: 'lines',
-      type: 'scatter',
-      line: { color: 'rgba(0,0,0,0)', width: 0 },
-      fill: 'tonexty',
-      fillcolor: POS_VRP_FILL,
-      yaxis: 'y2',
-      name: 'Positive VRP (IV > RV)',
-      hoverinfo: 'skip',
-      connectgaps: false,
-    };
-    const negIvLower = {
-      x: split.xs,
-      y: split.negIv,
-      mode: 'lines',
-      type: 'scatter',
-      line: { color: 'rgba(0,0,0,0)', width: 0 },
-      yaxis: 'y2',
-      showlegend: false,
-      hoverinfo: 'skip',
-      connectgaps: false,
-    };
-    const negHvUpper = {
-      x: split.xs,
-      y: split.negHv,
-      mode: 'lines',
-      type: 'scatter',
-      line: { color: 'rgba(0,0,0,0)', width: 0 },
-      fill: 'tonexty',
-      fillcolor: NEG_VRP_FILL,
-      yaxis: 'y2',
-      name: 'Negative VRP (RV > IV)',
-      hoverinfo: 'skip',
-      connectgaps: false,
-    };
+    // VRP shading is one closed-polygon trace per contiguous same-sign
+    // segment. Each polygon is bounded on both edges by the two vol
+    // lines themselves, so the fill is a thin ribbon that expands and
+    // contracts with the spread — it never drops down to the chart
+    // floor the way a fill:'tonexty' pair would on a null-gapped series.
+    // Legend entries live on only the first segment of each sign via
+    // legendgroup; subsequent segments share the group with
+    // showlegend:false so the legend shows one row per color.
+    const vrpTraces = [];
+    let firstPos = true;
+    let firstNeg = true;
+    for (const seg of vrpSegments) {
+      if (seg.xs.length < 2) continue;
+      if (seg.kind === 'positive') {
+        vrpTraces.push(vrpSegmentTrace(seg, POS_VRP_FILL, 'Positive VRP (IV > RV)', firstPos, 'vrp_pos'));
+        firstPos = false;
+      } else {
+        vrpTraces.push(vrpSegmentTrace(seg, NEG_VRP_FILL, 'Negative VRP (RV > IV)', firstNeg, 'vrp_neg'));
+        firstNeg = false;
+      }
+    }
 
     const rvLine = {
       x: series.map((r) => r.trading_date),
@@ -230,10 +217,7 @@ export default function VolatilityRiskPremium() {
     const traces = [
       spxAreaTrace,
       spxLineTrace,
-      posHvLower,
-      posIvUpper,
-      negIvLower,
-      negHvUpper,
+      ...vrpTraces,
       rvLine,
       ivLine,
     ];
@@ -297,7 +281,7 @@ export default function VolatilityRiskPremium() {
       responsive: true,
       displayModeBar: false,
     });
-  }, [Plotly, series, split, spxSeries]);
+  }, [Plotly, series, vrpSegments, spxSeries]);
 
   if (plotlyError) {
     return (
