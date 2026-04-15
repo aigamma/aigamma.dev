@@ -4,7 +4,6 @@ import LevelsPanel from './components/LevelsPanel';
 import GexProfile from './components/GexProfile';
 import GammaInflectionChart from './components/GammaInflectionChart';
 import TermStructure from './components/TermStructure';
-import ProbabilityCloud from './components/ProbabilityCloud';
 import FixedStrikeIvMatrix from './components/FixedStrikeIvMatrix';
 import RiskNeutralDensity from './components/RiskNeutralDensity';
 import VolSurface3D from './components/VolSurface3D';
@@ -329,9 +328,8 @@ export default function App() {
           <TermStructure
             expirationMetrics={data.expirationMetrics}
             capturedAt={data.capturedAt}
+            cloudBands={probabilityCloudMock.bands}
           />
-
-          <ProbabilityCloud {...probabilityCloudMock} />
 
           <FixedStrikeIvMatrix
             contracts={data.contracts}
