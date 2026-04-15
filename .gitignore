@@ -31,10 +31,10 @@ dist-ssr
 .env.local
 .env.*.local
 
-#Blocked files
+#Blocked files and folders
 n8n/workflow.mjs
+p/
 tmp/
 .claude/
 scripts/test-ingest.mjs
 CLAUDE.md
-p.txt
