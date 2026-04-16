@@ -164,6 +164,9 @@ export default function GammaInflectionChart({ spotPrice, levels }) {
       yaxis: plotlyAxis('Dealer Gamma Notional ($ per 1% move)', {
         zerolinewidth: 2,
         tickformat: '.2s',
+        ticks: 'outside',
+        ticklen: 8,
+        tickcolor: 'transparent',
       }),
       shapes,
       showlegend: false,
