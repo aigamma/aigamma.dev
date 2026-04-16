@@ -119,6 +119,37 @@ async function fetchSpxOhlc(baseUrl, startIso, endIso) {
   return parseIndexEodCsv(await res.text());
 }
 
+function addDaysIso(iso, n) {
+  const d = new Date(`${iso}T00:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + n);
+  return d.toISOString().slice(0, 10);
+}
+
+// ThetaData v3 caps single /v3/index/history/eod requests at 365 calendar
+// days. For backfills longer than one year we need to chunk the window
+// and concatenate results. 360 leaves a 5-day safety margin vs the cap.
+// Spans are advanced by `CHUNK_DAYS` calendar days so each chunk covers
+// [cursor, cursor + CHUNK_DAYS - 1] and the next chunk starts the
+// following day — no overlap, no gap.
+const CHUNK_DAYS = 360;
+
+async function fetchSpxOhlcChunked(baseUrl, startIso, endIso) {
+  const all = [];
+  let cursor = startIso;
+  let chunkNum = 0;
+  while (cursor <= endIso) {
+    const tentativeEnd = addDaysIso(cursor, CHUNK_DAYS - 1);
+    const chunkEnd = tentativeEnd > endIso ? endIso : tentativeEnd;
+    chunkNum++;
+    log('spx_ohlc.chunk_start', { chunk: chunkNum, start: cursor, end: chunkEnd });
+    const rows = await fetchSpxOhlc(baseUrl, cursor, chunkEnd);
+    log('spx_ohlc.chunk_done', { chunk: chunkNum, rows: rows.length });
+    all.push(...rows);
+    cursor = addDaysIso(chunkEnd, 1);
+  }
+  return all;
+}
+
 async function main() {
   const args = parseArgs(process.argv.slice(2));
   const url = process.env.SUPABASE_URL;
@@ -135,7 +166,7 @@ async function main() {
 
   let rows;
   try {
-    rows = await fetchSpxOhlc(baseUrl, args.start, args.end);
+    rows = await fetchSpxOhlcChunked(baseUrl, args.start, args.end);
   } catch (err) {
     log('spx_ohlc.fetch_failed', { error: String(err) });
     process.exit(1);
