@@ -68,15 +68,18 @@ export default async function handler(request) {
         `No ${snapshotType} run found for ${underlying}${tradingDate ? ` on ${tradingDate}` : ''}`
       );
     }
-    // Partial runs can truncate at the background-function timeout or a
-    // transient Massive API error before the fetch reaches the back-month
-    // monthlies, which collapses the Breeden-Litzenberger chart onto 1-2
-    // expirations even though a slightly older full-chain success exists.
-    // Prefer the newest successful run inside the last ~10 cron ticks (≈50
-    // minutes at the current 5-minute cadence); degrade to the newest row
-    // overall if the upstream API has been partial for longer than that,
-    // which beats serving a 404.
-    const run = runRows.find((r) => r.status === 'success') || runRows[0];
+    // Prefer the newest successful run that actually has contracts. After the
+    // SPX cash close (16:15 ET) the Massive API returns empty chains, but the
+    // ingest can still write a "success" row with contract_count=0. Without
+    // this guard the data endpoint degrades to an empty payload every
+    // afternoon until the next morning's open. The fallback chain is:
+    // (1) newest success with contracts, (2) newest success regardless,
+    // (3) newest row overall — so the site never serves a 404 when any run
+    // exists.
+    const run =
+      runRows.find((r) => r.status === 'success' && r.contract_count > 0) ||
+      runRows.find((r) => r.status === 'success') ||
+      runRows[0];
 
     const snapParams = new URLSearchParams({
       run_id: `eq.${run.id}`,
