@@ -156,6 +156,7 @@ export default function GammaThrottleScatter() {
   );
 
   // Render the scatter plot
+  const [scatterError, setScatterError] = useState(null);
   useEffect(() => {
     if (!Plotly || !scatterRef.current || filtered.length === 0) return;
 
@@ -169,6 +170,13 @@ export default function GammaThrottleScatter() {
 
     const cmin = Math.max(Math.min(...colorVals, -10), -80);
     const cmax = Math.min(Math.max(...colorVals, 10), 60);
+
+    // Explicit axis ranges to bypass Plotly's doAutoRange, which throws
+    // "Something went wrong with axis scaling" on certain data shapes.
+    const xMin = Math.min(...throttleVals);
+    const xMax = Math.max(...throttleVals);
+    const xPad = Math.max((xMax - xMin) * 0.05, 2);
+    const yMax = Math.max(...rvVals);
 
     const traces = [];
 
@@ -236,13 +244,18 @@ export default function GammaThrottleScatter() {
         yanchor: 'top',
       },
       xaxis: plotlyAxis(mobile ? '' : 'SPX Gamma Volatility Throttle', {
+        type: 'linear',
+        range: [xMin - xPad, xMax + xPad],
+        autorange: false,
         zeroline: true,
         zerolinecolor: PLOTLY_COLORS.zeroLine,
         zerolinewidth: 1,
       }),
       yaxis: plotlyAxis(mobile ? '' : '10-Day Realized Volatility', {
+        type: 'linear',
+        range: [0, yMax * 1.1],
+        autorange: false,
         ticksuffix: '%',
-        rangemode: 'tozero',
         ticks: 'outside',
         ticklen: 8,
         tickcolor: 'rgba(0,0,0,0)',
@@ -271,10 +284,15 @@ export default function GammaThrottleScatter() {
         : [],
     });
 
-    Plotly.newPlot(scatterRef.current, traces, layout, {
-      responsive: true,
-      displayModeBar: false,
-    });
+    try {
+      Plotly.newPlot(scatterRef.current, traces, layout, {
+        responsive: true,
+        displayModeBar: false,
+      });
+      setScatterError(null);
+    } catch (err) {
+      setScatterError(err.message);
+    }
   }, [Plotly, filtered, fitCurve, lastPoint, mobile]);
 
   // Render the time context strip with rangeslider
@@ -328,13 +346,17 @@ export default function GammaThrottleScatter() {
       showlegend: false,
     });
 
-    Plotly.newPlot(timeRef.current, [trace], layout, {
-      responsive: true,
-      displayModeBar: false,
-    });
+    try {
+      Plotly.newPlot(timeRef.current, [trace], layout, {
+        responsive: true,
+        displayModeBar: false,
+      });
 
-    // Wire up relayout listener for the rangeslider
-    timeRef.current.on('plotly_relayout', handleTimeRelayout);
+      // Wire up relayout listener for the rangeslider
+      timeRef.current.on('plotly_relayout', handleTimeRelayout);
+    } catch (_) {
+      // Time strip is non-essential; scatter still works without it.
+    }
 
     return () => {
       if (timeRef.current) {
@@ -358,6 +380,13 @@ export default function GammaThrottleScatter() {
     return (
       <div className="card" style={{ padding: '1rem', marginBottom: '1rem', color: 'var(--accent-coral)' }}>
         GEX history fetch failed: {error}
+      </div>
+    );
+  }
+  if (scatterError) {
+    return (
+      <div className="card" style={{ padding: '1rem', marginBottom: '1rem', color: 'var(--accent-coral)' }}>
+        Gamma throttle scatter render error: {scatterError}
       </div>
     );
   }
