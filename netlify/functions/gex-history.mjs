@@ -139,9 +139,12 @@ export default async function handler(request) {
       const volFlip = toNum(r.vol_flip_strike);
       const spxClose = toNum(r.spx_close);
 
-      // Gamma throttle: ratio of net to total, scaled to [-100, +100]
+      // Gamma throttle: ratio of net to total, scaled to [-100, +100].
+      // Null out for days with very low contract counts (early-close sessions,
+      // sparse data) where the aggregate GEX is unreliable.
+      const contractCount = r.contract_count != null ? Number(r.contract_count) : 0;
       let gammaThrottle = null;
-      if (callGex != null && putGex != null && (callGex + putGex) > 0) {
+      if (callGex != null && putGex != null && (callGex + putGex) > 0 && contractCount >= 1000) {
         gammaThrottle = ((callGex - putGex) / (callGex + putGex)) * 100;
       }
 
