@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import './styles/theme.css';
+import ErrorBoundary from './ErrorBoundary';
 import LevelsPanel from './components/LevelsPanel';
 import GexProfile from './components/GexProfile';
 import GammaInflectionChart from './components/GammaInflectionChart';
@@ -312,64 +313,78 @@ export default function App() {
 
       {data && (
         <>
-          <LevelsPanel
-            levels={correctedLevels}
-            spotPrice={data.spotPrice}
-            prevClose={data.prevClose}
-            expirationMetrics={data.expirationMetrics}
-            expirations={data.expirations}
-            selectedExpiration={displayExpiration}
-            onExpirationChange={setSelectedExpiration}
-            capturedAt={data.capturedAt}
-            vrpMetric={vrpMetric}
-          />
+          <ErrorBoundary>
+            <LevelsPanel
+              levels={correctedLevels}
+              spotPrice={data.spotPrice}
+              prevClose={data.prevClose}
+              expirationMetrics={data.expirationMetrics}
+              expirations={data.expirations}
+              selectedExpiration={displayExpiration}
+              onExpirationChange={setSelectedExpiration}
+              capturedAt={data.capturedAt}
+              vrpMetric={vrpMetric}
+            />
+          </ErrorBoundary>
 
-          <VolatilityRiskPremium />
+          <ErrorBoundary><VolatilityRiskPremium /></ErrorBoundary>
 
-          <DealerGammaRegime />
+          <ErrorBoundary><DealerGammaRegime /></ErrorBoundary>
 
-          <GammaThrottleScatter />
+          <ErrorBoundary><GammaThrottleScatter /></ErrorBoundary>
 
-          <TermStructure
-            expirationMetrics={data.expirationMetrics}
-            capturedAt={data.capturedAt}
-            cloudBands={data.cloudBands}
-          />
+          <ErrorBoundary>
+            <TermStructure
+              expirationMetrics={data.expirationMetrics}
+              capturedAt={data.capturedAt}
+              cloudBands={data.cloudBands}
+            />
+          </ErrorBoundary>
 
-          <GammaInflectionChart
-            spotPrice={data.spotPrice}
-            levels={correctedLevels}
-          />
+          <ErrorBoundary>
+            <GammaInflectionChart
+              spotPrice={data.spotPrice}
+              levels={correctedLevels}
+            />
+          </ErrorBoundary>
 
-          <GexProfile
-            contracts={data.contracts}
-            spotPrice={data.spotPrice}
-            levels={correctedLevels}
-            prevContracts={prevDayData?.contracts}
-            prevSpotPrice={prevDayData?.spotPrice}
-          />
+          <ErrorBoundary>
+            <GexProfile
+              contracts={data.contracts}
+              spotPrice={data.spotPrice}
+              levels={correctedLevels}
+              prevContracts={prevDayData?.contracts}
+              prevSpotPrice={prevDayData?.spotPrice}
+            />
+          </ErrorBoundary>
 
-          <FixedStrikeIvMatrix
-            contracts={data.contracts}
-            spotPrice={data.spotPrice}
-            expirations={data.expirations}
-            prevContracts={prevDayData?.contracts}
-          />
+          <ErrorBoundary>
+            <FixedStrikeIvMatrix
+              contracts={data.contracts}
+              spotPrice={data.spotPrice}
+              expirations={data.expirations}
+              prevContracts={prevDayData?.contracts}
+            />
+          </ErrorBoundary>
 
-          <RiskNeutralDensity
-            fits={sviFits.byExpiration}
-            spotPrice={data.spotPrice}
-            capturedAt={data.capturedAt}
-          />
+          <ErrorBoundary>
+            <RiskNeutralDensity
+              fits={sviFits.byExpiration}
+              spotPrice={data.spotPrice}
+              capturedAt={data.capturedAt}
+            />
+          </ErrorBoundary>
 
-          <VolSurface3D
-            contracts={data.contracts}
-            spotPrice={data.spotPrice}
-            capturedAt={data.capturedAt}
-            fits={sviFits.byExpiration}
-            sviSource={sviFits.source}
-            underlying={data.underlying}
-          />
+          <ErrorBoundary>
+            <VolSurface3D
+              contracts={data.contracts}
+              spotPrice={data.spotPrice}
+              capturedAt={data.capturedAt}
+              fits={sviFits.byExpiration}
+              sviSource={sviFits.source}
+              underlying={data.underlying}
+            />
+          </ErrorBoundary>
         </>
       )}
     </div>
