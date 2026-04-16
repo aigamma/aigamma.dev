@@ -3,7 +3,7 @@ import usePlotly from '../hooks/usePlotly';
 import { useVrpHistory } from '../hooks/useHistoricalData';
 import {
   PLOTLY_COLORS,
-  PLOTLY_FONTS,
+  PLOTLY_FONT_FAMILY,
   plotly2DChartLayout,
   plotlyAxis,
   plotlyRangeslider,
@@ -22,9 +22,12 @@ import {
 //   shaded bands are visually self-explanatory (green = IV above RV,
 //   red = RV above IV) and carry no legend entries — the legend would
 //   just restate what the colors already make obvious.
-// - Legend contains only the three line series (S&P 500, RV, IV) and sits
+// - Legend contains only the three line series (SPX, RV, IV) and sits
 //   as a horizontal row in the top margin band below the chart title, so
-//   it never overlaps the data area.
+//   it never overlaps the data area. Legend entries and the two y-axis
+//   titles are rendered bold at a larger font size than Plotly's defaults
+//   so the chart stays legible when the card is screenshotted and shared
+//   at reduced resolution (Discord, Twitter, etc).
 const POS_VRP_FILL  = 'rgba(46, 204, 113, 0.22)';
 const NEG_VRP_FILL  = 'rgba(231, 76, 60, 0.38)';
 const SPX_AREA_FILL = 'rgba(74, 158, 255, 0.12)';
@@ -171,7 +174,7 @@ export default function VolatilityRiskPremium() {
       type: 'scatter',
       line: { color: SPX_LINE, width: 1.5 },
       yaxis: 'y',
-      name: 'S&P 500',
+      name: '<b>SPX</b>',
       hovertemplate: '%{x}<br>SPX: %{y:,.2f}<extra></extra>',
     };
 
@@ -196,7 +199,7 @@ export default function VolatilityRiskPremium() {
       type: 'scatter',
       line: { color: RV_COLOR, width: 2 },
       yaxis: 'y2',
-      name: 'Realized Vol (20d YZ)',
+      name: '<b>Realized Vol (20d YZ)</b>',
       hovertemplate: '%{x}<br>RV: %{y:.2f}%<extra></extra>',
     };
     const ivLine = {
@@ -206,7 +209,7 @@ export default function VolatilityRiskPremium() {
       type: 'scatter',
       line: { color: IV_COLOR, width: 2 },
       yaxis: 'y2',
-      name: 'Implied Vol (30d CM)',
+      name: '<b>Implied Vol (30d CM)</b>',
       hovertemplate: '%{x}<br>IV: %{y:.2f}%<extra></extra>',
     };
 
@@ -236,9 +239,22 @@ export default function VolatilityRiskPremium() {
     // row, so it's noticeably taller than the 50px used on single-row-title
     // charts. Title is pinned to the top of the container; legend sits just
     // above the plot area (y slightly above 1 in paper coords, yanchor
-    // bottom), leaving a comfortable band between the two.
+    // bottom), leaving a comfortable band between the two. Left and right
+    // margins are grown from the 80px default to 115px to host the bolder,
+    // 20px y-axis titles plus their 30px standoff from the tick labels
+    // without running into the card edge on either side.
+    const axisTitleFont = {
+      family: PLOTLY_FONT_FAMILY,
+      color: PLOTLY_COLORS.titleText,
+      size: 20,
+    };
+    const legendFont = {
+      family: PLOTLY_FONT_FAMILY,
+      color: PLOTLY_COLORS.titleText,
+      size: 18,
+    };
     const layout = plotly2DChartLayout({
-      margin: { t: 100, r: 80, b: 15, l: 80 },
+      margin: { t: 100, r: 115, b: 15, l: 115 },
       title: {
         ...plotlyTitle('Volatility Risk Premium'),
         y: 0.97,
@@ -254,28 +270,42 @@ export default function VolatilityRiskPremium() {
           autorange: false,
         }),
       }),
-      yaxis: plotlyAxis('SPX', {
-        range: [spxLo, spxHi],
-        autorange: false,
-        tickformat: ',.0f',
-        side: 'left',
-        showgrid: false,
-      }),
-      yaxis2: plotlyAxis('Implied Volatility', {
-        range: [volLo, volHi],
-        autorange: false,
-        tickformat: '.1f',
-        ticksuffix: '%',
-        side: 'right',
-        overlaying: 'y',
-      }),
+      yaxis: {
+        ...plotlyAxis('', {
+          range: [spxLo, spxHi],
+          autorange: false,
+          tickformat: ',.0f',
+          side: 'left',
+          showgrid: false,
+        }),
+        title: {
+          text: '<b>SPX</b>',
+          font: axisTitleFont,
+          standoff: 30,
+        },
+      },
+      yaxis2: {
+        ...plotlyAxis('', {
+          range: [volLo, volHi],
+          autorange: false,
+          tickformat: '.1f',
+          ticksuffix: '%',
+          side: 'right',
+          overlaying: 'y',
+        }),
+        title: {
+          text: '<b>Implied Volatility</b>',
+          font: axisTitleFont,
+          standoff: 30,
+        },
+      },
       legend: {
         orientation: 'h',
         x: 0.5,
         y: 1.03,
         xanchor: 'center',
         yanchor: 'bottom',
-        font: PLOTLY_FONTS.legend,
+        font: legendFont,
         bgcolor: 'rgba(0, 0, 0, 0)',
         borderwidth: 0,
       },
