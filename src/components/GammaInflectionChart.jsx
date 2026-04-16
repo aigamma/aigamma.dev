@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import usePlotly from '../hooks/usePlotly';
+import useIsMobile from '../hooks/useIsMobile';
 import {
   PLOTLY_BASE_LAYOUT_2D,
   PLOTLY_COLORS,
@@ -88,6 +89,7 @@ export default function GammaInflectionChart({ spotPrice, levels }) {
   const chartRef = useRef(null);
   const { plotly: Plotly, error: plotlyError } = usePlotly();
   const [labels, setLabels] = useState([]);
+  const mobile = useIsMobile();
 
   const profile = levels?.gamma_profile || null;
   const volFlip = levels?.volatility_flip ?? null;
@@ -149,7 +151,7 @@ export default function GammaInflectionChart({ spotPrice, levels }) {
 
     const layout = {
       ...PLOTLY_BASE_LAYOUT_2D,
-      margin: { t: 85, r: 30, b: 15, l: 80 },
+      margin: mobile ? { t: 45, r: 15, b: 15, l: 50 } : { t: 85, r: 30, b: 15, l: 80 },
       title: {
         ...plotlyTitle('AI Gamma Inflection'),
         y: 0.97,
@@ -161,7 +163,7 @@ export default function GammaInflectionChart({ spotPrice, levels }) {
         autorange: false,
         rangeslider: plotlyRangeslider({ range: [dataMin, dataMax], autorange: false }),
       }),
-      yaxis: plotlyAxis('Dealer Gamma Notional ($ per 1% move)', {
+      yaxis: plotlyAxis(mobile ? '' : 'Dealer Gamma Notional ($ per 1% move)', {
         zerolinewidth: 2,
         tickformat: '.2s',
         ticks: 'outside',
@@ -250,10 +252,13 @@ export default function GammaInflectionChart({ spotPrice, levels }) {
       // the segment-shape normalization in the helper stays the source of
       // truth for the `KEY VALUE` display string across every label on the
       // dashboard.
-      const newLabels = [
-        { corner: 'left', offset: 20, top: titleTop, color: PLOTLY_COLORS.negative, text: 'Put Gamma' },
-        { corner: 'right', offset: 20, top: titleTop, color: PLOTLY_COLORS.positive, text: 'Call Gamma' },
-      ];
+      const newLabels = [];
+      if (!mobile) {
+        newLabels.push(
+          { corner: 'left', offset: 20, top: titleTop, color: PLOTLY_COLORS.negative, text: 'Put Gamma' },
+          { corner: 'right', offset: 20, top: titleTop, color: PLOTLY_COLORS.positive, text: 'Call Gamma' },
+        );
+      }
 
       const bottomCandidates = [];
       if (volFlip != null) {
@@ -286,7 +291,7 @@ export default function GammaInflectionChart({ spotPrice, levels }) {
       }
       setLabels(newLabels);
     });
-  }, [Plotly, hasProfile, split, spotPrice, volFlip, profile]);
+  }, [Plotly, hasProfile, split, spotPrice, volFlip, profile, mobile]);
 
   if (plotlyError) {
     return (

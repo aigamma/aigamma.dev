@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef } from 'react';
 import usePlotly from '../hooks/usePlotly';
+import useIsMobile from '../hooks/useIsMobile';
 import {
   PLOTLY_COLORS,
   PLOTLY_FONTS,
@@ -70,6 +71,7 @@ function closedPolygon(xDates, yLower, yUpper, fillcolor) {
 export default function TermStructure({ expirationMetrics, capturedAt, cloudBands }) {
   const chartRef = useRef(null);
   const { plotly: Plotly, error: plotlyError } = usePlotly();
+  const mobile = useIsMobile();
 
   const tradingDate = useMemo(
     () => tradingDateFromCapturedAt(capturedAt),
@@ -177,7 +179,7 @@ export default function TermStructure({ expirationMetrics, capturedAt, cloudBand
     // chart with an axis-title row below the slider that this one doesn't
     // have.
     const layout = plotly2DChartLayout({
-      margin: { t: 50, r: 40, b: 15, l: 70 },
+      margin: mobile ? { t: 45, r: 15, b: 15, l: 50 } : { t: 50, r: 40, b: 15, l: 70 },
       title: plotlyTitle('Term Structure'),
       xaxis: plotlyAxis('', {
         type: 'date',
@@ -190,7 +192,7 @@ export default function TermStructure({ expirationMetrics, capturedAt, cloudBand
       }),
       yaxis: {
         ...plotlyAxis('ATM IV (%)', { tickformat: '.1f' }),
-        title: {
+        title: mobile ? { text: '' } : {
           text: 'ATM IV (%)',
           font: { ...PLOTLY_FONTS.axisTitleBold, color: PLOTLY_COLORS.primary },
           standoff: 10,
@@ -203,7 +205,7 @@ export default function TermStructure({ expirationMetrics, capturedAt, cloudBand
       responsive: true,
       displayModeBar: false,
     });
-  }, [Plotly, rows, sortedCloudBands, tradingDate]);
+  }, [Plotly, rows, sortedCloudBands, tradingDate, mobile]);
 
   if (plotlyError) {
     return (

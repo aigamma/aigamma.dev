@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef } from 'react';
 import usePlotly from '../hooks/usePlotly';
+import useIsMobile from '../hooks/useIsMobile';
 import { useVrpHistory } from '../hooks/useHistoricalData';
 import {
   PLOTLY_COLORS,
@@ -120,6 +121,7 @@ export default function VolatilityRiskPremium() {
   const chartRef = useRef(null);
   const { plotly: Plotly, error: plotlyError } = usePlotly();
   const { data, loading, error } = useVrpHistory({});
+  const mobile = useIsMobile();
 
   const series = useMemo(() => {
     if (!data?.series) return [];
@@ -261,7 +263,7 @@ export default function VolatilityRiskPremium() {
       size: 18,
     };
     const layout = plotly2DChartLayout({
-      margin: { t: 100, r: 115, b: 15, l: 80 },
+      margin: mobile ? { t: 45, r: 50, b: 15, l: 50 } : { t: 100, r: 115, b: 15, l: 80 },
       title: {
         ...plotlyTitle('Volatility Risk Premium'),
         y: 0.97,
@@ -289,7 +291,7 @@ export default function VolatilityRiskPremium() {
           tickcolor: 'rgba(0,0,0,0)',
           tickfont: { ...PLOTLY_FONTS.axisTick, color: PLOTLY_COLORS.primary },
         }),
-        title: {
+        title: mobile ? { text: '' } : {
           text: 'SPX',
           font: { ...axisTitleFont, color: PLOTLY_COLORS.primary },
           standoff: 10,
@@ -307,12 +309,13 @@ export default function VolatilityRiskPremium() {
           ticklen: 8,
           tickcolor: 'rgba(0,0,0,0)',
         }),
-        title: {
+        title: mobile ? { text: '' } : {
           text: 'Implied Volatility',
           font: axisTitleFont,
           standoff: 30,
         },
       },
+      showlegend: !mobile,
       legend: {
         orientation: 'h',
         x: 0.5,
@@ -330,7 +333,7 @@ export default function VolatilityRiskPremium() {
       responsive: true,
       displayModeBar: false,
     });
-  }, [Plotly, series, vrpSegments, spxSeries]);
+  }, [Plotly, series, vrpSegments, spxSeries, mobile]);
 
   if (plotlyError) {
     return (

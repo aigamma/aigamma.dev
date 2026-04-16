@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import usePlotly from '../hooks/usePlotly';
+import useIsMobile from '../hooks/useIsMobile';
 import {
   PLOTLY_BASE_LAYOUT_2D,
   PLOTLY_COLORBAR,
@@ -110,6 +111,7 @@ export default function FixedStrikeIvMatrix({ contracts, spotPrice, expirations,
   const chartRef = useRef(null);
   const { plotly: Plotly, error: plotlyError } = usePlotly();
   const [mode, setMode] = useState('change');
+  const mobile = useIsMobile();
 
   const { levelMatrix, changeMatrix } = useMemo(() => {
     if (!contracts || contracts.length === 0 || !spotPrice || !expirations || expirations.length === 0) {
@@ -201,7 +203,7 @@ export default function FixedStrikeIvMatrix({ contracts, spotPrice, expirations,
       texttemplate: '%{text}',
       textfont: {
         family: PLOTLY_FONT_FAMILY,
-        size: 12,
+        size: mobile ? 9 : 12,
         color: isChangeMode ? '#e0e0e0' : '#0d0f13',
         weight: 700,
       },
@@ -226,12 +228,17 @@ export default function FixedStrikeIvMatrix({ contracts, spotPrice, expirations,
 
     const layout = {
       ...BASE_LAYOUT,
+      ...(mobile ? { margin: { t: 10, r: 30, b: 60, l: 70 } } : {}),
       title: { text: '' },
       paper_bgcolor: 'rgba(0,0,0,0)',
       plot_bgcolor: 'rgba(0,0,0,0)',
       xaxis: {
         ...BASE_LAYOUT.xaxis,
-        ...(activeMatrix.xLabels.length > 10 ? { range: [-0.5, 9.5] } : {}),
+        ...(mobile
+          ? { range: [-0.5, 3.5] }
+          : activeMatrix.xLabels.length > 10
+            ? { range: [-0.5, 9.5] }
+            : {}),
       },
     };
 
@@ -239,7 +246,7 @@ export default function FixedStrikeIvMatrix({ contracts, spotPrice, expirations,
       responsive: true,
       displayModeBar: false,
     });
-  }, [Plotly, activeMatrix, isChangeMode]);
+  }, [Plotly, activeMatrix, isChangeMode, mobile]);
 
   if (plotlyError) {
     return (

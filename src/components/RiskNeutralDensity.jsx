@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef } from 'react';
 import usePlotly from '../hooks/usePlotly';
+import useIsMobile from '../hooks/useIsMobile';
 import {
   PLOTLY_BASE_LAYOUT_2D,
   PLOTLY_COLORS,
@@ -94,6 +95,7 @@ function isMonthlyExpiration(dateStr, expirationSet) {
 export default function RiskNeutralDensity({ fits, spotPrice, capturedAt }) {
   const chartRef = useRef(null);
   const { plotly: Plotly, error: plotlyError } = usePlotly();
+  const mobile = useIsMobile();
 
   const sortedExps = useMemo(() => {
     if (!fits || !capturedAt) return [];
@@ -200,6 +202,11 @@ export default function RiskNeutralDensity({ fits, spotPrice, capturedAt }) {
     // Spot line as a Plotly shape so it sits across all traces.
     const layout = {
       ...BASE_LAYOUT,
+      ...(mobile ? {
+        margin: { t: 45, r: 15, b: 35, l: 50 },
+        showlegend: false,
+        yaxis: plotlyAxis('', { tickformat: '.2s' }),
+      } : {}),
       title: {
         ...plotlyTitle('Breeden-Litzenberger'),
         y: 0.96,
@@ -224,7 +231,7 @@ export default function RiskNeutralDensity({ fits, spotPrice, capturedAt }) {
           line: { color: PLOTLY_COLORS.primary, width: 1.5, dash: 'dash' },
         },
       ],
-      annotations: [
+      annotations: mobile ? [] : [
         {
           x: spotPrice,
           xref: 'x',
@@ -245,7 +252,7 @@ export default function RiskNeutralDensity({ fits, spotPrice, capturedAt }) {
       responsive: true,
       displayModeBar: false,
     });
-  }, [Plotly, sortedExps, spotPrice]);
+  }, [Plotly, sortedExps, spotPrice, mobile]);
 
   if (plotlyError) {
     return (

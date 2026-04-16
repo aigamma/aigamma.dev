@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import usePlotly from '../hooks/usePlotly';
+import useIsMobile from '../hooks/useIsMobile';
 import {
   PLOTLY_BASE_LAYOUT_2D,
   PLOTLY_COLORS,
@@ -77,6 +78,7 @@ export default function GexProfile({ contracts, spotPrice, levels, prevContracts
   const chartRef = useRef(null);
   const { plotly: Plotly, error: plotlyError } = usePlotly();
   const [showPrior, setShowPrior] = useState(true);
+  const mobile = useIsMobile();
 
   const gexData = useMemo(() => {
     if (!contracts || contracts.length === 0 || !spotPrice) return null;
@@ -202,13 +204,14 @@ export default function GexProfile({ contracts, spotPrice, levels, prevContracts
 
     const layout = {
       ...PLOTLY_LAYOUT_BASE,
+      ...(mobile ? { margin: { t: 20, r: 15, b: 15, l: 50 } } : {}),
       xaxis: plotlyAxis('', {
         title: '',
         range: [zoomLow, zoomHigh],
         autorange: false,
         rangeslider: plotlyRangeslider({ range: [strikeMin, strikeMax], autorange: false }),
       }),
-      yaxis: plotlyAxis('Gamma Exposure ($ notional)', {
+      yaxis: plotlyAxis(mobile ? '' : 'Gamma Exposure ($ notional)', {
         zerolinewidth: 2,
         tickvals,
         ticktext,
@@ -226,7 +229,7 @@ export default function GexProfile({ contracts, spotPrice, levels, prevContracts
       responsive: true,
       displayModeBar: false,
     });
-  }, [Plotly, gexData, spotPrice, levels, prevGexData, showPrior, hasPrior]);
+  }, [Plotly, gexData, spotPrice, levels, prevGexData, showPrior, hasPrior, mobile]);
 
   if (plotlyError) {
     return (
@@ -283,7 +286,7 @@ export default function GexProfile({ contracts, spotPrice, levels, prevContracts
           style={{
             display: 'flex',
             flexWrap: 'wrap',
-            gap: '1.75rem',
+            gap: mobile ? '0.75rem' : '1.75rem',
             alignItems: 'baseline',
             justifyContent: 'center',
           }}
