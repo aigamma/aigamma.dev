@@ -162,9 +162,9 @@ export default function RiskNeutralDensity({ fits, spotPrice, capturedAt }) {
         fill: 'tozeroy',
         fillcolor: `${color}22`,
         hovertemplate:
-          'K %{x:,.0f}<br>P(SPX < K) = %{customdata[0]:.1%}'
+          label + '<br>K %{x:,.0f}<br>P(SPX < K) = %{customdata[0]:.1%}'
           + '<br>density: %{customdata[1]:.0%} of mode'
-          + '<extra>' + label + '</extra>',
+          + '<extra></extra>',
       });
 
       // Collect mode marker for this expiration.
