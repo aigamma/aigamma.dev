@@ -94,7 +94,7 @@ function groupByExpiration(contracts) {
 function toggleBtnStyle(active) {
   return {
     background: active ? 'rgba(74,158,255,0.12)' : 'none',
-    border: `1px solid ${active ? 'rgba(74,158,255,0.4)' : 'transparent'}`,
+    border: `1px solid ${active ? 'rgba(74,158,255,0.4)' : 'rgba(255,255,255,0.25)'}`,
     borderRadius: '3px',
     padding: '0.15rem 0.45rem',
     fontFamily: PLOTLY_FONT_FAMILY,
@@ -102,7 +102,7 @@ function toggleBtnStyle(active) {
     letterSpacing: '0.08em',
     textTransform: 'uppercase',
     cursor: 'pointer',
-    color: active ? '#e0e0e0' : '#555',
+    color: active ? '#e0e0e0' : '#8a8f9c',
   };
 }
 
