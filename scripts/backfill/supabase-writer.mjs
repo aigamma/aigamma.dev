@@ -160,13 +160,50 @@ export function createBackfillWriter({ url, serviceKey, fetchImpl = fetch }) {
     return out;
   }
 
+  async function upsertDailyGexStats(rows) {
+    const payload = rows.map((r) => ({
+      trading_date: r.trading_date,
+      spx_close: r.spx_close,
+      net_gex: r.net_gex,
+      call_gex: r.call_gex,
+      put_gex: r.put_gex,
+      vol_flip_strike: r.vol_flip_strike,
+      contract_count: r.contract_count ?? 0,
+      expiration_count: r.expiration_count ?? 0,
+      computed_at: new Date().toISOString(),
+    }));
+    return upsert('/rest/v1/daily_gex_stats', payload);
+  }
+
+  async function getExistingGexDates() {
+    const PAGE_SIZE = 1000;
+    const set = new Set();
+    for (let offset = 0; ; offset += PAGE_SIZE) {
+      const end = offset + PAGE_SIZE - 1;
+      const res = await fetchImpl(
+        `${url}/rest/v1/daily_gex_stats?select=trading_date&order=trading_date.asc`,
+        { headers: { ...headers, Range: `${offset}-${end}`, 'Range-Unit': 'items' } },
+      );
+      if (!res.ok && res.status !== 206) {
+        throw new Error(`supabase list gex_stats HTTP ${res.status}`);
+      }
+      const page = await res.json();
+      if (!Array.isArray(page) || page.length === 0) break;
+      for (const r of page) set.add(r.trading_date);
+      if (page.length < PAGE_SIZE) break;
+    }
+    return set;
+  }
+
   return {
     upsertDailyTermStructure,
     upsertDailyCloudBands,
     upsertDailyVolatilityOhlc,
     upsertDailyVolatilityDerived,
+    upsertDailyGexStats,
     getDailyVolatilityOhlc,
     getExistingTermStructureDates,
+    getExistingGexDates,
     getHistoricalTermStructure,
   };
 }

@@ -8,6 +8,8 @@ import FixedStrikeIvMatrix from './components/FixedStrikeIvMatrix';
 import RiskNeutralDensity from './components/RiskNeutralDensity';
 import VolSurface3D from './components/VolSurface3D';
 import VolatilityRiskPremium from './components/VolatilityRiskPremium';
+import DealerGammaRegime from './components/DealerGammaRegime';
+import GammaThrottleScatter from './components/GammaThrottleScatter';
 import useOptionsData from './hooks/useOptionsData';
 import { useVrpHistory } from './hooks/useHistoricalData';
 import useSviFits from './hooks/useSviFits';
@@ -323,6 +325,10 @@ export default function App() {
           />
 
           <VolatilityRiskPremium />
+
+          <DealerGammaRegime />
+
+          <GammaThrottleScatter />
 
           <TermStructure
             expirationMetrics={data.expirationMetrics}
