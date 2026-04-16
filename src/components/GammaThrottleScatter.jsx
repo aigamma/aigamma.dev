@@ -88,8 +88,8 @@ export default function GammaThrottleScatter() {
     if (fullSeries.length === 0) return null;
     const last = fullSeries[fullSeries.length - 1].trading_date;
     const first = fullSeries[0].trading_date;
-    const yearBack = addMonthsIso(last, -12);
-    return [yearBack >= first ? yearBack : first, last];
+    const sixMonthsBack = addMonthsIso(last, -6);
+    return [sixMonthsBack >= first ? sixMonthsBack : first, last];
   }, [fullSeries]);
 
   const activeRange = timeRange || defaultRange;
@@ -165,7 +165,7 @@ export default function GammaThrottleScatter() {
     const colorVals = filtered.map((r) => r.gamma_throttle);
     const hoverText = filtered.map(
       (r) =>
-        `${r.trading_date}<br>Throttle: ${r.gamma_throttle.toFixed(1)}<br>10d rVol: ${(r.hv_10d * 100).toFixed(1)}%<br>${r.regime === 'positive' ? 'Positive' : 'Negative'} Gamma`,
+        `${r.trading_date}<br>Vol Flip: ${r.gamma_throttle.toFixed(1)}<br>10d RV: ${(r.hv_10d * 100).toFixed(1)}%<br>${r.regime === 'positive' ? 'Positive' : 'Negative'} Gamma`,
     );
 
     const cmin = Math.max(Math.min(...colorVals, -10), -80);
@@ -231,7 +231,7 @@ export default function GammaThrottleScatter() {
         textfont: { family: PLOTLY_FONT_FAMILY, color: PLOTLY_COLORS.titleText, size: 13 },
         showlegend: false,
         hovertemplate:
-          `${lastPoint.trading_date}<br>Throttle: ${lastPoint.gamma_throttle.toFixed(2)}<br>10d rVol: ${(lastPoint.hv_10d * 100).toFixed(2)}%<extra></extra>`,
+          `${lastPoint.trading_date}<br>Vol Flip: ${lastPoint.gamma_throttle.toFixed(2)}<br>10d RV: ${(lastPoint.hv_10d * 100).toFixed(2)}%<extra></extra>`,
       });
     }
 
@@ -239,8 +239,8 @@ export default function GammaThrottleScatter() {
     const annotations = [];
     if (lastPoint) {
       const lines = [
-        `Throttle: ${lastPoint.gamma_throttle.toFixed(2)}`,
-        `10d rVol: ${(lastPoint.hv_10d * 100).toFixed(2)}%`,
+        `Vol Flip: ${lastPoint.gamma_throttle.toFixed(2)}`,
+        `10d RV: ${(lastPoint.hv_10d * 100).toFixed(2)}%`,
       ];
       if (stats.total > 0) {
         lines.push(`${stats.total} days · <span style="color:${PLOTLY_COLORS.positive}">${stats.pos}</span>/<span style="color:${PLOTLY_COLORS.negative}">${stats.neg}</span>`);
@@ -266,7 +266,7 @@ export default function GammaThrottleScatter() {
     const layout = plotly2DChartLayout({
       margin: mobile ? { t: 45, r: 15, b: 40, l: 50 } : { t: 80, r: 30, b: 45, l: 70 },
       title: {
-        ...plotlyTitle(mobile ? 'Gamma Throttle vs Realized Vol' : 'SPX Gamma Volatility Throttle Vs. 10-Day Realized Volatility'),
+        ...plotlyTitle(mobile ? 'Vol Flip vs. 10d RV' : 'Volatility Flip vs. 10d RV'),
         y: 0.97,
         yref: 'container',
         yanchor: 'top',
