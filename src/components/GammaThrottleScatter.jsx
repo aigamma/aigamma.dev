@@ -316,27 +316,27 @@ export default function GammaThrottleScatter() {
     const yMin = Math.min(...closes);
     const yMax = Math.max(...closes);
 
-    // Invisible trace — the rangeslider needs data on a date axis to
-    // bind to, but nothing should render in the chart area above it.
-    // The explicit y-axis range bypasses Plotly's doAutoRange so a
-    // zero-width transparent line is safe.
+    // Line colored to match the card background (#141820) so it's
+    // visually invisible but gives Plotly real renderable data for its
+    // internal rangeslider axis setup. Transparent traces cause
+    // doAutoRange to crash inside the rangeslider subplot.
     const trace = {
       x: dates,
       y: closes,
       mode: 'lines',
       type: 'scatter',
-      line: { color: 'rgba(0,0,0,0)', width: 0 },
+      line: { color: '#141820', width: 1 },
       hoverinfo: 'skip',
       showlegend: false,
     };
 
-    // Rangeslider-only strip. Thickness 0.8 fills most of the 45px
-    // height, leaving ~9px for the invisible chart area. The CSS
-    // rules (.rangeslider-bg, .rangeslider-mask-*) style it as:
-    // gray | [white handle] black [white handle] | gray — matching
-    // every other chart's rangeslider.
+    // Compact chart whose only visible element is the rangeslider.
+    // The 15px top margin gives the y-axis enough room to avoid the
+    // doAutoRange crash, while the line trace is invisible against
+    // the card background. The rangeslider at thickness 0.65 of 60px
+    // gives ~39px — matching the other charts' rangesliders.
     const layout = plotly2DChartLayout({
-      margin: { t: 0, r: mobile ? 15 : 30, b: 0, l: mobile ? 50 : 70 },
+      margin: { t: 15, r: mobile ? 15 : 30, b: 0, l: mobile ? 50 : 70 },
       xaxis: plotlyAxis('', {
         type: 'date',
         range: activeRange || defaultRange,
@@ -347,7 +347,7 @@ export default function GammaThrottleScatter() {
         rangeslider: plotlyRangeslider({
           range: [firstDate, lastDate],
           autorange: false,
-          thickness: 0.8,
+          thickness: 0.65,
         }),
       }),
       yaxis: plotlyAxis('', {
@@ -359,7 +359,7 @@ export default function GammaThrottleScatter() {
         zeroline: false,
         fixedrange: true,
       }),
-      height: 45,
+      height: 60,
       showlegend: false,
     });
 
@@ -418,7 +418,7 @@ export default function GammaThrottleScatter() {
     <div className="card" style={{ marginBottom: '1rem' }}>
       <div ref={scatterRef} style={{ width: '100%', height: '520px', backgroundColor: 'var(--bg-card)' }} />
       {/* Date brush zoom */}
-      <div ref={timeRef} style={{ width: '100%', height: '45px', backgroundColor: 'var(--bg-card)' }} />
+      <div ref={timeRef} style={{ width: '100%', height: '60px', backgroundColor: 'var(--bg-card)' }} />
     </div>
   );
 }
