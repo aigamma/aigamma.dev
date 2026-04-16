@@ -119,6 +119,10 @@ export default function RiskNeutralDensity({ fits, spotPrice, capturedAt }) {
     if (!Plotly || !chartRef.current || sortedExps.length === 0 || !spotPrice) return;
 
     const traces = [];
+    const modeX = [];
+    const modeY = [];
+    const modeColors = [];
+    const modeHover = [];
 
     sortedExps.forEach((fit, idx) => {
       const windowed = windowDensityWithCdf(
@@ -128,19 +132,62 @@ export default function RiskNeutralDensity({ fits, spotPrice, capturedAt }) {
       const color = PLOTLY_SERIES_PALETTE[idx % PLOTLY_SERIES_PALETTE.length];
       const label = `${fit.expirationDate} (${fit.dte.toFixed(0)}d)`;
 
+      // Find the mode (peak density) for this expiration.
+      let peakVal = 0;
+      let peakIdx = 0;
+      for (let i = 0; i < windowed.values.length; i++) {
+        if (windowed.values[i] > peakVal) {
+          peakVal = windowed.values[i];
+          peakIdx = i;
+        }
+      }
+
+      // customdata carries [cdf, densityRelativeToPeak] so the hover
+      // can show both the cumulative probability and how close this
+      // strike is to the optimal butterfly center for this expiration.
+      const customdata = windowed.strikes.map((_, i) => [
+        windowed.cdf[i],
+        peakVal > 0 ? windowed.values[i] / peakVal : 0,
+      ]);
+
       traces.push({
         x: windowed.strikes,
         y: windowed.values,
-        customdata: windowed.cdf,
+        customdata,
         mode: 'lines',
         type: 'scatter',
         name: label,
         line: { color, width: 2 },
         fill: 'tozeroy',
         fillcolor: `${color}22`,
-        hovertemplate: 'K %{x:,.0f}<br>P(SPX < K) = %{customdata:.1%}<extra>' + label + '</extra>',
+        hovertemplate:
+          'K %{x:,.0f}<br>P(SPX < K) = %{customdata[0]:.1%}'
+          + '<br>density: %{customdata[1]:.0%} of mode'
+          + '<extra>' + label + '</extra>',
       });
+
+      // Collect mode marker for this expiration.
+      modeX.push(windowed.strikes[peakIdx]);
+      modeY.push(peakVal);
+      modeColors.push(color);
+      modeHover.push(`${label}<br>mode: ${windowed.strikes[peakIdx].toFixed(0)}`);
     });
+
+    // Single scatter trace for all mode markers — diamond dots at each
+    // curve's peak. The mode is the most probable settlement strike for
+    // that expiration and the optimal center for a butterfly.
+    if (modeX.length > 0) {
+      traces.push({
+        x: modeX,
+        y: modeY,
+        mode: 'markers',
+        type: 'scatter',
+        marker: { color: modeColors, size: 9, symbol: 'diamond', line: { color: '#141820', width: 1 } },
+        showlegend: false,
+        hovertemplate: '%{text}<extra></extra>',
+        text: modeHover,
+      });
+    }
 
     // Default zoom is asymmetric around spot — tight on the left where the
     // density falls off sharply, wider on the right where the longer-dated
