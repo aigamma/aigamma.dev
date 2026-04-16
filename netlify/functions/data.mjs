@@ -68,18 +68,34 @@ export default async function handler(request) {
         `No ${snapshotType} run found for ${underlying}${tradingDate ? ` on ${tradingDate}` : ''}`
       );
     }
-    // Prefer the newest successful run that actually has contracts. After the
-    // SPX cash close (16:15 ET) the Massive API returns empty chains, but the
-    // ingest can still write a "success" row with contract_count=0. Without
-    // this guard the data endpoint degrades to an empty payload every
-    // afternoon until the next morning's open. The fallback chain is:
-    // (1) newest success with contracts, (2) newest success regardless,
-    // (3) newest row overall — so the site never serves a 404 when any run
-    // exists.
-    const run =
-      runRows.find((r) => r.status === 'success' && r.contract_count > 0) ||
-      runRows.find((r) => r.status === 'success') ||
-      runRows[0];
+    // Find the newest run that actually has snapshot rows in the database.
+    // The ingest writes the run header (with accurate contract_count) before
+    // the snapshot batch inserts, so a run can report contract_count=15000
+    // yet have zero rows in the snapshots table when writes fail (database
+    // storage limits, RLS misconfiguration, timeout on the 15-batch insert).
+    // Serving such a run produces an empty contracts array that blanks every
+    // chart. The check below probes each candidate with a single-row SELECT
+    // (~10ms per probe) until it finds one with actual data, then commits to
+    // the full paginated fetch for that run only.
+    const candidates = runRows.filter((r) => r.status === 'success');
+    if (candidates.length === 0) candidates.push(runRows[0]);
+
+    let run = null;
+    for (const candidate of candidates) {
+      const probeRes = await fetchWithTimeout(
+        `${supabaseUrl}/rest/v1/snapshots?run_id=eq.${candidate.id}&select=id&limit=1`,
+        { headers },
+        'snapshot_probe'
+      );
+      if (probeRes.ok) {
+        const probeRows = await probeRes.json();
+        if (Array.isArray(probeRows) && probeRows.length > 0) {
+          run = candidate;
+          break;
+        }
+      }
+    }
+    if (!run) run = runRows[0];
 
     const snapParams = new URLSearchParams({
       run_id: `eq.${run.id}`,
