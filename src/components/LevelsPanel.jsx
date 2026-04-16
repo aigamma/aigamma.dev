@@ -161,6 +161,26 @@ export default function LevelsPanel({ levels, spotPrice, prevClose, expirationMe
           accent="var(--accent-cyan)"
           sub={vrpMetric ? `IV ${vrpMetric.iv.toFixed(1)}% / RV ${vrpMetric.rv.toFixed(1)}%` : null}
         />
+        <Stat
+          label="IV Rank"
+          value={vrpMetric?.ivRank != null ? `${vrpMetric.ivRank.toFixed(1)}%` : '\u2014'}
+          accent="var(--accent-cyan)"
+          sub={
+            vrpMetric?.ivRankLow != null && vrpMetric?.ivRankHigh != null
+              ? `252d: ${vrpMetric.ivRankLow.toFixed(1)}% – ${vrpMetric.ivRankHigh.toFixed(1)}%`
+              : null
+          }
+        />
+        <Stat
+          label="IV Percentile"
+          value={vrpMetric?.ivPercentile != null ? `${vrpMetric.ivPercentile.toFixed(1)}%` : '\u2014'}
+          accent="var(--accent-cyan)"
+          sub={
+            vrpMetric?.ivLookbackDays != null
+              ? `${Math.round((vrpMetric.ivPercentile / 100) * vrpMetric.ivLookbackDays)} of ${vrpMetric.ivLookbackDays}d below`
+              : null
+          }
+        />
       </div>
 
       {relevantMetric && (

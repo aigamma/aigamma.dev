@@ -60,17 +60,50 @@ export default function App() {
   const { data: vrpData } = useVrpHistory({});
   const vrpMetric = useMemo(() => {
     if (!vrpData?.series) return null;
+
+    // Find the latest row with valid IV and HV for the VRP spread
+    let latest = null;
     for (let i = vrpData.series.length - 1; i >= 0; i--) {
       const r = vrpData.series[i];
       if (r.iv_30d_cm != null && r.hv_20d_yz != null) {
-        return {
-          vrp: (r.iv_30d_cm - r.hv_20d_yz) * 100,
-          iv: r.iv_30d_cm * 100,
-          rv: r.hv_20d_yz * 100,
-        };
+        latest = r;
+        break;
       }
     }
-    return null;
+    if (!latest) return null;
+
+    const result = {
+      vrp: (latest.iv_30d_cm - latest.hv_20d_yz) * 100,
+      iv: latest.iv_30d_cm * 100,
+      rv: latest.hv_20d_yz * 100,
+    };
+
+    // IV Rank and IV Percentile over the last 252 trading days.
+    // Collect the most recent ≤252 entries with valid iv_30d_cm (series is
+    // sorted ascending by trading_date, so we walk backwards).
+    const ivValues = [];
+    for (let i = vrpData.series.length - 1; i >= 0 && ivValues.length < 252; i--) {
+      if (vrpData.series[i].iv_30d_cm != null) {
+        ivValues.push(vrpData.series[i].iv_30d_cm);
+      }
+    }
+
+    if (ivValues.length > 1) {
+      const currentIv = ivValues[0];
+      const lo = Math.min(...ivValues);
+      const hi = Math.max(...ivValues);
+      const range = hi - lo;
+
+      result.ivRank = range > 0 ? ((currentIv - lo) / range) * 100 : 50;
+      result.ivRankHigh = hi * 100;
+      result.ivRankLow = lo * 100;
+
+      const below = ivValues.filter((v) => v < currentIv).length;
+      result.ivPercentile = (below / ivValues.length) * 100;
+      result.ivLookbackDays = ivValues.length;
+    }
+
+    return result;
   }, [vrpData]);
   const [prevData, setPrevData] = useState(data);
 
