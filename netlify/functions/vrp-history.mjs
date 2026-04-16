@@ -4,11 +4,11 @@
 // ATM IV, and VRP spread (IV − HV) used by the Volatility Risk Premium chart.
 //
 // Query params:
-//   from — YYYY-MM-DD inclusive lower bound (optional; default 2025-04-14)
+//   from — YYYY-MM-DD inclusive lower bound (optional; default 2022-01-01)
 //   to   — YYYY-MM-DD inclusive upper bound (optional; default today)
 
 const SUPABASE_TIMEOUT_MS = 8000;
-const DEFAULT_FROM = '2025-04-14';
+const DEFAULT_FROM = '2022-01-01';
 const PAGE_SIZE = 1000;
 
 async function fetchWithTimeout(url, options, label) {
