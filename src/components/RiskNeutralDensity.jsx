@@ -112,7 +112,8 @@ export default function RiskNeutralDensity({ fits, spotPrice, capturedAt }) {
       .map((f) => {
         const daysToExp = Math.max((new Date(`${f.expirationDate}T20:00:00Z`).getTime() - now) / 86400000, 0);
         return { ...f, dte: daysToExp };
-      });
+      })
+      .filter((f) => f.dte >= 7);
   }, [fits, capturedAt]);
 
   useEffect(() => {
