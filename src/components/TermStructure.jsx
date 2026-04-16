@@ -145,13 +145,15 @@ export default function TermStructure({ expirationMetrics, capturedAt, cloudBand
       hovertemplate: '%{x}<br>%{text}<br>ATM IV: %{y:.2f}%<extra></extra>',
     });
 
-    // The chart domain starts at the first non-0DTE observed expiration
-    // rather than the snapshot's trading date — since 0DTE is filtered
-    // out, the old "today anchor + today marker" frame would leave the
-    // first DTE-1 point sitting a full calendar day off the left edge
-    // with an empty band running from today to the first observed point.
-    // Anchoring the x-axis on rows[0].expiration puts the first observed
-    // point flush against the left edge.
+    // The chart domain starts just before the first non-0DTE observed
+    // expiration — `startDate` is the first data point and `axisStart`
+    // shifts the visible left edge a few days earlier so the first dot
+    // has breathing room instead of sitting flush against the y-axis
+    // line where the marker can get half-clipped by the axis boundary.
+    // The rangeslider range is padded by the same amount so the slider
+    // left handle lines up with the visible left edge rather than with
+    // the first data point (otherwise dragging the slider left would
+    // feel pinned to nothing).
     const maxBandDte = sortedCloudBands.length > 0
       ? sortedCloudBands[sortedCloudBands.length - 1].dte
       : null;
@@ -159,6 +161,7 @@ export default function TermStructure({ expirationMetrics, capturedAt, cloudBand
       ? addDaysIso(tradingDate, maxBandDte)
       : rows[rows.length - 1].expiration;
     const startDate = rows[0].expiration;
+    const axisStart = addDaysIso(startDate, -3);
     // Default brush window is 100 calendar days from the first non-0DTE
     // expiration, which is wide enough to show the next several monthly
     // expirations and the near-term curvature without requiring the user
@@ -177,10 +180,10 @@ export default function TermStructure({ expirationMetrics, capturedAt, cloudBand
       title: plotlyTitle('Term Structure'),
       xaxis: plotlyAxis('', {
         type: 'date',
-        range: [startDate, initialWindowEnd],
+        range: [axisStart, initialWindowEnd],
         autorange: false,
         rangeslider: plotlyRangeslider({
-          range: [startDate, cloudLast],
+          range: [axisStart, cloudLast],
           autorange: false,
         }),
       }),
