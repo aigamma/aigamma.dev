@@ -4,6 +4,7 @@ import { useVrpHistory } from '../hooks/useHistoricalData';
 import {
   PLOTLY_COLORS,
   PLOTLY_FONT_FAMILY,
+  PLOTLY_FONTS,
   plotly2DChartLayout,
   plotlyAxis,
   plotlyRangeslider,
@@ -283,10 +284,11 @@ export default function VolatilityRiskPremium() {
           tickformat: ',.0f',
           side: 'left',
           showgrid: false,
+          tickfont: { ...PLOTLY_FONTS.axisTick, color: PLOTLY_COLORS.primary },
         }),
         title: {
           text: 'SPX',
-          font: axisTitleFont,
+          font: { ...axisTitleFont, color: PLOTLY_COLORS.primary },
           standoff: 10,
         },
       },
