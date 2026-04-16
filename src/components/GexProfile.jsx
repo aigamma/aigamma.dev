@@ -190,6 +190,7 @@ export default function GexProfile({ contracts, spotPrice, levels }) {
             fontSize: '20px',
             fontWeight: 'normal',
             lineHeight: 1,
+            textAlign: 'center',
           }}
         >
           AI Gamma Map
@@ -200,6 +201,7 @@ export default function GexProfile({ contracts, spotPrice, levels }) {
             flexWrap: 'wrap',
             gap: '1.75rem',
             alignItems: 'baseline',
+            justifyContent: 'center',
           }}
         >
           <LevelLabel name="Put Wall" value={levels?.put_wall} color={PLOTLY_COLORS.negative} />
