@@ -7,6 +7,7 @@ import TermStructure from './components/TermStructure';
 import FixedStrikeIvMatrix from './components/FixedStrikeIvMatrix';
 import RiskNeutralDensity from './components/RiskNeutralDensity';
 import VolSurface3D from './components/VolSurface3D';
+import GammaRegime from './components/GammaRegime';
 import VolatilityRiskPremium from './components/VolatilityRiskPremium';
 import useOptionsData from './hooks/useOptionsData';
 import { useVrpHistory } from './hooks/useHistoricalData';
@@ -288,6 +289,8 @@ export default function App() {
             capturedAt={data.capturedAt}
             vrpMetric={vrpMetric}
           />
+
+          <GammaRegime />
 
           <VolatilityRiskPremium />
 
