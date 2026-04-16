@@ -284,6 +284,9 @@ export default function VolatilityRiskPremium() {
           tickformat: ',.0f',
           side: 'left',
           showgrid: false,
+          ticks: 'outside',
+          ticklen: 8,
+          tickcolor: 'rgba(0,0,0,0)',
           tickfont: { ...PLOTLY_FONTS.axisTick, color: PLOTLY_COLORS.primary },
         }),
         title: {
