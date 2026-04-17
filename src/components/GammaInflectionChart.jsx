@@ -1,14 +1,14 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import usePlotly from '../hooks/usePlotly';
 import useIsMobile from '../hooks/useIsMobile';
 import {
   PLOTLY_BASE_LAYOUT_2D,
   PLOTLY_COLORS,
   plotlyAxis,
-  plotlyRangeslider,
   plotlyTitle,
 } from '../lib/plotlyTheme';
 import { mergeCollidingLabels } from '../lib/labelCollision';
+import RangeBrush from './RangeBrush';
 
 // Dollar gamma notional is in the $10^9-$10^11 range at SPX scale. A plain SI
 // tick formatter (Plotly's '.2s') is sufficient — no symlog compression needed
@@ -89,6 +89,7 @@ export default function GammaInflectionChart({ spotPrice, levels }) {
   const chartRef = useRef(null);
   const { plotly: Plotly, error: plotlyError } = usePlotly();
   const [labels, setLabels] = useState([]);
+  const [strikeRange, setStrikeRange] = useState(null);
   const mobile = useIsMobile();
 
   const profile = levels?.gamma_profile || null;
@@ -96,6 +97,17 @@ export default function GammaInflectionChart({ spotPrice, levels }) {
 
   const split = useMemo(() => splitByZero(profile), [profile]);
   const hasProfile = profile && profile.length > 0;
+
+  const dataMin = hasProfile ? profile[0].s : null;
+  const dataMax = hasProfile ? profile[profile.length - 1].s : null;
+  const defaultRange = useMemo(() => {
+    if (!hasProfile) return null;
+    const hasSpot = spotPrice != null;
+    const zoomLow = hasSpot ? spotPrice * 0.93 : dataMin;
+    const zoomHigh = hasSpot ? spotPrice * 1.07 : dataMax;
+    return [zoomLow, zoomHigh];
+  }, [hasProfile, spotPrice, dataMin, dataMax]);
+  const activeRange = strikeRange || defaultRange;
 
   useEffect(() => {
     if (!Plotly || !chartRef.current || !hasProfile) return;
@@ -143,15 +155,11 @@ export default function GammaInflectionChart({ spotPrice, levels }) {
     pushLine(spotPrice, PLOTLY_COLORS.primary);
     pushLine(volFlip, PLOTLY_COLORS.highlight);
 
-    const dataMin = profile[0].s;
-    const dataMax = profile[profile.length - 1].s;
-    const hasSpot = spotPrice != null;
-    const zoomLow = hasSpot ? spotPrice * 0.93 : dataMin;
-    const zoomHigh = hasSpot ? spotPrice * 1.07 : dataMax;
+    const [zoomLow, zoomHigh] = activeRange || [dataMin, dataMax];
 
     const layout = {
       ...PLOTLY_BASE_LAYOUT_2D,
-      margin: mobile ? { t: 45, r: 15, b: 15, l: 50 } : { t: 85, r: 30, b: 15, l: 80 },
+      margin: mobile ? { t: 45, r: 15, b: 40, l: 50 } : { t: 85, r: 30, b: 45, l: 80 },
       title: {
         ...plotlyTitle('AI Gamma Inflection'),
         y: 0.97,
@@ -161,7 +169,6 @@ export default function GammaInflectionChart({ spotPrice, levels }) {
         title: '',
         range: [zoomLow, zoomHigh],
         autorange: false,
-        rangeslider: plotlyRangeslider({ range: [dataMin, dataMax], autorange: false }),
       }),
       yaxis: plotlyAxis(mobile ? '' : 'Dealer Gamma Notional ($ per 1% move)', {
         zerolinewidth: 2,
@@ -192,11 +199,10 @@ export default function GammaInflectionChart({ spotPrice, levels }) {
       const yDomain = fl.yaxis?.domain || [0, 1];
 
       // Anchor FLIP above the main x-axis tick-label strip (the strike-price
-      // row Plotly renders between the data plot and the rangeslider). Prefer
-      // the rendered `.xaxislayer-above` group's bounding box since it's what
-      // actually contains the tick labels; fall back to a larger offset from
-      // the rangeslider rect so the label still clears the label row if the
-      // selector changes in a future Plotly release.
+      // row Plotly renders at the bottom of the data plot). Prefer the
+      // rendered `.xaxislayer-above` group's bounding box since it's what
+      // actually contains the tick labels; fall back to a geometric offset
+      // from the plot area if the selector changes in a future Plotly release.
       let bottomY;
       const container = chartRef.current;
       if (container) {
@@ -206,13 +212,7 @@ export default function GammaInflectionChart({ spotPrice, levels }) {
           const layerRect = xAxisLayer.getBoundingClientRect();
           bottomY = layerRect.top - containerRect.top - 10;
         } else {
-          const rangesliderBg = container.querySelector('.rangeslider-bg');
-          if (rangesliderBg) {
-            const sliderRect = rangesliderBg.getBoundingClientRect();
-            bottomY = sliderRect.top - containerRect.top - 35;
-          } else {
-            bottomY = mt + plotH * (1 - yDomain[0]) - 35;
-          }
+          bottomY = mt + plotH * (1 - yDomain[0]) - 35;
         }
       } else {
         bottomY = mt + plotH * (1 - yDomain[0]) - 35;
@@ -291,7 +291,11 @@ export default function GammaInflectionChart({ spotPrice, levels }) {
       }
       setLabels(newLabels);
     });
-  }, [Plotly, hasProfile, split, spotPrice, volFlip, profile, mobile]);
+  }, [Plotly, hasProfile, split, spotPrice, volFlip, profile, mobile, activeRange, dataMin, dataMax]);
+
+  const handleBrushChange = useCallback((min, max) => {
+    setStrikeRange([min, max]);
+  }, []);
 
   if (plotlyError) {
     return (
@@ -320,6 +324,15 @@ export default function GammaInflectionChart({ spotPrice, levels }) {
           ref={chartRef}
           style={{ width: '100%', height: '700px', backgroundColor: 'var(--bg-card)' }}
         />
+        {activeRange && dataMin != null && dataMax != null && (
+          <RangeBrush
+            min={dataMin}
+            max={dataMax}
+            activeMin={activeRange[0]}
+            activeMax={activeRange[1]}
+            onChange={handleBrushChange}
+          />
+        )}
         {labels.map((l, i) => {
           if (l.corner) {
             return (
