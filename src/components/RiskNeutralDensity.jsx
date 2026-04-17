@@ -15,7 +15,7 @@ const BASE_LAYOUT = {
   ...PLOTLY_BASE_LAYOUT_2D,
   margin: { t: 80, r: 30, b: 45, l: 80 },
   xaxis: plotlyAxis(''),
-  yaxis: plotlyAxis('Risk-Neutral Density', { tickformat: '.2s' }),
+  yaxis: plotlyAxis('Risk-Neutral Density', { tickformat: '.2s', tickpad: 10 }),
   // Legend floats inside the top-right of the plot area instead of the
   // shared horizontal-below-plot slot from PLOTLY_BASE_LAYOUT_2D. The
   // old rangeslider pinned the horizontal legend right on top of the
@@ -217,7 +217,7 @@ export default function RiskNeutralDensity({ fits, spotPrice, capturedAt }) {
       ...(mobile ? {
         margin: { t: 45, r: 15, b: 40, l: 50 },
         showlegend: false,
-        yaxis: plotlyAxis('', { tickformat: '.2s' }),
+        yaxis: plotlyAxis('', { tickformat: '.2s', tickpad: 10 }),
       } : {}),
       title: {
         ...plotlyTitle('Breeden-Litzenberger'),
