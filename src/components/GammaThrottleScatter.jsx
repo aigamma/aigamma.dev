@@ -316,17 +316,16 @@ export default function GammaThrottleScatter() {
     const yMin = Math.min(...closes);
     const yMax = Math.max(...closes);
 
-    // Tight 52px strip sized to the smallest footprint Plotly's
-    // rangeslider will still reliably render at. The rangeslider needs
-    // at least ~10-12px of main-plot area above it or the SVG layout
-    // silently fails; at 52px with margins t=2 b=2 the plot area is
-    // 48px, and thickness 0.75 gives a ~36px rangeslider (same height
-    // as the DealerGammaRegime rangeslider) with a ~12px invisible
-    // buffer above. The remaining whitespace is ~12px instead of the
-    // 76px that a 120px strip carried, and the freed 68px is handed
-    // over to the scatter chart so it grows into that vertical band
-    // instead of leaving it as a card-colored void between the data
-    // and the rangeslider.
+    // 80px strip — empirical minimum for Plotly to reliably render the
+    // rangeslider's SVG. 52px (main-plot 12px) silently fails, 120px
+    // (main-plot 76px) renders but leaves a lot of empty space; 80px
+    // with margins t=3 b=3 gives a 74px plot area, and thickness 0.48
+    // gives a ~36px rangeslider (matching the DealerGammaRegime
+    // rangeslider's physical height) with a ~38px invisible buffer
+    // above. The 38px of buffer is still more than ideal but is the
+    // smallest that has been observed to render reliably without
+    // silent layout failure. The scatter above grows to 560px to absorb
+    // most of the whitespace that the 120px strip was carrying.
     const trace = {
       x: dates,
       y: closes,
@@ -338,7 +337,7 @@ export default function GammaThrottleScatter() {
     };
 
     const layout = plotly2DChartLayout({
-      margin: { t: 2, r: mobile ? 15 : 30, b: 2, l: mobile ? 50 : 70 },
+      margin: { t: 3, r: mobile ? 15 : 30, b: 3, l: mobile ? 50 : 70 },
       xaxis: plotlyAxis('', {
         type: 'date',
         range: activeRange || defaultRange,
@@ -349,7 +348,7 @@ export default function GammaThrottleScatter() {
         rangeslider: plotlyRangeslider({
           range: [firstDate, lastDate],
           autorange: false,
-          thickness: 0.75,
+          thickness: 0.48,
         }),
       }),
       yaxis: plotlyAxis('', {
@@ -361,7 +360,7 @@ export default function GammaThrottleScatter() {
         zeroline: false,
         fixedrange: true,
       }),
-      height: 52,
+      height: 80,
       showlegend: false,
     });
 
@@ -418,15 +417,15 @@ export default function GammaThrottleScatter() {
 
   return (
     <div className="card" style={{ marginBottom: '1rem' }}>
-      <div ref={scatterRef} style={{ width: '100%', height: '588px', backgroundColor: 'var(--bg-card)' }} />
-      {/* Date brush zoom — tight 52px strip sized to the minimum that
-          still renders a visible Plotly rangeslider. With margins t=2
-          b=2 and thickness 0.75, the visible rangeslider is ~36px at
-          the bottom of the strip and only ~12px of invisible-trace
-          buffer sits above it — the scatter above now owns the rest of
-          the card height, eliminating the prior ~76px of empty card
-          space between the x-axis and the rangeslider. */}
-      <div ref={timeRef} style={{ width: '100%', height: '52px', backgroundColor: 'var(--bg-card)' }} />
+      <div ref={scatterRef} style={{ width: '100%', height: '560px', backgroundColor: 'var(--bg-card)' }} />
+      {/* Date brush zoom — 80px strip, the empirical minimum at which
+          Plotly reliably renders the rangeslider. Smaller heights
+          (52px tried) silently fail to paint any visible rangeslider
+          SVG. With margins t=3 b=3 and thickness 0.48 the visible
+          rangeslider is ~36px at the bottom of the strip; the ~38px
+          above it is an invisible #141820 trace that Plotly needs for
+          its internal layout. */}
+      <div ref={timeRef} style={{ width: '100%', height: '80px', backgroundColor: 'var(--bg-card)' }} />
     </div>
   );
 }

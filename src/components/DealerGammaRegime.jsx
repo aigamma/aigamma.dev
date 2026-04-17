@@ -190,7 +190,7 @@ export default function DealerGammaRegime() {
     };
 
     const layout = plotly2DChartLayout({
-      margin: mobile ? { t: 45, r: 15, b: 15, l: 50 } : { t: 90, r: 30, b: 15, l: 70 },
+      margin: mobile ? { t: 45, r: 15, b: 15, l: 55 } : { t: 90, r: 30, b: 15, l: 85 },
       title: {
         ...plotlyTitle('Gamma Regime History'),
         y: 0.97,
@@ -211,6 +211,20 @@ export default function DealerGammaRegime() {
         ticks: 'outside',
         ticklen: 8,
         tickcolor: 'rgba(0,0,0,0)',
+        // Override the plotlyAxis default standoff (10) with a larger
+        // value so the rotated "SPX" title sits well left of the tick
+        // numbers (6,400 / 6,500 / ...) instead of crowding them. The
+        // left margin above is widened to 85 to absorb the extra
+        // offset without clipping the title.
+        ...(mobile
+          ? {}
+          : {
+              title: {
+                text: 'SPX',
+                font: PLOTLY_FONTS.axisTitleBold,
+                standoff: 25,
+              },
+            }),
         ...(initialYRange ? { range: initialYRange, autorange: false } : {}),
       }),
       showlegend: !mobile,
