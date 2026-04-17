@@ -13,9 +13,20 @@ import RangeBrush from './RangeBrush';
 
 const BASE_LAYOUT = {
   ...PLOTLY_BASE_LAYOUT_2D,
-  margin: { t: 80, r: 30, b: 45, l: 80 },
+  margin: { t: 80, r: 30, b: 45, l: 95 },
   xaxis: plotlyAxis(''),
-  yaxis: plotlyAxis('Risk-Neutral Density', { tickformat: '.2s', tickpad: 10 }),
+  // `ticks: 'outside'` plus an invisible 8px ticklen pushes the tick text
+  // a further 8px left of the plot area's left edge, so the values like
+  // "1.8m" / "800μ" stop rendering flush against the y-axis line. The
+  // 15px bump in margin.l absorbs that extra spacing without crowding the
+  // rotated y-axis title.
+  yaxis: plotlyAxis('Risk-Neutral Density', {
+    tickformat: '.2s',
+    ticks: 'outside',
+    ticklen: 8,
+    tickcolor: 'rgba(0,0,0,0)',
+    tickpad: 10,
+  }),
   // Legend floats inside the top-right of the plot area instead of the
   // shared horizontal-below-plot slot from PLOTLY_BASE_LAYOUT_2D. The
   // old rangeslider pinned the horizontal legend right on top of the
