@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import usePlotly from '../hooks/usePlotly';
+import useIsMobile from '../hooks/useIsMobile';
 import { sviTotalVariance } from '../lib/svi';
 import {
   PLOTLY_BASE_LAYOUT_3D,
@@ -265,22 +266,7 @@ export default function VolSurface3D({ contracts, spotPrice, capturedAt, fits, s
   const chartRef = useRef(null);
   const { plotly: Plotly, error: plotlyError } = usePlotly();
   const [mode, setMode] = useState('raw');
-  // Touch-primary devices (phones, tablets, touch laptops in landscape or
-  // any orientation) get the colorbar hidden so the 3D scene claims the full
-  // card width for pinch/drag exploration. `(pointer: coarse)` is a more
-  // robust signal than a width breakpoint because a landscape phone or a
-  // portrait iPad both exceed 768px yet still want the full-screen view.
-  const [isTouch, setIsTouch] = useState(() => {
-    if (typeof window === 'undefined' || !window.matchMedia) return false;
-    return window.matchMedia('(pointer: coarse)').matches;
-  });
-  useEffect(() => {
-    if (typeof window === 'undefined' || !window.matchMedia) return undefined;
-    const query = window.matchMedia('(pointer: coarse)');
-    const handler = (e) => setIsTouch(e.matches);
-    query.addEventListener('change', handler);
-    return () => query.removeEventListener('change', handler);
-  }, []);
+  const mobile = useIsMobile();
 
   const capturedAtMs = useMemo(
     () => (capturedAt ? new Date(capturedAt).getTime() : null),
@@ -330,7 +316,7 @@ export default function VolSurface3D({ contracts, spotPrice, capturedAt, fits, s
         cmin: cMin,
         cmid: cMid,
         cmax: cMax,
-        showscale: !isTouch,
+        showscale: !mobile,
         opacity: 0.85,
         contours: {
           z: {
@@ -388,7 +374,7 @@ export default function VolSurface3D({ contracts, spotPrice, capturedAt, fits, s
           cmid: cMid,
           cmin: cMin,
           cmax: cMax,
-          showscale: !isTouch,
+          showscale: !mobile,
           opacity: 0.85,
           colorbar: {
             ...PLOTLY_COLORBAR,
@@ -416,7 +402,7 @@ export default function VolSurface3D({ contracts, spotPrice, capturedAt, fits, s
       responsive: true,
       displayModeBar: false,
     });
-  }, [Plotly, effectiveMode, sviSurface, rawScatter, spotPrice, atmIv, sortedFits, hasSviFits, underlying, isTouch]);
+  }, [Plotly, effectiveMode, sviSurface, rawScatter, spotPrice, atmIv, sortedFits, hasSviFits, underlying, mobile]);
 
   if (plotlyError) {
     return (
