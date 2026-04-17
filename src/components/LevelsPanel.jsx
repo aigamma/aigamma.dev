@@ -1,6 +1,31 @@
 import { formatGamma, formatInteger, formatPercent, formatRatio } from '../lib/format';
 import { daysToExpiration } from '../lib/dates';
 
+// Treat the 3rd Friday of the month (Friday whose calendar day is 15-21) as
+// an AM-settled standard SPX monthly, and everything else as a PM-settled
+// SPXW weekly. On 3rd Fridays both roots technically share the same calendar
+// date — the AM SPX monthly settles via SOQ at 9:30 ET and the PM SPXW
+// weekly trades until 16:00 ET — but the App-level same-day filter removes
+// that specific date from the picker entirely, so by the time a date
+// reaches this function it either hasn't arrived yet (future monthly, where
+// the AM contract is the primary interest) or is a non-3rd-Friday weekly
+// (PM only). The 3rd-Friday test is therefore a reliable proxy for the
+// AM/PM distinction without needing a root column piped through from the
+// data layer.
+function isThirdFridayMonthly(iso) {
+  const d = new Date(`${iso}T12:00:00Z`);
+  if (d.getUTCDay() !== 5) return false;
+  const day = d.getUTCDate();
+  return day >= 15 && day <= 21;
+}
+
+function formatExpirationOption(exp, capturedAt) {
+  const settlement = isThirdFridayMonthly(exp) ? 'AM' : 'PM';
+  const dteFrac = daysToExpiration(exp, capturedAt);
+  const dteLabel = dteFrac != null ? `${Math.max(0, Math.round(dteFrac))}d` : '—d';
+  return `${exp} ${settlement} (${dteLabel})`;
+}
+
 function distanceSub(level, spot) {
   if (level == null || spot == null) return null;
   const dollar = level - spot;
@@ -217,7 +242,7 @@ export default function LevelsPanel({ levels, spotPrice, prevClose, expirationMe
                 }}
               >
                 {(expirations || []).map((exp) => (
-                  <option key={exp} value={exp}>{exp}</option>
+                  <option key={exp} value={exp}>{formatExpirationOption(exp, capturedAt)}</option>
                 ))}
               </select>
             </div>

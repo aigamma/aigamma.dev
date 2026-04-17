@@ -15,7 +15,7 @@ import useOptionsData from './hooks/useOptionsData';
 import { useVrpHistory } from './hooks/useHistoricalData';
 import useSviFits from './hooks/useSviFits';
 import { computeGammaProfile, findFlipFromProfile } from './lib/gammaProfile';
-import { formatFreshness, isMarketClosed } from './lib/dates';
+import { formatFreshness, isMarketClosed, tradingDateFromCapturedAt } from './lib/dates';
 
 function classifyGammaRegime(levels, spotPrice) {
   if (!levels || spotPrice == null) return null;
@@ -110,53 +110,68 @@ export default function App() {
   }, [vrpData]);
   const [prevData, setPrevData] = useState(data);
 
+  // Filter same-day expirations out of the picker dropdown entirely. 0DTE
+  // SPX contracts produce unreliable BSM-derived metrics due to model
+  // degradation at zero time-to-expiry — ATM IV collapses into the low
+  // single digits once the chain decays into its late-session pin and the
+  // 25Δ call contract disappears because the delta distribution bifurcates.
+  // Keying on the ET calendar date alone excludes both 3rd-Friday contracts
+  // that share today's date (the AM-settled SPX monthly that settled at
+  // 9:30 ET via SOQ and the PM-settled SPXW weekly that trades until 16:00
+  // ET). The FixedStrikeIvMatrix below continues to receive the unfiltered
+  // data.expirations because its matrix view is a different surface from
+  // the picker and renders its own handling of short-dated contracts.
+  const pickerExpirations = useMemo(() => {
+    if (!data?.expirations?.length) return [];
+    const todayIso = tradingDateFromCapturedAt(data.capturedAt);
+    if (!todayIso) return data.expirations;
+    return data.expirations.filter((exp) => exp !== todayIso);
+  }, [data]);
+
   // React's recommended "adjust state during render" pattern for deriving
   // state from props — when a new options payload arrives and the user's
-  // previously selected expiration is no longer in the list (e.g., the date
-  // expired between sessions), clear the selection so the UI falls back to
-  // the freshest expiration on the next render. Calling setState here rather
-  // than in a useEffect avoids the cascading-render warning from the
+  // previously selected expiration is no longer in the picker list (e.g.,
+  // the date expired between sessions, or a ?exp=today URL param is no
+  // longer valid after the same-day filter), clear the selection so the UI
+  // falls back to the default on the next render. Calling setState here
+  // rather than in a useEffect avoids the cascading-render warning from the
   // react-hooks/set-state-in-effect lint rule.
   if (data !== prevData) {
     setPrevData(data);
     if (
       data &&
       selectedExpiration &&
-      Array.isArray(data.expirations) &&
-      !data.expirations.includes(selectedExpiration)
+      !pickerExpirations.includes(selectedExpiration)
     ) {
       setSelectedExpiration(null);
     }
   }
 
-  // Default the expiration picker to the next standard SPX monthly closest
-  // to 30 DTE relative to the snapshot's captured_at. The previous behavior
-  // picked the first expiration whose 16:00 ET close was still in the future,
-  // which meant the dashboard landed on the 0DTE row during market hours.
-  // 0DTE on SPX produces three simultaneous display pathologies once the
-  // chain decays into its late-session pin: ATM IV collapses into the low
-  // single digits (the BSM solver inverts penny-priced ATM calls to IVs
-  // that can read <1% even though the rest of the term structure is at
-  // 14-16%), the Expected Move derived from that IV is therefore also
-  // meaningless, and the 25Δ call contract disappears because the call
-  // delta distribution bifurcates into δ<0.10 (deep OTM) and δ>0.40 (near
-  // ITM) with nothing in the 0.15-0.35 selection window. Anchoring on the
-  // next monthly (3rd Friday of a month, always between the 15th and 21st)
-  // closest to 30 DTE gives dense strike coverage and stable Greeks on all
-  // three stats. Users can still pick 0DTE or any other expiration from the
-  // dropdown; this only changes what renders before interaction.
+  // Default the expiration picker to a 3rd-Friday AM-settled SPX standard
+  // monthly, preferring the closest one to 30 DTE that is still at least 21
+  // DTE away from the snapshot. 3rd-Friday monthlies are the most liquid SPX
+  // expirations, the primary institutional hedging vehicles, and the
+  // contracts that most structured products settle against — landing the
+  // default there gives dense strike coverage and stable Greeks on ATM IV,
+  // Expected Move, and 25Δ selection on both sides. Requiring DTE ≥ 21
+  // keeps the default from drifting onto the current monthly in its final
+  // settlement week, where the term structure can steepen sharply and the
+  // displayed metrics become less representative of a steady 1-month vol
+  // snapshot. The fallback (nearest standard monthly > 14 DTE) is
+  // defensive — SPX always lists monthlies 12+ months forward so the
+  // primary branch almost always matches. Users can still pick 0DTE or any
+  // other expiration from the dropdown; this only changes what renders
+  // before interaction.
   const defaultExpiration = useMemo(() => {
-    if (!data?.expirations?.length) return null;
-    const capturedMs = data.capturedAt ? new Date(data.capturedAt).getTime() : NaN;
-    if (Number.isNaN(capturedMs)) return data.expirations[0];
+    if (!pickerExpirations.length) return null;
+    const capturedMs = data?.capturedAt ? new Date(data.capturedAt).getTime() : NaN;
+    if (Number.isNaN(capturedMs)) return pickerExpirations[0];
 
-    const withDte = data.expirations
-      .map((exp) => {
-        const closeMs = new Date(`${exp}T16:00:00-04:00`).getTime();
-        const dte = (closeMs - capturedMs) / 86400000;
-        return { exp, dte };
-      })
-      .filter((x) => Number.isFinite(x.dte) && x.dte > 0);
+    const withDte = pickerExpirations.map((exp) => {
+      const closeMs = new Date(`${exp}T16:00:00-04:00`).getTime();
+      const dte = (closeMs - capturedMs) / 86400000;
+      return { exp, dte };
+    });
 
     const isMonthly = (iso) => {
       const d = new Date(`${iso}T12:00:00Z`);
@@ -166,11 +181,21 @@ export default function App() {
     };
 
     const monthlies = withDte.filter((x) => isMonthly(x.exp));
-    const pool = monthlies.length > 0 ? monthlies : withDte;
-    if (pool.length === 0) return data.expirations[0];
-    pool.sort((a, b) => Math.abs(a.dte - 30) - Math.abs(b.dte - 30));
-    return pool[0].exp;
-  }, [data]);
+
+    const primary = monthlies.filter((x) => x.dte >= 21);
+    if (primary.length > 0) {
+      primary.sort((a, b) => Math.abs(a.dte - 30) - Math.abs(b.dte - 30));
+      return primary[0].exp;
+    }
+
+    const fallback = monthlies.filter((x) => x.dte > 14);
+    if (fallback.length > 0) {
+      fallback.sort((a, b) => a.dte - b.dte);
+      return fallback[0].exp;
+    }
+
+    return pickerExpirations[0];
+  }, [data, pickerExpirations]);
 
   const displayExpiration = selectedExpiration || defaultExpiration;
 
@@ -346,7 +371,7 @@ export default function App() {
               spotPrice={data.spotPrice}
               prevClose={data.prevClose}
               expirationMetrics={data.expirationMetrics}
-              expirations={data.expirations}
+              expirations={pickerExpirations}
               selectedExpiration={displayExpiration}
               onExpirationChange={setSelectedExpiration}
               capturedAt={data.capturedAt}
