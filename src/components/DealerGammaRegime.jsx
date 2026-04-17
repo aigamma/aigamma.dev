@@ -82,12 +82,16 @@ function computeMarkerSize(visibleCount, chartWidth, mobile) {
 
 // Opacity drops as the visible count rises so clusters on the zoomed-out
 // view accumulate into a denser color rather than stacking as one
-// flat-colored wall of dots. Clamped to [0.45, 0.88] so neither extreme
-// washes the dots out or turns them fully opaque.
+// flat-colored wall of dots. Clamped to [0.40, 0.70] so the dots always
+// carry slight transparency — at every zoom level overlapping dots mix
+// into a visibly denser color, which is what lets a cluster read as a
+// cluster instead of as a single flat-filled dot sitting on top of its
+// neighbors. The previous ceiling of 0.88 was effectively opaque, which
+// hid cluster density.
 function computeMarkerOpacity(visibleCount) {
-  if (visibleCount <= 0) return 0.7;
-  const opacity = 6 / Math.sqrt(visibleCount) + 0.45;
-  return Math.max(0.45, Math.min(0.88, opacity));
+  if (visibleCount <= 0) return 0.6;
+  const opacity = 2.5 / Math.sqrt(visibleCount) + 0.40;
+  return Math.max(0.40, Math.min(0.70, opacity));
 }
 
 export default function DealerGammaRegime() {
