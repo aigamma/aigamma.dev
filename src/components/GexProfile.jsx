@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import usePlotly from '../hooks/usePlotly';
 import useIsMobile from '../hooks/useIsMobile';
 import {
@@ -7,15 +7,15 @@ import {
   PLOTLY_FONT_FAMILY,
   PLOTLY_SERIES_OPACITY,
   plotlyAxis,
-  plotlyRangeslider,
 } from '../lib/plotlyTheme';
 import { computeGexByStrike, symlog, symlogTicks } from '../lib/gex';
 import { formatInteger } from '../lib/format';
+import RangeBrush from './RangeBrush';
 
 const PLOTLY_LAYOUT_BASE = {
   ...PLOTLY_BASE_LAYOUT_2D,
-  margin: { t: 20, r: 30, b: 15, l: 80 },
-  xaxis: plotlyAxis('', { title: '', rangeslider: plotlyRangeslider() }),
+  margin: { t: 20, r: 30, b: 45, l: 80 },
+  xaxis: plotlyAxis('', { title: '' }),
   yaxis: plotlyAxis('Gamma Exposure ($ notional)', {
     zerolinewidth: 2,
     tickformat: '.2s',
@@ -78,6 +78,7 @@ export default function GexProfile({ contracts, spotPrice, levels, prevContracts
   const chartRef = useRef(null);
   const { plotly: Plotly, error: plotlyError } = usePlotly();
   const [showPrior, setShowPrior] = useState(true);
+  const [strikeRange, setStrikeRange] = useState(null);
   const mobile = useIsMobile();
 
   const gexData = useMemo(() => {
@@ -97,6 +98,21 @@ export default function GexProfile({ contracts, spotPrice, levels, prevContracts
   }, [prevContracts, prevSpotPrice, spotPrice]);
 
   const hasPrior = prevGexData != null && prevGexData.length > 0;
+
+  const brushDomain = useMemo(() => {
+    if (!gexData || gexData.length === 0) return null;
+    const strikes = gexData.map((e) => e.strike);
+    const strikeMin = strikes[0];
+    const strikeMax = strikes[strikes.length - 1];
+    const zoomLow = spotPrice * 0.94;
+    let zoomHigh = spotPrice * 1.03;
+    if (levels?.call_wall != null && levels.call_wall > zoomHigh) {
+      zoomHigh = levels.call_wall * 1.01;
+    }
+    return { strikeMin, strikeMax, defaultRange: [zoomLow, zoomHigh] };
+  }, [gexData, spotPrice, levels]);
+
+  const activeRange = strikeRange || brushDomain?.defaultRange;
 
   useEffect(() => {
     if (!Plotly || !chartRef.current || !gexData || gexData.length === 0) return;
@@ -194,22 +210,15 @@ export default function GexProfile({ contracts, spotPrice, levels, prevContracts
     }
     pushLine(spotPrice, PLOTLY_COLORS.primary);
 
-    const strikeMin = strikes[0];
-    const strikeMax = strikes[strikes.length - 1];
-    const zoomLow = spotPrice * 0.94;
-    let zoomHigh = spotPrice * 1.03;
-    if (levels?.call_wall != null && levels.call_wall > zoomHigh) {
-      zoomHigh = levels.call_wall * 1.01;
-    }
+    const [zoomLow, zoomHigh] = activeRange || [spotPrice * 0.94, spotPrice * 1.03];
 
     const layout = {
       ...PLOTLY_LAYOUT_BASE,
-      ...(mobile ? { margin: { t: 20, r: 15, b: 15, l: 50 } } : {}),
+      ...(mobile ? { margin: { t: 20, r: 15, b: 40, l: 50 } } : {}),
       xaxis: plotlyAxis('', {
         title: '',
         range: [zoomLow, zoomHigh],
         autorange: false,
-        rangeslider: plotlyRangeslider({ range: [strikeMin, strikeMax], autorange: false }),
       }),
       yaxis: plotlyAxis(mobile ? '' : 'Gamma Exposure ($ notional)', {
         zerolinewidth: 2,
@@ -229,7 +238,11 @@ export default function GexProfile({ contracts, spotPrice, levels, prevContracts
       responsive: true,
       displayModeBar: false,
     });
-  }, [Plotly, gexData, spotPrice, levels, prevGexData, showPrior, hasPrior, mobile]);
+  }, [Plotly, gexData, spotPrice, levels, prevGexData, showPrior, hasPrior, mobile, activeRange]);
+
+  const handleBrushChange = useCallback((min, max) => {
+    setStrikeRange([min, max]);
+  }, []);
 
   if (plotlyError) {
     return (
@@ -301,6 +314,15 @@ export default function GexProfile({ contracts, spotPrice, levels, prevContracts
         ref={chartRef}
         style={{ width: '100%', height: '700px', backgroundColor: 'var(--bg-card)' }}
       />
+      {brushDomain && activeRange && (
+        <RangeBrush
+          min={brushDomain.strikeMin}
+          max={brushDomain.strikeMax}
+          activeMin={activeRange[0]}
+          activeMax={activeRange[1]}
+          onChange={handleBrushChange}
+        />
+      )}
     </div>
   );
 }
