@@ -266,62 +266,47 @@ async function fetchChain(startUrl) {
 function computeGex(pages, targets, startedAt, partial) {
   const { underlying, capturedAtIso, capturedAtMs, tradingDate, monthlyExpirationsSet, weeklyCutoff } = targets;
 
-  // Dedupe raw results on (expiration, strike, type). Massive/Polygon's
+  // Dedupe raw results on (root, expiration, strike, type). Massive/Polygon's
   // next_url pagination can return the same contract across overlapping
   // pages, which would violate the snapshots unique constraint on insert.
   //
-  // On the 3rd Friday of a month, the SPX chain also contains two
-  // distinct tickers at every (expiration, strike, type) tuple that
-  // expires today:
+  // The root symbol is part of the key because on every 3rd Friday of a
+  // month the SPX chain carries two distinct tickers at the same
+  // (expiration, strike, type) tuple:
   //
-  //   - O:SPX…  — AM-settled monthly (legacy). Expires at 9:30 ET open
-  //                via the SOQ. Once settled, Massive/Polygon keeps
-  //                returning its row but with a stale close_price (a
-  //                final settlement artifact or a last-trade value from
-  //                a very different spot level) and stale IV / delta
-  //                computed from that stale premium.
-  //   - O:SPXW… — PM-settled weekly (modern). Expires at 16:00 ET close.
-  //                Still trading intraday with live quotes.
+  //   - O:SPX…  — AM-settled legacy monthly. Expires at 9:30 ET open via
+  //                the Special Opening Quotation. Once settled, Massive
+  //                continues returning its row but with stale pricing
+  //                and stale Greeks — the AM monthly is no longer
+  //                trading, so any post-9:30 quote is a last-trade or
+  //                settlement-reconstruction artifact.
+  //   - O:SPXW… — PM-settled modern weekly. Expires at 16:00 ET close.
+  //                Continues trading intraday with live quotes.
   //
-  // The dedup key only distinguishes (exp, strike, type), so before
-  // this fix about half the 3rd-Friday 0DTE strikes won SPXW and half
-  // won SPX depending on Massive's page order — producing a chain where
-  // put close_prices alternated between plausible ($93) and implausible
-  // ($444), ATM IV inverted to sub-1% on a chain whose true ATM was
-  // ~15-18%, and the 25Δ call filter (delta in [0.15, 0.35]) came up
-  // empty because AM-monthly deltas were near zero while the live SPXW
-  // deltas were dropped. The divergence was observable to the minute:
-  // pre-9:30 ET snapshots on 2026-04-17 showed atm_iv / put_25d_iv /
-  // call_25d_iv all near 15%, and the moment the SPX monthly settled
-  // via SOQ those three values fragmented into 0.2% / 60% / null.
-  //
-  // Flatten all pages first, sort so O:SPXW tickers come before O:SPX
-  // (everything else sorts stably after), then keep the first occurrence
-  // per dedup key. SPXW deterministically wins on the 3rd Friday and is
-  // a pure no-op on every other day (either no collision exists, or
-  // both contracts are pre-settlement and interchangeable).
-  const flatResults = [];
-  for (const body of pages) {
-    if (!body || !Array.isArray(body.results)) continue;
-    for (const r of body.results) flatResults.push(r);
-  }
-  flatResults.sort((a, b) => {
-    const at = a?.details?.ticker || '';
-    const bt = b?.details?.ticker || '';
-    const ap = at.startsWith('O:SPXW') ? 0 : 1;
-    const bp = bt.startsWith('O:SPXW') ? 0 : 1;
-    return ap - bp;
-  });
-
+  // These are distinct contracts. They back different structured
+  // products, sit in different OI books, and price differently
+  // throughout the trading day. The data layer keeps them as separate
+  // rows — the snapshots unique index was widened to
+  // (run_id, expiration_date, strike, contract_type, root_symbol) so
+  // both rows coexist on 3rd-Friday runs. An earlier fix (commit
+  // 8a6bff1) collapsed them via an SPXW-first sort plus first-occurrence
+  // dedup, which let SPXW deterministically overwrite the AM-settled
+  // monthly and erased the legacy contract from the record. This
+  // widened key restores the original intent of dedup — collapsing
+  // pagination overlap only — without losing either contract.
   const allRaw = [];
   const seenKeys = new Set();
-  for (const r of flatResults) {
-    if (r && r.details) {
-      const key = `${r.details.expiration_date}|${r.details.strike_price}|${r.details.contract_type}`;
-      if (seenKeys.has(key)) continue;
-      seenKeys.add(key);
+  for (const body of pages) {
+    if (!body || !Array.isArray(body.results)) continue;
+    for (const r of body.results) {
+      if (r && r.details) {
+        const root = parseRoot(r.details.ticker);
+        const key = `${root || '?'}|${r.details.expiration_date}|${r.details.strike_price}|${r.details.contract_type}`;
+        if (seenKeys.has(key)) continue;
+        seenKeys.add(key);
+      }
+      allRaw.push(r);
     }
-    allRaw.push(r);
   }
 
   if (allRaw.length === 0) return null;
@@ -350,6 +335,7 @@ function computeGex(pages, targets, startedAt, partial) {
       expiration_date: r.details.expiration_date,
       strike: r.details.strike_price,
       contract_type: r.details.contract_type,
+      root_symbol: parseRoot(r.details.ticker),
       implied_volatility: r.implied_volatility ?? null,
       delta: r.greeks.delta ?? null,
       gamma: r.greeks.gamma ?? null,
@@ -444,17 +430,32 @@ function computeGex(pages, targets, startedAt, partial) {
   const expirationMetrics = [];
   for (const exp of Object.keys(contractsByExp)) {
     const expContracts = contractsByExp[exp];
-    const atmCandidates = expContracts
+    // Prefer SPXW-rooted contracts when selecting the ATM / 25Δ quotes
+    // for per-expiration metrics. SPXW is the PM-settled modern weekly
+    // and trades continuously until 16:00 ET on its expiration day;
+    // SPX is the AM-settled monthly whose quotes freeze at the 9:30 ET
+    // SOQ and drift out of sync with spot for the rest of the session.
+    // On any non-3rd-Friday expiration this is a no-op (SPX monthlies
+    // aren't listed), and on non-same-day 3rd Fridays the two roots
+    // carry effectively identical IV / delta so either pool would
+    // produce the same answer. The preference only changes behavior on
+    // same-day 3rd Friday post-SOQ snapshots — which the picker now
+    // hides — but keeps the stored metrics honest for anyone reading
+    // expiration_metrics directly.
+    const spxwPool = expContracts.filter((c) => c.root_symbol === 'SPXW');
+    const metricsPool = spxwPool.length > 0 ? spxwPool : expContracts;
+
+    const atmCandidates = metricsPool
       .filter((c) => Math.abs(c.strike - spotPrice) <= atmWindow)
       .sort((a, b) => Math.abs(a.strike - spotPrice) - Math.abs(b.strike - spotPrice));
     const atmContract = atmCandidates.find((c) => c.contract_type === 'call') || atmCandidates[0] || null;
     const atmIv = atmContract ? atmContract.implied_volatility : null;
     const atmStrike = atmContract ? atmContract.strike : null;
 
-    const call25d = expContracts
+    const call25d = metricsPool
       .filter((c) => c.contract_type === 'call' && c.delta > 0.15 && c.delta < 0.35)
       .sort((a, b) => Math.abs(a.delta - 0.25) - Math.abs(b.delta - 0.25))[0];
-    const put25d = expContracts
+    const put25d = metricsPool
       .filter((c) => c.contract_type === 'put' && c.delta < -0.15 && c.delta > -0.35)
       .sort((a, b) => Math.abs(Math.abs(a.delta) - 0.25) - Math.abs(Math.abs(b.delta) - 0.25))[0];
 
@@ -509,6 +510,22 @@ function round(n, decimals) {
   return Math.round(n * f) / f;
 }
 
+// Option tickers come from Massive/Polygon in the OCC-like form
+// O:<ROOT><YYMMDD><C|P><STRIKE>. For SPX the only observed roots are
+// SPX (AM-settled monthlies, listed on 3rd Fridays) and SPXW (PM-settled
+// weeklies, listed on every standard weekday expiration including 3rd
+// Fridays). The fast-path startsWith checks cover the whole SPX chain
+// in one comparison; the regex fallback keeps the parser honest for any
+// future NDX / RUT / XSP expansion so the dedup key is never silently
+// keyed on '?' on a mis-parsed ticker.
+function parseRoot(ticker) {
+  if (!ticker || typeof ticker !== 'string') return null;
+  if (ticker.startsWith('O:SPXW')) return 'SPXW';
+  if (ticker.startsWith('O:SPX')) return 'SPX';
+  const m = ticker.match(/^O:([A-Z]+)\d/);
+  return m ? m[1] : null;
+}
+
 function normPdf(x) {
   return Math.exp(-0.5 * x * x) / Math.sqrt(2 * Math.PI);
 }
@@ -523,6 +540,13 @@ function normPdf(x) {
 // expiration keeps τ tiny (usually <0.03 years), so the drift correction is
 // small and the result tracks the true index level to within a few dollars.
 function inferSpotFromChain(allRaw, capturedAtMs) {
+  // The chain now preserves both SPX and SPXW rows at every 3rd-Friday
+  // (expiration, strike) tuple, so the spot-inference pass has to pick
+  // one per strike before bracketing delta=0.5. SPXW is always
+  // preferable: it is PM-settled and trades continuously, while the SPX
+  // monthly's post-SOQ quotes are stale and its delta is frozen. On
+  // every other trading day the preference is a no-op because only one
+  // root lists weekday expirations.
   const callsByExp = new Map();
   for (const r of allRaw) {
     if (r.details?.contract_type !== 'call') continue;
@@ -530,14 +554,22 @@ function inferSpotFromChain(allRaw, capturedAtMs) {
     if (!(r.details.strike_price > 0)) continue;
     const exp = r.details.expiration_date;
     if (!exp) continue;
-    if (!callsByExp.has(exp)) callsByExp.set(exp, []);
-    callsByExp.get(exp).push({
-      strike: r.details.strike_price,
+    if (!callsByExp.has(exp)) callsByExp.set(exp, new Map());
+    const byStrike = callsByExp.get(exp);
+    const strike = r.details.strike_price;
+    const root = parseRoot(r.details.ticker);
+    const candidate = {
+      strike,
       delta: r.greeks.delta,
       iv: typeof r.implied_volatility === 'number' && r.implied_volatility > 0
         ? r.implied_volatility
         : 0.15,
-    });
+      root,
+    };
+    const existing = byStrike.get(strike);
+    if (!existing || (root === 'SPXW' && existing.root !== 'SPXW')) {
+      byStrike.set(strike, candidate);
+    }
   }
   if (callsByExp.size === 0) return null;
 
@@ -545,7 +577,7 @@ function inferSpotFromChain(allRaw, capturedAtMs) {
   let chosenExp = null;
   let chosenCalls = null;
   for (const exp of sortedExps) {
-    const calls = callsByExp.get(exp);
+    const calls = [...callsByExp.get(exp).values()];
     if (calls.length >= 5) { chosenExp = exp; chosenCalls = calls; break; }
   }
   if (!chosenCalls) return null;
