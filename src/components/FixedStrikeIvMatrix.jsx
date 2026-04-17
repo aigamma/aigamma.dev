@@ -177,7 +177,10 @@ export default function FixedStrikeIvMatrix({ contracts, spotPrice, expirations,
   }, [contracts, spotPrice, expirations, prevContracts]);
 
   const hasPrev = changeMatrix != null;
-  const isChangeMode = mode === 'change' && hasPrev;
+  // On mobile the toggle is hidden to avoid colliding with the section
+  // title, so force 'change' mode there regardless of whatever the user
+  // last selected on desktop before a resize.
+  const isChangeMode = (mobile || mode === 'change') && hasPrev;
   const activeMatrix = isChangeMode ? changeMatrix : levelMatrix;
 
   // Default zoom shows 5 expirations on desktop (previously 10 —
@@ -323,7 +326,7 @@ export default function FixedStrikeIvMatrix({ contracts, spotPrice, expirations,
         >
           Fixed-Strike IV
         </span>
-        {hasPrev && (
+        {hasPrev && !mobile && (
           <div style={{ position: 'absolute', right: '0.75rem', display: 'inline-flex', gap: '0.35rem' }}>
             <button type="button" onClick={() => setMode('change')} style={toggleBtnStyle(mode === 'change')}>
               1D Change
