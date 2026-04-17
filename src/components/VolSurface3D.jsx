@@ -5,6 +5,7 @@ import {
   PLOTLY_BASE_LAYOUT_3D,
   PLOTLY_COLORBAR,
   PLOTLY_COLORS,
+  PLOTLY_FONT_FAMILY,
   PLOTLY_FONTS,
   plotly3DAxis,
   plotlyTitle,
@@ -26,13 +27,37 @@ const IV_CLAMP_MAX = 1.2;
 // ladder here gives us perceptually-even tick spacing with trader-friendly labels.
 const LOG_IV_TICKVALS = [5, 8, 12, 16, 20, 25, 30, 40, 55, 75, 100];
 
+// 3D axis typography is intentionally heavier than the site-wide 2D tick/title
+// stack. Plotly's default 3D axis labels render small and muted, which reads
+// especially poorly on the dark theme — so we bump tick size to 14 and title
+// size to 18, and push both toward near-white for contrast. Family matches
+// the dashboard's Courier New monospace stack.
+const AXIS_TICK_FONT_3D = {
+  family: PLOTLY_FONT_FAMILY,
+  color: 'rgba(255,255,255,0.85)',
+  size: 14,
+};
+const AXIS_TITLE_FONT_3D = {
+  family: PLOTLY_FONT_FAMILY,
+  color: 'rgba(255,255,255,0.95)',
+  size: 18,
+};
+
+function axis3D(titleText, extras = {}) {
+  return plotly3DAxis(titleText, {
+    tickfont: AXIS_TICK_FONT_3D,
+    title: { text: titleText, font: AXIS_TITLE_FONT_3D },
+    ...extras,
+  });
+}
+
 const BASE_LAYOUT_3D = {
   ...PLOTLY_BASE_LAYOUT_3D,
   scene: {
     bgcolor: PLOTLY_COLORS.plot,
-    xaxis: plotly3DAxis('strike'),
-    yaxis: plotly3DAxis('days to expiration'),
-    zaxis: plotly3DAxis('implied volatility (%)', {
+    xaxis: axis3D('strike', { dtick: 500 }),
+    yaxis: axis3D('days to expiration'),
+    zaxis: axis3D('implied volatility (%)', {
       type: 'log',
       zerolinecolor: PLOTLY_COLORS.primary,
       zerolinewidth: 1.5,
@@ -43,7 +68,7 @@ const BASE_LAYOUT_3D = {
     camera: { eye: { x: 1.55, y: -1.85, z: 0.85 } },
     aspectmode: 'manual',
     aspectratio: { x: 1.5, y: 1.5, z: 1.0 },
-    domain: { y: [0.1, 1.0] },
+    domain: { y: [0.05, 0.95] },
   },
 };
 
