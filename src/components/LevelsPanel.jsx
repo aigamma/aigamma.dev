@@ -1,5 +1,5 @@
 import { formatGamma, formatInteger, formatPercent, formatRatio } from '../lib/format';
-import { daysToExpiration } from '../lib/dates';
+import { daysToExpiration, isThirdFridayMonthly } from '../lib/dates';
 
 // Treat the 3rd Friday of the month (Friday whose calendar day is 15-21) as
 // an AM-settled standard SPX monthly; everything else is a PM-settled SPXW
@@ -10,13 +10,6 @@ import { daysToExpiration } from '../lib/dates';
 // App-level same-day filter removes that date from the picker entirely,
 // leaving only future 3rd Fridays (where the AM monthly is the primary
 // interest) and non-3rd-Friday weeklies (where only SPXW exists).
-function isThirdFridayMonthly(iso) {
-  const d = new Date(`${iso}T12:00:00Z`);
-  if (d.getUTCDay() !== 5) return false;
-  const day = d.getUTCDate();
-  return day >= 15 && day <= 21;
-}
-
 function formatExpirationOption(exp, capturedAt) {
   const dteFrac = daysToExpiration(exp, capturedAt);
   const dteLabel = dteFrac != null ? `${Math.max(0, Math.round(dteFrac))}d` : '—d';

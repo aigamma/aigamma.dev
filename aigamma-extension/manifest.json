@@ -3,6 +3,7 @@
   "name": "AI Gamma SPX Regime Status and Metrics",
   "version": "1.0.0",
   "description": "Regime status, key levels, and volatility metrics from aigamma.com",
+  "homepage_url": "https://aigamma.com/",
   "action": {
     "default_popup": "popup.html",
     "default_title": "AI Gamma SPX Regime Status and Metrics",

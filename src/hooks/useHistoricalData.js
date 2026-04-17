@@ -121,10 +121,3 @@ export function useGexHistory({ from = null, to = null } = {}) {
   return { data, loading, error };
 }
 
-export function useHistoricalTermStructure(/* { fromDate, toDate } */) {
-  return { data: null, loading: false, error: null };
-}
-
-export function useHistoricalCloudBands(/* { fromDate, toDate } */) {
-  return { data: null, loading: false, error: null };
-}
