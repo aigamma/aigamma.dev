@@ -240,6 +240,24 @@ export default function FixedStrikeIvMatrix({ contracts, spotPrice, expirations,
             ? { range: [-0.5, 9.5] }
             : {}),
       },
+      // Lock the strike axis to the full ladder regardless of how the
+      // user drags the x-axis rangeslider. Without fixedrange + an
+      // explicit range, Plotly's autorange 'reversed' behavior treats
+      // every rangeslider move as a data-range change event and
+      // recomputes the y-axis bounds from the visible columns only,
+      // which visibly compresses the strike ladder each time the slider
+      // is moved. The range is expressed in category indices because
+      // the axis type is 'category' — [N-0.5, -0.5] places the lowest-
+      // index strike (which is the bottom strike numerically) at the
+      // top and the highest-index strike at the bottom, matching the
+      // high-strike-at-top / low-strike-at-bottom orientation that the
+      // old autorange: 'reversed' produced.
+      yaxis: {
+        ...BASE_LAYOUT.yaxis,
+        autorange: false,
+        range: [activeMatrix.yLabels.length - 0.5, -0.5],
+        fixedrange: true,
+      },
     };
 
     Plotly.newPlot(chartRef.current, [trace], layout, {
