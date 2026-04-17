@@ -161,26 +161,6 @@ export default function LevelsPanel({ levels, spotPrice, prevClose, expirationMe
 
       <div className={ROW_GRID_CLASS}>
         <Stat
-          label="P/C Ratio (Volume)"
-          value={formatRatio(levels.put_call_ratio_volume)}
-          accent="var(--accent-cyan)"
-          sub={
-            levels.total_put_volume != null && levels.total_call_volume != null
-              ? `${formatGamma(levels.total_put_volume)}P / ${formatGamma(levels.total_call_volume)}C`
-              : null
-          }
-        />
-        <Stat
-          label="P/C Ratio (OI)"
-          value={formatRatio(levels.put_call_ratio_oi)}
-          accent="var(--accent-cyan)"
-          sub={
-            levels.total_put_oi != null && levels.total_call_oi != null
-              ? `${formatGamma(levels.total_put_oi)}P / ${formatGamma(levels.total_call_oi)}C`
-              : null
-          }
-        />
-        <Stat
           label="VRP"
           value={vrpMetric ? `${vrpMetric.vrp > 0 ? '+' : ''}${vrpMetric.vrp.toFixed(2)}%` : '\u2014'}
           accent="var(--accent-cyan)"
@@ -203,6 +183,26 @@ export default function LevelsPanel({ levels, spotPrice, prevClose, expirationMe
           sub={
             vrpMetric?.ivLookbackDays != null
               ? `${Math.round((vrpMetric.ivPercentile / 100) * vrpMetric.ivLookbackDays)} of ${vrpMetric.ivLookbackDays}d below`
+              : null
+          }
+        />
+        <Stat
+          label="P/C Ratio (Volume)"
+          value={formatRatio(levels.put_call_ratio_volume)}
+          accent="var(--accent-cyan)"
+          sub={
+            levels.total_put_volume != null && levels.total_call_volume != null
+              ? `${formatGamma(levels.total_put_volume)}P / ${formatGamma(levels.total_call_volume)}C`
+              : null
+          }
+        />
+        <Stat
+          label="P/C Ratio (OI)"
+          value={formatRatio(levels.put_call_ratio_oi)}
+          accent="var(--accent-cyan)"
+          sub={
+            levels.total_put_oi != null && levels.total_call_oi != null
+              ? `${formatGamma(levels.total_put_oi)}P / ${formatGamma(levels.total_call_oi)}C`
               : null
           }
         />
