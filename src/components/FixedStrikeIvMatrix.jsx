@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import usePlotly from '../hooks/usePlotly';
 import useIsMobile from '../hooks/useIsMobile';
 import {
@@ -9,8 +9,8 @@ import {
   PLOTLY_HEATMAP_COLORSCALE,
   PLOTLY_HEATMAP_DIVERGING_COLORSCALE,
   plotlyAxis,
-  plotlyRangeslider,
 } from '../lib/plotlyTheme';
+import RangeBrush from './RangeBrush';
 
 const NUM_STRIKE_ROWS = 11;
 const HALF_ROWS = Math.floor(NUM_STRIKE_ROWS / 2);
@@ -20,13 +20,12 @@ const MONTH_ABBR = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep
 
 const BASE_LAYOUT = {
   ...PLOTLY_BASE_LAYOUT_2D,
-  margin: { t: 10, r: 40, b: 60, l: 110 },
+  margin: { t: 10, r: 40, b: 45, l: 110 },
   hovermode: 'closest',
   xaxis: plotlyAxis('', {
     side: 'bottom',
     type: 'category',
     tickangle: 0,
-    rangeslider: plotlyRangeslider(),
   }),
   yaxis: plotlyAxis('Strike', {
     type: 'category',
@@ -109,13 +108,13 @@ function toggleBtnStyle(active) {
 
 export default function FixedStrikeIvMatrix({ contracts, spotPrice, expirations, prevContracts }) {
   const chartRef = useRef(null);
-  // Persists the user's current x-axis zoom across mode toggles. Stored
-  // in a ref rather than state so updating it on every rangeslider drag
-  // does not re-fire the newPlot effect (the chart is already showing
-  // the right range — we just need to remember it for the next toggle).
-  const xRangeRef = useRef(null);
   const { plotly: Plotly, error: plotlyError } = usePlotly();
   const [mode, setMode] = useState('change');
+  // Persists the user's current x-axis zoom (in category indices) so
+  // toggling 1D Change / Level does not snap the view back to the
+  // default window. The brush commits onChange with numeric [min, max]
+  // index pairs on pointerUp.
+  const [colRange, setColRange] = useState(null);
   const mobile = useIsMobile();
 
   const { levelMatrix, changeMatrix } = useMemo(() => {
@@ -181,6 +180,21 @@ export default function FixedStrikeIvMatrix({ contracts, spotPrice, expirations,
   const isChangeMode = mode === 'change' && hasPrev;
   const activeMatrix = isChangeMode ? changeMatrix : levelMatrix;
 
+  // Default zoom shows 5 expirations on desktop (previously 10 —
+  // boxes were too small to read at a glance) and 4 on mobile where
+  // the card is narrower. Returns null when the full column set fits
+  // inside the default, meaning no zoom is needed.
+  const defaultColRange = useMemo(() => {
+    if (!activeMatrix) return null;
+    if (mobile) return [-0.5, 3.5];
+    if (activeMatrix.xLabels.length > 5) return [-0.5, 4.5];
+    return null;
+  }, [activeMatrix, mobile]);
+
+  const activeColRange = colRange || defaultColRange;
+  const brushMin = -0.5;
+  const brushMax = activeMatrix ? activeMatrix.xLabels.length - 0.5 : 0;
+
   useEffect(() => {
     if (!Plotly || !chartRef.current || !activeMatrix) return;
 
@@ -231,29 +245,15 @@ export default function FixedStrikeIvMatrix({ contracts, spotPrice, expirations,
       },
     };
 
-    // Default zoom shows 5 expirations on desktop (previously 10 —
-    // boxes were too small to read at a glance) and 4 on mobile where
-    // the card is narrower. If the user has already dragged the
-    // rangeslider (xRangeRef is populated), honor that zoom instead so
-    // switching between 1D Change and Level does not snap the view
-    // back to the default. The ref is updated by the plotly_relayout
-    // listener attached below on every slider drag.
-    const defaultXRange = mobile
-      ? [-0.5, 3.5]
-      : activeMatrix.xLabels.length > 5
-        ? [-0.5, 4.5]
-        : null;
-    const effectiveXRange = xRangeRef.current ?? defaultXRange;
-
     const layout = {
       ...BASE_LAYOUT,
-      ...(mobile ? { margin: { t: 10, r: 30, b: 60, l: 70 } } : {}),
+      ...(mobile ? { margin: { t: 10, r: 30, b: 45, l: 70 } } : {}),
       title: { text: '' },
       paper_bgcolor: 'rgba(0,0,0,0)',
       plot_bgcolor: 'rgba(0,0,0,0)',
       xaxis: {
         ...BASE_LAYOUT.xaxis,
-        ...(effectiveXRange ? { range: effectiveXRange } : {}),
+        ...(activeColRange ? { range: activeColRange, autorange: false } : {}),
       },
       // Lock the strike axis to the full ladder regardless of how the
       // user drags the x-axis rangeslider. Without fixedrange + an
@@ -279,24 +279,11 @@ export default function FixedStrikeIvMatrix({ contracts, spotPrice, expirations,
       responsive: true,
       displayModeBar: false,
     });
+  }, [Plotly, activeMatrix, isChangeMode, mobile, activeColRange]);
 
-    const chartEl = chartRef.current;
-    const relayoutHandler = (eventData) => {
-      if (!eventData) return;
-      const r0 = eventData['xaxis.range[0]'] ?? eventData['xaxis.range']?.[0];
-      const r1 = eventData['xaxis.range[1]'] ?? eventData['xaxis.range']?.[1];
-      if (r0 != null && r1 != null) {
-        xRangeRef.current = [r0, r1];
-      }
-    };
-    chartEl.on('plotly_relayout', relayoutHandler);
-
-    return () => {
-      if (chartEl?.removeAllListeners) {
-        chartEl.removeAllListeners('plotly_relayout');
-      }
-    };
-  }, [Plotly, activeMatrix, isChangeMode, mobile]);
+  const handleBrushChange = useCallback((min, max) => {
+    setColRange([min, max]);
+  }, []);
 
   if (plotlyError) {
     return (
@@ -348,6 +335,15 @@ export default function FixedStrikeIvMatrix({ contracts, spotPrice, expirations,
         )}
       </div>
       <div ref={chartRef} style={{ width: '100%', height: '440px', backgroundColor: 'var(--bg-card)' }} />
+      {activeMatrix && activeMatrix.xLabels.length > 1 && (
+        <RangeBrush
+          min={brushMin}
+          max={brushMax}
+          activeMin={activeColRange ? activeColRange[0] : brushMin}
+          activeMax={activeColRange ? activeColRange[1] : brushMax}
+          onChange={handleBrushChange}
+        />
+      )}
     </div>
   );
 }
