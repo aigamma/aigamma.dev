@@ -337,6 +337,8 @@ export default function App() {
             />
           </ErrorBoundary>
 
+          <ErrorBoundary><DealerGammaRegime /></ErrorBoundary>
+
           <ErrorBoundary>
             <GammaInflectionChart
               spotPrice={data.spotPrice}
@@ -381,8 +383,6 @@ export default function App() {
               underlying={data.underlying}
             />
           </ErrorBoundary>
-
-          <ErrorBoundary><DealerGammaRegime /></ErrorBoundary>
 
           <ErrorBoundary><GammaThrottleScatter /></ErrorBoundary>
         </>
