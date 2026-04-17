@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import usePlotly from '../hooks/usePlotly';
 import useIsMobile from '../hooks/useIsMobile';
 import { useGexHistory } from '../hooks/useHistoricalData';
@@ -8,9 +8,17 @@ import {
   PLOTLY_FONTS,
   plotly2DChartLayout,
   plotlyAxis,
-  plotlyRangeslider,
   plotlyTitle,
 } from '../lib/plotlyTheme';
+import RangeBrush from './RangeBrush';
+
+function isoToMs(iso) {
+  return new Date(`${iso}T00:00:00Z`).getTime();
+}
+
+function msToIso(ms) {
+  return new Date(ms).toISOString().slice(0, 10);
+}
 
 // SPX price as a thin connecting line with regime-colored dots overlaid.
 // Green dots = positive gamma (dealers dampen moves, spot >= vol flip).
@@ -99,6 +107,7 @@ export default function DealerGammaRegime() {
   const { plotly: Plotly, error: plotlyError } = usePlotly();
   const { data, loading, error } = useGexHistory({});
   const mobile = useIsMobile();
+  const [timeRange, setTimeRange] = useState(null);
 
   const { positive, negative, allDates, allCloses } = useMemo(() => {
     if (!data?.series) return { positive: [], negative: [], allDates: [], allCloses: [] };
@@ -119,38 +128,44 @@ export default function DealerGammaRegime() {
     return { positive: pos, negative: neg, allDates: dates, allCloses: closes };
   }, [data]);
 
-  useEffect(() => {
-    if (!Plotly || !chartRef.current || allDates.length === 0) return;
-
-    const firstDate = allDates[0];
-    const lastDate = allDates[allDates.length - 1];
+  const firstDate = allDates[0];
+  const lastDate = allDates[allDates.length - 1];
+  const defaultRange = useMemo(() => {
+    if (!firstDate || !lastDate) return null;
     const sixMonthsBack = addMonthsIso(lastDate, -6);
-    const windowStart = sixMonthsBack >= firstDate ? sixMonthsBack : firstDate;
+    return [sixMonthsBack >= firstDate ? sixMonthsBack : firstDate, lastDate];
+  }, [firstDate, lastDate]);
+
+  const activeRange = timeRange || defaultRange;
+
+  useEffect(() => {
+    if (!Plotly || !chartRef.current || allDates.length === 0 || !activeRange) return;
+
+    const [windowStart, windowEnd] = activeRange;
 
     // Pad the visible x-axis a few days past the last data point so the
     // most recent dot renders fully inside the plot area instead of
-    // being half-clipped by the right boundary. The rangeslider's own
-    // range (below) stays [firstDate, lastDate] so the brush still
-    // reflects the actual data range, not this display padding. The
-    // relayout handler extends r1 to paddedEndIso on every drag that
-    // reaches lastDate, preserving the pad at every zoom level.
+    // being half-clipped by the right boundary. The external RangeBrush
+    // exposes the actual [firstDate, lastDate] domain, so the brush
+    // still reflects real data bounds — the pad only affects display.
     const PADDING_DAYS = 3;
     const paddedEndIso = new Date(
       new Date(`${lastDate}T00:00:00Z`).getTime() + PADDING_DAYS * 86400000,
     )
       .toISOString()
       .slice(0, 10);
+    const displayEnd = windowEnd >= lastDate ? paddedEndIso : windowEnd;
 
-    // Seed markers and y-axis range with the values that match the
-    // default 6-month window so the first paint is already at the right
-    // scale — big bubbles, tight vertical range, no flat-to-top artifact
-    // from distant historical highs. The relayout listener recomputes
-    // all three (size, opacity, y-range) on every rangeslider drag.
-    const initialCount = countInRange(allDates, windowStart, lastDate);
+    // Marker size, marker opacity, and y-axis range are all derived from
+    // the currently-visible window so the dots grow into denser bubbles
+    // and the y-axis tightens around the visible closes as the user
+    // brushes in. Because the brush commits only on pointerUp, this
+    // recompute runs once per drag instead of at 60 fps.
+    const visibleCount = countInRange(allDates, windowStart, windowEnd);
     const chartWidth = chartRef.current.clientWidth || (mobile ? 400 : 900);
-    const initialSize = computeMarkerSize(initialCount, chartWidth, mobile);
-    const initialOpacity = computeMarkerOpacity(initialCount);
-    const initialYRange = computeYRange(allDates, allCloses, windowStart, lastDate);
+    const markerSize = computeMarkerSize(visibleCount, chartWidth, mobile);
+    const markerOpacity = computeMarkerOpacity(visibleCount);
+    const yRange = computeYRange(allDates, allCloses, windowStart, windowEnd);
 
     // Thin connecting line for price continuity
     const priceLine = {
@@ -173,8 +188,8 @@ export default function DealerGammaRegime() {
       type: 'scatter',
       marker: {
         color: PLOTLY_COLORS.positive,
-        size: initialSize,
-        opacity: initialOpacity,
+        size: markerSize,
+        opacity: markerOpacity,
         line: { width: 0 },
       },
       name: '<b>Positive Gamma</b>',
@@ -189,8 +204,8 @@ export default function DealerGammaRegime() {
       type: 'scatter',
       marker: {
         color: PLOTLY_COLORS.negative,
-        size: initialSize,
-        opacity: initialOpacity,
+        size: markerSize,
+        opacity: markerOpacity,
         line: { width: 0 },
       },
       name: '<b>Negative Gamma</b>',
@@ -204,7 +219,7 @@ export default function DealerGammaRegime() {
     };
 
     const layout = plotly2DChartLayout({
-      margin: mobile ? { t: 45, r: 15, b: 15, l: 55 } : { t: 90, r: 30, b: 15, l: 85 },
+      margin: mobile ? { t: 45, r: 15, b: 40, l: 55 } : { t: 90, r: 30, b: 45, l: 85 },
       title: {
         ...plotlyTitle('Gamma Regime History'),
         y: 0.97,
@@ -213,12 +228,8 @@ export default function DealerGammaRegime() {
       },
       xaxis: plotlyAxis('', {
         type: 'date',
-        range: [windowStart, paddedEndIso],
+        range: [windowStart, displayEnd],
         autorange: false,
-        rangeslider: plotlyRangeslider({
-          range: [firstDate, lastDate],
-          autorange: false,
-        }),
       }),
       yaxis: plotlyAxis(mobile ? '' : 'SPX', {
         tickformat: ',.0f',
@@ -239,7 +250,7 @@ export default function DealerGammaRegime() {
                 standoff: 25,
               },
             }),
-        ...(initialYRange ? { range: initialYRange, autorange: false } : {}),
+        ...(yRange ? { range: yRange, autorange: false } : {}),
       }),
       showlegend: !mobile,
       legend: {
@@ -259,79 +270,11 @@ export default function DealerGammaRegime() {
       responsive: true,
       displayModeBar: false,
     });
+  }, [Plotly, positive, negative, allDates, allCloses, mobile, activeRange, lastDate]);
 
-    // Recompute marker size, marker opacity, AND y-axis range whenever
-    // the rangeslider brush is dragged. Plotly fires plotly_relayout
-    // with the new xaxis range (either as `xaxis.range[0]/[1]` or
-    // `xaxis.range` array) — both shapes are handled. Autorange resets
-    // (no range keys in the event) fall back to the full series. Events
-    // that carry only yaxis updates are skipped so the y-range relayout
-    // we call from inside the handler does not loop back into itself;
-    // the yaxis.range update we trigger fires relayout again, but that
-    // second event has no xaxis keys and is filtered out at the top.
-    // Plotly.restyle targets only the two scatter traces (indices 1 and
-    // 2), leaving the price line alone.
-    const chartEl = chartRef.current;
-    const relayoutHandler = (eventData) => {
-      if (!eventData) return;
-      const hasXRange =
-        eventData['xaxis.range[0]'] != null ||
-        eventData['xaxis.range'] != null ||
-        eventData['xaxis.autorange'] === true;
-      if (!hasXRange) return;
-
-      let r0 = eventData['xaxis.range[0]'] ?? eventData['xaxis.range']?.[0];
-      let r1 = eventData['xaxis.range[1]'] ?? eventData['xaxis.range']?.[1];
-      if (r0 == null || r1 == null) {
-        if (eventData['xaxis.autorange'] !== true) return;
-        r0 = firstDate;
-        r1 = lastDate;
-      }
-      if (typeof r0 === 'string') r0 = r0.slice(0, 10);
-      if (typeof r1 === 'string') r1 = r1.slice(0, 10);
-
-      // When the user's selected window reaches the last data point,
-      // extend the displayed right edge to paddedEndIso so the final
-      // dot renders fully inside the plot area. effectiveR1 (clamped to
-      // lastDate) is what the data-summary code below uses, so the pad
-      // never contaminates the count / marker-size / y-range math.
-      // Already-padded events (r1 === paddedEndIso from our own
-      // relayout call) short-circuit the nested relayout because
-      // displayR1 === r1 in that case, which prevents feedback looping.
-      const effectiveR1 = r1 > lastDate ? lastDate : r1;
-      const shouldPad = effectiveR1 === lastDate;
-      const displayR1 = shouldPad ? paddedEndIso : r1;
-
-      if (displayR1 !== r1) {
-        Plotly.relayout(chartEl, { 'xaxis.range': [r0, displayR1] });
-        return;
-      }
-
-      const count = countInRange(allDates, r0, effectiveR1);
-      const width = chartEl.clientWidth || (mobile ? 400 : 900);
-      const size = computeMarkerSize(count, width, mobile);
-      const opacity = computeMarkerOpacity(count);
-
-      Plotly.restyle(
-        chartEl,
-        { 'marker.size': size, 'marker.opacity': opacity },
-        [1, 2],
-      );
-
-      const yRange = computeYRange(allDates, allCloses, r0, effectiveR1);
-      if (yRange) {
-        Plotly.relayout(chartEl, { 'yaxis.range': yRange });
-      }
-    };
-
-    chartEl.on('plotly_relayout', relayoutHandler);
-
-    return () => {
-      if (chartEl?.removeAllListeners) {
-        chartEl.removeAllListeners('plotly_relayout');
-      }
-    };
-  }, [Plotly, positive, negative, allDates, allCloses, mobile]);
+  const handleBrushChange = useCallback((minMs, maxMs) => {
+    setTimeRange([msToIso(minMs), msToIso(maxMs)]);
+  }, []);
 
   if (plotlyError) {
     return (
@@ -348,7 +291,7 @@ export default function DealerGammaRegime() {
     );
   }
   if (loading) {
-    return <div className="skeleton-card" style={{ height: '564px', marginBottom: '1rem' }} />;
+    return <div className="skeleton-card" style={{ height: '604px', marginBottom: '1rem' }} />;
   }
   if (!data || allDates.length === 0) {
     return (
@@ -361,6 +304,15 @@ export default function DealerGammaRegime() {
   return (
     <div className="card" style={{ marginBottom: '1rem' }}>
       <div ref={chartRef} style={{ width: '100%', height: '564px', backgroundColor: 'var(--bg-card)' }} />
+      {activeRange && (
+        <RangeBrush
+          min={isoToMs(firstDate)}
+          max={isoToMs(lastDate)}
+          activeMin={isoToMs(activeRange[0])}
+          activeMax={isoToMs(activeRange[1])}
+          onChange={handleBrushChange}
+        />
+      )}
     </div>
   );
 }
