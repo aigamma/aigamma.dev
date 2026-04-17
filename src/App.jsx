@@ -329,10 +329,6 @@ export default function App() {
 
           <ErrorBoundary><VolatilityRiskPremium /></ErrorBoundary>
 
-          <ErrorBoundary><DealerGammaRegime /></ErrorBoundary>
-
-          <ErrorBoundary><GammaThrottleScatter /></ErrorBoundary>
-
           <ErrorBoundary>
             <TermStructure
               expirationMetrics={data.expirationMetrics}
@@ -385,6 +381,10 @@ export default function App() {
               underlying={data.underlying}
             />
           </ErrorBoundary>
+
+          <ErrorBoundary><DealerGammaRegime /></ErrorBoundary>
+
+          <ErrorBoundary><GammaThrottleScatter /></ErrorBoundary>
         </>
       )}
     </div>
