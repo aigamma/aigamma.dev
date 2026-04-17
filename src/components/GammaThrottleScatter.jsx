@@ -316,15 +316,18 @@ export default function GammaThrottleScatter() {
     const yMin = Math.min(...closes);
     const yMax = Math.max(...closes);
 
-    // Rangeslider-only strip — no visible chart content above the
-    // brush. The trace is colored #141820 (card background) so it's
-    // invisible against the card; the only visible rangeslider pieces
-    // are the CSS-overridden mask fills (gray on the unselected ends)
-    // and the default white handles. Thickness 0.85 on a 44px plot
-    // area (55px total height minus t=6 b=5 margins) gives a ~37px
-    // rangeslider with ~7px of harmless invisible plot area above it.
-    // Pushing thickness higher or margins lower risks the doAutoRange
-    // crash that hits when the main plot area falls under ~10px.
+    // 120px strip with a Plotly rangeslider anchored at the bottom.
+    // The rangeslider's main-plot subplot needs meaningful height to
+    // lay out its SVG correctly — squeezing it into a 55px strip with
+    // thickness 0.85 was silently failing to render any visible mask
+    // fills or handles, which is why previous attempts produced an
+    // apparently empty strip. At 120px with margins t=4 b=4, the plot
+    // area is 112px and thickness 0.32 gives a ~36px rangeslider (same
+    // physical size as the DealerGammaRegime rangeslider) plus ~76px
+    // of main-plot area above it. The main-plot trace is colored
+    // #141820 (card bg) so that 76px band reads as invisible empty
+    // space, and what the user sees is a gray brush bar at the bottom
+    // of the strip exactly matching the regime chart's rangeslider.
     const trace = {
       x: dates,
       y: closes,
@@ -336,7 +339,7 @@ export default function GammaThrottleScatter() {
     };
 
     const layout = plotly2DChartLayout({
-      margin: { t: 6, r: mobile ? 15 : 30, b: 5, l: mobile ? 50 : 70 },
+      margin: { t: 4, r: mobile ? 15 : 30, b: 4, l: mobile ? 50 : 70 },
       xaxis: plotlyAxis('', {
         type: 'date',
         range: activeRange || defaultRange,
@@ -347,7 +350,7 @@ export default function GammaThrottleScatter() {
         rangeslider: plotlyRangeslider({
           range: [firstDate, lastDate],
           autorange: false,
-          thickness: 0.85,
+          thickness: 0.32,
         }),
       }),
       yaxis: plotlyAxis('', {
@@ -359,7 +362,7 @@ export default function GammaThrottleScatter() {
         zeroline: false,
         fixedrange: true,
       }),
-      height: 55,
+      height: 120,
       showlegend: false,
     });
 
@@ -404,7 +407,7 @@ export default function GammaThrottleScatter() {
     );
   }
   if (loading) {
-    return <div className="skeleton-card" style={{ height: '575px', marginBottom: '1rem' }} />;
+    return <div className="skeleton-card" style={{ height: '640px', marginBottom: '1rem' }} />;
   }
   if (!data || fullSeries.length === 0) {
     return (
@@ -417,13 +420,13 @@ export default function GammaThrottleScatter() {
   return (
     <div className="card" style={{ marginBottom: '1rem' }}>
       <div ref={scatterRef} style={{ width: '100%', height: '520px', backgroundColor: 'var(--bg-card)' }} />
-      {/* Date brush zoom — 55px strip hosting a Plotly rangeslider at
-          thickness 0.85. Outer div is card color so only the CSS mask
-          fills (gray on unselected ends, dark on the selected window)
-          render as visible content. This matches the DealerGammaRegime
-          rangeslider's look — no sparkline, no extra chart content,
-          just the gray brush bar with white handles. */}
-      <div ref={timeRef} style={{ width: '100%', height: '55px', backgroundColor: 'var(--bg-card)' }} />
+      {/* Date brush zoom — 120px strip hosting a Plotly rangeslider at
+          thickness 0.32. The strip height matches the natural footprint
+          Plotly's rangeslider needs to lay out its SVG; anything smaller
+          silently renders nothing. The top ~76px of main-plot area
+          carries an invisible #141820 trace that reads as empty card
+          space, and the bottom ~36px is the visible gray brush bar. */}
+      <div ref={timeRef} style={{ width: '100%', height: '120px', backgroundColor: 'var(--bg-card)' }} />
     </div>
   );
 }
