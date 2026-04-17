@@ -127,6 +127,20 @@ export default function DealerGammaRegime() {
     const sixMonthsBack = addMonthsIso(lastDate, -6);
     const windowStart = sixMonthsBack >= firstDate ? sixMonthsBack : firstDate;
 
+    // Pad the visible x-axis a few days past the last data point so the
+    // most recent dot renders fully inside the plot area instead of
+    // being half-clipped by the right boundary. The rangeslider's own
+    // range (below) stays [firstDate, lastDate] so the brush still
+    // reflects the actual data range, not this display padding. The
+    // relayout handler extends r1 to paddedEndIso on every drag that
+    // reaches lastDate, preserving the pad at every zoom level.
+    const PADDING_DAYS = 3;
+    const paddedEndIso = new Date(
+      new Date(`${lastDate}T00:00:00Z`).getTime() + PADDING_DAYS * 86400000,
+    )
+      .toISOString()
+      .slice(0, 10);
+
     // Seed markers and y-axis range with the values that match the
     // default 6-month window so the first paint is already at the right
     // scale — big bubbles, tight vertical range, no flat-to-top artifact
@@ -199,7 +213,7 @@ export default function DealerGammaRegime() {
       },
       xaxis: plotlyAxis('', {
         type: 'date',
-        range: [windowStart, lastDate],
+        range: [windowStart, paddedEndIso],
         autorange: false,
         rangeslider: plotlyRangeslider({
           range: [firstDate, lastDate],
@@ -276,7 +290,24 @@ export default function DealerGammaRegime() {
       if (typeof r0 === 'string') r0 = r0.slice(0, 10);
       if (typeof r1 === 'string') r1 = r1.slice(0, 10);
 
-      const count = countInRange(allDates, r0, r1);
+      // When the user's selected window reaches the last data point,
+      // extend the displayed right edge to paddedEndIso so the final
+      // dot renders fully inside the plot area. effectiveR1 (clamped to
+      // lastDate) is what the data-summary code below uses, so the pad
+      // never contaminates the count / marker-size / y-range math.
+      // Already-padded events (r1 === paddedEndIso from our own
+      // relayout call) short-circuit the nested relayout because
+      // displayR1 === r1 in that case, which prevents feedback looping.
+      const effectiveR1 = r1 > lastDate ? lastDate : r1;
+      const shouldPad = effectiveR1 === lastDate;
+      const displayR1 = shouldPad ? paddedEndIso : r1;
+
+      if (displayR1 !== r1) {
+        Plotly.relayout(chartEl, { 'xaxis.range': [r0, displayR1] });
+        return;
+      }
+
+      const count = countInRange(allDates, r0, effectiveR1);
       const width = chartEl.clientWidth || (mobile ? 400 : 900);
       const size = computeMarkerSize(count, width, mobile);
       const opacity = computeMarkerOpacity(count);
@@ -287,7 +318,7 @@ export default function DealerGammaRegime() {
         [1, 2],
       );
 
-      const yRange = computeYRange(allDates, allCloses, r0, r1);
+      const yRange = computeYRange(allDates, allCloses, r0, effectiveR1);
       if (yRange) {
         Plotly.relayout(chartEl, { 'yaxis.range': yRange });
       }
