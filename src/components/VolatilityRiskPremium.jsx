@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import usePlotly from '../hooks/usePlotly';
 import useIsMobile from '../hooks/useIsMobile';
 import { useVrpHistory } from '../hooks/useHistoricalData';
@@ -8,9 +8,17 @@ import {
   PLOTLY_FONTS,
   plotly2DChartLayout,
   plotlyAxis,
-  plotlyRangeslider,
   plotlyTitle,
 } from '../lib/plotlyTheme';
+import RangeBrush from './RangeBrush';
+
+function isoToMs(iso) {
+  return new Date(`${iso}T00:00:00Z`).getTime();
+}
+
+function msToIso(ms) {
+  return new Date(ms).toISOString().slice(0, 10);
+}
 
 // Visual language for the VRP chart:
 // - SPX price as a subtle dark-blue filled area anchored to the left y-axis,
@@ -122,6 +130,7 @@ export default function VolatilityRiskPremium() {
   const { plotly: Plotly, error: plotlyError } = usePlotly();
   const { data, loading, error } = useVrpHistory({});
   const mobile = useIsMobile();
+  const [timeRange, setTimeRange] = useState(null);
 
   const series = useMemo(() => {
     if (!data?.series) return [];
@@ -232,11 +241,13 @@ export default function VolatilityRiskPremium() {
 
     const firstDate = series[0].trading_date;
     const lastDate = series[series.length - 1].trading_date;
-    // Default zoom: last 6 calendar months. The rangeslider exposes the full
-    // backfill range, so the user can drag the left handle out to see the
-    // April 2025 tariff vol spike and the months of negative VRP that followed.
+    // Default zoom: last 6 calendar months. The external brush exposes the
+    // full backfill range, so the user can drag the left handle out to see
+    // the April 2025 tariff vol spike and the months of negative VRP.
     const sixMonthsBack = addMonthsIso(lastDate, -6);
-    const windowStart = sixMonthsBack >= firstDate ? sixMonthsBack : firstDate;
+    const defaultStart = sixMonthsBack >= firstDate ? sixMonthsBack : firstDate;
+    const windowStart = timeRange ? timeRange[0] : defaultStart;
+    const windowEnd = timeRange ? timeRange[1] : lastDate;
 
     // Top margin has to hold both the chart title and the horizontal legend
     // row, so it's noticeably taller than the 50px used on single-row-title
@@ -272,12 +283,8 @@ export default function VolatilityRiskPremium() {
       },
       xaxis: plotlyAxis('', {
         type: 'date',
-        range: [windowStart, lastDate],
+        range: [windowStart, windowEnd],
         autorange: false,
-        rangeslider: plotlyRangeslider({
-          range: [firstDate, lastDate],
-          autorange: false,
-        }),
       }),
       yaxis: {
         ...plotlyAxis('', {
@@ -333,7 +340,11 @@ export default function VolatilityRiskPremium() {
       responsive: true,
       displayModeBar: false,
     });
-  }, [Plotly, series, vrpSegments, spxSeries, mobile]);
+  }, [Plotly, series, vrpSegments, spxSeries, mobile, timeRange]);
+
+  const handleBrushChange = useCallback((minMs, maxMs) => {
+    setTimeRange([msToIso(minMs), msToIso(maxMs)]);
+  }, []);
 
   if (plotlyError) {
     return (
@@ -350,7 +361,7 @@ export default function VolatilityRiskPremium() {
     );
   }
   if (loading) {
-    return <div className="skeleton-card" style={{ height: '720px', marginBottom: '1rem' }} />;
+    return <div className="skeleton-card" style={{ height: '760px', marginBottom: '1rem' }} />;
   }
   if (!data || series.length === 0) {
     return (
@@ -360,9 +371,23 @@ export default function VolatilityRiskPremium() {
     );
   }
 
+  const firstDate = series[0].trading_date;
+  const lastDate = series[series.length - 1].trading_date;
+  const sixMonthsBack = addMonthsIso(lastDate, -6);
+  const defaultStart = sixMonthsBack >= firstDate ? sixMonthsBack : firstDate;
+  const activeMinIso = timeRange ? timeRange[0] : defaultStart;
+  const activeMaxIso = timeRange ? timeRange[1] : lastDate;
+
   return (
     <div className="card" style={{ marginBottom: '1rem' }}>
       <div ref={chartRef} style={{ width: '100%', height: '720px', backgroundColor: 'var(--bg-card)' }} />
+      <RangeBrush
+        min={isoToMs(firstDate)}
+        max={isoToMs(lastDate)}
+        activeMin={isoToMs(activeMinIso)}
+        activeMax={isoToMs(activeMaxIso)}
+        onChange={handleBrushChange}
+      />
     </div>
   );
 }
