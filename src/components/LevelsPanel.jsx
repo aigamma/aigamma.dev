@@ -250,7 +250,7 @@ export default function LevelsPanel({ levels, spotPrice, prevClose, expirationMe
               label="Expected Move"
               value={
                 expMoveDollar != null
-                  ? `${expMoveDollar.toFixed(2)}  ·  ${spotPrice != null ? ((expMoveDollar / spotPrice) * 100).toFixed(2) : '—'}%`
+                  ? `${expMoveDollar.toFixed(2)} (${spotPrice != null ? ((expMoveDollar / spotPrice) * 100).toFixed(2) : '—'}%)`
                   : '—'
               }
               accent="var(--accent-purple)"
