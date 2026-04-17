@@ -42,7 +42,8 @@ const BASE_LAYOUT_3D = {
     }),
     camera: { eye: { x: 1.55, y: -1.85, z: 0.85 } },
     aspectmode: 'manual',
-    aspectratio: { x: 1.4, y: 1.0, z: 0.85 },
+    aspectratio: { x: 1.5, y: 1.5, z: 1.0 },
+    domain: { y: [0.1, 1.0] },
   },
 };
 
@@ -234,7 +235,7 @@ function computeColorRange(surface, scatter, atmIv) {
 export default function VolSurface3D({ contracts, spotPrice, capturedAt, fits, sviSource, underlying }) {
   const chartRef = useRef(null);
   const { plotly: Plotly, error: plotlyError } = usePlotly();
-  const [mode, setMode] = useState('svi');
+  const [mode, setMode] = useState('raw');
 
   const capturedAtMs = useMemo(
     () => (capturedAt ? new Date(capturedAt).getTime() : null),
@@ -463,7 +464,7 @@ export default function VolSurface3D({ contracts, spotPrice, capturedAt, fits, s
           </label>
         </div>
       </div>
-      <div ref={chartRef} style={{ width: '100%', height: '540px' }} />
+      <div ref={chartRef} style={{ width: '100%', height: '800px' }} />
     </div>
   );
 }
