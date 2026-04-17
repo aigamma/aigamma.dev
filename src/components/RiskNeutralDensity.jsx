@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import usePlotly from '../hooks/usePlotly';
 import useIsMobile from '../hooks/useIsMobile';
 import {
@@ -7,21 +7,22 @@ import {
   PLOTLY_FONTS,
   PLOTLY_SERIES_PALETTE,
   plotlyAxis,
-  plotlyRangeslider,
   plotlyTitle,
 } from '../lib/plotlyTheme';
+import RangeBrush from './RangeBrush';
 
 const BASE_LAYOUT = {
   ...PLOTLY_BASE_LAYOUT_2D,
-  margin: { t: 80, r: 30, b: 35, l: 80 },
-  xaxis: plotlyAxis('', { rangeslider: plotlyRangeslider() }),
+  margin: { t: 80, r: 30, b: 45, l: 80 },
+  xaxis: plotlyAxis(''),
   yaxis: plotlyAxis('Risk-Neutral Density', { tickformat: '.2s' }),
   // Legend floats inside the top-right of the plot area instead of the
   // shared horizontal-below-plot slot from PLOTLY_BASE_LAYOUT_2D. The
-  // rangeslider pins the horizontal legend right on top of the x-axis tick
-  // labels with nowhere to push it down to without also growing margin.b,
-  // so we overlay the (typically empty) upper-right corner where the RND
-  // curves have already decayed into the far-OTM wing.
+  // old rangeslider pinned the horizontal legend right on top of the
+  // x-axis tick labels; the external brush lives below the chart card
+  // now, but the overlay position still keeps the legend out of the
+  // density curves themselves (top-right corner where the far-OTM wing
+  // has decayed close to zero).
   legend: {
     orientation: 'v',
     x: 0.98,
@@ -96,6 +97,18 @@ export default function RiskNeutralDensity({ fits, spotPrice, capturedAt }) {
   const chartRef = useRef(null);
   const { plotly: Plotly, error: plotlyError } = usePlotly();
   const mobile = useIsMobile();
+  const [strikeRange, setStrikeRange] = useState(null);
+
+  const brushDomain = useMemo(() => {
+    if (!spotPrice) return null;
+    return {
+      min: spotPrice * 0.75,
+      max: spotPrice * 1.25,
+      defaultRange: [spotPrice * 0.95, spotPrice * 1.12],
+    };
+  }, [spotPrice]);
+
+  const activeRange = strikeRange || brushDomain?.defaultRange;
 
   const sortedExps = useMemo(() => {
     if (!fits || !capturedAt) return [];
@@ -196,14 +209,13 @@ export default function RiskNeutralDensity({ fits, spotPrice, capturedAt }) {
     // density falls off sharply, wider on the right where the longer-dated
     // curves spread out. 5% below / 12% above keeps all the probability
     // mass visible without wasting space on near-zero wings.
-    const zoomLow = spotPrice * 0.95;
-    const zoomHigh = spotPrice * 1.12;
+    const [zoomLow, zoomHigh] = activeRange || [spotPrice * 0.95, spotPrice * 1.12];
 
     // Spot line as a Plotly shape so it sits across all traces.
     const layout = {
       ...BASE_LAYOUT,
       ...(mobile ? {
-        margin: { t: 45, r: 15, b: 35, l: 50 },
+        margin: { t: 45, r: 15, b: 40, l: 50 },
         showlegend: false,
         yaxis: plotlyAxis('', { tickformat: '.2s' }),
       } : {}),
@@ -215,10 +227,6 @@ export default function RiskNeutralDensity({ fits, spotPrice, capturedAt }) {
       xaxis: plotlyAxis('', {
         range: [zoomLow, zoomHigh],
         autorange: false,
-        rangeslider: plotlyRangeslider({
-          range: [spotPrice * 0.75, spotPrice * 1.25],
-          autorange: false,
-        }),
       }),
       shapes: [
         {
@@ -252,7 +260,11 @@ export default function RiskNeutralDensity({ fits, spotPrice, capturedAt }) {
       responsive: true,
       displayModeBar: false,
     });
-  }, [Plotly, sortedExps, spotPrice, mobile]);
+  }, [Plotly, sortedExps, spotPrice, mobile, activeRange]);
+
+  const handleBrushChange = useCallback((min, max) => {
+    setStrikeRange([min, max]);
+  }, []);
 
   if (plotlyError) {
     return (
@@ -275,6 +287,15 @@ export default function RiskNeutralDensity({ fits, spotPrice, capturedAt }) {
   return (
     <div className="card" style={{ marginBottom: '1rem' }}>
       <div ref={chartRef} style={{ width: '100%', height: '480px', backgroundColor: 'var(--bg-card)' }} />
+      {brushDomain && activeRange && (
+        <RangeBrush
+          min={brushDomain.min}
+          max={brushDomain.max}
+          activeMin={activeRange[0]}
+          activeMax={activeRange[1]}
+          onChange={handleBrushChange}
+        />
+      )}
     </div>
   );
 }
