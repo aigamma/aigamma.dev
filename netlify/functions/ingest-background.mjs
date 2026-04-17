@@ -269,19 +269,59 @@ function computeGex(pages, targets, startedAt, partial) {
   // Dedupe raw results on (expiration, strike, type). Massive/Polygon's
   // next_url pagination can return the same contract across overlapping
   // pages, which would violate the snapshots unique constraint on insert.
-  const allRaw = [];
-  const seenKeys = new Set();
-
+  //
+  // On the 3rd Friday of a month, the SPX chain also contains two
+  // distinct tickers at every (expiration, strike, type) tuple that
+  // expires today:
+  //
+  //   - O:SPX…  — AM-settled monthly (legacy). Expires at 9:30 ET open
+  //                via the SOQ. Once settled, Massive/Polygon keeps
+  //                returning its row but with a stale close_price (a
+  //                final settlement artifact or a last-trade value from
+  //                a very different spot level) and stale IV / delta
+  //                computed from that stale premium.
+  //   - O:SPXW… — PM-settled weekly (modern). Expires at 16:00 ET close.
+  //                Still trading intraday with live quotes.
+  //
+  // The dedup key only distinguishes (exp, strike, type), so before
+  // this fix about half the 3rd-Friday 0DTE strikes won SPXW and half
+  // won SPX depending on Massive's page order — producing a chain where
+  // put close_prices alternated between plausible ($93) and implausible
+  // ($444), ATM IV inverted to sub-1% on a chain whose true ATM was
+  // ~15-18%, and the 25Δ call filter (delta in [0.15, 0.35]) came up
+  // empty because AM-monthly deltas were near zero while the live SPXW
+  // deltas were dropped. The divergence was observable to the minute:
+  // pre-9:30 ET snapshots on 2026-04-17 showed atm_iv / put_25d_iv /
+  // call_25d_iv all near 15%, and the moment the SPX monthly settled
+  // via SOQ those three values fragmented into 0.2% / 60% / null.
+  //
+  // Flatten all pages first, sort so O:SPXW tickers come before O:SPX
+  // (everything else sorts stably after), then keep the first occurrence
+  // per dedup key. SPXW deterministically wins on the 3rd Friday and is
+  // a pure no-op on every other day (either no collision exists, or
+  // both contracts are pre-settlement and interchangeable).
+  const flatResults = [];
   for (const body of pages) {
     if (!body || !Array.isArray(body.results)) continue;
-    for (const r of body.results) {
-      if (r && r.details) {
-        const key = `${r.details.expiration_date}|${r.details.strike_price}|${r.details.contract_type}`;
-        if (seenKeys.has(key)) continue;
-        seenKeys.add(key);
-      }
-      allRaw.push(r);
+    for (const r of body.results) flatResults.push(r);
+  }
+  flatResults.sort((a, b) => {
+    const at = a?.details?.ticker || '';
+    const bt = b?.details?.ticker || '';
+    const ap = at.startsWith('O:SPXW') ? 0 : 1;
+    const bp = bt.startsWith('O:SPXW') ? 0 : 1;
+    return ap - bp;
+  });
+
+  const allRaw = [];
+  const seenKeys = new Set();
+  for (const r of flatResults) {
+    if (r && r.details) {
+      const key = `${r.details.expiration_date}|${r.details.strike_price}|${r.details.contract_type}`;
+      if (seenKeys.has(key)) continue;
+      seenKeys.add(key);
     }
+    allRaw.push(r);
   }
 
   if (allRaw.length === 0) return null;
