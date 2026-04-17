@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import usePlotly from '../hooks/usePlotly';
 import useIsMobile from '../hooks/useIsMobile';
 import {
@@ -6,10 +6,18 @@ import {
   PLOTLY_FONTS,
   plotly2DChartLayout,
   plotlyAxis,
-  plotlyRangeslider,
   plotlyTitle,
 } from '../lib/plotlyTheme';
 import { addDaysIso, daysBetween, tradingDateFromCapturedAt } from '../lib/dates';
+import RangeBrush from './RangeBrush';
+
+function isoToMs(iso) {
+  return new Date(`${iso}T00:00:00Z`).getTime();
+}
+
+function msToIso(ms) {
+  return new Date(ms).toISOString().slice(0, 10);
+}
 
 // Cloud-band visual language:
 // - Four equal-mass percentile bands, each an independent fill: 'toself'
@@ -72,6 +80,7 @@ export default function TermStructure({ expirationMetrics, capturedAt, cloudBand
   const chartRef = useRef(null);
   const { plotly: Plotly, error: plotlyError } = usePlotly();
   const mobile = useIsMobile();
+  const [timeRange, setTimeRange] = useState(null);
 
   const tradingDate = useMemo(
     () => tradingDateFromCapturedAt(capturedAt),
@@ -114,6 +123,29 @@ export default function TermStructure({ expirationMetrics, capturedAt, cloudBand
       .sort((a, b) => a.dte - b.dte);
   }, [cloudBands, tradingDate]);
 
+  // Compute the brush's outer domain and default initial window outside
+  // the effect so the render path can share the same numbers with the
+  // Plotly layout. `axisStart` is padded 3 days left of the first
+  // observed expiration; `cloudLast` is the furthest cloud-band DTE (or
+  // the last observed expiration when no cloud exists); `initialEnd` is
+  // capped at 100 calendar days from the first expiration so the default
+  // window shows the near-term curvature without forcing the user to
+  // touch the brush.
+  const brushDomain = useMemo(() => {
+    if (rows.length === 0) return null;
+    const startDate = rows[0].expiration;
+    const axisStart = addDaysIso(startDate, -3);
+    const maxBandDte = sortedCloudBands.length > 0
+      ? sortedCloudBands[sortedCloudBands.length - 1].dte
+      : null;
+    const cloudLast = (maxBandDte != null && tradingDate)
+      ? addDaysIso(tradingDate, maxBandDte)
+      : rows[rows.length - 1].expiration;
+    const naturalEnd = addDaysIso(startDate, 100);
+    const initialEnd = (cloudLast && naturalEnd > cloudLast) ? cloudLast : naturalEnd;
+    return { axisStart, cloudLast, initialEnd };
+  }, [rows, sortedCloudBands, tradingDate]);
+
   useEffect(() => {
     if (!Plotly || !chartRef.current || rows.length === 0) return;
 
@@ -148,47 +180,21 @@ export default function TermStructure({ expirationMetrics, capturedAt, cloudBand
       hovertemplate: '%{x}<br>%{text}<br>ATM IV: %{y:.2f}%<extra></extra>',
     });
 
-    // The chart domain starts just before the first non-0DTE observed
-    // expiration — `startDate` is the first data point and `axisStart`
-    // shifts the visible left edge a few days earlier so the first dot
-    // has breathing room instead of sitting flush against the y-axis
-    // line where the marker can get half-clipped by the axis boundary.
-    // The rangeslider range is padded by the same amount so the slider
-    // left handle lines up with the visible left edge rather than with
-    // the first data point (otherwise dragging the slider left would
-    // feel pinned to nothing).
-    const maxBandDte = sortedCloudBands.length > 0
-      ? sortedCloudBands[sortedCloudBands.length - 1].dte
-      : null;
-    const cloudLast = (maxBandDte != null && tradingDate)
-      ? addDaysIso(tradingDate, maxBandDte)
-      : rows[rows.length - 1].expiration;
-    const startDate = rows[0].expiration;
-    const axisStart = addDaysIso(startDate, -3);
-    // Default brush window is 100 calendar days from the first non-0DTE
-    // expiration, which is wide enough to show the next several monthly
-    // expirations and the near-term curvature without requiring the user
-    // to touch the rangeslider. Capped at cloudLast so the initial window
-    // can never run past the furthest data point on the cloud domain.
-    const naturalEnd = addDaysIso(startDate, 100);
-    const initialWindowEnd = (cloudLast && naturalEnd > cloudLast) ? cloudLast : naturalEnd;
+    if (!brushDomain) return;
+    const { axisStart, initialEnd } = brushDomain;
+    const windowStart = timeRange ? timeRange[0] : axisStart;
+    const windowEnd = timeRange ? timeRange[1] : initialEnd;
 
-    // Tight bottom margin matches GammaInflectionChart's `b: 15` so the
-    // rangeslider sits flush against the card floor instead of leaving a
-    // strip of empty card underneath. Previous `b: 90` was copy-paste from a
-    // chart with an axis-title row below the slider that this one doesn't
-    // have.
+    // Chart bottom margin now matches the scatter (b: 45) so the x-axis
+    // tick labels have room to breathe before the external RangeBrush
+    // picks up flush against the card floor.
     const layout = plotly2DChartLayout({
-      margin: mobile ? { t: 45, r: 15, b: 15, l: 50 } : { t: 50, r: 40, b: 15, l: 70 },
+      margin: mobile ? { t: 45, r: 15, b: 40, l: 50 } : { t: 50, r: 40, b: 45, l: 70 },
       title: plotlyTitle('Term Structure'),
       xaxis: plotlyAxis('', {
         type: 'date',
-        range: [axisStart, initialWindowEnd],
+        range: [windowStart, windowEnd],
         autorange: false,
-        rangeslider: plotlyRangeslider({
-          range: [axisStart, cloudLast],
-          autorange: false,
-        }),
       }),
       yaxis: {
         ...plotlyAxis('ATM IV (%)', { tickformat: '.1f' }),
@@ -205,7 +211,11 @@ export default function TermStructure({ expirationMetrics, capturedAt, cloudBand
       responsive: true,
       displayModeBar: false,
     });
-  }, [Plotly, rows, sortedCloudBands, tradingDate, mobile]);
+  }, [Plotly, rows, sortedCloudBands, tradingDate, mobile, brushDomain, timeRange]);
+
+  const handleBrushChange = useCallback((minMs, maxMs) => {
+    setTimeRange([msToIso(minMs), msToIso(maxMs)]);
+  }, []);
 
   if (plotlyError) {
     return (
@@ -221,9 +231,21 @@ export default function TermStructure({ expirationMetrics, capturedAt, cloudBand
     return null;
   }
 
+  const activeMinIso = timeRange ? timeRange[0] : brushDomain?.axisStart;
+  const activeMaxIso = timeRange ? timeRange[1] : brushDomain?.initialEnd;
+
   return (
     <div className="card" style={{ marginBottom: '1rem' }}>
       <div ref={chartRef} style={{ width: '100%', height: '720px', backgroundColor: 'var(--bg-card)' }} />
+      {brushDomain && (
+        <RangeBrush
+          min={isoToMs(brushDomain.axisStart)}
+          max={isoToMs(brushDomain.cloudLast)}
+          activeMin={isoToMs(activeMinIso)}
+          activeMax={isoToMs(activeMaxIso)}
+          onChange={handleBrushChange}
+        />
+      )}
     </div>
   );
 }
