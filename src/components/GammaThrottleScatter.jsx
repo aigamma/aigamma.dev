@@ -64,12 +64,6 @@ function exponentialFit(xs, ys) {
   return { a, b };
 }
 
-function addMonthsIso(iso, months) {
-  const d = new Date(`${iso}T00:00:00Z`);
-  d.setUTCMonth(d.getUTCMonth() + months);
-  return d.toISOString().slice(0, 10);
-}
-
 function isoToMs(iso) {
   return new Date(`${iso}T00:00:00Z`).getTime();
 }
@@ -223,12 +217,15 @@ export default function GammaThrottleScatter() {
 
   const [timeRange, setTimeRange] = useState(null);
 
+  // Default zoom spans the full available history on both sides so the
+  // scatter renders with every historical sample visible and the brush
+  // sits fully extended to its outer edges. Users can still narrow the
+  // window by dragging the handles inward.
   const defaultRange = useMemo(() => {
     if (fullSeries.length === 0) return null;
-    const last = fullSeries[fullSeries.length - 1].trading_date;
     const first = fullSeries[0].trading_date;
-    const sixMonthsBack = addMonthsIso(last, -6);
-    return [sixMonthsBack >= first ? sixMonthsBack : first, last];
+    const last = fullSeries[fullSeries.length - 1].trading_date;
+    return [first, last];
   }, [fullSeries]);
 
   const activeRange = timeRange || defaultRange;
