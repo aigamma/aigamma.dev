@@ -53,7 +53,18 @@ export default function Chat() {
   const historyRef = useRef({ quick: [], deep: [] });
   const bodyRef = useRef(null);
   const textareaRef = useRef(null);
+  // assistantRef pairs the in-flight assistant message with its tab via a
+  // monotonic id so streamed deltas can be applied even though React 18+
+  // batches the setMessages updater and runs it after the surrounding
+  // event handler has already returned. The earlier index-based pairing
+  // closed over a `let` that the updater mutated, but the next-line read
+  // saw the pre-update value (null) because the updater hadn't run yet,
+  // and every SSE delta then no-op'd against `ref.index == null`. Using
+  // an id generated *before* setMessages and stored on the message itself
+  // sidesteps the timing entirely — the id exists synchronously, and
+  // applyAssistantText finds the placeholder by scanning for the id.
   const assistantRef = useRef(null);
+  const pendingIdRef = useRef(0);
 
   const scrollToBottom = useCallback(() => {
     const el = bodyRef.current;
@@ -90,24 +101,16 @@ export default function Chat() {
       textareaRef.current.style.height = 'auto';
     }
 
-    let assistantIndex = null;
-    setMessages((prev) => {
-      const next = {
-        ...prev,
-        [tab]: [
-          ...prev[tab],
-          { role: 'user', text },
-          { role: 'assistant', text: '', pending: true },
-        ],
-      };
-      assistantIndex = next[tab].length - 1;
-      return next;
-    });
-    // Pair the pending-assistant index with the tab so streamed deltas
-    // land in the right conversation even if the user flips tabs before
-    // the stream finishes (the switch is blocked during loading, but the
-    // guard is cheap and future-proofs any loosening of that rule).
-    assistantRef.current = { tab, index: assistantIndex };
+    const id = ++pendingIdRef.current;
+    setMessages((prev) => ({
+      ...prev,
+      [tab]: [
+        ...prev[tab],
+        { role: 'user', text },
+        { role: 'assistant', text: '', pending: true, id },
+      ],
+    }));
+    assistantRef.current = { tab, id };
     setLoading(true);
 
     let fullResponse = '';
@@ -140,10 +143,12 @@ export default function Chat() {
           const ref = assistantRef.current;
           if (!ref) return prev;
           const list = prev[ref.tab];
-          if (!list || ref.index == null || ref.index >= list.length) return prev;
+          if (!list) return prev;
+          const idx = list.findIndex((m) => m.id === ref.id);
+          if (idx === -1) return prev;
           const nextList = list.slice();
-          nextList[ref.index] = {
-            ...nextList[ref.index],
+          nextList[idx] = {
+            ...nextList[idx],
             text: textValue,
             pending: false,
           };
@@ -213,10 +218,12 @@ export default function Chat() {
         const ref = assistantRef.current;
         if (!ref) return prev;
         const list = prev[ref.tab];
-        if (!list || ref.index == null || ref.index >= list.length) return prev;
+        if (!list) return prev;
+        const idx = list.findIndex((m) => m.id === ref.id);
+        if (idx === -1) return prev;
         const nextList = list.slice();
-        nextList[ref.index] = {
-          ...nextList[ref.index],
+        nextList[idx] = {
+          ...nextList[idx],
           text: msg,
           pending: false,
         };
