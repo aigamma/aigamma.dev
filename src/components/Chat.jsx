@@ -17,8 +17,8 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 // scroll-snapping the page on every delta.
 
 const CHAT_ENDPOINT = '/api/chat';
-const MODEL = 'claude-opus-4-7';
-const WELCOME = 'Ask about the math, logic, or philosophy behind anything on this dashboard. The dealer gamma regime, the SVI fit, the Breeden-Litzenberger density, the VRP construction, why ATM IV excludes the front-month weekly, where the Put Wall comes from, how term structure pricing works, and any of the theory underneath. Answers come from Claude Opus 4.7 and stream as they are generated.';
+const MODEL = 'claude-opus-4-6';
+const WELCOME = 'Ask about the math, logic, or philosophy behind anything on this dashboard. The dealer gamma regime, the SVI fit, the Breeden-Litzenberger density, the VRP construction, why ATM IV excludes the front-month weekly, where the Put Wall comes from, how term structure pricing works, and any of the theory underneath. Answers come from Claude Opus 4.6 and stream as they are generated.';
 
 export default function Chat() {
   const [messages, setMessages] = useState([]);
@@ -179,7 +179,7 @@ export default function Chat() {
     <div className="card chat-card" aria-label="Ask the dashboard a question">
       <div className="chat-header">
         <span className="chat-title">ASK THE DASHBOARD</span>
-        <span className="chat-model-tag">Claude Opus 4.7</span>
+        <span className="chat-model-tag">Claude Opus 4.6</span>
       </div>
 
       <div className="chat-body" ref={bodyRef}>
