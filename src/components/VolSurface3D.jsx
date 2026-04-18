@@ -3,6 +3,7 @@ import usePlotly from '../hooks/usePlotly';
 import useIsMobile from '../hooks/useIsMobile';
 import { sviTotalVariance } from '../lib/svi';
 import RangeBrush from './RangeBrush';
+import ResetButton from './ResetButton';
 import {
   PLOTLY_BASE_LAYOUT_3D,
   PLOTLY_COLORBAR,
@@ -594,8 +595,17 @@ export default function VolSurface3D({ contracts, spotPrice, capturedAt, fits, s
   const volBrushRenderable =
     volLogDomain && activeVolLogRange && volLogDomain[1] > volLogDomain[0];
 
+  const userHasBrushed =
+    strikeRange != null || dteRange != null || volLogRange != null;
+  const handleReset = () => {
+    setStrikeRange(null);
+    setDteRange(null);
+    setVolLogRange(null);
+  };
+
   return (
-    <div className="card" style={{ marginBottom: '1rem' }}>
+    <div className="card" style={{ marginBottom: '1rem', position: 'relative' }}>
+      <ResetButton visible={userHasBrushed} onClick={handleReset} />
       <div
         style={{
           display: 'flex',

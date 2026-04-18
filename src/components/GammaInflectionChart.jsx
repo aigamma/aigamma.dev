@@ -9,6 +9,7 @@ import {
 } from '../lib/plotlyTheme';
 import { mergeCollidingLabels } from '../lib/labelCollision';
 import RangeBrush from './RangeBrush';
+import ResetButton from './ResetButton';
 
 // Dollar gamma notional is in the $10^9-$10^11 range at SPX scale. A plain SI
 // tick formatter (Plotly's '.2s') is sufficient — no symlog compression needed
@@ -254,8 +255,12 @@ export default function GammaInflectionChart({ spotPrice, levels }) {
       // dashboard.
       const newLabels = [];
       if (!mobile) {
+        // Push the Put Gamma label right when the reset button is
+        // visible in the upper-left corner so the two do not collide
+        // horizontally; restore the tight 20px offset otherwise.
+        const putOffset = strikeRange != null ? 85 : 20;
         newLabels.push(
-          { corner: 'left', offset: 20, top: titleTop, color: PLOTLY_COLORS.negative, text: 'Put Gamma' },
+          { corner: 'left', offset: putOffset, top: titleTop, color: PLOTLY_COLORS.negative, text: 'Put Gamma' },
           { corner: 'right', offset: 20, top: titleTop, color: PLOTLY_COLORS.positive, text: 'Call Gamma' },
         );
       }
@@ -318,7 +323,8 @@ export default function GammaInflectionChart({ spotPrice, levels }) {
   }
 
   return (
-    <div className="card" style={{ marginBottom: '1rem' }}>
+    <div className="card" style={{ marginBottom: '1rem', position: 'relative' }}>
+      <ResetButton visible={strikeRange != null} onClick={() => setStrikeRange(null)} />
       <div style={{ position: 'relative' }}>
         <div
           ref={chartRef}

@@ -10,6 +10,7 @@ import {
   plotlyTitle,
 } from '../lib/plotlyTheme';
 import RangeBrush from './RangeBrush';
+import ResetButton from './ResetButton';
 
 const BASE_LAYOUT = {
   ...PLOTLY_BASE_LAYOUT_2D,
@@ -296,7 +297,8 @@ export default function RiskNeutralDensity({ fits, spotPrice, capturedAt }) {
   }
 
   return (
-    <div className="card" style={{ marginBottom: '1rem' }}>
+    <div className="card" style={{ marginBottom: '1rem', position: 'relative' }}>
+      <ResetButton visible={strikeRange != null} onClick={() => setStrikeRange(null)} />
       <div ref={chartRef} style={{ width: '100%', height: '480px', backgroundColor: 'var(--bg-card)' }} />
       {brushDomain && activeRange && (
         <RangeBrush

@@ -11,6 +11,7 @@ import {
   plotlyAxis,
 } from '../lib/plotlyTheme';
 import RangeBrush from './RangeBrush';
+import ResetButton from './ResetButton';
 
 const NUM_STRIKE_ROWS = 11;
 const HALF_ROWS = Math.floor(NUM_STRIKE_ROWS / 2);
@@ -307,7 +308,8 @@ export default function FixedStrikeIvMatrix({ contracts, spotPrice, expirations,
   }
 
   return (
-    <div className="card" style={{ marginBottom: '1rem' }}>
+    <div className="card" style={{ marginBottom: '1rem', position: 'relative' }}>
+      <ResetButton visible={colRange != null} onClick={() => setColRange(null)} />
       <div
         style={{
           display: 'flex',

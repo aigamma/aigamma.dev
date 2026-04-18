@@ -10,6 +10,7 @@ import {
 } from '../lib/plotlyTheme';
 import { addDaysIso, daysBetween, tradingDateFromCapturedAt } from '../lib/dates';
 import RangeBrush from './RangeBrush';
+import ResetButton from './ResetButton';
 
 function isoToMs(iso) {
   return new Date(`${iso}T00:00:00Z`).getTime();
@@ -263,7 +264,8 @@ export default function TermStructure({ expirationMetrics, capturedAt, cloudBand
   const activeMaxIso = timeRange ? timeRange[1] : brushDomain?.initialEnd;
 
   return (
-    <div className="card" style={{ marginBottom: '1rem' }}>
+    <div className="card" style={{ marginBottom: '1rem', position: 'relative' }}>
+      <ResetButton visible={timeRange != null} onClick={() => setTimeRange(null)} />
       <div ref={chartRef} style={{ width: '100%', height: '500px', backgroundColor: 'var(--bg-card)' }} />
       {brushDomain && (
         <RangeBrush

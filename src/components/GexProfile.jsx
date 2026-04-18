@@ -11,6 +11,7 @@ import {
 import { computeGexByStrike, symlog, symlogTicks } from '../lib/gex';
 import { formatInteger } from '../lib/format';
 import RangeBrush from './RangeBrush';
+import ResetButton from './ResetButton';
 
 const PLOTLY_LAYOUT_BASE = {
   ...PLOTLY_BASE_LAYOUT_2D,
@@ -259,7 +260,8 @@ export default function GexProfile({ contracts, spotPrice, levels, prevContracts
   }
 
   return (
-    <div className="card" style={{ marginBottom: '1rem' }}>
+    <div className="card" style={{ marginBottom: '1rem', position: 'relative' }}>
+      <ResetButton visible={strikeRange != null} onClick={() => setStrikeRange(null)} />
       <div
         style={{
           padding: '0.75rem 1rem 0.5rem 1rem',

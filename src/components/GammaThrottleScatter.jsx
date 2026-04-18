@@ -9,6 +9,7 @@ import {
   plotlyAxis,
   plotlyTitle,
 } from '../lib/plotlyTheme';
+import ResetButton from './ResetButton';
 
 // Scatter of gamma throttle (x) vs 10-day realized volatility (y).
 // Each dot is one trading day, colored on a continuous scale by throttle
@@ -455,7 +456,8 @@ export default function GammaThrottleScatter() {
   const lastDate = fullSeries[fullSeries.length - 1].trading_date;
 
   return (
-    <div className="card" style={{ marginBottom: '1rem' }}>
+    <div className="card" style={{ marginBottom: '1rem', position: 'relative' }}>
+      <ResetButton visible={timeRange != null} onClick={() => setTimeRange(null)} />
       <div ref={scatterRef} style={{ width: '100%', height: '600px', backgroundColor: 'var(--bg-card)' }} />
       <DateRangeBrush
         firstDate={firstDate}

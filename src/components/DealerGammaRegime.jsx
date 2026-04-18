@@ -11,6 +11,7 @@ import {
   plotlyTitle,
 } from '../lib/plotlyTheme';
 import RangeBrush from './RangeBrush';
+import ResetButton from './ResetButton';
 
 function isoToMs(iso) {
   return new Date(`${iso}T00:00:00Z`).getTime();
@@ -282,7 +283,8 @@ export default function DealerGammaRegime() {
   }
 
   return (
-    <div className="card" style={{ marginBottom: '1rem' }}>
+    <div className="card" style={{ marginBottom: '1rem', position: 'relative' }}>
+      <ResetButton visible={timeRange != null} onClick={() => setTimeRange(null)} />
       <div ref={chartRef} style={{ width: '100%', height: '564px', backgroundColor: 'var(--bg-card)' }} />
       {activeRange && (
         <RangeBrush
