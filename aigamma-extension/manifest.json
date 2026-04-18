@@ -2,23 +2,27 @@
   "manifest_version": 3,
   "name": "AI Gamma SPX Regime Status and Metrics",
   "short_name": "AI Gamma",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Regime status, key levels, and volatility metrics from aigamma.com",
   "homepage_url": "https://aigamma.com/",
+  "permissions": ["alarms"],
+  "background": {
+    "service_worker": "background.js"
+  },
   "action": {
     "default_popup": "popup.html",
     "default_title": "AI Gamma SPX Regime Status and Metrics",
     "default_icon": {
-      "16": "icons/icon16.png",
-      "32": "icons/icon32.png",
-      "48": "icons/icon48.png",
-      "128": "icons/icon128.png"
+      "16": "icons/neutral/icon16.png",
+      "32": "icons/neutral/icon32.png",
+      "48": "icons/neutral/icon48.png",
+      "128": "icons/neutral/icon128.png"
     }
   },
   "icons": {
-    "16": "icons/icon16.png",
-    "32": "icons/icon32.png",
-    "48": "icons/icon48.png",
-    "128": "icons/icon128.png"
+    "16": "icons/neutral/icon16.png",
+    "32": "icons/neutral/icon32.png",
+    "48": "icons/neutral/icon48.png",
+    "128": "icons/neutral/icon128.png"
   }
 }

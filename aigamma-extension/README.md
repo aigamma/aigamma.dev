@@ -2,25 +2,41 @@
 
 Minimal Chrome extension that fetches derived SPX metrics from
 https://aigamma.com/api/snapshot.json and displays them in a 320px popup.
+A background service worker polls the same endpoint every 2 minutes
+during US equity market hours and swaps the toolbar icon between
+positive-, negative-, and neutral-gamma state glyphs so the dealer
+regime is visible at a glance without opening the popup.
 Manifest V3. Vanilla HTML, CSS, JavaScript. No bundler, no framework.
 
 ## Contents
 
     aigamma-extension/
       manifest.json
+      background.js        service worker: polls snapshot, swaps icon
       popup.html
       popup.css
       popup.js
       icons/
-        icon16.png
-        icon32.png
-        icon48.png
-        icon128.png
+        neutral/           AI GAMMA brand mark; used pre-market, off-hours, on load failure
+          icon16.png
+          icon32.png
+          icon48.png
+          icon128.png
+        positive/          green plus; shown when gammaStatus == POSITIVE
+          icon16.png
+          icon32.png
+        negative/          red minus; shown when gammaStatus == NEGATIVE
+          icon16.png
+          icon32.png
 
-The icons are placeholder Gamma glyphs in the site green (#10b981) on
-the site background (#0b0f1a). Replace them with the production mark
-before Chrome Web Store submission. Required sizes are 16, 32, 48, 128
-px PNG.
+The manifest `action.default_icon` and `icons` entries both point at the
+neutral set (all four sizes present) because that is what the Chrome Web
+Store listing surfaces and what the toolbar shows before the first
+successful fetch. The positive/negative sets only need 16 and 32 because
+`background.js` exclusively passes those two sizes to
+`chrome.action.setIcon`; Chrome upscales them for HiDPI toolbars, which
+is fine for the flat plus/minus glyphs. Replace the placeholder icons
+with the production mark before Chrome Web Store submission.
 
 ## Local testing
 
@@ -70,7 +86,12 @@ usual.
 5. Click New Item in the developer console, upload the zip.
 6. Fill the listing. Category: Productivity.
 7. Submit. Review is typically 1 to 3 business days for low-permission MV3
-   extensions. Declaring zero permissions keeps this clean.
+   extensions. The manifest declares only `"alarms"` (used by the
+   background service worker to poll the snapshot endpoint every 2
+   minutes during market hours and swap the toolbar icon between the
+   neutral / positive / negative glyphs); no `host_permissions`, no
+   content scripts, no storage, no tabs. Reviewers can verify in-code
+   that no user data is read or transmitted.
 
 ## Updating later
 
