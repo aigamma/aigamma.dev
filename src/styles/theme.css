@@ -173,6 +173,7 @@ body {
 
 .chat-tabs {
   display: flex;
+  flex-wrap: wrap;
   border-bottom: 1px solid var(--bg-card-border);
 }
 
@@ -191,6 +192,11 @@ body {
   transition: color 0.2s ease, border-color 0.2s ease;
 }
 
+.chat-tab-beta {
+  flex-basis: 100%;
+  border-top: 1px solid var(--bg-card-border);
+}
+
 .chat-tab:hover:not(.active) {
   color: var(--text-primary);
 }
@@ -203,6 +209,11 @@ body {
 .chat-tab.active[data-tab="deep"] {
   color: var(--accent-blue);
   border-bottom-color: var(--accent-blue);
+}
+
+.chat-tab.active[data-tab="beta"] {
+  color: var(--accent-coral);
+  border-bottom-color: var(--accent-coral);
 }
 
 .chat-body {

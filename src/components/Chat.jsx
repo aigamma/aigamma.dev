@@ -27,30 +27,32 @@ const CHAT_ENDPOINT = '/api/chat';
 const MODELS = {
   quick: 'claude-sonnet-4-6',
   deep: 'claude-opus-4-6',
+  beta: 'claude-opus-4-6',
 };
 
 // RGB triplets for the --glow-rgb CSS variable that drives the input
 // border, the keyframe animation, and the focus ring. Warm yellow for
 // Quick (matches about.aigamma.com's Sonnet accent), site-accent blue
-// for Deep.
+// for Deep, accent-coral for the experimental Beta row.
 const GLOW_RGB = {
   quick: '240, 192, 64',
   deep: '74, 158, 255',
+  beta: '231, 76, 60',
 };
 
 const WELCOME = {
-  quick:
-    "What's on your mind? Ask anything about the dashboard — the math, the regime logic, the model design choices. For longer and more expansive responses, switch to Deep Analysis.",
+  quick: 'What about this site would you like to explore?',
   deep:
     'Deep Analysis mode — responses are longer and explore the dashboard with greater structural depth and connective range across the underlying theory.',
+  beta: 'Experimental beta — Volatility Surface model.',
 };
 
 export default function Chat() {
   const [activeTab, setActiveTab] = useState('quick');
-  const [messages, setMessages] = useState({ quick: [], deep: [] });
+  const [messages, setMessages] = useState({ quick: [], deep: [], beta: [] });
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
-  const historyRef = useRef({ quick: [], deep: [] });
+  const historyRef = useRef({ quick: [], deep: [], beta: [] });
   const bodyRef = useRef(null);
   const textareaRef = useRef(null);
   // assistantRef pairs the in-flight assistant message with its tab via a
@@ -272,6 +274,16 @@ export default function Chat() {
         >
           Deep Analysis
         </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={activeTab === 'beta'}
+          className={`chat-tab chat-tab-beta${activeTab === 'beta' ? ' active' : ''}`}
+          data-tab="beta"
+          onClick={() => switchTab('beta')}
+        >
+          Beta: Volatility Surface
+        </button>
       </div>
 
       <div className="chat-body" ref={bodyRef}>
@@ -298,7 +310,7 @@ export default function Chat() {
           ref={textareaRef}
           className="chat-input"
           value={input}
-          placeholder="Type your question"
+          placeholder="Type here"
           rows={1}
           onChange={(e) => { setInput(e.target.value); autoResize(); }}
           onKeyDown={onKeyDown}
