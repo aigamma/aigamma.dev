@@ -109,10 +109,13 @@ export const PLOTLY_BASE_LAYOUT_2D = {
   },
   // Click-and-drag rubber-band zoom and pan are disabled on every 2D
   // card so the only way to re-frame a chart is through its RangeBrush
-  // widget. This matches the locked-viewport behavior of VolSurface3D
-  // (scene.dragmode: false + scrollZoom: false) and keeps the whole
-  // site on a single "navigate via brush, never via drag" interaction
-  // paradigm. Hover still works — hovermode is an independent property.
+  // widget — a brush-only paradigm that keeps tick positions and axis
+  // scales stable across the dashboard and makes chart screenshots
+  // reproducible. The 3D VolSurface card is the one exception: it
+  // enables Plotly's native 3D navigation (turntable/orbit/pan/zoom)
+  // alongside its three RangeBrush widgets, because a 3D surface can't
+  // be inspected without camera rotation. Hover still works here —
+  // hovermode is independent of dragmode.
   dragmode: false,
 };
 

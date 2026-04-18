@@ -54,17 +54,30 @@ function axis3D(titleText, extras = {}) {
   });
 }
 
+// Initial camera position. Referenced by BASE_LAYOUT_3D below and by
+// the card's Reset handler so that "first mount" and "reset view" land
+// at exactly the same angle. Eye at (1.8, 1.8, 0.7) gives a three-
+// quarter view with DTE receding into the screen and the ATM ridge
+// near the center of the frame.
+const DEFAULT_CAMERA = {
+  eye: { x: 1.8, y: 1.8, z: 0.7 },
+  center: { x: 0, y: 0, z: -0.15 },
+  up: { x: 0, y: 0, z: 1 },
+};
+
 const BASE_LAYOUT_3D = {
   ...PLOTLY_BASE_LAYOUT_3D,
   scene: {
     bgcolor: PLOTLY_COLORS.plot,
-    // Orbit/turntable rotation is disabled across all three interaction
-    // paths — mouse drag, touch swipe, and stylus — so the surface reads
-    // as a static print matching the rest of the dashboard's 2D cards.
-    // Users re-frame the view by moving the three RangeBrush handles
-    // (volatility on the left, strike below, DTE on the right) rather
-    // than by dragging on the surface itself.
-    dragmode: false,
+    // Default drag mode is 'turntable' rotation — it preserves the
+    // vertical up-axis, which reads more naturally on a surface than
+    // free orbit. Users switch between turntable / orbit / pan / zoom
+    // via the modebar buttons above the chart, and the mousewheel
+    // zooms on all axes. The three RangeBrush widgets (volatility
+    // left, strike below, DTE right) still provide precise per-axis
+    // range control — brushes crop the data extent, the camera modes
+    // re-frame the view through that fixed slice.
+    dragmode: 'turntable',
     xaxis: axis3D('strike', { dtick: 500 }),
     yaxis: axis3D('DTE'),
     zaxis: axis3D('IV%', {
@@ -75,11 +88,7 @@ const BASE_LAYOUT_3D = {
       tickvals: LOG_IV_TICKVALS,
       ticktext: LOG_IV_TICKVALS.map((v) => `${v}%`),
     }),
-    camera: {
-      eye: { x: 1.8, y: 1.8, z: 0.7 },
-      center: { x: 0, y: 0, z: -0.15 },
-      up: { x: 0, y: 0, z: 1 },
-    },
+    camera: DEFAULT_CAMERA,
     aspectmode: 'manual',
     aspectratio: { x: 1.5, y: 1.5, z: 1.0 },
     domain: { x: [0, 1], y: [0, 1] },
@@ -384,6 +393,12 @@ export default function VolSurface3D({ contracts, spotPrice, capturedAt, fits, s
   const [strikeRange, setStrikeRange] = useState(null);
   const [dteRange, setDteRange] = useState(null);
   const [volLogRange, setVolLogRange] = useState(null);
+  // Track whether the user has rotated/zoomed/panned the camera away
+  // from DEFAULT_CAMERA. Drives the ResetButton's visibility (so a
+  // user who has only rotated, without touching any brush, still sees
+  // a single one-click way back to the opening frame) and the reset
+  // handler clears it alongside the three brush ranges.
+  const [cameraTouched, setCameraTouched] = useState(false);
 
   // When the domain changes (new data, mode switch), reset any prior
   // user-selected range so the brush snaps back to the full domain
@@ -515,11 +530,33 @@ export default function VolSurface3D({ contracts, spotPrice, capturedAt, fits, s
     }
 
     const baseScene = BASE_LAYOUT_3D.scene;
+    // Read the currently-rendered camera off the graph div so we can
+    // pass it back unchanged in the next Plotly.react call. Plotly's
+    // react() preserves user interactions only when the new layout's
+    // scene.camera equals the stored one; if we always passed the
+    // module-level DEFAULT_CAMERA, every brush touch would snap the
+    // view back to the opening angle and undo the user's rotation.
+    // On first mount gd.layout.scene is undefined, so we fall back
+    // to DEFAULT_CAMERA to seed the initial framing.
+    const currentCamera =
+      chartRef.current?.layout?.scene?.camera || DEFAULT_CAMERA;
+
     const layout = {
       ...BASE_LAYOUT_3D,
       title: plotlyTitle('Volatility Surface'),
+      // Restyle the modebar so the navigation icons sit quietly against
+      // the dark card — muted gray at rest, primary-blue when a mode is
+      // active, fully transparent background so the buttons float over
+      // the chart without a pill behind them.
+      modebar: {
+        activecolor: PLOTLY_COLORS.primary,
+        color: PLOTLY_COLORS.axisText,
+        bgcolor: 'rgba(0,0,0,0)',
+        orientation: 'h',
+      },
       scene: {
         ...baseScene,
+        camera: currentCamera,
         xaxis: {
           ...baseScene.xaxis,
           ...(activeStrikeRange
@@ -544,15 +581,29 @@ export default function VolSurface3D({ contracts, spotPrice, capturedAt, fits, s
       },
     };
 
-    Plotly.newPlot(chartRef.current, traces, layout, {
+    // Plotly.react (not newPlot) so the user's current camera angle is
+    // preserved across brush updates — newPlot snaps the scene back to
+    // the layout's DEFAULT_CAMERA on every re-render, which would undo
+    // any rotation as soon as the user touched a brush handle.
+    Plotly.react(chartRef.current, traces, layout, {
       responsive: true,
-      displayModeBar: false,
-      // scrollZoom off disables mousewheel/pinch zoom on the 3D scene,
-      // matching the locked-viewport behavior of the dashboard's 2D
-      // cards. Combined with scene.dragmode: false above, this fully
-      // neutralizes the default orbital/zoom interactions; users
-      // re-frame via the three RangeBrush widgets (strike, DTE, vol).
-      scrollZoom: false,
+      // Modebar exposes the three 3D navigation modes (orbitRotation,
+      // tableRotation, pan3d) plus zoom3d and resetCameraDefault3d.
+      // Hidden on mobile where the 12–16px icon row would be too tight
+      // to tap reliably; touch users still get turntable rotation via
+      // default drag + pinch-zoom via scrollZoom.
+      displayModeBar: !mobile,
+      displaylogo: false,
+      modeBarButtonsToRemove: [
+        'toImage',
+        'resetCameraLastSave3d',
+        'hoverClosest3d',
+      ],
+      // scrollZoom on enables mousewheel / pinch-zoom across all three
+      // axes simultaneously. This is separate from the per-axis zoom
+      // that the RangeBrush handles provide: scroll zooms the camera
+      // (view magnification), brushes zoom the data (axis extent).
+      scrollZoom: true,
     });
   }, [
     Plotly,
@@ -569,6 +620,38 @@ export default function VolSurface3D({ contracts, spotPrice, capturedAt, fits, s
     activeDteRange,
     activeVolLogRange,
   ]);
+
+  // Keep cameraTouched in sync with "current camera differs from
+  // DEFAULT_CAMERA." The plotly_relayout event fires on both user
+  // drag/scroll AND on the programmatic Plotly.relayout inside
+  // handleReset, and its payload carries the new camera on the
+  // 'scene.camera' key — so a single comparison against the default
+  // gives us a correct state transition in both cases without the
+  // suppression-flag dance that "set true on any camera event" would
+  // need. Plotly.react updates that touch only axis ranges carry
+  // different payload keys and are correctly ignored by the early
+  // return.
+  useEffect(() => {
+    if (!Plotly || !chartRef.current) return;
+    const el = chartRef.current;
+    if (typeof el.on !== 'function') return;
+    const handler = (payload) => {
+      if (!payload || !('scene.camera' in payload)) return;
+      const cam = payload['scene.camera'];
+      const matchesDefault =
+        cam?.eye?.x === DEFAULT_CAMERA.eye.x &&
+        cam?.eye?.y === DEFAULT_CAMERA.eye.y &&
+        cam?.eye?.z === DEFAULT_CAMERA.eye.z &&
+        cam?.center?.x === DEFAULT_CAMERA.center.x &&
+        cam?.center?.y === DEFAULT_CAMERA.center.y &&
+        cam?.center?.z === DEFAULT_CAMERA.center.z;
+      setCameraTouched(!matchesDefault);
+    };
+    el.on('plotly_relayout', handler);
+    return () => {
+      el.removeAllListeners?.('plotly_relayout');
+    };
+  }, [Plotly]);
 
   if (plotlyError) {
     return (
@@ -596,11 +679,24 @@ export default function VolSurface3D({ contracts, spotPrice, capturedAt, fits, s
     volLogDomain && activeVolLogRange && volLogDomain[1] > volLogDomain[0];
 
   const userHasBrushed =
-    strikeRange != null || dteRange != null || volLogRange != null;
+    strikeRange != null ||
+    dteRange != null ||
+    volLogRange != null ||
+    cameraTouched;
   const handleReset = () => {
     setStrikeRange(null);
     setDteRange(null);
     setVolLogRange(null);
+    // Snap the 3D camera back to DEFAULT_CAMERA. Plotly.relayout
+    // animates the camera transition smoothly. The plotly_relayout
+    // listener above catches the resulting event, sees that the new
+    // camera matches DEFAULT_CAMERA, and clears cameraTouched — so
+    // we don't need to clear it explicitly here.
+    if (Plotly && chartRef.current) {
+      Plotly.relayout(chartRef.current, {
+        'scene.camera': DEFAULT_CAMERA,
+      });
+    }
   };
 
   return (
