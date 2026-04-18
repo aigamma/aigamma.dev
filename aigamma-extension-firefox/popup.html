@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AI Gamma SPX Snapshot</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <header>
+    <span class="brand">AI GAMMA</span>
+    <span id="status" class="status">...</span>
+  </header>
+  <main>
+    <div class="row" title="SPX cash index reference price captured at the most recent intraday ingest instant."><span class="label">SPX Reference</span><span id="spot" class="value">...</span></div>
+    <div class="row" title="SPX Reference minus Vol Flip. Positive = dealers long gamma (dampening); negative = dealers short gamma (amplifying)."><span class="label">Dist from Risk Off</span><span id="distRiskOff" class="value">...</span></div>
+    <div class="row" title="Strike where the signed dealer gamma profile crosses zero. Above = positive-gamma regime; below = negative-gamma regime."><span class="label">Vol Flip</span><span id="volFlip" class="value">...</span></div>
+    <div class="row" title="Volatility Risk Premium. 30-day constant-maturity IV minus 20-day Yang-Zhang realized vol (EOD, lags intraday spot by up to one trading day)."><span class="label">VRP</span><span id="vrp" class="value">...</span></div>
+    <div class="row" title="IV Rank. Current 30-day constant-maturity IV's percentile position in its trailing 252-trading-day window."><span class="label">IV Rank</span><span id="ivRank" class="value">...</span></div>
+    <div class="row" title="Strike with the largest concentration of put-side open-interest gamma. Often acts as downside support."><span class="label">Put Wall</span><span id="putWall" class="value">...</span></div>
+    <div class="row" title="Strike with the largest concentration of call-side open-interest gamma. Often acts as upside resistance."><span class="label">Call Wall</span><span id="callWall" class="value">...</span></div>
+    <div class="row" title="At-the-money implied volatility on the nearest 30-DTE monthly SPX expiration, in annualized percent."><span class="label">ATM IV</span><span id="atmIv" class="value">...</span></div>
+    <div class="row" title="Today's total put volume divided by total call volume across all SPX expirations. Higher = more defensive flow."><span class="label">P/C Volume</span><span id="pcVol" class="value">...</span></div>
+  </main>
+  <footer>
+    <span id="asOf" class="timestamp">...</span>
+    <a href="https://aigamma.com" target="_blank" rel="noopener noreferrer">aigamma.com</a>
+  </footer>
+  <script src="popup.js"></script>
+</body>
+</html>

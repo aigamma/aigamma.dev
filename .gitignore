@@ -45,3 +45,7 @@ lib/*.jar
 
 # Kiro workspace settings (trust/approval prefs are local)
 .vscode/settings.json
+
+# Browser extension build artifacts — the Chrome/Firefox zips are uploaded
+# to the Web Store / AMO from the repo root; they should not be committed.
+aigamma-extension*.zip
