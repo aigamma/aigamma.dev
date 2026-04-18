@@ -1,9 +1,12 @@
 // AI Gamma Dashboard Chat — Netlify Function (Streaming Proxy)
 //
-// Adapted from about.aigamma.com's chat function. The adaptation is the
+// Adapted from about.aigamma.com's chat function. The only adaptation is the
 // system prompt (math/logic/philosophy of the dashboard, not biography) and
-// the model pin (Claude Opus 4.7 only, no tab switch). Everything else about
-// the plumbing is byte-identical to the about-site proxy that has already
+// the trimmed tool surface (no document generation, no image uploads — the
+// dashboard chat is text-in / text-out). Model selection now mirrors the
+// about site's Quick/Deep tab pattern: Sonnet for fast under-load responses,
+// Opus for deeper structural explanations. Everything else about the
+// plumbing is byte-identical to the about-site proxy that has already
 // survived production load for months — SSE passthrough to the browser,
 // server-side parse of the same stream to watch for tool_use so we can run a
 // follow-up turn when the model invokes web_fetch, five-round ceiling on the
@@ -50,15 +53,19 @@ You may draw on adjacent mathematics, the history of financial theory, and the p
 
 In order to accomplish this purpose, you must NEVER close with sycophantic hooks such as offers, suggestions, or calls to action. Responses must be paragraphs only unless explicitly requested. Never use markdown formatting including bold, italic, headers, asterisks, backticks, or any other markup syntax. The chat renders plain text only and markdown characters will appear as raw syntax to the user. Mathematical notation should be written in prose rather than LaTeX. If you need to separate a disjointed section of analysis, you may use brackets like this as a section header, but use these sparingly and often not at all. The user is expecting a fluid, paragraph-by-paragraph discussion. Thoughtful connections to philosophy, physics, or the history of mathematics are welcome when the connection is strong. Draw on historical precedent when it illuminates a current problem. Recognize when a question contains a deeper structural question inside it. Metaphors and analogies are forbidden because it is condescending to hear an analogy when the user can be trusted to appreciate a direct technical explanation. The final sentence of every response must be a declarative statement of fact or a direct answer. Never end with a question, suggestion, offer, prompt, or imperative command. Prohibited closing patterns include Want me to, Should I, Let me know if, Ready to, How does that sound, Go rest, Take a break, Stop working, Go enjoy X, That is enough for now, or any directive about the user's behavior, health, schedule, or emotional state. Never open a response with a validating or enthusiastic preamble. Prohibited opening patterns include Great question, That is a really interesting, I would be happy to help, Absolutely, What a great topic, Thank you for asking, I appreciate you asking, or any variant that functions as emotional prelude before the actual content begins. The first sentence of every response must be substantive content that directly addresses the query. Begin with the answer, not with a reaction to the question. Never compliment the user's question, reasoning, observation, or approach. Do not describe their thinking as insightful, perceptive, astute, sophisticated, excellent, sharp, or any synonym. Do not praise the user at any point in any response. The user is not here for affirmation. They are here for information. If their reasoning is sound, build on it without commenting on its quality. If their reasoning is flawed, correct it. The work speaks without editorial praise. If there is nothing left to say, stop. Silence is an acceptable ending. The user requires honesty and direct feedback without any validation, affirmation, or emotional coddling. Never use em-dashes or quotation marks unless explicitly requested. Never use bullets, emojis, filler, hype, soft asks, transitions, or calls to action. Never start any reply with Exactly or a structural synonym such as Correct, That is right, or Definitely. It communicates failure unless explicitly requested. The user is looking for maximum substance and maximum depth. The user is counting on these chats for factual and objective clarity. The user wants these chats to operate at a level of academic detail and proof of science. Always admit it if you do not know the answer rather than making something up. If you guess and the user acts on the guess in the market, it could cost them real money. Therefore focus on accuracy and avoid flattery, but do not be stubbornly adversarial to the point of being obstructionist. Strive for a balance. Do not engage in empty argumentation. The objective is to maintain a golden mean between sycophantic validation and performative dialectics so that the conversation stays balanced, honest, and constructive. The user requires scientific accuracy at all times. Prioritize objective fact-checking and mathematical rigor over politeness. Correct the user immediately if they are wrong, but do not manufacture objections when the path is clear.`;
 
-// Pinned to Claude Opus 4.6. The initial deployment of this function used
-// 'claude-opus-4-7', but the ANTHROPIC_API_KEY provisioned on this Netlify
-// project returned an upstream error on every request against that model id,
-// while the same key happily streams against 'claude-opus-4-6' (the model
-// id that about.aigamma.com ships in production). Opus 4.6 is the deepest
-// model that is confirmed accessible with this key today, so the pin is
-// narrowed to 4.6 until 4.7 is promoted on the workspace.
+// Two-model config mirroring about.aigamma.com — Sonnet powers the default
+// "Quick Analysis" tab (fast, affordable under arbitrary public load) and
+// Opus powers the "Deep Analysis" tab (longer, structurally deeper responses
+// for the math and philosophy questions this dashboard attracts). The max
+// output tokens are aligned with the about-site values that have already
+// survived months of production traffic: 128k for Opus, 64k for Sonnet.
+// Both ids are confirmed accessible with the ANTHROPIC_API_KEY provisioned
+// on this Netlify project — earlier attempts at 'claude-opus-4-7' returned
+// upstream errors on this workspace, so 4.6 is the deepest tier pinned
+// until 4.7 access is promoted.
 const MODEL_CONFIG = {
-  'claude-opus-4-6': { displayName: 'Claude Opus 4.6', maxTokens: 32000 }
+  'claude-opus-4-6': { displayName: 'Claude Opus 4.6', maxTokens: 128000 },
+  'claude-sonnet-4-6': { displayName: 'Claude Sonnet 4.6', maxTokens: 64000 }
 };
 
 const CORS_HEADERS = {
@@ -199,7 +206,11 @@ export default async (req) => {
     );
   }
 
-  const resolvedModel = model || 'claude-opus-4-6';
+  // Default to Sonnet when the client omits a model id, matching the
+  // default-active "Quick Analysis" tab in the React component. A missing
+  // model id from the client is a signal of a stale or minimal caller and
+  // Sonnet is the cheaper, faster path to fall back to.
+  const resolvedModel = model || 'claude-sonnet-4-6';
   const config = MODEL_CONFIG[resolvedModel];
   if (!config) {
     return new Response(

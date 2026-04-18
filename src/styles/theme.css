@@ -159,27 +159,50 @@ body {
    #141820 bubble background). The accent-blue ring on the input is the
    single visible indicator that the box is the primary user affordance
    on the card; everything else reads as passive surface until hovered. */
+/* --glow-rgb drives the input's border, keyframe pulse, and focus ring
+   per active tab. Default is the Quick/Sonnet warm yellow (#f0c040-ish);
+   the Chat component overrides this on the card element itself when
+   switching to Deep/Opus so the animation re-tints without a remount. */
 .chat-card {
+  --glow-rgb: 240, 192, 64;
   margin-top: 1rem;
   padding: 0;
   display: flex;
   flex-direction: column;
 }
 
-.chat-header {
+.chat-tabs {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0.85rem 1.25rem;
   border-bottom: 1px solid var(--bg-card-border);
-  font-family: 'Courier New', monospace;
-  font-size: 0.75rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
 }
 
-.chat-title {
+.chat-tab {
+  flex: 1;
+  padding: 0.85rem 1rem;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  font-family: 'Courier New', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+
+.chat-tab:hover:not(.active) {
+  color: var(--text-primary);
+}
+
+.chat-tab.active[data-tab="quick"] {
+  color: #f0c040;
+  border-bottom-color: #f0c040;
+}
+
+.chat-tab.active[data-tab="deep"] {
   color: var(--accent-blue);
+  border-bottom-color: var(--accent-blue);
 }
 
 .chat-body {
@@ -285,7 +308,7 @@ body {
 .chat-input {
   flex: 1;
   background: var(--bg-primary);
-  border: 1px solid rgba(74, 158, 255, 0.3);
+  border: 1px solid rgba(var(--glow-rgb), 0.3);
   border-radius: 4px;
   padding: 0.65rem 0.8rem;
   font-family: 'Courier New', monospace;
@@ -297,6 +320,20 @@ body {
   line-height: 1.5;
   outline: none;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  animation: chatInputGlow 4s ease-in-out infinite;
+}
+
+@keyframes chatInputGlow {
+  0%, 100% {
+    box-shadow:
+      0 0 6px rgba(var(--glow-rgb), 0.2),
+      0 0 2px rgba(var(--glow-rgb), 0.1);
+  }
+  50% {
+    box-shadow:
+      0 0 18px rgba(var(--glow-rgb), 0.5),
+      0 0 4px rgba(var(--glow-rgb), 0.3);
+  }
 }
 
 .chat-input::placeholder {
@@ -305,8 +342,9 @@ body {
 }
 
 .chat-input:focus {
-  border-color: var(--accent-blue);
-  box-shadow: 0 0 0 2px rgba(74, 158, 255, 0.15);
+  border-color: rgba(var(--glow-rgb), 0.7);
+  box-shadow: 0 0 12px rgba(var(--glow-rgb), 0.4);
+  animation: none;
 }
 
 .chat-input:disabled {
@@ -357,6 +395,6 @@ body {
   }
 
   .chat-body { max-height: 60vh; }
-  .chat-header { padding: 0.75rem 1rem; }
+  .chat-tab { padding: 0.75rem 0.75rem; font-size: 0.62rem; }
   .chat-input-row { padding: 0.75rem 1rem; }
 }

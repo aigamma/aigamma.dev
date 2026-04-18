@@ -1,30 +1,56 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 // Interactive chat bound to /api/chat (the Netlify Function proxy to
-// Anthropic's streaming messages endpoint). The proxy pins the model to
-// Claude Opus 4.7 and injects the dashboard-focused system prompt server
-// side, so this component never sees the prompt or the API key. It just
-// speaks the wire format: POST { message, history, model } → SSE stream
-// of content_block_delta events. History is kept client-side in a ref
-// (not state) because we only read it when assembling the next request,
-// so re-rendering on every message append would be waste.
+// Anthropic's streaming messages endpoint). Two tabs — Quick Analysis
+// (Sonnet 4.6) and Deep Analysis (Opus 4.6) — mirror about.aigamma.com's
+// chat affordance so the shared design language carries across the
+// property. Quick is the default because for a public chat exposed on a
+// live dashboard, Sonnet is the faster and cheaper path under arbitrary
+// load; Opus is reserved for the user who has already engaged the chat
+// and wants a longer, structurally deeper response on the math. The
+// proxy injects the dashboard-focused system prompt server side, so this
+// component never sees the prompt or the API key. It just speaks the
+// wire format: POST { message, history, model } → SSE stream of
+// content_block_delta events. Per-tab message lists and histories are
+// held in local state and a ref respectively so a user can hop between
+// tabs without losing either conversation.
 //
-// The component is deliberately small. Every complexity in the about-site
-// chat that is not required for a math/logic/philosophy conversation
-// (file upload, document generation, model picker tabs, conversation cap)
-// has been dropped. The single feature that matters is a clean streaming
-// render that updates the assistant bubble token-by-token without
-// scroll-snapping the page on every delta.
+// Tab-switching is blocked while a response is streaming to prevent
+// interleaved completion into the wrong tab; once loading settles, the
+// user can switch freely. The glow accent around the input field is
+// driven by a CSS custom property (--glow-rgb) set on the card root, so
+// switching tabs re-paints the ambient animation without a re-render of
+// the input itself.
 
 const CHAT_ENDPOINT = '/api/chat';
-const MODEL = 'claude-opus-4-6';
-const WELCOME = "What's on your mind?";
+
+const MODELS = {
+  quick: 'claude-sonnet-4-6',
+  deep: 'claude-opus-4-6',
+};
+
+// RGB triplets for the --glow-rgb CSS variable that drives the input
+// border, the keyframe animation, and the focus ring. Warm yellow for
+// Quick (matches about.aigamma.com's Sonnet accent), site-accent blue
+// for Deep.
+const GLOW_RGB = {
+  quick: '240, 192, 64',
+  deep: '74, 158, 255',
+};
+
+const WELCOME = {
+  quick:
+    "What's on your mind? Ask anything about the dashboard — the math, the regime logic, the model design choices. For longer and more expansive responses, switch to Deep Analysis.",
+  deep:
+    'Deep Analysis mode — responses are longer and explore the dashboard with greater structural depth and connective range across the underlying theory.',
+};
 
 export default function Chat() {
-  const [messages, setMessages] = useState([]);
+  const [activeTab, setActiveTab] = useState('quick');
+  const [messages, setMessages] = useState({ quick: [], deep: [] });
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
-  const historyRef = useRef([]);
+  const historyRef = useRef({ quick: [], deep: [] });
   const bodyRef = useRef(null);
   const textareaRef = useRef(null);
   const assistantRef = useRef(null);
@@ -37,7 +63,7 @@ export default function Chat() {
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages, scrollToBottom]);
+  }, [messages, activeTab, scrollToBottom]);
 
   const autoResize = useCallback(() => {
     const el = textareaRef.current;
@@ -46,22 +72,42 @@ export default function Chat() {
     el.style.height = Math.min(el.scrollHeight, 140) + 'px';
   }, []);
 
+  const switchTab = useCallback(
+    (tabName) => {
+      if (tabName === activeTab || loading) return;
+      setActiveTab(tabName);
+    },
+    [activeTab, loading],
+  );
+
   const sendMessage = useCallback(async () => {
     const text = input.trim();
     if (!text || loading) return;
 
+    const tab = activeTab;
     setInput('');
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
     }
 
-    const nextMessages = [
-      ...messages,
-      { role: 'user', text },
-      { role: 'assistant', text: '', pending: true }
-    ];
-    setMessages(nextMessages);
-    assistantRef.current = nextMessages.length - 1;
+    let assistantIndex = null;
+    setMessages((prev) => {
+      const next = {
+        ...prev,
+        [tab]: [
+          ...prev[tab],
+          { role: 'user', text },
+          { role: 'assistant', text: '', pending: true },
+        ],
+      };
+      assistantIndex = next[tab].length - 1;
+      return next;
+    });
+    // Pair the pending-assistant index with the tab so streamed deltas
+    // land in the right conversation even if the user flips tabs before
+    // the stream finishes (the switch is blocked during loading, but the
+    // guard is cheap and future-proofs any loosening of that rule).
+    assistantRef.current = { tab, index: assistantIndex };
     setLoading(true);
 
     let fullResponse = '';
@@ -73,9 +119,9 @@ export default function Chat() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           message: text,
-          history: historyRef.current,
-          model: MODEL
-        })
+          history: historyRef.current[tab],
+          model: MODELS[tab],
+        }),
       });
 
       if (!res.ok) {
@@ -83,9 +129,27 @@ export default function Chat() {
         try {
           const errData = await res.json();
           if (errData && errData.error) errMsg = errData.error;
-        } catch { /* non-JSON data line */ }
+        } catch {
+          /* non-JSON data line */
+        }
         throw new Error(errMsg);
       }
+
+      const applyAssistantText = (textValue) => {
+        setMessages((prev) => {
+          const ref = assistantRef.current;
+          if (!ref) return prev;
+          const list = prev[ref.tab];
+          if (!list || ref.index == null || ref.index >= list.length) return prev;
+          const nextList = list.slice();
+          nextList[ref.index] = {
+            ...nextList[ref.index],
+            text: textValue,
+            pending: false,
+          };
+          return { ...prev, [ref.tab]: nextList };
+        });
+      };
 
       const contentType = res.headers.get('content-type') || '';
 
@@ -109,64 +173,60 @@ export default function Chat() {
             if (data === '[DONE]') continue;
             try {
               const parsed = JSON.parse(data);
-              if (parsed.type === 'content_block_delta' && parsed.delta?.type === 'text_delta') {
+              if (
+                parsed.type === 'content_block_delta' &&
+                parsed.delta?.type === 'text_delta'
+              ) {
                 if (!firstToken) {
                   firstToken = true;
                 }
                 fullResponse += parsed.delta.text;
-                setMessages((prev) => {
-                  const idx = assistantRef.current;
-                  if (idx == null || idx >= prev.length) return prev;
-                  const next = prev.slice();
-                  next[idx] = { ...next[idx], text: fullResponse.trimStart(), pending: false };
-                  return next;
-                });
+                applyAssistantText(fullResponse.trimStart());
               }
-            } catch { /* non-JSON data line */ }
+            } catch {
+              /* non-JSON data line */
+            }
           }
         }
       } else {
         const data = await res.json();
         fullResponse = data.response || 'No response received.';
-        setMessages((prev) => {
-          const idx = assistantRef.current;
-          if (idx == null || idx >= prev.length) return prev;
-          const next = prev.slice();
-          next[idx] = { ...next[idx], text: fullResponse, pending: false };
-          return next;
-        });
+        applyAssistantText(fullResponse);
       }
 
       if (!fullResponse.trim()) {
         fullResponse = 'No response received.';
-        setMessages((prev) => {
-          const idx = assistantRef.current;
-          if (idx == null || idx >= prev.length) return prev;
-          const next = prev.slice();
-          next[idx] = { ...next[idx], text: fullResponse, pending: false };
-          return next;
-        });
+        applyAssistantText(fullResponse);
       }
 
-      historyRef.current = [
+      historyRef.current = {
         ...historyRef.current,
-        { role: 'user', content: text },
-        { role: 'assistant', content: fullResponse.trimStart() }
-      ];
+        [tab]: [
+          ...historyRef.current[tab],
+          { role: 'user', content: text },
+          { role: 'assistant', content: fullResponse.trimStart() },
+        ],
+      };
     } catch (err) {
       const msg = err?.message || 'Something went wrong. Please try again.';
       setMessages((prev) => {
-        const idx = assistantRef.current;
-        if (idx == null || idx >= prev.length) return prev;
-        const next = prev.slice();
-        next[idx] = { ...next[idx], text: msg, pending: false };
-        return next;
+        const ref = assistantRef.current;
+        if (!ref) return prev;
+        const list = prev[ref.tab];
+        if (!list || ref.index == null || ref.index >= list.length) return prev;
+        const nextList = list.slice();
+        nextList[ref.index] = {
+          ...nextList[ref.index],
+          text: msg,
+          pending: false,
+        };
+        return { ...prev, [ref.tab]: nextList };
       });
     } finally {
       setLoading(false);
       assistantRef.current = null;
     }
-  }, [input, loading, messages]);
+  }, [activeTab, input, loading]);
 
   const onKeyDown = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -175,18 +235,44 @@ export default function Chat() {
     }
   };
 
+  const currentMessages = messages[activeTab];
+  const cardStyle = { '--glow-rgb': GLOW_RGB[activeTab] };
+
   return (
-    <div className="card chat-card" aria-label="Ask the dashboard a question">
-      <div className="chat-header">
-        <span className="chat-title">ASK THE DASHBOARD</span>
+    <div
+      className="card chat-card"
+      aria-label="Ask the dashboard a question"
+      style={cardStyle}
+    >
+      <div className="chat-tabs" role="tablist">
+        <button
+          type="button"
+          role="tab"
+          aria-selected={activeTab === 'quick'}
+          className={`chat-tab${activeTab === 'quick' ? ' active' : ''}`}
+          data-tab="quick"
+          onClick={() => switchTab('quick')}
+        >
+          Quick Analysis
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={activeTab === 'deep'}
+          className={`chat-tab${activeTab === 'deep' ? ' active' : ''}`}
+          data-tab="deep"
+          onClick={() => switchTab('deep')}
+        >
+          Deep Analysis
+        </button>
       </div>
 
       <div className="chat-body" ref={bodyRef}>
-        {messages.length === 0 && (
-          <div className="chat-welcome">{WELCOME}</div>
+        {currentMessages.length === 0 && (
+          <div className="chat-welcome">{WELCOME[activeTab]}</div>
         )}
 
-        {messages.map((m, i) => (
+        {currentMessages.map((m, i) => (
           <div key={i} className={'chat-msg chat-msg-' + m.role}>
             <div className="chat-msg-label">{m.role === 'user' ? 'YOU' : 'AI'}</div>
             <div className="chat-msg-bubble">
