@@ -179,7 +179,6 @@ export default function Chat() {
     <div className="card chat-card" aria-label="Ask the dashboard a question">
       <div className="chat-header">
         <span className="chat-title">ASK THE DASHBOARD</span>
-        <span className="chat-model-tag">Claude Opus 4.6</span>
       </div>
 
       <div className="chat-body" ref={bodyRef}>
