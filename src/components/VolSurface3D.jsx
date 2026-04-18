@@ -556,6 +556,13 @@ export default function VolSurface3D({ contracts, spotPrice, capturedAt, fits, s
       },
       scene: {
         ...baseScene,
+        // On mobile, disable drag interactions entirely so a finger
+        // swipe scrolls the page past the card instead of getting
+        // captured as a chart rotation — which otherwise strands the
+        // user inside the surface with no way out. Desktop retains
+        // turntable drag for rotation because a mousewheel-scroll past
+        // the chart is separately protected by scrollZoom:false below.
+        dragmode: mobile ? false : 'turntable',
         camera: currentCamera,
         xaxis: {
           ...baseScene.xaxis,
@@ -590,8 +597,8 @@ export default function VolSurface3D({ contracts, spotPrice, capturedAt, fits, s
       // Modebar exposes the three 3D navigation modes (orbitRotation,
       // tableRotation, pan3d) plus zoom3d and resetCameraDefault3d.
       // Hidden on mobile where the 12–16px icon row would be too tight
-      // to tap reliably; touch users still get turntable rotation via
-      // default drag + pinch-zoom via scrollZoom.
+      // to tap reliably — and where drag is disabled anyway, so the
+      // mode switches would have nothing to switch.
       displayModeBar: !mobile,
       displaylogo: false,
       modeBarButtonsToRemove: [
@@ -599,11 +606,13 @@ export default function VolSurface3D({ contracts, spotPrice, capturedAt, fits, s
         'resetCameraLastSave3d',
         'hoverClosest3d',
       ],
-      // scrollZoom on enables mousewheel / pinch-zoom across all three
-      // axes simultaneously. This is separate from the per-axis zoom
-      // that the RangeBrush handles provide: scroll zooms the camera
-      // (view magnification), brushes zoom the data (axis extent).
-      scrollZoom: true,
+      // scrollZoom OFF so the mousewheel is reserved for page scroll —
+      // otherwise scrolling past the (tall) 3D card hijacks into camera
+      // zoom and the user gets stranded inside the surface. Desktop
+      // users can still zoom the camera via the zoom3d modebar button
+      // plus rubber-band drag; mobile users can't zoom, which is the
+      // trade we accept for not capturing finger swipes.
+      scrollZoom: false,
     });
   }, [
     Plotly,
