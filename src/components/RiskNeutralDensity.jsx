@@ -257,7 +257,7 @@ export default function RiskNeutralDensity({ fits, spotPrice, capturedAt }) {
           y: 1,
           yref: 'paper',
           yanchor: 'bottom',
-          text: 'SPOT',
+          text: 'SPX',
           showarrow: false,
           font: { ...PLOTLY_FONTS.axisTitle, color: PLOTLY_COLORS.primary },
         },

@@ -123,7 +123,7 @@ export default function GammaInflectionChart({ spotPrice, levels }) {
         fill: 'tozeroy',
         fillcolor: 'rgba(231, 76, 60, 0.35)',
         connectgaps: false,
-        hovertemplate: 'Spot %{x:,.0f}<br>γ notional: %{y:.3s}<extra></extra>',
+        hovertemplate: 'SPX %{x:,.0f}<br>γ notional: %{y:.3s}<extra></extra>',
       },
       {
         x: split.posX,
@@ -135,7 +135,7 @@ export default function GammaInflectionChart({ spotPrice, levels }) {
         fill: 'tozeroy',
         fillcolor: 'rgba(46, 204, 113, 0.35)',
         connectgaps: false,
-        hovertemplate: 'Spot %{x:,.0f}<br>γ notional: %{y:.3s}<extra></extra>',
+        hovertemplate: 'SPX %{x:,.0f}<br>γ notional: %{y:.3s}<extra></extra>',
       },
     ];
 
@@ -278,7 +278,7 @@ export default function GammaInflectionChart({ spotPrice, levels }) {
       const topCandidates = [];
       if (spotPrice != null) {
         topCandidates.push({
-          key: 'SPOT',
+          key: 'SPX',
           value: spotPrice,
           priority: 3,
           x: px(spotPrice),

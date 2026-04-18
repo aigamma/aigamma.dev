@@ -306,7 +306,7 @@ export default function GexProfile({ contracts, spotPrice, levels, prevContracts
         >
           <LevelLabel name="Put Wall" value={levels?.put_wall} color={PLOTLY_COLORS.negative} />
           <LevelLabel name="Flip" value={levels?.volatility_flip} color={PLOTLY_COLORS.highlight} />
-          <LevelLabel name="Spot" value={spotPrice} color={PLOTLY_COLORS.primary} />
+          <LevelLabel name="SPX" value={spotPrice} color={PLOTLY_COLORS.primary} />
           <LevelLabel name="Call Wall" value={levels?.call_wall} color={PLOTLY_COLORS.positive} />
         </div>
       </div>
