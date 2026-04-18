@@ -37,21 +37,27 @@ expected until the Netlify function is deployed.
 
 ## Server side
 
-The separate folder aigamma-netlify-snippets\ contains the files to drop
-into your existing Netlify site repo:
+The extension fetches from `https://aigamma.com/api/snapshot.json`, a
+Netlify Function that lives in this same repo at
+`netlify/functions/snapshot.mjs` and is routed via `netlify.toml`
+redirects. The function reads the same Supabase tables as the React
+dashboard (`ingest_runs`, `snapshots`, `computed_levels`,
+`expiration_metrics`, `daily_volatility_stats`) and recomputes the Vol
+Flip zero crossing via the shared `src/lib/gammaProfile.js` helper so the
+extension and the dashboard can never disagree on displayed levels. The
+response contract is `schemaVersion: 1` and is pinned against `popup.js`.
 
-    netlify\functions\snapshot.ts   (Netlify Function for the endpoint)
-    netlify.toml.append             (blocks to append to netlify.toml)
-
-Wire the stub getSnapshot() in snapshot.ts to the same data path the
-React dashboard uses. Single source of truth.
-
-Verify locally from your site repo:
+Verify locally from the repo root:
 
     netlify dev
-    curl http://localhost:8888/api/snapshot.json
+    curl -i http://localhost:8888/api/snapshot.json
 
-Deploy on push as usual.
+The response should be `200 OK` with `Access-Control-Allow-Origin: *`,
+`Cache-Control: public, max-age=30, s-maxage=30`, and a JSON body
+matching the fields that `popup.js` reads (`spot`, `putWall`, `volFlip`,
+`callWall`, `distanceFromRiskOff`, `atmIv`, `vrp`, `ivRank`,
+`pcRatioVolume`, `gammaStatus`, `asOf`). Deploy on push to `main` as
+usual.
 
 ## Publishing to the Chrome Web Store
 
