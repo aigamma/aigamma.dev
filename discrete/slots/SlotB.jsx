@@ -1,7 +1,9 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import usePlotly from '../../src/hooks/usePlotly';
 import useIsMobile from '../../src/hooks/useIsMobile';
 import useOptionsData from '../../src/hooks/useOptionsData';
+import RangeBrush from '../../src/components/RangeBrush';
+import ResetButton from '../../src/components/ResetButton';
 import {
   PLOTLY_COLORS,
   PLOTLY_FONTS,
@@ -61,6 +63,11 @@ const RATE_Q = 0.013;
 const N_MIN = 5;
 const N_MAX = 400;
 const LAMBDA = Math.sqrt(3);
+
+// Default brush window covers the left third of the N domain. That is where
+// the binomial oscillation is fat, the trinomial curve separates visibly
+// from it, and the O(1/N) convergence is easiest to read.
+const DEFAULT_N_RANGE = [N_MIN, Math.round(N_MIN + (N_MAX - N_MIN) / 3)];
 
 const N_GRID = (() => {
   const vals = [];
@@ -259,7 +266,13 @@ export default function SlotB() {
 
   const [expiration, setExpiration] = useState(null);
   const [optionType, setOptionType] = useState('call');
+  const [nRange, setNRange] = useState(null);
   const activeExp = expiration || defaultExpiration;
+  const activeNRange = nRange || DEFAULT_N_RANGE;
+
+  const handleBrushChange = useCallback((minN, maxN) => {
+    setNRange([minN, maxN]);
+  }, []);
 
   const dte = useMemo(() => {
     if (!activeExp || !data?.capturedAt) return null;
@@ -292,13 +305,30 @@ export default function SlotB() {
     if (!Plotly || !chartRef.current || !curve) return;
 
     const { Ns, bsm: bsmPrice, bin, tri, cfg } = curve;
-    const finiteVals = [
-      ...bin.filter((v) => Number.isFinite(v)),
-      ...tri.filter((v) => Number.isFinite(v)),
-      bsmPrice,
-    ];
-    const yMin = Math.min(...finiteVals);
-    const yMax = Math.max(...finiteVals);
+    // Fit the y-axis to the brushed window so the binomial oscillation and
+    // the trinomial curve both occupy the full vertical range of the visible
+    // region. Without this the default left-third view would sit compressed
+    // at the top of the card because the quiet tail toward N = 400 defines
+    // the lower bound of the global min.
+    const [xStart, xEnd] = activeNRange;
+    let yMin = Infinity;
+    let yMax = -Infinity;
+    for (let i = 0; i < Ns.length; i++) {
+      if (Ns[i] < xStart || Ns[i] > xEnd) continue;
+      for (const y of [bin[i], tri[i]]) {
+        if (y == null || !Number.isFinite(y)) continue;
+        if (y < yMin) yMin = y;
+        if (y > yMax) yMax = y;
+      }
+    }
+    if (Number.isFinite(bsmPrice)) {
+      if (bsmPrice < yMin) yMin = bsmPrice;
+      if (bsmPrice > yMax) yMax = bsmPrice;
+    }
+    if (!Number.isFinite(yMin) || !Number.isFinite(yMax)) {
+      yMin = bsmPrice - 1;
+      yMax = bsmPrice + 1;
+    }
     const pad = (yMax - yMin) * 0.2 || 0.5;
 
     const traces = [
@@ -340,7 +370,7 @@ export default function SlotB() {
       },
       margin: mobile ? { t: 50, r: 25, b: 85, l: 60 } : { t: 70, r: 35, b: 100, l: 75 },
       xaxis: plotlyAxis('N · tree depth', {
-        range: [0, N_MAX + 5],
+        range: activeNRange,
         autorange: false,
       }),
       yaxis: plotlyAxis('Price (USD)', {
@@ -364,7 +394,7 @@ export default function SlotB() {
       responsive: true,
       displayModeBar: false,
     });
-  }, [Plotly, curve, mobile, optionType]);
+  }, [Plotly, curve, mobile, optionType, activeNRange]);
 
   if (loading && !data) {
     return (
@@ -584,7 +614,18 @@ export default function SlotB() {
         />
       </div>
 
-      <div ref={chartRef} style={{ width: '100%', height: mobile ? 380 : 460 }} />
+      <div style={{ position: 'relative' }}>
+        <ResetButton visible={nRange != null} onClick={() => setNRange(null)} />
+        <div ref={chartRef} style={{ width: '100%', height: mobile ? 380 : 460 }} />
+        <RangeBrush
+          min={N_MIN}
+          max={N_MAX}
+          activeMin={activeNRange[0]}
+          activeMax={activeNRange[1]}
+          onChange={handleBrushChange}
+          minWidth={10}
+        />
+      </div>
 
       <div
         style={{

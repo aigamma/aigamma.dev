@@ -1,7 +1,9 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import usePlotly from '../../src/hooks/usePlotly';
 import useIsMobile from '../../src/hooks/useIsMobile';
 import useOptionsData from '../../src/hooks/useOptionsData';
+import RangeBrush from '../../src/components/RangeBrush';
+import ResetButton from '../../src/components/ResetButton';
 import {
   PLOTLY_COLORS,
   PLOTLY_FONTS,
@@ -63,6 +65,11 @@ const RATE_Q = 0.013;  // SPX trailing dividend yield
 const N_MIN = 5;
 const N_MAX = 400;
 const N_STEP = 5;   // coarser early-N steps keep the tiny oscillation visible
+
+// Default brush window covers the left third of the N domain, where the
+// odd/even oscillation is dramatic. The user can drag either handle out to
+// see the quiet tail, and the ResetButton restores this window.
+const DEFAULT_N_RANGE = [N_MIN, Math.round(N_MIN + (N_MAX - N_MIN) / 3)];
 
 // Build the list of N values. Dense near the origin so the oscillation is
 // resolved, spaced further apart toward N_MAX where the curve has already
@@ -216,7 +223,13 @@ export default function SlotA() {
 
   const [expiration, setExpiration] = useState(null);
   const [optionType, setOptionType] = useState('call');
+  const [nRange, setNRange] = useState(null);
   const activeExp = expiration || defaultExpiration;
+  const activeNRange = nRange || DEFAULT_N_RANGE;
+
+  const handleBrushChange = useCallback((minN, maxN) => {
+    setNRange([minN, maxN]);
+  }, []);
 
   const dte = useMemo(() => {
     if (!activeExp || !data?.capturedAt) return null;
@@ -249,13 +262,28 @@ export default function SlotA() {
     if (!Plotly || !chartRef.current || !curve) return;
 
     const { Ns, bsm: bsmPrice, euro, amer, cfg } = curve;
-    const finiteVals = [
-      ...euro.filter((v) => Number.isFinite(v)),
-      ...amer.filter((v) => Number.isFinite(v)),
-      bsmPrice,
-    ];
-    const yMin = Math.min(...finiteVals);
-    const yMax = Math.max(...finiteVals);
+    // Fit the y-axis to whatever is inside the current brush window so the
+    // visible oscillation is not squashed by the quiet tail toward large N.
+    // Mirrors computeYRange in DealerGammaRegime.jsx.
+    const [xStart, xEnd] = activeNRange;
+    let yMin = Infinity;
+    let yMax = -Infinity;
+    for (let i = 0; i < Ns.length; i++) {
+      if (Ns[i] < xStart || Ns[i] > xEnd) continue;
+      for (const y of [euro[i], amer[i]]) {
+        if (y == null || !Number.isFinite(y)) continue;
+        if (y < yMin) yMin = y;
+        if (y > yMax) yMax = y;
+      }
+    }
+    if (Number.isFinite(bsmPrice)) {
+      if (bsmPrice < yMin) yMin = bsmPrice;
+      if (bsmPrice > yMax) yMax = bsmPrice;
+    }
+    if (!Number.isFinite(yMin) || !Number.isFinite(yMax)) {
+      yMin = bsmPrice - 1;
+      yMax = bsmPrice + 1;
+    }
     const pad = (yMax - yMin) * 0.18 || 0.5;
 
     const traces = [
@@ -296,7 +324,7 @@ export default function SlotA() {
       },
       margin: mobile ? { t: 50, r: 25, b: 85, l: 60 } : { t: 70, r: 35, b: 100, l: 75 },
       xaxis: plotlyAxis('N · tree depth', {
-        range: [0, N_MAX + 5],
+        range: activeNRange,
         autorange: false,
       }),
       yaxis: plotlyAxis('Price (USD)', {
@@ -320,7 +348,7 @@ export default function SlotA() {
       responsive: true,
       displayModeBar: false,
     });
-  }, [Plotly, curve, mobile, optionType]);
+  }, [Plotly, curve, mobile, optionType, activeNRange]);
 
   if (loading && !data) {
     return (
@@ -538,7 +566,18 @@ export default function SlotA() {
         />
       </div>
 
-      <div ref={chartRef} style={{ width: '100%', height: mobile ? 380 : 460 }} />
+      <div style={{ position: 'relative' }}>
+        <ResetButton visible={nRange != null} onClick={() => setNRange(null)} />
+        <div ref={chartRef} style={{ width: '100%', height: mobile ? 380 : 460 }} />
+        <RangeBrush
+          min={N_MIN}
+          max={N_MAX}
+          activeMin={activeNRange[0]}
+          activeMax={activeNRange[1]}
+          onChange={handleBrushChange}
+          minWidth={10}
+        />
+      </div>
 
       <div
         style={{
