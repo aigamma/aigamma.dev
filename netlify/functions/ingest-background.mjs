@@ -74,19 +74,19 @@ export default async function handler(request) {
 
     // Phase 2 — Fetch from Massive API
     const phase2Start = Date.now();
-    const { pages, pagesFetched, partial } = await fetchChain(targets.fetchUrl);
+    const { pages, pagesFetched, partial, partialReason } = await fetchChain(targets.fetchUrl);
     const rawContractCount = pages.reduce(
       (sum, p) => sum + (Array.isArray(p.results) ? p.results.length : 0),
       0
     );
     console.log(
       `[ingest] phase2 fetch: ${pagesFetched} pages, ${rawContractCount} raw contracts ` +
-      `(${Date.now() - phase2Start}ms)${partial ? ' [PARTIAL]' : ''}`
+      `(${Date.now() - phase2Start}ms)${partial ? ` [PARTIAL: ${partialReason}]` : ''}`
     );
 
     // Phase 3 — Compute GEX
     const phase3Start = Date.now();
-    const computed = computeGex(pages, targets, startedAt, partial);
+    const computed = computeGex(pages, targets, startedAt, partial, partialReason);
     if (!computed) {
       console.error('[ingest] phase3 compute returned null (no contracts or no spot)');
       await insertErrorRun(targets, startedAt, 'no contracts or no spot price');
@@ -220,6 +220,7 @@ async function fetchChain(startUrl) {
   let url = startUrl;
   let pagesFetched = 0;
   let partial = false;
+  let partialReason = null;
 
   while (url && pagesFetched < MAX_PAGES) {
     try {
@@ -230,8 +231,15 @@ async function fetchChain(startUrl) {
       });
 
       if (!res.ok) {
-        console.error(`[ingest] massive API ${res.status} on page ${pagesFetched + 1}`);
+        let bodySnippet = '';
+        try {
+          const text = await res.text();
+          bodySnippet = text ? ` body="${text.slice(0, 200).replace(/\s+/g, ' ')}"` : '';
+        } catch { /* body read is best-effort */ }
+        const reason = `massive api ${res.status} on page ${pagesFetched + 1}${bodySnippet}`;
+        console.error(`[ingest] ${reason}`);
         partial = true;
+        partialReason = reason;
         break;
       }
 
@@ -248,8 +256,10 @@ async function fetchChain(startUrl) {
         break;
       }
     } catch (err) {
-      console.error(`[ingest] fetch error on page ${pagesFetched + 1}: ${err.message}`);
+      const reason = `fetch ${err.name || 'error'} on page ${pagesFetched + 1}: ${err.message}`;
+      console.error(`[ingest] ${reason}`);
       partial = true;
+      partialReason = reason;
       break;
     }
   }
@@ -257,16 +267,17 @@ async function fetchChain(startUrl) {
   if (pagesFetched >= MAX_PAGES) {
     console.warn(`[ingest] hit MAX_PAGES limit (${MAX_PAGES})`);
     partial = true;
+    partialReason = partialReason || `MAX_PAGES limit (${MAX_PAGES}) reached`;
   }
 
-  return { pages, pagesFetched, partial };
+  return { pages, pagesFetched, partial, partialReason };
 }
 
 // -----------------------------------------------------------------------------
 // Phase 3 — GEX computation (ported from n8n Compute GEX node)
 // -----------------------------------------------------------------------------
 
-function computeGex(pages, targets, startedAt, partial) {
+function computeGex(pages, targets, startedAt, partial, partialReason = null) {
   const { underlying, capturedAtIso, capturedAtMs, tradingDate, monthlyExpirationsSet, weeklyCutoff } = targets;
 
   // Dedupe raw results on (root, expiration, strike, type). Massive/Polygon's
@@ -484,6 +495,7 @@ function computeGex(pages, targets, startedAt, partial) {
     source: 'netlify',
     status: partial ? 'partial' : 'success',
     duration_ms: Date.now() - startedAt,
+    error_message: partial ? partialReason : null,
   };
 
   const computedLevels = {
@@ -891,6 +903,7 @@ async function insertErrorRun(targets, startedAt, errMessage) {
     source: 'netlify',
     status: 'error',
     duration_ms: Date.now() - startedAt,
+    error_message: errMessage ? String(errMessage).slice(0, 2000) : null,
   };
   const res = await fetch(`${SUPABASE_URL}/rest/v1/ingest_runs`, {
     method: 'POST',
