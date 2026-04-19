@@ -28,8 +28,8 @@ the user visits. The extension declares no host_permissions and has no
 ability to observe or modify traffic on any site other than its own single
 fetch to aigamma.com.
 
-The extension uses no local storage, no sync storage, no analytics, no
-advertising identifiers, and no third-party SDKs.
+The extension uses no local storage, no sync storage, no usage analytics
+or telemetry, no advertising identifiers, and no third-party SDKs.
 
 ## What aigamma.com receives
 
