@@ -149,9 +149,26 @@
   opacity: 0.6;
 }
 
+/* The labs borrow the main dashboard's single-breakpoint approach at 768px
+   and add a tighter 480px stop for phones, because the lab surfaces carry
+   less content per viewport than the main dashboard and the extra space
+   on a narrow screen shows up as awkward emptiness unless chrome shrinks
+   a second step. Everything below is additive to the desktop layout —
+   scaling down rather than reflowing — so a slot component written
+   against the desktop grid still renders in the same shell hierarchy on
+   every width. */
 @media (max-width: 768px) {
   .lab-shell {
     padding: 0.75rem;
+  }
+
+  .lab-header {
+    margin-bottom: 0.75rem;
+    gap: 0.6rem;
+  }
+
+  .lab-brand {
+    gap: 0.5rem;
   }
 
   .lab-badge {
@@ -166,9 +183,81 @@
 
   .lab-meta {
     font-size: 0.72rem;
+    gap: 0.4rem;
+  }
+
+  .lab-warning {
+    padding: 0.7rem 0.85rem;
+    font-size: 0.8rem;
+    margin-bottom: 1.1rem;
+  }
+
+  .lab-slot {
+    margin-bottom: 1rem;
+  }
+
+  .lab-shell .card {
+    padding: 0.85rem;
   }
 
   .lab-placeholder {
     padding: 2rem 1rem;
+  }
+
+  .lab-placeholder-title {
+    font-size: 0.9rem;
+  }
+
+  .lab-placeholder-hint {
+    font-size: 0.82rem;
+    line-height: 1.55;
+  }
+
+  .lab-footer {
+    margin-top: 1.5rem;
+    padding-top: 0.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .lab-shell {
+    padding: 0.6rem;
+  }
+
+  .lab-badge {
+    font-size: 0.9rem;
+    height: 2.4rem;
+    padding: 0 0.6rem;
+    letter-spacing: 0.06em;
+  }
+
+  .lab-logo {
+    height: 2.4rem;
+  }
+
+  .lab-meta {
+    font-size: 0.68rem;
+  }
+
+  .lab-warning {
+    padding: 0.6rem 0.75rem;
+    font-size: 0.78rem;
+  }
+
+  .lab-shell .card {
+    padding: 0.7rem;
+  }
+
+  .lab-placeholder {
+    padding: 1.5rem 0.85rem;
+  }
+
+  .lab-placeholder-hint {
+    font-size: 0.78rem;
+  }
+
+  .lab-footer-line {
+    font-size: 0.65rem;
+    letter-spacing: 0.06em;
   }
 }
