@@ -196,7 +196,7 @@ function computeDupire(surface) {
 // --------- UI -------------------------------------------------------------
 
 function formatPct(v, d = 1) {
-  if (v == null || !Number.isFinite(v)) return '—';
+  if (v == null || !Number.isFinite(v)) return '-';
   return `${(v * 100).toFixed(d)}%`;
 }
 
@@ -417,24 +417,32 @@ export default function SlotC() {
             maxWidth: '860px',
           }}
         >
-          The{' '}
-          <strong style={{ color: PLOTLY_COLORS.primary }}>Dupire local volatility</strong>{' '}
-          function σ_LV(K, T) is the deterministic diffusion coefficient
-          that — given today&apos;s implied-vol surface as input — reproduces
-          every European option price on that surface exactly. Computed
-          in (y, T) coordinates with y = ln(K/F) from the SVI fits at
-          every expiration in the current snapshot, T-derivative by
-          finite difference across adjacent slices, y-derivatives in
-          analytic closed form from the SVI parameters. The heatmap
-          below is σ_LV as a function of log-moneyness and tenor — read
-          vertically, it shows what the forward diffusion coefficient
-          has to look like for a specific strike at every future date;
-          read horizontally, it shows the local-vol smile at one tenor.{' '}
-          <strong>Local Stochastic Vol</strong> (LSV) upgrades pure
-          local vol by multiplying a stochastic factor v_t by a
-          leverage function L(S,t) chosen such that L² · E[v_t|S_t=S]
-          = σ²_LV(S, t) — so <em>this</em> surface is the left-hand
-          side of the LSV calibration condition.
+          <p style={{ margin: '0 0 0.75rem' }}>
+            The{' '}
+            <strong style={{ color: PLOTLY_COLORS.primary }}>Dupire local volatility</strong>{' '}
+            function σ_LV(K, T) is the deterministic diffusion coefficient that
+            reproduces every European option price on today&apos;s implied-vol
+            surface exactly.
+          </p>
+          <p style={{ margin: '0 0 0.75rem' }}>
+            It is computed in (y, T) coordinates with y = ln(K/F) from the SVI
+            fits at every expiration in the current snapshot. The T-derivative
+            comes from a finite difference across adjacent slices, and the
+            y-derivatives are closed-form from the SVI parameters.
+          </p>
+          <p style={{ margin: '0 0 0.75rem' }}>
+            The heatmap below is σ_LV as a function of log-moneyness and tenor.
+            Read it vertically and you see what the forward diffusion coefficient
+            has to look like for a specific strike at every future date. Read it
+            horizontally and you see the local-vol smile at one tenor.
+          </p>
+          <p style={{ margin: 0 }}>
+            <strong>Local Stochastic Vol</strong> (LSV) upgrades pure local vol
+            by multiplying a stochastic factor v_t by a leverage function L(S,t)
+            chosen so L² · E[v_t|S_t=S] = σ²_LV(S, t). That means{' '}
+            <em>this</em> surface is the left-hand side of the LSV calibration
+            condition.
+          </p>
         </div>
       </div>
 
@@ -456,25 +464,25 @@ export default function SlotC() {
         />
         <StatCell
           label="σ_LV median"
-          value={summaryStats ? formatPct(summaryStats.p50, 1) : '—'}
-          sub={summaryStats ? `[p10 ${formatPct(summaryStats.p10, 1)}, p90 ${formatPct(summaryStats.p90, 1)}]` : '—'}
+          value={summaryStats ? formatPct(summaryStats.p50, 1) : '-'}
+          sub={summaryStats ? `[p10 ${formatPct(summaryStats.p10, 1)}, p90 ${formatPct(summaryStats.p90, 1)}]` : '-'}
           accent={PLOTLY_COLORS.highlight}
         />
         <StatCell
           label="ATM short T"
-          value={summaryStats ? formatPct(summaryStats.atmShort, 1) : '—'}
+          value={summaryStats ? formatPct(summaryStats.atmShort, 1) : '-'}
           sub="σ_LV(y=0, T short)"
           accent={PLOTLY_COLORS.primary}
         />
         <StatCell
           label="ATM long T"
-          value={summaryStats ? formatPct(summaryStats.atmLong, 1) : '—'}
+          value={summaryStats ? formatPct(summaryStats.atmLong, 1) : '-'}
           sub="σ_LV(y=0, T long)"
           accent={PLOTLY_COLORS.primary}
         />
         <StatCell
           label="short put skew"
-          value={summaryStats ? formatPct(summaryStats.shortPutSkew, 1) : '—'}
+          value={summaryStats ? formatPct(summaryStats.shortPutSkew, 1) : '-'}
           sub="σ_LV(−18%) − σ_LV(0)"
           accent={
             summaryStats && summaryStats.shortPutSkew > 0.1 ? PLOTLY_COLORS.secondary : undefined
@@ -492,25 +500,34 @@ export default function SlotC() {
           lineHeight: 1.65,
         }}
       >
-        <strong style={{ color: 'var(--text-primary)' }}>Reading.</strong>{' '}
-        The hottest regions in the upper-left corner (short T, deep OTM
-        puts at negative y) are where the short-dated put skew lives —
-        σ_LV there is often 2-3× its ATM long-T value, which is what the
-        observed crash risk premium looks like when unpacked into a
-        deterministic diffusion coefficient. Pure local vol reproduces
-        today&apos;s smile by construction but produces flat{' '}
-        <em>forward</em> smiles (the smile the model implies for a
-        future date conditioned on a future spot) — an artifact of the
-        deterministic σ(S,t) that empirically disagrees with how smiles
-        actually reshape when spot moves. LSV preserves today&apos;s fit
-        via the leverage function L(S,t) while a stochastic vol factor
-        provides the smile-preserving dynamics — the standard
-        calibration solves a forward PDE or runs a particle Monte Carlo
-        for L given σ_LV from this surface and a Heston-style v_t. Off
-        the top of the chart (T &lt; 7d) is clipped because the 1/T
-        factor in the Dupire numerator amplifies any mark-level noise
-        in the SVI fits to the point where the local-vol read is mostly
-        numerical artifact, not signal.
+        <p style={{ margin: '0 0 0.75rem' }}>
+          <strong style={{ color: 'var(--text-primary)' }}>Reading.</strong>{' '}
+          The hottest regions in the upper-left corner (short T, deep OTM puts
+          at negative y) are where the short-dated put skew lives. σ_LV there
+          is often 2-3× its ATM long-T value. That is what the observed
+          crash risk premium looks like when you unpack it into a deterministic
+          diffusion coefficient.
+        </p>
+        <p style={{ margin: '0 0 0.75rem' }}>
+          Pure local vol reproduces today&apos;s smile by construction. What it
+          fails at is the <em>forward</em> smile: the smile the model implies
+          for a future date conditioned on a future spot. Deterministic σ(S,t)
+          produces flat forward smiles, which empirically disagrees with how
+          real smiles reshape when spot moves.
+        </p>
+        <p style={{ margin: '0 0 0.75rem' }}>
+          LSV fixes this. It preserves today&apos;s fit via the leverage
+          function L(S,t) while a stochastic vol factor provides
+          smile-preserving dynamics. The standard calibration solves a forward
+          PDE or runs a particle Monte Carlo for L given σ_LV from this
+          surface and a Heston-style v_t.
+        </p>
+        <p style={{ margin: 0 }}>
+          The top of the chart (T &lt; 7d) is clipped. The 1/T factor in the
+          Dupire numerator amplifies any mark-level noise in the SVI fits to
+          the point where the local-vol read becomes mostly numerical artifact
+          rather than signal.
+        </p>
       </div>
     </div>
   );

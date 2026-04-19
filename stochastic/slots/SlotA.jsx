@@ -410,11 +410,11 @@ const INIT_PARAMS = {
 // ------- UI ---------------------------------------------------------------
 
 function formatPct(v, d = 2) {
-  if (v == null || !Number.isFinite(v)) return '—';
+  if (v == null || !Number.isFinite(v)) return '-';
   return `${(v * 100).toFixed(d)}%`;
 }
 function formatFixed(v, d = 3) {
-  if (v == null || !Number.isFinite(v)) return '—';
+  if (v == null || !Number.isFinite(v)) return '-';
   return v.toFixed(d);
 }
 
@@ -637,19 +637,30 @@ export default function SlotA() {
             maxWidth: '860px',
           }}
         >
-          Variance follows a mean-reverting CIR process{' '}
-          <code style={{ color: 'var(--text-primary)' }}>dv = κ(θ−v)dt + ξ√v dW</code>,
-          Brownian-correlated to the stock by ρ. Five parameters (κ, θ, ξ, ρ, v₀) are
-          calibrated to the{' '}
-          <strong style={{ color: PLOTLY_COLORS.primary }}>observed SPX IV smile</strong>{' '}
-          at a single expiration via Nelder-Mead on IV-space residuals, with model
-          prices from the two-integral Heston formula using the Little-Trap stable
-          characteristic function. The{' '}
-          <strong style={{ color: PLOTLY_COLORS.highlight }}>fitted smile</strong>{' '}
-          tracks the shape pretty well for monthly tenors but systematically
-          undershoots the short end — the square-root diffusion cannot produce
-          enough short-dated skew, which is the empirical gap that motivates jumps
-          (Bates), rough vol (Slot D), and local-stochastic hybrids (Slot C).
+          <p style={{ margin: '0 0 0.75rem' }}>
+            Heston is the first stochastic-volatility model that people routinely
+            calibrate in closed form. Instead of pinning volatility to a single
+            constant, it lets variance itself drift around a long-run level through
+            the mean-reverting process{' '}
+            <code style={{ color: 'var(--text-primary)' }}>dv = κ(θ−v)dt + ξ√v dW</code>,
+            with a correlation ρ linking variance shocks to spot shocks.
+          </p>
+          <p style={{ margin: '0 0 0.75rem' }}>
+            Five parameters (κ, θ, ξ, ρ, v₀) are calibrated to the{' '}
+            <strong style={{ color: PLOTLY_COLORS.primary }}>observed SPX IV smile</strong>{' '}
+            at one expiration. The optimizer is Nelder-Mead in IV-space, and the
+            model prices come from the two-integral Heston formula using the
+            Little-Trap stable characteristic function.
+          </p>
+          <p style={{ margin: 0 }}>
+            The{' '}
+            <strong style={{ color: PLOTLY_COLORS.highlight }}>fitted smile</strong>{' '}
+            tracks the shape pretty well for monthly tenors. It systematically
+            undershoots the short end, though. The square-root diffusion just cannot
+            produce enough short-dated skew. That gap is the empirical anomaly
+            that motivates jumps (Bates), rough vol (Slot D), and local-stochastic
+            hybrids (Slot C).
+          </p>
         </div>
       </div>
 
@@ -689,7 +700,7 @@ export default function SlotA() {
           ))}
         </select>
         <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
-          DTE {dte != null ? dte.toFixed(1) : '—'} · {slice.length} strikes ·{' '}
+          DTE {dte != null ? dte.toFixed(1) : '-'} · {slice.length} strikes ·{' '}
           r = {(RATE_R * 100).toFixed(2)}%, q = {(RATE_Q * 100).toFixed(2)}%
         </span>
       </div>
@@ -707,35 +718,35 @@ export default function SlotA() {
       >
         <StatCell
           label="κ · mean rev."
-          value={calib ? formatFixed(calib.params.kappa, 2) : '—'}
+          value={calib ? formatFixed(calib.params.kappa, 2) : '-'}
           sub="speed to θ"
         />
         <StatCell
           label="θ · long-run σ²"
-          value={calib ? formatPct(Math.sqrt(calib.params.theta), 1) : '—'}
+          value={calib ? formatPct(Math.sqrt(calib.params.theta), 1) : '-'}
           sub="as ann. vol"
           accent={PLOTLY_COLORS.primary}
         />
         <StatCell
           label="ξ · vol of vol"
-          value={calib ? formatFixed(calib.params.xi, 3) : '—'}
+          value={calib ? formatFixed(calib.params.xi, 3) : '-'}
           sub="ξ in σ-units"
         />
         <StatCell
           label="ρ · correlation"
-          value={calib ? formatFixed(calib.params.rho, 3) : '—'}
+          value={calib ? formatFixed(calib.params.rho, 3) : '-'}
           sub="equity leverage"
           accent={calib && calib.params.rho < -0.5 ? PLOTLY_COLORS.secondary : undefined}
         />
         <StatCell
           label="v₀ · spot σ"
-          value={calib ? formatPct(Math.sqrt(calib.params.v0), 1) : '—'}
+          value={calib ? formatPct(Math.sqrt(calib.params.v0), 1) : '-'}
           sub="ann. vol today"
         />
         <StatCell
           label="Fit RMSE (IV)"
-          value={calib ? formatPct(calib.rmse, 2) : '—'}
-          sub={calib ? `n=${calib.nSlice} · ${calib.iters} iter` : '—'}
+          value={calib ? formatPct(calib.rmse, 2) : '-'}
+          sub={calib ? `n=${calib.nSlice} · ${calib.iters} iter` : '-'}
           accent={calib && calib.rmse < 0.01 ? PLOTLY_COLORS.positive : undefined}
         />
       </div>
@@ -750,34 +761,44 @@ export default function SlotA() {
           lineHeight: 1.65,
         }}
       >
-        <strong style={{ color: 'var(--text-primary)' }}>Reading.</strong>{' '}
-        The <strong style={{ color: PLOTLY_COLORS.primary }}>blue dots</strong>{' '}
-        are the chain&apos;s observed IVs (OTM puts below spot, OTM calls
-        above), and the{' '}
-        <strong style={{ color: PLOTLY_COLORS.highlight }}>amber curve</strong>{' '}
-        is the Heston smile that best fits them in IV-space under
-        5-parameter Nelder-Mead. The{' '}
-        <strong>Feller condition</strong> 2κθ &gt; ξ² is{' '}
-        {feller != null ? (
-          <strong
-            style={{
-              color: feller > 0 ? PLOTLY_COLORS.positive : PLOTLY_COLORS.secondary,
-            }}
-          >
-            {feller > 0 ? `satisfied (2κθ − ξ² = ${feller.toFixed(3)})` : `violated (2κθ − ξ² = ${feller.toFixed(3)})`}
-          </strong>
-        ) : (
-          '—'
-        )}
-        {'. '}
-        When Feller fails, the variance process can touch zero, which is
-        usually treated as an artifact of the calibration pushing ξ up to
-        match deep-OTM put skew that the square-root diffusion cannot
-        produce without extra state. A strongly negative ρ is the
-        equity-leverage effect: variance and spot co-move down on sell-offs.
-        The fit is local to one slice; a full surface calibration across
-        expirations would add term-structure constraints the single-slice
-        fit does not see.
+        <p style={{ margin: '0 0 0.75rem' }}>
+          <strong style={{ color: 'var(--text-primary)' }}>Reading.</strong>{' '}
+          The <strong style={{ color: PLOTLY_COLORS.primary }}>blue dots</strong>{' '}
+          are the chain&apos;s observed IVs (OTM puts below spot, OTM calls
+          above). The{' '}
+          <strong style={{ color: PLOTLY_COLORS.highlight }}>amber curve</strong>{' '}
+          is the Heston smile that best fits them in IV-space under
+          5-parameter Nelder-Mead.
+        </p>
+        <p style={{ margin: '0 0 0.75rem' }}>
+          The <strong>Feller condition</strong> 2κθ &gt; ξ² is{' '}
+          {feller != null ? (
+            <strong
+              style={{
+                color: feller > 0 ? PLOTLY_COLORS.positive : PLOTLY_COLORS.secondary,
+              }}
+            >
+              {feller > 0 ? `satisfied (2κθ − ξ² = ${feller.toFixed(3)})` : `violated (2κθ − ξ² = ${feller.toFixed(3)})`}
+            </strong>
+          ) : (
+            '-'
+          )}
+          {'. '}
+          When Feller fails, the variance process can touch zero. This is
+          usually treated as an artifact of the calibration pushing ξ up to
+          match deep-OTM put skew that the square-root diffusion cannot
+          produce without extra state.
+        </p>
+        <p style={{ margin: '0 0 0.75rem' }}>
+          A strongly negative ρ is the equity-leverage effect. Variance and
+          spot co-move down on sell-offs, which is why the sign of ρ comes
+          out clearly negative on any SPX calibration.
+        </p>
+        <p style={{ margin: 0 }}>
+          The fit is local to one slice. A full surface calibration across
+          expirations would add term-structure constraints the single-slice
+          fit does not see.
+        </p>
       </div>
     </div>
   );

@@ -131,7 +131,7 @@ function theoryCurve(H, c, Tgrid) {
 // --------- UI -------------------------------------------------------------
 
 function formatFixed(v, d = 3) {
-  if (v == null || !Number.isFinite(v)) return '—';
+  if (v == null || !Number.isFinite(v)) return '-';
   return v.toFixed(d);
 }
 
@@ -386,26 +386,34 @@ export default function SlotD() {
             maxWidth: '860px',
           }}
         >
-          Rough volatility predicts ATM skew scales as{' '}
-          <code style={{ color: 'var(--text-primary)' }}>|∂σ_ATM/∂k| ~ c · T^(H − ½)</code>,
-          where the Hurst parameter <strong>H</strong> measures how rough
-          the variance driving noise is: H = ½ is standard Brownian motion
-          (what Slot A&apos;s Heston lives at, predicting a flat skew at
-          short T); H &lt; ½ is rougher — the volatility path is more
-          jagged than Brownian and generates the steep short-dated skew
-          that classical SV models cannot produce without jumps. SPX
-          consensus since Gatheral-Jaisson-Rosenbaum (2018) is H ≈ 0.1.
-          Each{' '}
-          <strong style={{ color: PLOTLY_COLORS.titleText }}>observed point</strong>{' '}
-          here is the ATM skew from one SVI slice; the{' '}
-          <strong style={{ color: PLOTLY_COLORS.positive }}>green line</strong>{' '}
-          is the fitted power law; the{' '}
-          <strong style={{ color: PLOTLY_COLORS.secondary }}>coral</strong>,{' '}
-          <strong style={{ color: PLOTLY_COLORS.highlight }}>amber</strong>, and{' '}
-          <strong style={{ color: PLOTLY_COLORS.primary }}>blue</strong>{' '}
-          reference lines are T^(H−½) for H = 0.10 / 0.30 / 0.50. Each
-          is pinned to the same intercept so the comparison reads as
-          slope-only.
+          <p style={{ margin: '0 0 0.75rem' }}>
+            Rough volatility predicts that ATM skew scales as{' '}
+            <code style={{ color: 'var(--text-primary)' }}>|∂σ_ATM/∂k| ~ c · T^(H − ½)</code>.
+            The Hurst parameter <strong>H</strong> measures how rough the
+            variance driving noise is.
+          </p>
+          <p style={{ margin: '0 0 0.75rem' }}>
+            H = ½ is standard Brownian motion, which is where Slot A&apos;s
+            Heston lives. It predicts a flat skew at short T.
+          </p>
+          <p style={{ margin: '0 0 0.75rem' }}>
+            H &lt; ½ is rougher. The volatility path becomes more jagged than
+            Brownian and generates the steep short-dated skew that classical SV
+            models cannot produce without jumps. SPX consensus since
+            Gatheral-Jaisson-Rosenbaum (2018) is H ≈ 0.1.
+          </p>
+          <p style={{ margin: 0 }}>
+            Each{' '}
+            <strong style={{ color: PLOTLY_COLORS.titleText }}>observed point</strong>{' '}
+            on the chart is the ATM skew from one SVI slice. The{' '}
+            <strong style={{ color: PLOTLY_COLORS.positive }}>green line</strong>{' '}
+            is the fitted power law. The{' '}
+            <strong style={{ color: PLOTLY_COLORS.secondary }}>coral</strong>,{' '}
+            <strong style={{ color: PLOTLY_COLORS.highlight }}>amber</strong>, and{' '}
+            <strong style={{ color: PLOTLY_COLORS.primary }}>blue</strong>{' '}
+            reference lines are T^(H−½) for H = 0.10 / 0.30 / 0.50, each pinned
+            to the same intercept so the comparison reads as slope-only.
+          </p>
         </div>
       </div>
 
@@ -422,19 +430,19 @@ export default function SlotD() {
       >
         <StatCell
           label="fit H (Hurst)"
-          value={fit ? formatFixed(fit.H, 3) : '—'}
-          sub={fit ? `slope = ${fit.slope.toFixed(3)}` : '—'}
+          value={fit ? formatFixed(fit.H, 3) : '-'}
+          sub={fit ? `slope = ${fit.slope.toFixed(3)}` : '-'}
           accent={isRough ? PLOTLY_COLORS.secondary : PLOTLY_COLORS.primary}
         />
         <StatCell
           label="regime"
-          value={fit ? (isRough ? 'rough' : 'smooth') : '—'}
-          sub={fit ? (isRough ? 'H < 0.35' : 'H ≥ 0.35') : '—'}
+          value={fit ? (isRough ? 'rough' : 'smooth') : '-'}
+          sub={fit ? (isRough ? 'H < 0.35' : 'H ≥ 0.35') : '-'}
           accent={isRough ? PLOTLY_COLORS.secondary : undefined}
         />
         <StatCell
           label="R² (log-log)"
-          value={fit ? formatFixed(fit.r2, 3) : '—'}
+          value={fit ? formatFixed(fit.r2, 3) : '-'}
           sub="goodness of power law"
           accent={fit && fit.r2 > 0.9 ? PLOTLY_COLORS.positive : undefined}
         />
@@ -461,29 +469,36 @@ export default function SlotD() {
           lineHeight: 1.65,
         }}
       >
-        <strong style={{ color: 'var(--text-primary)' }}>Reading.</strong>{' '}
-        On log-log axes a single Hurst exponent turns into a straight
-        line whose slope is H − ½. A fitted{' '}
-        <strong style={{ color: isRough ? PLOTLY_COLORS.secondary : PLOTLY_COLORS.primary }}>
-          H ≈ {fit ? fit.H.toFixed(2) : '—'}
-        </strong>{' '}
-        in the 0.05–0.15 band is the canonical rough-vol finding and is
-        what drove the Bayer-Friz-Gatheral paper&apos;s adoption — the
-        H = 0.5 reference line is what Heston (Slot A) would trace out,
-        and the visible gap between that line and the observed points
-        at the short end is the empirical anomaly that Heston systematically
-        undershoots. Why it matters operationally: if skew scales as
-        T^(−0.4) rather than T^(−0.5), then short-dated put risk grows
-        less steeply than a classical SV model predicts as you shorten
-        T, which changes both hedging cost estimates and forward skew
-        projections for variance-swap and VIX-like products. Caveats:
-        the SVI-implied ATM skew is a local tangent read at y = 0, so
-        thin wings or bad fits (filtered out above{' '}
-        {MAX_RMSE * 100}%%&nbsp;RMSE) can still pull the power-law slope;
-        and the ATM skew definition used here is ∂σ/∂k, not the
-        variance-swap skew ∂σ²T/∂k that shows up in some rough-vol
-        derivations — the two scale the same way at short T but carry
-        different intercepts.
+        <p style={{ margin: '0 0 0.75rem' }}>
+          <strong style={{ color: 'var(--text-primary)' }}>Reading.</strong>{' '}
+          On log-log axes a single Hurst exponent turns into a straight line
+          whose slope is H − ½. A fitted{' '}
+          <strong style={{ color: isRough ? PLOTLY_COLORS.secondary : PLOTLY_COLORS.primary }}>
+            H ≈ {fit ? fit.H.toFixed(2) : '-'}
+          </strong>{' '}
+          in the 0.05–0.15 band is the canonical rough-vol finding, and it is
+          what drove adoption of the Bayer-Friz-Gatheral paper.
+        </p>
+        <p style={{ margin: '0 0 0.75rem' }}>
+          The H = 0.5 reference line is what Heston (Slot A) would trace out.
+          The visible gap between that line and the observed points at the
+          short end is the empirical anomaly. Heston systematically undershoots.
+        </p>
+        <p style={{ margin: '0 0 0.75rem' }}>
+          Why it matters operationally. If skew scales as T^(−0.4) rather than
+          T^(−0.5), then short-dated put risk grows less steeply than a
+          classical SV model predicts as you shorten T. That changes both
+          hedging cost estimates and forward skew projections for variance-swap
+          and VIX-like products.
+        </p>
+        <p style={{ margin: 0 }}>
+          Caveats. The SVI-implied ATM skew is a local tangent read at y = 0,
+          so thin wings or bad fits (filtered out above {MAX_RMSE * 100}%%&nbsp;RMSE)
+          can still pull the power-law slope. And the ATM skew definition used
+          here is ∂σ/∂k, not the variance-swap skew ∂σ²T/∂k that shows up in
+          some rough-vol derivations. The two scale the same way at short T
+          but carry different intercepts.
+        </p>
       </div>
     </div>
   );

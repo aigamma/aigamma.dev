@@ -215,11 +215,11 @@ const INIT_SABR = { alpha: 0.18, rho: -0.55, nu: 1.2 };
 // ---- UI ------------------------------------------------------------------
 
 function formatPct(v, d = 2) {
-  if (v == null || !Number.isFinite(v)) return '—';
+  if (v == null || !Number.isFinite(v)) return '-';
   return `${(v * 100).toFixed(d)}%`;
 }
 function formatFixed(v, d = 3) {
-  if (v == null || !Number.isFinite(v)) return '—';
+  if (v == null || !Number.isFinite(v)) return '-';
   return v.toFixed(d);
 }
 
@@ -449,17 +449,24 @@ export default function SlotB() {
             maxWidth: '860px',
           }}
         >
-          Three parameters — α (vol level), ρ (correlation / skew), ν
-          (vol-of-vol / wing curvature) — map directly into{' '}
-          <strong style={{ color: PLOTLY_COLORS.positive }}>Black-implied vol</strong>{' '}
-          through Hagan&apos;s asymptotic expansion, with β fixed at 1 so the
-          equity backbone is lognormal and the remaining parameters are
-          identifiable on a single slice. Calibration is a 3-parameter
-          Nelder-Mead on the same strike set Slot A fits with Heston, so the
-          two fits are directly comparable. The{' '}
-          <strong style={{ color: PLOTLY_COLORS.highlight }}>dashed ATM backbone</strong>{' '}
-          is flat under β = 1 by construction — the smile curvature above it
-          is all ρ and ν.
+          <p style={{ margin: '0 0 0.75rem' }}>
+            SABR has three tunable parameters. α sets the overall vol level. ρ is
+            the correlation between spot and vol shocks, which tilts the skew. ν
+            is vol-of-vol, which sets wing curvature. All three map directly into{' '}
+            <strong style={{ color: PLOTLY_COLORS.positive }}>Black-implied vol</strong>{' '}
+            through Hagan&apos;s asymptotic expansion.
+          </p>
+          <p style={{ margin: '0 0 0.75rem' }}>
+            β is pinned to 1 so the equity backbone is lognormal. With β fixed,
+            the other three are identifiable on a single slice.
+          </p>
+          <p style={{ margin: 0 }}>
+            Calibration is a 3-parameter Nelder-Mead on the same strike set Slot
+            A fits with Heston, so the two fits are directly comparable. The{' '}
+            <strong style={{ color: PLOTLY_COLORS.highlight }}>dashed ATM backbone</strong>{' '}
+            is flat under β = 1 by construction, so every bit of visible smile
+            curvature is driven by ρ and ν.
+          </p>
         </div>
       </div>
 
@@ -499,8 +506,8 @@ export default function SlotB() {
           ))}
         </select>
         <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
-          DTE {dte != null ? dte.toFixed(1) : '—'} · {slice.length} strikes · F ={' '}
-          {F != null ? F.toFixed(2) : '—'}
+          DTE {dte != null ? dte.toFixed(1) : '-'} · {slice.length} strikes · F ={' '}
+          {F != null ? F.toFixed(2) : '-'}
         </span>
       </div>
 
@@ -517,19 +524,19 @@ export default function SlotB() {
       >
         <StatCell
           label="α · ATM vol"
-          value={calib ? formatPct(calib.params.alpha, 2) : '—'}
+          value={calib ? formatPct(calib.params.alpha, 2) : '-'}
           sub="lognormal α(F, β=1)"
           accent={PLOTLY_COLORS.primary}
         />
         <StatCell
           label="ρ · skew"
-          value={calib ? formatFixed(calib.params.rho, 3) : '—'}
+          value={calib ? formatFixed(calib.params.rho, 3) : '-'}
           sub="spot-vol correlation"
           accent={calib && calib.params.rho < -0.5 ? PLOTLY_COLORS.secondary : undefined}
         />
         <StatCell
           label="ν · curvature"
-          value={calib ? formatFixed(calib.params.nu, 2) : '—'}
+          value={calib ? formatFixed(calib.params.nu, 2) : '-'}
           sub="vol of vol"
         />
         <StatCell
@@ -539,8 +546,8 @@ export default function SlotB() {
         />
         <StatCell
           label="Fit RMSE (IV)"
-          value={calib ? formatPct(calib.rmse, 2) : '—'}
-          sub={calib ? `n=${slice.length}` : '—'}
+          value={calib ? formatPct(calib.rmse, 2) : '-'}
+          sub={calib ? `n=${slice.length}` : '-'}
           accent={calib && calib.rmse < 0.01 ? PLOTLY_COLORS.positive : undefined}
         />
       </div>
@@ -555,26 +562,35 @@ export default function SlotB() {
           lineHeight: 1.65,
         }}
       >
-        <strong style={{ color: 'var(--text-primary)' }}>Reading.</strong>{' '}
-        The{' '}
-        <strong style={{ color: PLOTLY_COLORS.positive }}>green curve</strong>{' '}
-        is Hagan&apos;s closed-form implied vol under SABR β = 1. Compared to
-        Slot A&apos;s Heston fit on the same slice, SABR usually matches
-        the ATM level and the wings very cleanly at a single maturity but
-        carries no dynamic structure — α, ρ, ν are parameters of a{' '}
-        <em>smile</em>, not parameters of a <em>process</em>, so extrapolating
-        an SABR fit forward in time or across maturities requires a
-        separate term-structure model on top. The z/x(z) ratio in the
-        formula is where the skew lives: z = (ν/α)·ln(F/K), so a larger ν
-        or smaller α stretches the skew, and the ρ inside x(z) tilts the
-        smile asymmetrically. The{' '}
-        <strong style={{ color: PLOTLY_COLORS.highlight }}>dashed backbone</strong>{' '}
-        is σ_ATM — under β = 1 the ATM vol does not drift with F, so all
-        smile curvature the eye sees is off-ATM skew and wings rather
-        than backbone motion. β &lt; 1 would add a downward-sloping
-        backbone (skew-by-strike-level), which matters for FX and rates
-        but is usually redundant for equity indices where ρ already
-        carries the leverage effect.
+        <p style={{ margin: '0 0 0.75rem' }}>
+          <strong style={{ color: 'var(--text-primary)' }}>Reading.</strong>{' '}
+          The{' '}
+          <strong style={{ color: PLOTLY_COLORS.positive }}>green curve</strong>{' '}
+          is Hagan&apos;s closed-form implied vol under SABR β = 1. Compared
+          to Slot A&apos;s Heston fit on the same slice, SABR usually matches
+          the ATM level and the wings very cleanly at a single maturity.
+        </p>
+        <p style={{ margin: '0 0 0.75rem' }}>
+          What SABR does not carry is dynamic structure. α, ρ, ν are
+          parameters of a <em>smile</em>, not of a <em>process</em>.
+          Extrapolating an SABR fit forward in time or across maturities
+          requires a separate term-structure model on top.
+        </p>
+        <p style={{ margin: '0 0 0.75rem' }}>
+          The z/x(z) ratio in the Hagan formula is where the skew lives:
+          z = (ν/α)·ln(F/K). A larger ν or smaller α stretches the skew,
+          and the ρ inside x(z) tilts the smile asymmetrically.
+        </p>
+        <p style={{ margin: 0 }}>
+          The{' '}
+          <strong style={{ color: PLOTLY_COLORS.highlight }}>dashed backbone</strong>{' '}
+          is σ_ATM. Under β = 1 the ATM vol does not drift with F, so all
+          visible smile curvature is off-ATM skew and wings rather than
+          backbone motion. β &lt; 1 would add a downward-sloping backbone
+          (skew-by-strike-level). That matters for FX and rates but is
+          usually redundant for equity indices, where ρ already carries
+          the leverage effect.
+        </p>
       </div>
     </div>
   );
