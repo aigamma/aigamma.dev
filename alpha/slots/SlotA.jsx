@@ -386,7 +386,7 @@ export default function SlotA() {
 
     const layout = plotly2DChartLayout({
       title: {
-        ...plotlyTitle('Put-Call Parity · Box vs Direct PCP (q = 0)'),
+        ...plotlyTitle('Put-Call Parity · Box vs Direct PCP'),
         y: 0.97,
         yref: 'container',
         yanchor: 'top',
@@ -497,29 +497,20 @@ export default function SlotA() {
             maxWidth: '820px',
           }}
         >
-          Two ways to back out a rate from put-call parity.{' '}
-          <strong style={{ color: PLOTLY_COLORS.primary }}>Box spread</strong>{' '}
-          (4 options at K₁ and K₂): the spot term cancels exactly in the
-          construction, so{' '}
-          <code style={{ fontFamily: 'Courier New, monospace', color: 'var(--text-primary)' }}>
-            r<sub>box</sub> = (1/T)·ln((K₂ − K₁) / box)
-          </code>{' '}
-          is model-free and spot-invariant.{' '}
+          Two implied borrow-rate reads from the same SPX chain.{' '}
+          <strong style={{ color: PLOTLY_COLORS.primary }}>Box</strong>{' '}
+          (blue, 4-leg) is the stable fair-rate reference — the construction
+          cancels spot, so the number does not drift when the market moves.{' '}
           <strong style={{ color: PLOTLY_COLORS.secondary }}>Direct PCP</strong>{' '}
-          (1 strike, q = 0 assumed): solves{' '}
-          <code style={{ fontFamily: 'Courier New, monospace', color: 'var(--text-primary)' }}>
-            C − P = S₀·e<sup>−qT</sup> − K·e<sup>−rT</sup>
-          </code>{' '}
-          with q held at zero, which keeps the spot term in the equation so
-          the implied rate absorbs the market-priced dividend yield. The
-          vertical gap{' '}
-          <strong style={{ color: PLOTLY_COLORS.highlight }}>
-            r<sub>box</sub> − r<sub>PCP</sub>
-          </strong>{' '}
-          is approximately the options-implied SPX dividend yield, and its
-          wobble across the term structure is the spot-driven pricing noise
-          the box is specifically designed to wash out. If that instability
-          is itself tradable, here is where it becomes legible.
+          (coral, 1-strike with q held at zero) keeps the spot term in the
+          equation, so it absorbs the dividend yield plus whatever per-strike
+          mark noise is sitting in the chain.{' '}
+          <strong style={{ color: PLOTLY_COLORS.highlight }}>Their gap</strong>{' '}
+          (amber, right axis) sits near SPX&rsquo;s ~1.3% dividend yield when
+          parity is holding cleanly, and spikes off that flat baseline at any
+          expiration where one of the four options is mispriced — which is
+          where the edge lives, since the box&rsquo;s own smoothness is exactly
+          what hides those mispricings from the main dashboard.
         </div>
       </div>
 
@@ -573,17 +564,24 @@ export default function SlotA() {
           lineHeight: 1.6,
         }}
       >
-        Hover any point for per-expiration strikes, option marks, and both
-        ATM-strike PCP rates. The amber line on the right axis tracks the box
-        − PCP spread: a roughly-flat line near the SPX implied dividend yield
-        (typically ~1.3%) is the null hypothesis; deviations from flat,
-        especially kinks and jumps, are per-strike pricing noise the box
-        construction eliminates by design. Short-dated points are the
-        noisiest because the 1/T factor magnifies mark error — read the left
-        edge with that in mind. The natural next step, which would expose the
-        spot-bouncing wobble most directly, is a cross-snapshot time series
-        of these same three quantities; that needs a persisted series rather
-        than a point-in-time snapshot and is a separate piece of work.
+        <strong style={{ color: 'var(--text-primary)' }}>
+          Reading the chart for edge.
+        </strong>{' '}
+        Box r meaningfully <em>above</em> the treasury rate at matching DTE
+        → boxes are cheap: <strong>buy</strong> to lend synthetically above
+        risk-free and collect the spread to expiry. Box r <em>below</em>{' '}
+        treasury → boxes are rich: <strong>sell</strong> and park the cash
+        in T-bills instead. Amber line flat near ~1.3% = parity is holding
+        cleanly, nothing to do. Amber spiking or kinking at a specific DTE
+        = per-strike mispricing at that expiration; hover to see whether K₁
+        or K₂ is the stale leg and whether r(K₁) and r(K₂) disagree within
+        the same T — a disagreement there is often a single-contract fix.
+        The slope of the blue line is the implied term structure of the
+        borrow rate, so reading calendar edge off it cleanly needs a
+        treasury-curve overlay (natural next addition). Sub-7d points are
+        almost always 1/T-amplified mark noise rather than real edge, so
+        the left-edge spikes are usually safe to ignore. Full math behind
+        each line will move to an informational dropdown in a later pass.
       </div>
     </div>
   );
