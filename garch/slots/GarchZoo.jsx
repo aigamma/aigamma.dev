@@ -333,10 +333,10 @@ export default function GarchZoo() {
         y: hvSeries,
         mode: 'lines',
         type: 'scatter',
-        name: 'Realized HV₁₀',
+        name: 'Realized vol (10d)',
         line: { color: PLOTLY_COLORS.axisText, width: 1, dash: 'dot' },
         connectgaps: false,
-        hovertemplate: '<b>%{x}</b><br>realized HV₁₀: %{y:.2f}%<extra></extra>',
+        hovertemplate: '<b>%{x}</b><br>realized vol (10d): %{y:.2f}%<extra></extra>',
       },
     ];
 
@@ -361,9 +361,9 @@ export default function GarchZoo() {
       y: toAnnPct(visibleEnsemble.condVar),
       mode: 'lines',
       type: 'scatter',
-      name: 'Ensemble (EW)',
+      name: 'Ensemble average',
       line: { color: ENSEMBLE_COLOR, width: 2.4 },
-      hovertemplate: '<b>%{x}</b><br>ensemble σ: %{y:.2f}%<extra></extra>',
+      hovertemplate: '<b>%{x}</b><br>ensemble average σ: %{y:.2f}%<extra></extra>',
     });
 
     // Forecast tail
@@ -390,9 +390,9 @@ export default function GarchZoo() {
       ],
       mode: 'lines',
       type: 'scatter',
-      name: 'Forecast',
+      name: 'Ensemble forecast (30d)',
       line: { color: ENSEMBLE_COLOR, width: 2.4, dash: 'dash' },
-      hovertemplate: '<b>%{x}</b><br>forecast σ: %{y:.2f}%<extra></extra>',
+      hovertemplate: '<b>%{x}</b><br>ensemble forecast σ: %{y:.2f}%<extra></extra>',
     });
 
     // Plotly's autorange would otherwise scan the full trace data — which
@@ -430,8 +430,8 @@ export default function GarchZoo() {
 
     const totalOk = fitState.fit.models.filter((m) => m.condVar != null).length;
     const titleText = visibleModels.length === totalOk
-      ? `GARCH Family · Conditional σ (Annualized) · ${totalOk} specifications + EW ensemble`
-      : `GARCH Family · Conditional σ (Annualized) · ${visibleModels.length} of ${totalOk} specifications + EW ensemble`;
+      ? `GARCH Family · Conditional σ (Annualized) · ${totalOk} specifications + ensemble average`
+      : `GARCH Family · Conditional σ (Annualized) · ${visibleModels.length} of ${totalOk} specifications + ensemble average`;
     const layout = plotly2DChartLayout({
       title: {
         ...plotlyTitle(titleText),
@@ -549,146 +549,17 @@ export default function GarchZoo() {
 
   return (
     <div className="card" style={{ padding: '1.25rem 1.25rem 1rem' }}>
-      <div style={{ marginBottom: '0.85rem' }}>
-        <div
-          style={{
-            fontFamily: 'Courier New, monospace',
-            fontSize: '0.7rem',
-            letterSpacing: '0.14em',
-            textTransform: 'uppercase',
-            color: 'var(--text-secondary)',
-            marginBottom: '0.35rem',
-          }}
-        >
-          model · GARCH family zoo
-        </div>
-        <div
-          style={{
-            fontSize: '0.88rem',
-            color: 'var(--text-secondary)',
-            lineHeight: 1.6,
-            maxWidth: '820px',
-          }}
-        >
-          <p style={{ margin: '0 0 0.7rem' }}>
-            17 volatility models fit on daily SPX log returns. Each colored
-            line is one model&apos;s conditional σ path, annualized to percent.
-            The{' '}
-            <strong style={{ color: ENSEMBLE_COLOR }}>
-              bold green line is the equal-weight ensemble
-            </strong>{' '}
-            across the visible models. The dashed green tail is its 30-day
-            forward forecast.
-          </p>
-
-          <p style={{ margin: '0 0 0.7rem' }}>
-            Compare the ensemble to the dotted realized HV₁₀ line. Ensemble
-            above realized means the models expect volatility to rise from
-            here. Ensemble below realized means they expect mean reversion
-            back down. A tight cluster of models around the ensemble is
-            high forecast confidence. A fan-out means the families disagree
-            and the regime is ambiguous.
-          </p>
-
-          <p style={{ margin: '0 0 0.5rem', color: 'var(--text-primary)' }}>
-            Each family picks up a different piece of the vol signal. Hide
-            a family in the picker below to see how much of the forecast
-            depends on it.
-          </p>
-
-          <ul
-            style={{
-              margin: '0 0 0.7rem',
-              paddingLeft: '1.1rem',
-              lineHeight: 1.55,
-            }}
-          >
-            <li>
-              <strong style={{ color: FAMILY_COLORS.symmetric }}>
-                Symmetric (GARCH, IGARCH)
-              </strong>
-              : baseline. Volatility clusters without regard to the
-              direction of the return.
-            </li>
-            <li>
-              <strong style={{ color: FAMILY_COLORS.asymmetric }}>
-                Asymmetric (GJR, EGARCH, TGARCH, NAGARCH)
-              </strong>
-              : leverage effect. Down days spike vol more than up days.
-              When these run above the symmetric line, the market is
-              pricing asymmetric downside fear.
-            </li>
-            <li>
-              <strong style={{ color: FAMILY_COLORS.power }}>
-                Power (APARCH, NGARCH)
-              </strong>
-              : adjustable response to outlier days. Softer below
-              δ&nbsp;=&nbsp;2, more extreme above it.
-            </li>
-            <li>
-              <strong style={{ color: FAMILY_COLORS.absolute }}>
-                Absolute (AVGARCH)
-              </strong>
-              : models σ directly rather than variance. Less reactive to
-              single extreme days. If it diverges from the quadratic
-              models, a handful of tail days is doing most of the work
-              in the others.
-            </li>
-            <li>
-              <strong style={{ color: FAMILY_COLORS.component }}>
-                Component (CGARCH)
-              </strong>
-              : splits a slow long-run mean of vol from short-run shocks.
-              Read its slow component as the vol level the market is
-              gravitating back toward.
-            </li>
-            <li>
-              <strong style={{ color: FAMILY_COLORS.mean }}>
-                In-mean (GARCH-M)
-              </strong>
-              : lets vol feed back into expected return. Use it as a read
-              on the risk premium currently priced into SPX.
-            </li>
-            <li>
-              <strong style={{ color: FAMILY_COLORS.score }}>
-                Score-driven (GAS)
-              </strong>
-              : robust to occasional jumps. The steadier read of baseline
-              vol when recent history has a few outlier days.
-            </li>
-            <li>
-              <strong style={{ color: FAMILY_COLORS['long-memory'] }}>
-                Long-memory (FIGARCH, HYGARCH)
-              </strong>
-              : fractional persistence. Shocks decay over weeks to
-              quarters, not days. Watch these when the question is how
-              long a spike will linger.
-            </li>
-            <li>
-              <strong style={{ color: FAMILY_COLORS.regime }}>
-                Regime (MS-GARCH)
-              </strong>
-              : switches between a calm and a stress regime. When the
-              stress regime dominates the weighted average, you are not
-              in a typical diffusion regime anymore.
-            </li>
-            <li>
-              <strong style={{ color: FAMILY_COLORS.realized }}>
-                Realized (Realized GARCH, HEAVY)
-              </strong>
-              : pulls in a 5-day realized-variance proxy. Reacts faster
-              to observed stress than the pure return-based models.
-            </li>
-          </ul>
-
-          <p style={{ margin: 0 }}>
-            If hiding one family visibly moves the{' '}
-            <strong style={{ color: ENSEMBLE_COLOR }}>green forecast</strong>,
-            that family is load-bearing for the current read. If the
-            forecast barely moves, the remaining models already agree and
-            that family is not adding information right now.
-          </p>
-        </div>
+      <div
+        style={{
+          fontFamily: 'Courier New, monospace',
+          fontSize: '0.7rem',
+          letterSpacing: '0.14em',
+          textTransform: 'uppercase',
+          color: 'var(--text-secondary)',
+          marginBottom: '0.6rem',
+        }}
+      >
+        model · GARCH family zoo
       </div>
 
       <div
@@ -705,25 +576,25 @@ export default function GarchZoo() {
         <StatCell
           label="σ (1-day)"
           value={formatPct(visibleEnsemble?.sigma1d, 2)}
-          sub="ensemble · annualized"
+          sub="ensemble average · annualized"
           accent={ENSEMBLE_COLOR}
         />
         <StatCell
           label="σ (10-day)"
           value={formatPct(visibleEnsemble?.sigma10d, 2)}
-          sub="avg variance → annualized"
+          sub="ensemble average · annualized"
           accent={ENSEMBLE_COLOR}
         />
         <StatCell
           label="σ (21-day)"
           value={formatPct(visibleEnsemble?.sigma21d, 2)}
-          sub="one-month horizon"
+          sub="ensemble average · one-month"
           accent={ENSEMBLE_COLOR}
         />
         <StatCell
-          label="Realized HV₁₀"
+          label="Realized vol"
           value={formatPct(lastRealizedHv, 2)}
-          sub="last close · 10d window"
+          sub="last close · trailing 10 days"
         />
       </div>
 
@@ -835,6 +706,141 @@ export default function GarchZoo() {
           )}
         </div>
       )}
+
+      <div
+        style={{
+          fontSize: '0.88rem',
+          color: 'var(--text-secondary)',
+          lineHeight: 1.6,
+          maxWidth: '820px',
+          marginTop: '1.5rem',
+        }}
+      >
+        <p style={{ margin: '0 0 0.7rem' }}>
+          17 volatility models fit on daily SPX log returns. Each colored
+          line above is one model&apos;s conditional σ path, annualized to
+          percent. The{' '}
+          <strong style={{ color: ENSEMBLE_COLOR }}>
+            bold green line is the ensemble average
+          </strong>{' '}
+          (equal-weight mean across the visible models), and the dashed
+          green tail is its 30-day forward forecast. The dotted white line
+          is realized vol over the trailing 10 trading days, shown as a
+          reality check against the model fits.
+        </p>
+
+        <p style={{ margin: '0 0 0.7rem' }}>
+          Compare the{' '}
+          <strong style={{ color: ENSEMBLE_COLOR }}>ensemble average</strong>{' '}
+          to the dotted realized-vol line. Ensemble above realized means
+          the models expect volatility to rise from here. Ensemble below
+          realized means they expect mean reversion back down. A tight
+          cluster of model lines around the ensemble is high forecast
+          confidence. A fan-out means the families disagree and the
+          regime is ambiguous.
+        </p>
+
+        <p style={{ margin: '0 0 0.5rem', color: 'var(--text-primary)' }}>
+          Each family picks up a different piece of the volatility
+          signal. Hide a family with the picker above the chart to see
+          how much of the ensemble depends on it.
+        </p>
+
+        <ul
+          style={{
+            margin: '0 0 0.7rem',
+            paddingLeft: '1.1rem',
+            lineHeight: 1.55,
+          }}
+        >
+          <li>
+            <strong style={{ color: FAMILY_COLORS.symmetric }}>
+              Symmetric (GARCH, IGARCH)
+            </strong>
+            : baseline. Volatility clusters without regard to the
+            direction of the return.
+          </li>
+          <li>
+            <strong style={{ color: FAMILY_COLORS.asymmetric }}>
+              Asymmetric (GJR, EGARCH, TGARCH, NAGARCH)
+            </strong>
+            : leverage effect. Down days spike vol more than up days.
+            When these run above the symmetric line, the market is
+            pricing asymmetric downside fear.
+          </li>
+          <li>
+            <strong style={{ color: FAMILY_COLORS.power }}>
+              Power (APARCH, NGARCH)
+            </strong>
+            : adjustable response to outlier days. Softer below
+            δ&nbsp;=&nbsp;2, more extreme above it.
+          </li>
+          <li>
+            <strong style={{ color: FAMILY_COLORS.absolute }}>
+              Absolute (AVGARCH)
+            </strong>
+            : models σ directly rather than variance. Less reactive to
+            single extreme days. If it diverges from the quadratic
+            models, a handful of tail days is doing most of the work
+            in the others.
+          </li>
+          <li>
+            <strong style={{ color: FAMILY_COLORS.component }}>
+              Component (CGARCH)
+            </strong>
+            : splits a slow long-run mean of vol from short-run shocks.
+            Read its slow component as the vol level the market is
+            gravitating back toward.
+          </li>
+          <li>
+            <strong style={{ color: FAMILY_COLORS.mean }}>
+              In-mean (GARCH-M)
+            </strong>
+            : lets vol feed back into expected return. Use it as a read
+            on the risk premium currently priced into SPX.
+          </li>
+          <li>
+            <strong style={{ color: FAMILY_COLORS.score }}>
+              Score-driven (GAS)
+            </strong>
+            : robust to occasional jumps. The steadier read of baseline
+            vol when recent history has a few outlier days.
+          </li>
+          <li>
+            <strong style={{ color: FAMILY_COLORS['long-memory'] }}>
+              Long-memory (FIGARCH, HYGARCH)
+            </strong>
+            : fractional persistence. Shocks decay over weeks to
+            quarters, not days. Watch these when the question is how
+            long a spike will linger.
+          </li>
+          <li>
+            <strong style={{ color: FAMILY_COLORS.regime }}>
+              Regime (MS-GARCH)
+            </strong>
+            : switches between a calm and a stress regime. When the
+            stress regime dominates the weighted average, you are not
+            in a typical diffusion regime anymore.
+          </li>
+          <li>
+            <strong style={{ color: FAMILY_COLORS.realized }}>
+              Realized (Realized GARCH, HEAVY)
+            </strong>
+            : pulls in a 5-day realized-variance proxy. Reacts faster
+            to observed stress than the pure return-based models.
+          </li>
+        </ul>
+
+        <p style={{ margin: 0 }}>
+          If hiding one family visibly moves the{' '}
+          <strong style={{ color: ENSEMBLE_COLOR }}>
+            green ensemble line
+          </strong>
+          , that family is load-bearing for the current read. If the
+          ensemble barely moves, the remaining models already agree and
+          that family is not adding information right now.
+        </p>
+      </div>
 
       <div style={{ marginTop: '1.1rem', overflowX: 'auto' }}>
         <table
