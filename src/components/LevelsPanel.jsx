@@ -40,6 +40,33 @@ function expectedMoveDollar(spot, atmIv, dte) {
   return spot * atmIv * Math.sqrt(dte / 365);
 }
 
+// Overnight Alignment helpers. Score is the net of per-level signs in
+// [-3, +3] computed in App.jsx; color steps through coral / amber / green
+// at |score| ≥ 2 so a partial alignment (2 of 3) paints the same as a full
+// alignment (3 of 3) — the sub-line's per-level arrows carry the finer
+// breakdown. The arrow glyphs are up/down/em-dash for rose/fell/unchanged
+// and a thin space question mark for an uncountable level (e.g., prev day
+// carried a null for that field).
+function alignmentAccent(score) {
+  if (score == null) return undefined;
+  if (score >= 2) return 'var(--accent-green)';
+  if (score <= -2) return 'var(--accent-coral)';
+  return 'var(--accent-amber)';
+}
+
+function alignmentArrow(dir) {
+  if (dir == null) return '?';
+  if (dir.sign > 0) return '\u2191';
+  if (dir.sign < 0) return '\u2193';
+  return '\u2014';
+}
+
+function alignmentValue(score) {
+  if (score == null) return '\u2014';
+  const prefix = score > 0 ? '+' : '';
+  return `${prefix}${score}`;
+}
+
 function Stat({ label, value, accent, sub, bold }) {
   return (
     <div style={{ minWidth: 0 }}>
@@ -87,7 +114,7 @@ function Divider() {
 
 const ROW_GRID_CLASS = 'levels-row';
 
-export default function LevelsPanel({ levels, spotPrice, prevClose, expirationMetrics, expirations, selectedExpiration, onExpirationChange, capturedAt, vrpMetric }) {
+export default function LevelsPanel({ levels, spotPrice, prevClose, expirationMetrics, expirations, selectedExpiration, onExpirationChange, capturedAt, vrpMetric, overnightAlignment }) {
   if (!levels) {
     return (
       <div className="card text-muted" style={{ marginBottom: '1rem' }}>
@@ -170,12 +197,12 @@ export default function LevelsPanel({ levels, spotPrice, prevClose, expirationMe
           }
         />
         <Stat
-          label="IV Percentile"
-          value={vrpMetric?.ivPercentile != null ? `${vrpMetric.ivPercentile.toFixed(1)}%` : '\u2014'}
-          accent="var(--accent-cyan)"
+          label="Overnight Alignment"
+          value={alignmentValue(overnightAlignment?.score)}
+          accent={alignmentAccent(overnightAlignment?.score)}
           sub={
-            vrpMetric?.ivLookbackDays != null
-              ? `${Math.round((vrpMetric.ivPercentile / 100) * vrpMetric.ivLookbackDays)} of ${vrpMetric.ivLookbackDays}d below`
+            overnightAlignment
+              ? `PW ${alignmentArrow(overnightAlignment.dirs.put_wall)}  VF ${alignmentArrow(overnightAlignment.dirs.volatility_flip)}  CW ${alignmentArrow(overnightAlignment.dirs.call_wall)}`
               : null
           }
         />

@@ -86,9 +86,9 @@ export default function App() {
       rv: latest.hv_20d_yz * 100,
     };
 
-    // IV Rank and IV Percentile over the last 252 trading days.
-    // Collect the most recent ≤252 entries with valid iv_30d_cm (series is
-    // sorted ascending by trading_date, so we walk backwards).
+    // IV Rank over the last 252 trading days. Collect the most recent ≤252
+    // entries with valid iv_30d_cm (series is sorted ascending by
+    // trading_date, so we walk backwards).
     const ivValues = [];
     for (let i = vrpData.series.length - 1; i >= 0 && ivValues.length < 252; i--) {
       if (vrpData.series[i].iv_30d_cm != null) {
@@ -105,10 +105,6 @@ export default function App() {
       result.ivRank = range > 0 ? ((currentIv - lo) / range) * 100 : 50;
       result.ivRankHigh = hi * 100;
       result.ivRankLow = lo * 100;
-
-      const below = ivValues.filter((v) => v < currentIv).length;
-      result.ivPercentile = (below / ivValues.length) * 100;
-      result.ivLookbackDays = ivValues.length;
     }
 
     return result;
@@ -195,6 +191,54 @@ export default function App() {
       volatility_flip: flip ?? data.levels.volatility_flip,
     };
   }, [data]);
+
+  // Mirror the client-side vol-flip recomputation on the previous trading
+  // day's snapshot so the overnight alignment score compares like with like
+  // (both days' flip values are the zero-crossing of the locally-computed
+  // gamma profile, not a mix of fresh profile today vs stale backend flip
+  // yesterday). put_wall and call_wall are read directly from the payload
+  // because no client-side correction is applied to them.
+  const prevCorrectedLevels = useMemo(() => {
+    if (!prevDayData?.levels) return null;
+    if (!prevDayData.contracts || !(prevDayData.spotPrice > 0)) return prevDayData.levels;
+    const profile = computeGammaProfile(prevDayData.contracts, prevDayData.spotPrice, prevDayData.capturedAt);
+    if (!profile || profile.length === 0) return prevDayData.levels;
+    const flip = findFlipFromProfile(profile);
+    return {
+      ...prevDayData.levels,
+      volatility_flip: flip ?? prevDayData.levels.volatility_flip,
+    };
+  }, [prevDayData]);
+
+  // Overnight alignment: compare today's put wall, vol flip, and call wall
+  // against yesterday's corrected values. Each level contributes +1 if it
+  // rose, -1 if it fell, 0 if unchanged or missing. The score sums to a net
+  // in [-3, +3]; the per-level signs travel alongside in `dirs` so the UI
+  // can render an individual arrow for each. This is informational — the
+  // component displays the net and the breakdown and leaves interpretation
+  // to the reader.
+  const overnightAlignment = useMemo(() => {
+    if (!correctedLevels || !prevCorrectedLevels) return null;
+    const keys = ['put_wall', 'volatility_flip', 'call_wall'];
+    const dirs = {};
+    let score = 0;
+    let counted = 0;
+    for (const key of keys) {
+      const today = correctedLevels[key];
+      const prev = prevCorrectedLevels[key];
+      if (today == null || prev == null) {
+        dirs[key] = null;
+        continue;
+      }
+      const delta = today - prev;
+      const sign = delta > 0 ? 1 : delta < 0 ? -1 : 0;
+      dirs[key] = { delta, sign };
+      score += sign;
+      counted += 1;
+    }
+    if (counted === 0) return null;
+    return { score, counted, dirs };
+  }, [correctedLevels, prevCorrectedLevels]);
 
   const freshness = data ? formatFreshness(data.capturedAt) : null;
   const isSynthetic = data && data.source === 'synthetic';
@@ -330,6 +374,7 @@ export default function App() {
               onExpirationChange={setSelectedExpiration}
               capturedAt={data.capturedAt}
               vrpMetric={vrpMetric}
+              overnightAlignment={overnightAlignment}
             />
           </ErrorBoundary>
 
