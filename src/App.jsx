@@ -369,6 +369,7 @@ export default function App() {
               spotPrice={data.spotPrice}
               prevClose={data.prevClose}
               expirationMetrics={data.expirationMetrics}
+              prevExpirationMetrics={prevDayData?.expirationMetrics}
               expirations={pickerExpirations}
               selectedExpiration={displayExpiration}
               onExpirationChange={setSelectedExpiration}

@@ -40,6 +40,17 @@ function expectedMoveDollar(spot, atmIv, dte) {
   return spot * atmIv * Math.sqrt(dte / 365);
 }
 
+// IVs in the payload are fractions (0.2345 = 23.45%), so the day-over-day
+// delta is reported in percentage points of IV, not a relative change —
+// "+0.12pp" reads unambiguously to a vol trader, whereas "+0.51%" on an
+// already-percent quantity is the classic absolute-vs-relative trap.
+function ivDeltaSub(current, prior) {
+  if (current == null || prior == null) return null;
+  const pp = (current - prior) * 100;
+  const sign = pp >= 0 ? '+' : '';
+  return `${sign}${pp.toFixed(2)}pp d/d`;
+}
+
 // Overnight Alignment helpers. Score is the net of per-level signs in
 // [-3, +3] computed in App.jsx; color steps through coral / amber / green
 // at |score| ≥ 2 so a partial alignment (2 of 3) paints the same as a full
@@ -114,7 +125,7 @@ function Divider() {
 
 const ROW_GRID_CLASS = 'levels-row';
 
-export default function LevelsPanel({ levels, spotPrice, prevClose, expirationMetrics, expirations, selectedExpiration, onExpirationChange, capturedAt, vrpMetric, overnightAlignment }) {
+export default function LevelsPanel({ levels, spotPrice, prevClose, expirationMetrics, prevExpirationMetrics, expirations, selectedExpiration, onExpirationChange, capturedAt, vrpMetric, overnightAlignment }) {
   if (!levels) {
     return (
       <div className="card text-muted" style={{ marginBottom: '1rem' }}>
@@ -136,6 +147,15 @@ export default function LevelsPanel({ levels, spotPrice, prevClose, expirationMe
   const relevantMetric =
     expirationMetrics && expirationMetrics.length > 0
       ? expirationMetrics.find((m) => m.expiration_date === selectedExpiration) || expirationMetrics[0]
+      : null;
+
+  // Look up yesterday's row for the same expiration_date so the d/d diffs
+  // compare the same contract, not two rolling picks at equal DTE — when
+  // today's selected expiration didn't exist in yesterday's chain (e.g.,
+  // today's 0DTE), prevMetric stays null and the sub-lines fall back to —.
+  const prevMetric =
+    relevantMetric && prevExpirationMetrics && prevExpirationMetrics.length > 0
+      ? prevExpirationMetrics.find((m) => m.expiration_date === relevantMetric.expiration_date) || null
       : null;
 
   const dte = relevantMetric ? daysToExpiration(relevantMetric.expiration_date, capturedAt) : null;
@@ -277,9 +297,21 @@ export default function LevelsPanel({ levels, spotPrice, prevClose, expirationMe
               sub={expMoveSub}
               bold
             />
-            <Stat label="25Δ Put IV" value={formatPercent(relevantMetric.put_25d_iv)} />
-            <Stat label="ATM IV" value={formatPercent(relevantMetric.atm_iv)} />
-            <Stat label="25Δ Call IV" value={formatPercent(relevantMetric.call_25d_iv)} />
+            <Stat
+              label="25Δ Put IV"
+              value={formatPercent(relevantMetric.put_25d_iv)}
+              sub={ivDeltaSub(relevantMetric.put_25d_iv, prevMetric?.put_25d_iv)}
+            />
+            <Stat
+              label="ATM IV"
+              value={formatPercent(relevantMetric.atm_iv)}
+              sub={ivDeltaSub(relevantMetric.atm_iv, prevMetric?.atm_iv)}
+            />
+            <Stat
+              label="25Δ Call IV"
+              value={formatPercent(relevantMetric.call_25d_iv)}
+              sub={ivDeltaSub(relevantMetric.call_25d_iv, prevMetric?.call_25d_iv)}
+            />
           </div>
         </>
       )}
