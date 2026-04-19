@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import usePlotly from '../../src/hooks/usePlotly';
 import useIsMobile from '../../src/hooks/useIsMobile';
 import { useGexHistory } from '../../src/hooks/useHistoricalData';
@@ -9,6 +9,8 @@ import {
   plotlyAxis,
   plotlyTitle,
 } from '../../src/lib/plotlyTheme';
+import RangeBrush from '../../src/components/RangeBrush';
+import ResetButton from '../../src/components/ResetButton';
 import { fitAll, forecastAll, annualize, horizonSigma } from '../garch';
 
 // -----------------------------------------------------------------------------
@@ -53,6 +55,25 @@ function buildLogReturns(series) {
     });
   }
   return rows;
+}
+
+function isoToMs(iso) {
+  return new Date(`${iso}T00:00:00Z`).getTime();
+}
+
+function msToIso(ms) {
+  return new Date(ms).toISOString().slice(0, 10);
+}
+
+function advanceBusinessDays(iso, n) {
+  const cursor = new Date(`${iso}T00:00:00Z`);
+  for (let i = 0; i < n; i++) {
+    cursor.setUTCDate(cursor.getUTCDate() + 1);
+    while (cursor.getUTCDay() === 0 || cursor.getUTCDay() === 6) {
+      cursor.setUTCDate(cursor.getUTCDate() + 1);
+    }
+  }
+  return cursor.toISOString().slice(0, 10);
 }
 
 function formatPct(v, digits = 2) {
@@ -216,6 +237,32 @@ export default function GarchZoo() {
     return null;
   }, [returnsWithDate]);
 
+  const firstHistoricalDate = returnsWithDate?.[0]?.date ?? null;
+  const lastHistoricalDate = returnsWithDate?.[returnsWithDate.length - 1]?.date ?? null;
+  const lastForecastDate = useMemo(() => {
+    if (!lastHistoricalDate) return null;
+    return advanceBusinessDays(lastHistoricalDate, FORECAST_HORIZON);
+  }, [lastHistoricalDate]);
+
+  // Brush domain spans the full historical sample plus the forecast tail
+  // so the user can pan into older σ paths to inspect model fit on prior
+  // regimes, or focus the window on the forecast neighborhood. The
+  // default opens to the last CHART_LOOKBACK_DAYS of history through the
+  // end of the forecast — same window the page used to render before the
+  // brush was wired in, so the initial view is unchanged from v1.
+  const defaultRange = useMemo(() => {
+    if (!returnsWithDate || returnsWithDate.length === 0 || !lastForecastDate) return null;
+    const idx = Math.max(0, returnsWithDate.length - CHART_LOOKBACK_DAYS);
+    return [returnsWithDate[idx].date, lastForecastDate];
+  }, [returnsWithDate, lastForecastDate]);
+
+  const [timeRange, setTimeRange] = useState(null);
+  const activeRange = timeRange || defaultRange;
+
+  const handleBrushChange = useCallback((minMs, maxMs) => {
+    setTimeRange([msToIso(minMs), msToIso(maxMs)]);
+  }, []);
+
   // Families present in the current fit, in fit-order, so the picker
   // reads left-to-right in the same order the chart legend does.
   const familiesInFit = useMemo(() => {
@@ -265,15 +312,17 @@ export default function GarchZoo() {
   }, [fitState, visibleModels]);
 
   useEffect(() => {
-    if (!Plotly || !chartRef.current || !fitState.fit || !visibleEnsemble || !returnsWithDate) return;
+    if (!Plotly || !chartRef.current || !fitState.fit || !visibleEnsemble || !returnsWithDate || !activeRange) return;
 
-    const n = returnsWithDate.length;
-    const start = Math.max(0, n - CHART_LOOKBACK_DAYS);
-    const dates = returnsWithDate.slice(start).map((r) => r.date);
-    const hvSeries = returnsWithDate.slice(start).map((r) =>
+    // Trace data spans the full historical sample; the brush narrows the
+    // visible window via the x-axis range below, not by slicing inputs.
+    // This matches the site-wide RangeBrush pattern (see DealerGammaRegime)
+    // and lets the user pan into older σ history without refitting.
+    const dates = returnsWithDate.map((r) => r.date);
+    const hvSeries = returnsWithDate.map((r) =>
       r.hv10 != null ? r.hv10 * 100 : null,
     );
-    const toAnnPct = (arr) => arr.slice(start).map((v) => {
+    const toAnnPct = (arr) => arr.map((v) => {
       const a = annualize(v);
       return a != null ? a * 100 : null;
     });
@@ -358,7 +407,7 @@ export default function GarchZoo() {
         yanchor: 'top',
       },
       margin: mobile ? { t: 50, r: 20, b: 110, l: 60 } : { t: 70, r: 30, b: 120, l: 75 },
-      xaxis: plotlyAxis('', { type: 'date' }),
+      xaxis: plotlyAxis('', { type: 'date', range: activeRange, autorange: false }),
       yaxis: plotlyAxis('σ (%)', { ticksuffix: '%', tickformat: '.1f' }),
       showlegend: true,
       legend: {
@@ -375,7 +424,7 @@ export default function GarchZoo() {
       responsive: true,
       displayModeBar: false,
     });
-  }, [Plotly, fitState, visibleModels, visibleEnsemble, returnsWithDate, mobile]);
+  }, [Plotly, fitState, visibleModels, visibleEnsemble, returnsWithDate, mobile, activeRange]);
 
   if (loading && !data) {
     return (
@@ -629,7 +678,19 @@ export default function GarchZoo() {
           All families hidden — toggle one back on or hit reset.
         </div>
       ) : (
-        <div ref={chartRef} style={{ width: '100%', height: mobile ? 480 : 720 }} />
+        <div style={{ position: 'relative' }}>
+          <ResetButton visible={timeRange != null} onClick={() => setTimeRange(null)} />
+          <div ref={chartRef} style={{ width: '100%', height: mobile ? 480 : 720 }} />
+          {activeRange && firstHistoricalDate && lastForecastDate && (
+            <RangeBrush
+              min={isoToMs(firstHistoricalDate)}
+              max={isoToMs(lastForecastDate)}
+              activeMin={isoToMs(activeRange[0])}
+              activeMax={isoToMs(activeRange[1])}
+              onChange={handleBrushChange}
+            />
+          )}
+        </div>
       )}
 
       <div style={{ marginTop: '1.1rem', overflowX: 'auto' }}>
