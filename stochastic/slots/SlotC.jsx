@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef } from 'react';
 import usePlotly from '../../src/hooks/usePlotly';
 import useIsMobile from '../../src/hooks/useIsMobile';
 import useOptionsData from '../../src/hooks/useOptionsData';
+import useSviFits from '../../src/hooks/useSviFits';
 import {
   PLOTLY_COLORS,
   PLOTLY_FONTS,
@@ -239,8 +240,29 @@ export default function SlotC() {
     underlying: 'SPX',
     snapshotType: 'intraday',
   });
+  const sviFits = useSviFits({
+    contracts: data?.contracts,
+    spotPrice: data?.spotPrice,
+    capturedAt: data?.capturedAt,
+    backendFits: data?.sviFits,
+  });
 
-  const surface = useMemo(() => buildSurface(data?.sviFits), [data]);
+  const sviArray = useMemo(() => {
+    const out = [];
+    for (const f of Object.values(sviFits?.byExpiration || {})) {
+      if (!f?.params || !(f.T > 0)) continue;
+      out.push({
+        expiration_date: f.expirationDate,
+        t_years: f.T,
+        forward_price: f.forward,
+        params: f.params,
+        rmse_iv: f.rmseIv,
+      });
+    }
+    return out;
+  }, [sviFits]);
+
+  const surface = useMemo(() => buildSurface(sviArray), [sviArray]);
   const dupire = useMemo(() => (surface ? computeDupire(surface) : null), [surface]);
 
   const summaryStats = useMemo(() => {
