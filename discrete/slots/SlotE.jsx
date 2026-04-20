@@ -363,11 +363,11 @@ export default function SlotE() {
           fontSize: '0.7rem',
           letterSpacing: '0.14em',
           textTransform: 'uppercase',
-          color: 'var(--text-secondary)',
+          color: 'var(--accent-amber)',
           marginBottom: '0.85rem',
         }}
       >
-        model · svi-jw · trader-readable quoting convention
+        svi-jw · trader-readable quoting convention
       </div>
 
       <div

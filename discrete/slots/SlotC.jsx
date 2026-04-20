@@ -345,11 +345,11 @@ export default function SlotC() {
           fontSize: '0.7rem',
           letterSpacing: '0.14em',
           textTransform: 'uppercase',
-          color: 'var(--text-secondary)',
+          color: 'var(--accent-amber)',
           marginBottom: '0.85rem',
         }}
       >
-        model · svi raw · 5 parameters · one expiration slice
+        svi raw · 5 parameters · one expiration slice
       </div>
 
       <div

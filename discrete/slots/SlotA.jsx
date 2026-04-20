@@ -402,11 +402,11 @@ export default function SlotA() {
           fontSize: '0.7rem',
           letterSpacing: '0.14em',
           textTransform: 'uppercase',
-          color: 'var(--text-secondary)',
+          color: 'var(--accent-amber)',
           marginBottom: '0.85rem',
         }}
       >
-        model · cox ross rubinstein 1979 · two-branch recombining lattice
+        cox ross rubinstein 1979 · two-branch recombining lattice
       </div>
 
       <div

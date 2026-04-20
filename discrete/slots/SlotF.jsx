@@ -561,11 +561,11 @@ export default function SlotF() {
           fontSize: '0.7rem',
           letterSpacing: '0.14em',
           textTransform: 'uppercase',
-          color: 'var(--text-secondary)',
+          color: 'var(--accent-amber)',
           marginBottom: '0.85rem',
         }}
       >
-        model · ssvi · joint surface fit across tenors
+        ssvi · joint surface fit across tenors
       </div>
 
       <div

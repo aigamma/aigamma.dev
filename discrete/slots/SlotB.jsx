@@ -456,11 +456,11 @@ export default function SlotB() {
           fontSize: '0.7rem',
           letterSpacing: '0.14em',
           textTransform: 'uppercase',
-          color: 'var(--text-secondary)',
+          color: 'var(--accent-amber)',
           marginBottom: '0.85rem',
         }}
       >
-        model · boyle 1986 · kamrad-ritchken stretched · λ = √3
+        boyle 1986 · kamrad-ritchken stretched · λ = √3
       </div>
 
       <div
