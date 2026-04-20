@@ -31,6 +31,61 @@
   display: block;
 }
 
+/* Wrapper anchor that makes the lab-logo clickable as a route back to
+   the main dashboard. Kept as a bare inline-flex box with no border,
+   no padding, and no color so the rendered logo is visually identical
+   to the non-linked version; only the cursor and the focus-visible
+   outline communicate the hyperlink affordance. */
+.lab-logo-link {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 3px;
+  text-decoration: none;
+  outline: none;
+}
+
+.lab-logo-link:focus-visible {
+  outline: 2px solid var(--accent-green);
+  outline-offset: 2px;
+}
+
+/* Filled green call-to-action placed between the header and the first
+   slot on a lab page that wants a prominent Return-Home affordance.
+   Filled rather than outlined so it reads as a primary action, sized
+   a step larger than the site-about-link so it is obvious from the
+   first screen. Hover inverts to transparent-on-green-border so the
+   hover state stays within the same color token. */
+.lab-home-row {
+  display: flex;
+  justify-content: center;
+  margin: 0.25rem 0 1.5rem;
+}
+
+.lab-home-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Courier New', monospace;
+  font-size: 1rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-decoration: none;
+  padding: 0.85rem 1.75rem;
+  background: var(--accent-green);
+  color: #0d1016;
+  border: 1px solid var(--accent-green);
+  border-radius: 3px;
+  font-weight: 700;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.lab-home-button:hover,
+.lab-home-button:focus-visible {
+  background: transparent;
+  color: var(--accent-green);
+  outline: none;
+}
+
 .lab-badge {
   font-family: 'Courier New', monospace;
   font-size: 1.25rem;
@@ -159,6 +214,29 @@
   opacity: 0.6;
 }
 
+/* Bolded footer Return-Home link used by labs that wire up active
+   egress back to the main dashboard. Lives on its own block-level
+   line under the lab-footer-line so the bold-green link reads as a
+   distinct affordance rather than melting into the muted grey meta
+   strip above it. */
+.lab-footer-home {
+  display: block;
+  margin-top: 0.75rem;
+  font-family: 'Courier New', monospace;
+  font-size: 0.9rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--accent-green);
+  font-weight: 700;
+}
+
+.lab-footer-home:hover,
+.lab-footer-home:focus-visible {
+  text-decoration: underline;
+  outline: none;
+}
+
 /* The labs borrow the main dashboard's single-breakpoint approach at 768px
    and add a tighter 480px stop for phones, because the lab surfaces carry
    less content per viewport than the main dashboard and the extra space
@@ -227,6 +305,21 @@
     margin-top: 1.5rem;
     padding-top: 0.75rem;
   }
+
+  .lab-home-row {
+    margin: 0.25rem 0 1.1rem;
+  }
+
+  .lab-home-button {
+    font-size: 0.9rem;
+    padding: 0.7rem 1.4rem;
+    letter-spacing: 0.12em;
+  }
+
+  .lab-footer-home {
+    font-size: 0.82rem;
+    margin-top: 0.6rem;
+  }
 }
 
 @media (max-width: 480px) {
@@ -280,5 +373,16 @@
   .lab-footer-line {
     font-size: 0.65rem;
     letter-spacing: 0.06em;
+  }
+
+  .lab-home-button {
+    font-size: 0.82rem;
+    padding: 0.6rem 1.2rem;
+    letter-spacing: 0.1em;
+  }
+
+  .lab-footer-home {
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
   }
 }

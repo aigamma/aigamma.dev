@@ -63,17 +63,21 @@ import SlotD from './slots/SlotD';
 // All four slots consume the same live /api/data snapshot through
 // useOptionsData, so the Dupire surface, the MC pricer, the 3D
 // viewer, and the forward-smile diagnostic are internally consistent
-// views of one point-in-time SPX chain. Like /alpha, /dev, /beta,
-// /garch, /regime, /rough, and /stochastic, this lab has no ingress
-// or egress links — the logo is not a hyperlink, nothing on the main
-// site points here, and the page is reachable only by typing /local
-// or loading a bookmark.
+// views of one point-in-time SPX chain. Unlike the other bookmark-
+// only labs, this page now carries active egress back to the main
+// dashboard at three redundant affordances: the logo in the header
+// is a hyperlink to `/`, a filled green RETURN HOME button sits
+// between the header and the first slot as an obvious call-to-
+// action, and the footer carries a bolded Return Home link for a
+// reader who has scrolled to the bottom of a long page.
 export default function App() {
   return (
     <div className="app-shell lab-shell">
       <header className="lab-header">
         <div className="lab-brand">
-          <img src="/logo.webp" alt="aigamma.com" className="lab-logo" />
+          <a href="/" className="lab-logo-link" aria-label="Return to aigamma.com homepage">
+            <img src="/logo.webp" alt="aigamma.com" className="lab-logo" />
+          </a>
           <span
             className="lab-badge"
             title="Local Vol Lab — Dupire extraction, pricing, viewer, forward-smile"
@@ -83,6 +87,10 @@ export default function App() {
         </div>
         <QuantMenu />
       </header>
+
+      <div className="lab-home-row">
+        <a href="/" className="lab-home-button">Return Home</a>
+      </div>
 
       <section className="lab-slot">
         <ErrorBoundary><SlotA /></ErrorBoundary>
@@ -116,6 +124,7 @@ export default function App() {
         <span className="lab-footer-line">
           AI Gamma LLC · local vol lab · dupire extraction + pricing · v0.1.0
         </span>
+        <a href="/" className="lab-footer-home">Return Home</a>
       </footer>
     </div>
   );
