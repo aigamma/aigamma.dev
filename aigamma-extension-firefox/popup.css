@@ -5,7 +5,7 @@
   --label: #9ca3af;
   --value: #f3f4f6;
   --muted: #6b7280;
-  --pos: #10b981;
+  --pos: #04A29F;
   --neg: #ef4444;
 }
 
@@ -72,6 +72,18 @@ main { display: flex; flex-direction: column; }
   color: var(--value);
   font-variant-numeric: tabular-nums;
 }
+
+.dirs {
+  display: inline-flex;
+  gap: 2px;
+  margin-left: 6px;
+  letter-spacing: 0.04em;
+}
+
+.dir { display: inline-block; min-width: 10px; text-align: center; }
+.dir.up { color: var(--pos); }
+.dir.dn { color: var(--neg); }
+.dir.muted { color: var(--muted); }
 
 footer {
   margin-top: 10px;

@@ -18,6 +18,12 @@
 //   vrp                 IV − RV in percent from daily_volatility_stats (EOD)
 //   ivRank              trailing 252-trading-day IV rank in percent
 //   pcRatioVolume       today's put/call volume ratio
+//   overnightAlignment  { score, dirs: { put_wall, volatility_flip, call_wall } }
+//                       today vs. the most recent run on a prior trading date:
+//                       each level contributes +1 if it rose, −1 if it fell,
+//                       0 if flat; score sums to a net in [−3, +3]. dirs[key]
+//                       is null when either side is missing. null at the top
+//                       level when no prior trading-date run can be resolved.
 //
 // Sourcing rationale:
 //   — spot / walls / P-C ratio: latest intraday `ingest_runs` + `computed_levels`
@@ -162,6 +168,48 @@ export default async function handler() {
       order: 'expiration_date.asc,strike.asc',
     });
 
+    // Prev-day run resolver: fired in parallel with today's queries so the
+    // overnight-alignment probe cost overlaps with today's snapshot paging
+    // instead of serializing behind it. Same probe pattern as above — walk
+    // up to 10 ingest_runs on prior trading dates and commit to the first
+    // one that has non-empty snapshots. Resolves to null if no prior run
+    // is available (first market day in the database, or every prior run
+    // had a failed insert); the alignment field is then omitted from the
+    // payload.
+    const prevRunPromise = run.trading_date
+      ? (async () => {
+          const params = new URLSearchParams({
+            underlying: 'eq.SPX',
+            snapshot_type: 'eq.intraday',
+            trading_date: `lt.${run.trading_date}`,
+            order: 'captured_at.desc',
+            limit: '10',
+          });
+          const res = await fetchWithTimeout(
+            `${supabaseUrl}/rest/v1/ingest_runs?${params}`,
+            { headers },
+            'prev_ingest_runs'
+          );
+          if (!res.ok) return null;
+          const rows = await res.json();
+          if (!Array.isArray(rows) || rows.length === 0) return null;
+          const cands = rows.filter((r) => r.status === 'success');
+          if (cands.length === 0) cands.push(rows[0]);
+          for (const c of cands) {
+            const probe = await fetchWithTimeout(
+              `${supabaseUrl}/rest/v1/snapshots?run_id=eq.${c.id}&select=id&limit=1`,
+              { headers },
+              'prev_snapshot_probe'
+            );
+            if (probe.ok) {
+              const probeRows = await probe.json();
+              if (Array.isArray(probeRows) && probeRows.length > 0) return c;
+            }
+          }
+          return null;
+        })()
+      : Promise.resolve(null);
+
     const [levelsRes, expMetricsRes, volStatsRes] = await Promise.all([
       fetchWithTimeout(
         `${supabaseUrl}/rest/v1/computed_levels?run_id=eq.${run.id}`,
@@ -293,6 +341,99 @@ export default async function handler() {
       }
     }
 
+    // Overnight alignment: resolve the prev-day run (probe already in
+    // flight), fetch its computed_levels and snapshots, recompute its
+    // volFlip via the same gamma-profile zero crossing used for today, and
+    // diff the three regime levels (put_wall, volatility_flip, call_wall)
+    // against today's values. Each level contributes +1 / 0 / −1 to the
+    // score; dirs[key] = null whenever either side is missing. Mirrors the
+    // dashboard's overnightAlignment computation in src/App.jsx so the
+    // popup and the on-page header agree on the same three signs.
+    const prevRun = await prevRunPromise;
+    let overnightAlignment = null;
+    if (prevRun) {
+      let prevPutWall = null;
+      let prevCallWall = null;
+      let prevVolFlip = null;
+
+      const prevLevelsPromise = fetchWithTimeout(
+        `${supabaseUrl}/rest/v1/computed_levels?run_id=eq.${prevRun.id}`,
+        { headers },
+        'prev_computed_levels'
+      );
+
+      const prevSnapParams = new URLSearchParams({
+        run_id: `eq.${prevRun.id}`,
+        select:
+          'expiration_date,strike,contract_type,implied_volatility,open_interest',
+        order: 'expiration_date.asc,strike.asc',
+      });
+      const prevContractRows = [];
+      for (let offset = 0; ; offset += PAGE_SIZE) {
+        const end = offset + PAGE_SIZE - 1;
+        const pageRes = await fetchWithTimeout(
+          `${supabaseUrl}/rest/v1/snapshots?${prevSnapParams}`,
+          { headers: { ...headers, Range: `${offset}-${end}`, 'Range-Unit': 'items' } },
+          'prev_snapshots'
+        );
+        if (!pageRes.ok && pageRes.status !== 206) break;
+        const page = await pageRes.json();
+        if (!Array.isArray(page) || page.length === 0) break;
+        prevContractRows.push(...page);
+        if (page.length < PAGE_SIZE) break;
+      }
+
+      const prevLevelsRes = await prevLevelsPromise;
+      if (prevLevelsRes.ok) {
+        const prevLevelsRows = await prevLevelsRes.json();
+        const prevLevelsRow =
+          Array.isArray(prevLevelsRows) && prevLevelsRows.length > 0 ? prevLevelsRows[0] : null;
+        if (prevLevelsRow) {
+          prevPutWall = toNum(prevLevelsRow.put_wall_strike);
+          prevCallWall = toNum(prevLevelsRow.call_wall_strike);
+        }
+      }
+
+      const prevSpot = toNum(prevRun.spot_price);
+      if (prevSpot != null && prevContractRows.length > 0) {
+        const prevContracts = prevContractRows.map((c) => ({
+          expiration_date: c.expiration_date,
+          strike: toNum(c.strike),
+          contract_type: c.contract_type,
+          implied_volatility: toNum(c.implied_volatility),
+          open_interest: c.open_interest,
+        }));
+        const prevProfile = computeGammaProfile(prevContracts, prevSpot, prevRun.captured_at);
+        if (prevProfile && prevProfile.length > 0) {
+          const flip = findFlipFromProfile(prevProfile);
+          if (Number.isFinite(flip)) prevVolFlip = flip;
+        }
+      }
+
+      const diff = (today, prev) => {
+        if (today == null || prev == null) return null;
+        const delta = today - prev;
+        const sign = delta > 0 ? 1 : delta < 0 ? -1 : 0;
+        return { delta: round(delta, 2), sign };
+      };
+      const dirs = {
+        put_wall: diff(putWall, prevPutWall),
+        volatility_flip: diff(volFlip, prevVolFlip),
+        call_wall: diff(callWall, prevCallWall),
+      };
+      let score = 0;
+      let counted = 0;
+      for (const key of ['put_wall', 'volatility_flip', 'call_wall']) {
+        if (dirs[key]) {
+          score += dirs[key].sign;
+          counted += 1;
+        }
+      }
+      if (counted > 0) {
+        overnightAlignment = { score, counted, dirs };
+      }
+    }
+
     // Core-field gate: if any of spot / walls / volFlip / atmIv are
     // missing, the popup renders an empty shell. Prefer an explicit 503 so
     // the extension shows its OFFLINE state rather than a card full of
@@ -316,6 +457,7 @@ export default async function handler() {
       vrp: round(vrp, 2),
       ivRank: round(ivRank, 1),
       pcRatioVolume: round(pcRatioVolume, 2),
+      overnightAlignment,
     };
 
     return new Response(JSON.stringify(payload), {

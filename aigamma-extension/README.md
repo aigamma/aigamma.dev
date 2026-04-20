@@ -81,7 +81,10 @@ The response should be `200 OK` with `Access-Control-Allow-Origin: *`,
 `Cache-Control: public, max-age=30, s-maxage=30`, and a JSON body matching
 the fields that `popup.js` reads: `spot`, `putWall`, `volFlip`, `callWall`,
 `distanceFromRiskOff`, `atmIv`, `vrp`, `ivRank`, `pcRatioVolume`,
-`gammaStatus`, `asOf`.
+`gammaStatus`, `asOf`, and `overnightAlignment` (optional; the third row in
+the popup — net +1/0/-1 score and per-level arrows comparing today's Put
+Wall, Vol Flip, and Call Wall against the most recent prior trading day's
+run).
 
 ## Publishing
 
