@@ -60,26 +60,8 @@ export default function App() {
             Risk Lab
           </span>
         </div>
-        <div className="lab-nav-group">
-          <QuantMenu />
-          <div className="lab-meta">
-            <span className="lab-meta-line">bookmark-only</span>
-            <span className="lab-meta-sep">·</span>
-            <span className="lab-meta-line">4 slots</span>
-            <span className="lab-meta-sep">·</span>
-            <span className="lab-meta-line">pre-β</span>
-          </div>
-        </div>
+        <QuantMenu />
       </header>
-
-      <div className="lab-warning">
-        <strong>Experimental.</strong>{' '}
-        A four-slot risk-model lab. Cross-model Greeks, delta
-        comparison, Vanna-Volga decomposition, and second-order
-        Greeks fit in-browser on live SPX option data. Math, data,
-        and rendering may be incomplete, incorrect, or change
-        without notice.
-      </div>
 
       <section className="lab-slot">
         <ErrorBoundary><SlotA /></ErrorBoundary>

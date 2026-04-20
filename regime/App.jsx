@@ -46,28 +46,8 @@ export default function App() {
             Regime Lab
           </span>
         </div>
-        <div className="lab-nav-group">
-          <QuantMenu />
-          <div className="lab-meta">
-            <span className="lab-meta-line">bookmark-only</span>
-            <span className="lab-meta-sep">·</span>
-            <span className="lab-meta-line">3 slots</span>
-            <span className="lab-meta-sep">·</span>
-            <span className="lab-meta-line">pre-β</span>
-          </div>
-        </div>
+        <QuantMenu />
       </header>
-
-      <div className="lab-warning">
-        <strong>Experimental.</strong>{' '}
-        Three ways to answer the same question every trader eventually
-        asks: what regime is the market in today. A mixture model splits
-        calm from crisis by return shape, a Markov model tracks which is
-        active through time, and a distribution-clustering model groups
-        the last twenty days by pattern. All three fit live in your
-        browser on daily SPX data. Values and presentation may change
-        as the models evolve.
-      </div>
 
       <section className="lab-slot">
         <ErrorBoundary><SlotA /></ErrorBoundary>

@@ -80,16 +80,7 @@ export default function App() {
             Discrete &amp; Parametric Vol Lab
           </span>
         </div>
-        <div className="lab-nav-group">
-          <QuantMenu />
-          <div className="lab-meta">
-            <span className="lab-meta-line">bookmark-only</span>
-            <span className="lab-meta-sep">·</span>
-            <span className="lab-meta-line">6 slots</span>
-            <span className="lab-meta-sep">·</span>
-            <span className="lab-meta-line">pre-β</span>
-          </div>
-        </div>
+        <QuantMenu />
       </header>
 
       <section className="lab-slot">

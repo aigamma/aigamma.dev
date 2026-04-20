@@ -81,45 +81,22 @@ export default function App() {
             Local Vol Lab
           </span>
         </div>
-        <div className="lab-nav-group">
-          <QuantMenu />
-          <div className="lab-meta">
-            <span className="lab-meta-line">bookmark-only</span>
-            <span className="lab-meta-sep">·</span>
-            <span className="lab-meta-line">4 slots</span>
-            <span className="lab-meta-sep">·</span>
-            <span className="lab-meta-line">pre-β</span>
-          </div>
-        </div>
+        <QuantMenu />
       </header>
 
-      <div className="lab-warning">
-        <strong>Experimental.</strong>{' '}
-        A four-slot local-volatility scratch pad. Dupire surface
-        extraction from the SVI slice set, local-vol Monte Carlo
-        pricing against the market smile, interactive 3D surface
-        viewer, and the forward-smile diagnostic that motivates
-        local-stochastic vol. Math, data, and rendering may be
-        incomplete, incorrect, or change without notice.
-      </div>
-
       <section className="lab-slot">
-        <div className="lab-slot-label">SLOT A · DUPIRE SURFACE EXTRACTION</div>
         <ErrorBoundary><SlotA /></ErrorBoundary>
       </section>
 
       <section className="lab-slot">
-        <div className="lab-slot-label">SLOT B · LOCAL VOL PRICING</div>
         <ErrorBoundary><SlotB /></ErrorBoundary>
       </section>
 
       <section className="lab-slot">
-        <div className="lab-slot-label">SLOT C · LOCAL VOL SURFACE VIEWER</div>
         <ErrorBoundary><SlotC /></ErrorBoundary>
       </section>
 
       <section className="lab-slot">
-        <div className="lab-slot-label">SLOT D · FORWARD SMILE PATHOLOGY</div>
         <ErrorBoundary><SlotD /></ErrorBoundary>
       </section>
 

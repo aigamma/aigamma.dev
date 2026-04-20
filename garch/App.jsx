@@ -35,24 +35,8 @@ export default function App() {
             GARCH LAB
           </span>
         </div>
-        <div className="lab-nav-group">
-          <QuantMenu />
-          <div className="lab-meta">
-            <span className="lab-meta-line">bookmark-only</span>
-            <span className="lab-meta-sep">·</span>
-            <span className="lab-meta-line">GARCH zoo</span>
-            <span className="lab-meta-sep">·</span>
-            <span className="lab-meta-line">pre-β</span>
-          </div>
-        </div>
+        <QuantMenu />
       </header>
-
-      <div className="lab-warning">
-        <strong>Experimental.</strong>{' '}
-        A model zoo for the GARCH family, fit in-browser on daily SPX log
-        returns. Math, data, and rendering may be incomplete, incorrect,
-        or change without notice.
-      </div>
 
       <section className="lab-slot">
         <div className="lab-slot-label">GARCH FAMILY</div>
