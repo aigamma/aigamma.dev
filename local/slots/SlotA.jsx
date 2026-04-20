@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef } from 'react';
 import usePlotly from '../../src/hooks/usePlotly';
 import useIsMobile from '../../src/hooks/useIsMobile';
 import useOptionsData from '../../src/hooks/useOptionsData';
+import useSviFits from '../../src/hooks/useSviFits';
 import {
   PLOTLY_COLORS,
   PLOTLY_FONTS,
@@ -91,8 +92,29 @@ export default function SlotA() {
     underlying: 'SPX',
     snapshotType: 'intraday',
   });
+  const sviFits = useSviFits({
+    contracts: data?.contracts,
+    spotPrice: data?.spotPrice,
+    capturedAt: data?.capturedAt,
+    backendFits: data?.sviFits,
+  });
 
-  const surface = useMemo(() => buildSurface(data?.sviFits), [data]);
+  const sviArray = useMemo(() => {
+    const out = [];
+    for (const f of Object.values(sviFits?.byExpiration || {})) {
+      if (!f?.params || !(f.T > 0)) continue;
+      out.push({
+        expiration_date: f.expirationDate,
+        t_years: f.T,
+        forward_price: f.forward,
+        params: f.params,
+        rmse_iv: f.rmseIv,
+      });
+    }
+    return out;
+  }, [sviFits]);
+
+  const surface = useMemo(() => buildSurface(sviArray), [sviArray]);
   const dupire = useMemo(() => (surface ? computeDupire(surface) : null), [surface]);
   const coverage = useMemo(() => coverageStats(dupire), [dupire]);
 
@@ -217,44 +239,17 @@ export default function SlotA() {
 
   return (
     <div className="card" style={{ padding: '1.25rem 1.25rem 1rem' }}>
-      <div style={{ marginBottom: '0.85rem' }}>
-        <div
-          style={{
-            fontFamily: 'Courier New, monospace',
-            fontSize: '0.7rem',
-            letterSpacing: '0.14em',
-            textTransform: 'uppercase',
-            color: 'var(--text-secondary)',
-            marginBottom: '0.35rem',
-          }}
-        >
-          model · dupire local vol · (y, T) heatmap with arbitrage flags
-        </div>
-        <div
-          style={{
-            fontSize: '0.95rem',
-            color: 'var(--text-secondary)',
-            lineHeight: 1.6,
-            maxWidth: '860px',
-          }}
-        >
-          The{' '}
-          <strong style={{ color: PLOTLY_COLORS.primary }}>Dupire local volatility</strong>{' '}
-          function σ_LV(K, T) is the unique deterministic diffusion
-          coefficient that, given today&apos;s arbitrage-free implied-vol
-          surface as input, reproduces every European option price on that
-          surface exactly. Extracted here in (y, T) coordinates with y =
-          ln(K/F) from the SVI fits at every expiration in the current
-          snapshot — y-derivatives of total variance w = σ²T in analytic
-          closed form from the SVI parameters, T-derivative by finite
-          difference across adjacent slices, Gatheral 2006 eq. 1.10 in
-          the denominator. Cells where the denominator went negative
-          (butterfly arbitrage), where ∂w/∂T went negative (calendar
-          arbitrage), or where σ² fell below 1e-5 (numerical clip) are
-          rendered as gaps in the heatmap; the coverage stat below
-          reports what fraction of the (y, T) grid produced a valid
-          extraction.
-        </div>
+      <div
+        style={{
+          fontFamily: 'Courier New, monospace',
+          fontSize: '0.7rem',
+          letterSpacing: '0.14em',
+          textTransform: 'uppercase',
+          color: 'var(--text-secondary)',
+          marginBottom: '0.85rem',
+        }}
+      >
+        model · dupire local vol · (y, T) heatmap with arbitrage flags
       </div>
 
       <div
@@ -359,6 +354,24 @@ export default function SlotA() {
           lineHeight: 1.65,
         }}
       >
+        <p style={{ margin: '0 0 0.75rem 0' }}>
+          The{' '}
+          <strong style={{ color: PLOTLY_COLORS.primary }}>Dupire local volatility</strong>{' '}
+          function σ_LV(K, T) is the unique deterministic diffusion
+          coefficient that, given today&apos;s arbitrage-free implied-vol
+          surface as input, reproduces every European option price on that
+          surface exactly. Extracted here in (y, T) coordinates with y =
+          ln(K/F) from the SVI fits at every expiration in the current
+          snapshot — y-derivatives of total variance w = σ²T in analytic
+          closed form from the SVI parameters, T-derivative by finite
+          difference across adjacent slices, Gatheral 2006 eq. 1.10 in
+          the denominator. Cells where the denominator went negative
+          (butterfly arbitrage), where ∂w/∂T went negative (calendar
+          arbitrage), or where σ² fell below 1e-5 (numerical clip) are
+          rendered as gaps in the heatmap; the coverage stat above
+          reports what fraction of the (y, T) grid produced a valid
+          extraction.
+        </p>
         <strong style={{ color: 'var(--text-primary)' }}>Reading.</strong>{' '}
         Short T at deep-OTM put strikes (upper-left corner at negative y)
         is where σ_LV is hottest — short-dated crash-risk premium looks,

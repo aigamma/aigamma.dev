@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import usePlotly from '../../src/hooks/usePlotly';
 import useIsMobile from '../../src/hooks/useIsMobile';
 import useOptionsData from '../../src/hooks/useOptionsData';
+import useSviFits from '../../src/hooks/useSviFits';
 import {
   PLOTLY_COLORS,
   PLOTLY_FONTS,
@@ -174,8 +175,29 @@ export default function SlotD() {
   // 45 days so the effect is visible out-of-the-box.
   const [tStarDays, setTStarDays] = useState(45);
   const [seed, setSeed] = useState(0xBADF00D);
+  const sviFits = useSviFits({
+    contracts: data?.contracts,
+    spotPrice: data?.spotPrice,
+    capturedAt: data?.capturedAt,
+    backendFits: data?.sviFits,
+  });
 
-  const surface = useMemo(() => buildSurface(data?.sviFits), [data]);
+  const sviArray = useMemo(() => {
+    const out = [];
+    for (const f of Object.values(sviFits?.byExpiration || {})) {
+      if (!f?.params || !(f.T > 0)) continue;
+      out.push({
+        expiration_date: f.expirationDate,
+        t_years: f.T,
+        forward_price: f.forward,
+        params: f.params,
+        rmse_iv: f.rmseIv,
+      });
+    }
+    return out;
+  }, [sviFits]);
+
+  const surface = useMemo(() => buildSurface(sviArray), [sviArray]);
   const grid = useMemo(() => (surface ? computeDupire(surface) : null), [surface]);
   const spot = data?.spotPrice ?? null;
 
@@ -339,45 +361,17 @@ export default function SlotD() {
 
   return (
     <div className="card" style={{ padding: '1.25rem 1.25rem 1rem' }}>
-      <div style={{ marginBottom: '0.85rem' }}>
-        <div
-          style={{
-            fontFamily: 'Courier New, monospace',
-            fontSize: '0.7rem',
-            letterSpacing: '0.14em',
-            textTransform: 'uppercase',
-            color: 'var(--text-secondary)',
-            marginBottom: '0.35rem',
-          }}
-        >
-          model · dupire local vol · forward-smile flattening diagnostic
-        </div>
-        <div
-          style={{
-            fontSize: '0.95rem',
-            color: 'var(--text-secondary)',
-            lineHeight: 1.6,
-            maxWidth: '860px',
-          }}
-        >
-          The{' '}
-          <strong style={{ color: PLOTLY_COLORS.titleText }}>white line</strong>{' '}
-          is today&apos;s implied-vol smile at τ = {Math.round(TAU_YEARS * 365)} days,
-          read directly from the SVI fit. The{' '}
-          <strong style={{ color: PLOTLY_COLORS.secondary }}>coral dashed line</strong>{' '}
-          is the Monte-Carlo{' '}
-          <em>forward smile</em> at T* = {tStarDays} days: paths are
-          simulated under the Dupire SDE to T*, only those whose S_T*
-          lands within ±{(BAND_LOG_WIDTH * 100).toFixed(1)}% of spot are
-          kept, and the surviving paths are continued τ more days so the
-          emerging conditional smile at maturity T* + τ can be inverted
-          from MC call prices. Pure local vol systematically flattens
-          the forward smile as T* grows — this is the textbook Gyöngy-
-          projection artifact that makes pure LV unsuitable for
-          forward-starting products, cliquets, and VIX-derivatives, and
-          the direct motivation for augmenting LV with a stochastic
-          factor (LSV).
-        </div>
+      <div
+        style={{
+          fontFamily: 'Courier New, monospace',
+          fontSize: '0.7rem',
+          letterSpacing: '0.14em',
+          textTransform: 'uppercase',
+          color: 'var(--text-secondary)',
+          marginBottom: '0.85rem',
+        }}
+      >
+        model · dupire local vol · forward-smile flattening diagnostic
       </div>
 
       <div
@@ -508,6 +502,25 @@ export default function SlotD() {
           lineHeight: 1.65,
         }}
       >
+        <p style={{ margin: '0 0 0.75rem 0' }}>
+          The{' '}
+          <strong style={{ color: PLOTLY_COLORS.titleText }}>white line</strong>{' '}
+          is today&apos;s implied-vol smile at τ = {Math.round(TAU_YEARS * 365)} days,
+          read directly from the SVI fit. The{' '}
+          <strong style={{ color: PLOTLY_COLORS.secondary }}>coral dashed line</strong>{' '}
+          is the Monte-Carlo{' '}
+          <em>forward smile</em> at T* = {tStarDays} days: paths are
+          simulated under the Dupire SDE to T*, only those whose S_T*
+          lands within ±{(BAND_LOG_WIDTH * 100).toFixed(1)}% of spot are
+          kept, and the surviving paths are continued τ more days so the
+          emerging conditional smile at maturity T* + τ can be inverted
+          from MC call prices. Pure local vol systematically flattens
+          the forward smile as T* grows — this is the textbook Gyöngy-
+          projection artifact that makes pure LV unsuitable for
+          forward-starting products, cliquets, and VIX-derivatives, and
+          the direct motivation for augmenting LV with a stochastic
+          factor (LSV).
+        </p>
         <strong style={{ color: 'var(--text-primary)' }}>Reading.</strong>{' '}
         At T* ≈ 7 days the two smiles should nearly coincide (the MC is
         essentially evaluating today&apos;s smile, up to MC noise). Drag

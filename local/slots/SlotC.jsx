@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import usePlotly from '../../src/hooks/usePlotly';
 import useIsMobile from '../../src/hooks/useIsMobile';
 import useOptionsData from '../../src/hooks/useOptionsData';
+import useSviFits from '../../src/hooks/useSviFits';
 import {
   PLOTLY_COLORS,
   PLOTLY_FONTS,
@@ -82,8 +83,29 @@ export default function SlotC() {
     underlying: 'SPX',
     snapshotType: 'intraday',
   });
+  const sviFits = useSviFits({
+    contracts: data?.contracts,
+    spotPrice: data?.spotPrice,
+    capturedAt: data?.capturedAt,
+    backendFits: data?.sviFits,
+  });
 
-  const surface = useMemo(() => buildSurface(data?.sviFits), [data]);
+  const sviArray = useMemo(() => {
+    const out = [];
+    for (const f of Object.values(sviFits?.byExpiration || {})) {
+      if (!f?.params || !(f.T > 0)) continue;
+      out.push({
+        expiration_date: f.expirationDate,
+        t_years: f.T,
+        forward_price: f.forward,
+        params: f.params,
+        rmse_iv: f.rmseIv,
+      });
+    }
+    return out;
+  }, [sviFits]);
+
+  const surface = useMemo(() => buildSurface(sviArray), [sviArray]);
   const grid = useMemo(() => (surface ? computeDupire(surface) : null), [surface]);
 
   // T slider: normalized 0..1 across the log-T range of the grid. y
@@ -348,39 +370,17 @@ export default function SlotC() {
 
   return (
     <div className="card" style={{ padding: '1.25rem 1.25rem 1rem' }}>
-      <div style={{ marginBottom: '0.85rem' }}>
-        <div
-          style={{
-            fontFamily: 'Courier New, monospace',
-            fontSize: '0.7rem',
-            letterSpacing: '0.14em',
-            textTransform: 'uppercase',
-            color: 'var(--text-secondary)',
-            marginBottom: '0.35rem',
-          }}
-        >
-          model · dupire local vol · 3d viewer with interactive slicing
-        </div>
-        <div
-          style={{
-            fontSize: '0.95rem',
-            color: 'var(--text-secondary)',
-            lineHeight: 1.6,
-            maxWidth: '860px',
-          }}
-        >
-          The{' '}
-          <strong style={{ color: PLOTLY_COLORS.primary }}>3D surface</strong>{' '}
-          above is the same σ_LV grid SlotA shows as a heatmap, rotated
-          into (y, T, σ) space so the curvature in T is visible as
-          physical depth rather than as a vertical color gradient. Drag
-          to rotate, scroll to zoom, right-click-drag to pan. Below, two
-          1D slice charts show the local vol smile at a chosen tenor T*
-          and the local vol term structure at a chosen log-moneyness
-          y*, each overlaid against the market σ from the SVI fit. The
-          two sliders under the charts move T* and y* across the full
-          surface domain in place, without re-rendering the 3D panel.
-        </div>
+      <div
+        style={{
+          fontFamily: 'Courier New, monospace',
+          fontSize: '0.7rem',
+          letterSpacing: '0.14em',
+          textTransform: 'uppercase',
+          color: 'var(--text-secondary)',
+          marginBottom: '0.85rem',
+        }}
+      >
+        model · dupire local vol · 3d viewer with interactive slicing
       </div>
 
       <div ref={surfaceRef} style={{ width: '100%', height: mobile ? 340 : 440 }} />
@@ -466,6 +466,19 @@ export default function SlotC() {
           lineHeight: 1.65,
         }}
       >
+        <p style={{ margin: '0 0 0.75rem 0' }}>
+          The{' '}
+          <strong style={{ color: PLOTLY_COLORS.primary }}>3D surface</strong>{' '}
+          above is the same σ_LV grid the heatmap extraction renders,
+          rotated into (y, T, σ) space so the curvature in T is visible
+          as physical depth rather than as a vertical color gradient.
+          Drag to rotate, scroll to zoom, right-click-drag to pan. Below,
+          two 1D slice charts show the local vol smile at a chosen tenor
+          T* and the local vol term structure at a chosen log-moneyness
+          y*, each overlaid against the market σ from the SVI fit. The
+          two sliders under the charts move T* and y* across the full
+          surface domain in place, without re-rendering the 3D panel.
+        </p>
         <strong style={{ color: 'var(--text-primary)' }}>Reading.</strong>{' '}
         At short T the smile slice (left) shows σ_LV rising steeply into
         the left wing — the signature of short-dated put premium turned
