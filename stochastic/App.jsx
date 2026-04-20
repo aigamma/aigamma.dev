@@ -57,16 +57,21 @@ import SlotD from './slots/SlotD';
 // All four consume the same live /api/data snapshot so the Heston
 // fit, the SABR fit, the Dupire surface, and the rough-vol skew
 // regression are internally consistent views of one point-in-time
-// chain. Like /alpha, /dev, /beta, /garch, and /regime, this lab has
-// no ingress or egress links — the logo is not a hyperlink, nothing
-// on the main site points here, and the page is reachable only by
-// typing /stochastic or loading a bookmark.
+// chain. Navigation back to the homepage is surfaced in three
+// redundant ways so the reader never has to retype the URL: the
+// logo in the upper-left is a hyperlink to /, a centered green
+// "RETURN HOME" button sits between the SABR and LSV slots as an
+// obvious mid-page escape hatch, and the footer carries a bolded
+// Return Home link as a last-line fallback. The QuantMenu in the
+// upper-right continues to expose the cross-lab directory.
 export default function App() {
   return (
     <div className="app-shell lab-shell">
       <header className="lab-header">
         <div className="lab-brand">
-          <img src="/logo.webp" alt="aigamma.com" className="lab-logo" />
+          <a href="/" aria-label="aigamma.com home" style={{ display: 'block' }}>
+            <img src="/logo.webp" alt="aigamma.com" className="lab-logo" />
+          </a>
           <span
             className="lab-badge"
             title="Stochastic Vol Lab · Heston, SABR, LSV, Rough Bergomi"
@@ -84,6 +89,27 @@ export default function App() {
       <section className="lab-slot">
         <ErrorBoundary><SlotB /></ErrorBoundary>
       </section>
+
+      <div style={{ display: 'flex', justifyContent: 'center', margin: '1.5rem 0' }}>
+        <a
+          href="/"
+          style={{
+            fontFamily: "'Courier New', monospace",
+            fontSize: '1rem',
+            letterSpacing: '0.14em',
+            textTransform: 'uppercase',
+            padding: '0.75rem 1.75rem',
+            border: '1px solid var(--accent-green)',
+            color: 'var(--accent-green)',
+            background: 'rgba(46, 204, 113, 0.08)',
+            borderRadius: '4px',
+            textDecoration: 'none',
+            fontWeight: 700,
+          }}
+        >
+          Return Home
+        </a>
+      </div>
 
       <section className="lab-slot">
         <ErrorBoundary><SlotC /></ErrorBoundary>
@@ -107,7 +133,10 @@ export default function App() {
 
       <footer className="lab-footer">
         <span className="lab-footer-line">
-          AI Gamma LLC · stochastic vol lab · four-model lineage · v0.1.0
+          AI Gamma LLC · stochastic vol lab · four-model lineage · v0.1.0 ·{' '}
+          <a href="/" style={{ color: 'inherit', fontWeight: 700 }}>
+            Return Home
+          </a>
         </span>
       </footer>
     </div>
