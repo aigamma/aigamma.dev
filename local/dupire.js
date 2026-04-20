@@ -1,8 +1,8 @@
 // Shared in-lab library for the /local page. Centralizes the SVI
 // y-derivatives, the Dupire local-variance extraction, the bilinear
 // look-up of σ_LV at an arbitrary (y, T), and the arbitrage diagnostics
-// the four slots all consume. Keeping this in one file means SlotA's
-// heatmap, SlotB's Monte Carlo pricer, SlotC's 3D viewer, and SlotD's
+// the slots on this page all consume. Keeping this in one file means
+// SlotB's Monte Carlo pricer, SlotC's 1D slice viewers, and SlotD's
 // forward-smile diagnostic all read from the exact same surface — so a
 // disagreement between them is a disagreement in interpretation, not
 // in numerics.

@@ -32,13 +32,16 @@ import SlotD from './slots/SlotD';
 //            residual is MC noise plus discretization error, which
 //            is the self-check.
 //
-//   SLOT C — Local Vol Surface Viewer. Plotly 3D surface of the
-//            σ_LV(y, T) grid plus interactive slice selectors — fix
-//            T and sweep y to see the local-vol smile at a chosen
-//            tenor, or fix K and sweep T to see the local-vol term
-//            structure at a chosen strike. The 3D mesh and the two
-//            slice panels are the actionable readings of the surface
-//            on this page.
+//   SLOT C — Local Vol Surface Slices. Two linked 1D slice panels
+//            on the σ_LV(y, T) grid with interactive slice selectors
+//            — fix T and sweep y to see the local-vol smile at a
+//            chosen tenor, or fix K and sweep T to see the local-vol
+//            term structure at a chosen strike. The earlier rendition
+//            of this slot carried a Plotly 3D surface mesh above the
+//            two slice panels, but the 3D trace was too unwieldy as a
+//            dynamic object (slow to rebuild, awkward to rotate on a
+//            page that already scrolls) so it was removed and the two
+//            1D slices now stand alone as the actionable readings.
 //
 //   SLOT D — Forward Smile Pathology. The textbook motivation for
 //            local-stochastic vol: pure LV reproduces today's smile
@@ -52,9 +55,9 @@ import SlotD from './slots/SlotD';
 //            a leverage function L(S, t) is constructed to cure.
 //
 // All three slots consume the same live /api/data snapshot through
-// useOptionsData, so the MC pricer, the 3D viewer, and the forward-
-// smile diagnostic are internally consistent views of one point-in-
-// time SPX chain. Unlike the other bookmark-only labs, this page now
+// useOptionsData, so the MC pricer, the slice viewer, and the
+// forward-smile diagnostic are internally consistent views of one
+// point-in-time SPX chain. Unlike the other bookmark-only labs, this page now
 // carries active egress back to the main dashboard at three
 // redundant affordances, matching the /parity/ and /jump/ pattern:
 // the logo in the header is a hyperlink to `/`, a filled green

@@ -9,8 +9,6 @@ import {
   plotly2DChartLayout,
   plotlyAxis,
   plotlyTitle,
-  PLOTLY_HEATMAP_COLORSCALE,
-  PLOTLY_COLORBAR,
 } from '../../src/lib/plotlyTheme';
 import {
   buildSurface,
@@ -21,14 +19,10 @@ import {
 } from '../dupire';
 
 // ---------------------------------------------------------------------------
-// Slot C — Local Vol Surface Viewer.
+// Slot C — Local Vol Surface Slices.
 //
-// Three linked panels on the σ_LV(y, T) grid produced by
+// Two linked 1D panels on the σ_LV(y, T) grid produced by
 // local/dupire.js:
-//   - A Plotly 3D surface plot that lets the reader rotate and zoom
-//     the surface as a mesh. Holes where Dupire extraction failed
-//     render as NaN cells that Plotly skips, so the topology of the
-//     valid region is visually honest.
 //   - A "smile slice" panel: σ_LV as a function of y at a chosen
 //     tenor T*. Reads as the local-vol smile that a user sees at
 //     maturity T*; contrast against the market IV smile at the same
@@ -41,9 +35,14 @@ import {
 //     from ATM in ways that encode the SVI wings' term structure.
 //
 // Interaction is two HTML range sliders — one for T*, one for y* —
-// which recompute the two slice charts in place without re-rendering
-// the 3D surface. The slider handle colors are pinned to two palette
-// tokens so the user can read at a glance which slice is which.
+// which recompute the two slice charts in place. The slider handle
+// colors are pinned to two palette tokens so the user can read at a
+// glance which slice is which. A prior version of this slot rendered
+// an overview Plotly 3D surface mesh above the two slice panels, but
+// the 3D trace was unwieldy as a dynamic object — slow to rebuild on
+// a snapshot change and awkward to interact with on a page that
+// already carries its own scroll — so the surface view was removed
+// and the two 1D slices now stand alone as the actionable readings.
 // ---------------------------------------------------------------------------
 
 function ivSliceFromSurface(surface, y, T) {
@@ -74,7 +73,6 @@ function ivSliceFromSurface(surface, y, T) {
 }
 
 export default function SlotC() {
-  const surfaceRef = useRef(null);
   const smileRef = useRef(null);
   const termRef = useRef(null);
   const { plotly: Plotly, error: plotlyError } = usePlotly();
@@ -127,93 +125,6 @@ export default function SlotC() {
     if (!grid) return null;
     return -Y_HALF_WIDTH + yFrac * (2 * Y_HALF_WIDTH);
   }, [grid, yFrac]);
-
-  // 3D surface — render once when the grid arrives, not on every slider
-  // move. Plotly's surface trace is expensive to rebuild and we don't
-  // need the expensive render on every slice-slider step.
-  useEffect(() => {
-    if (!Plotly || !surfaceRef.current || !grid) return;
-    const z = grid.sigma.map((row) => row.map((v) => (v != null ? v * 100 : null)));
-    const traces = [
-      {
-        type: 'surface',
-        x: grid.Ys,
-        y: grid.Ts,
-        z,
-        colorscale: PLOTLY_HEATMAP_COLORSCALE,
-        showscale: true,
-        colorbar: {
-          ...PLOTLY_COLORBAR,
-          title: { text: 'σ_LV (%)', font: PLOTLY_FONTS.axisTitle, side: 'right' },
-          ticksuffix: '%',
-        },
-        contours: {
-          z: {
-            show: true,
-            usecolormap: true,
-            highlightcolor: PLOTLY_COLORS.titleText,
-            project: { z: true },
-            width: 1,
-          },
-        },
-        lighting: {
-          ambient: 0.65,
-          diffuse: 0.6,
-          specular: 0.2,
-          roughness: 0.9,
-        },
-        hovertemplate:
-          'log-moneyness %{x:.3f}<br>T %{y:.3f}y<br>σ_LV %{z:.2f}%<extra></extra>',
-      },
-    ];
-    const layout = {
-      title: {
-        ...plotlyTitle('Dupire Surface · 3D'),
-        y: 0.97,
-        yref: 'container',
-        yanchor: 'top',
-      },
-      paper_bgcolor: 'rgba(0,0,0,0)',
-      plot_bgcolor: 'rgba(0,0,0,0)',
-      font: PLOTLY_FONTS.base,
-      margin: { t: 40, r: 10, b: 10, l: 10 },
-      scene: {
-        xaxis: {
-          title: { text: 'log-moneyness y', font: PLOTLY_FONTS.axisTitle },
-          tickfont: PLOTLY_FONTS.axisTick,
-          gridcolor: PLOTLY_COLORS.grid,
-          zerolinecolor: PLOTLY_COLORS.zeroLine,
-          backgroundcolor: 'rgba(0,0,0,0)',
-          showbackground: true,
-        },
-        yaxis: {
-          title: { text: 'T (years)', font: PLOTLY_FONTS.axisTitle },
-          tickfont: PLOTLY_FONTS.axisTick,
-          gridcolor: PLOTLY_COLORS.grid,
-          zerolinecolor: PLOTLY_COLORS.zeroLine,
-          backgroundcolor: 'rgba(0,0,0,0)',
-          showbackground: true,
-          type: 'log',
-        },
-        zaxis: {
-          title: { text: 'σ_LV (%)', font: PLOTLY_FONTS.axisTitle },
-          tickfont: PLOTLY_FONTS.axisTick,
-          gridcolor: PLOTLY_COLORS.grid,
-          zerolinecolor: PLOTLY_COLORS.zeroLine,
-          backgroundcolor: 'rgba(0,0,0,0)',
-          showbackground: true,
-          ticksuffix: '%',
-        },
-        camera: {
-          eye: { x: 1.6, y: -1.5, z: 0.8 },
-        },
-      },
-    };
-    Plotly.react(surfaceRef.current, traces, layout, {
-      responsive: true,
-      displayModeBar: false,
-    });
-  }, [Plotly, grid]);
 
   // Smile slice at selected T — σ_LV(y, T*) vs market σ(y, T*).
   useEffect(() => {
@@ -380,17 +291,14 @@ export default function SlotC() {
           marginBottom: '0.85rem',
         }}
       >
-        model · dupire local vol · 3d viewer with interactive slicing
+        model · dupire local vol · smile and term-structure slices
       </div>
-
-      <div ref={surfaceRef} style={{ width: '100%', height: mobile ? 340 : 440 }} />
 
       <div
         style={{
           display: 'grid',
           gridTemplateColumns: mobile ? '1fr' : '1fr 1fr',
           gap: '1rem',
-          marginTop: '1rem',
         }}
       >
         <div>
@@ -467,17 +375,16 @@ export default function SlotC() {
         }}
       >
         <p style={{ margin: '0 0 0.75rem 0' }}>
-          The{' '}
-          <strong style={{ color: PLOTLY_COLORS.primary }}>3D surface</strong>{' '}
-          above is the same σ_LV grid the heatmap extraction renders,
-          rotated into (y, T, σ) space so the curvature in T is visible
-          as physical depth rather than as a vertical color gradient.
-          Drag to rotate, scroll to zoom, right-click-drag to pan. Below,
-          two 1D slice charts show the local vol smile at a chosen tenor
-          T* and the local vol term structure at a chosen log-moneyness
-          y*, each overlaid against the market σ from the SVI fit. The
-          two sliders under the charts move T* and y* across the full
-          surface domain in place, without re-rendering the 3D panel.
+          Two 1D{' '}
+          <strong style={{ color: PLOTLY_COLORS.primary }}>slice charts</strong>{' '}
+          on the σ_LV(y, T) grid extracted by{' '}
+          <code>local/dupire.js</code>: the left panel holds the local
+          vol smile at a chosen tenor T* and the right panel holds the
+          local vol term structure at a chosen log-moneyness y*, each
+          overlaid against the market σ from the SVI fit. The two
+          sliders under the charts move T* and y* across the full
+          surface domain in place, so a reader can sweep through the
+          surface one slice at a time without dragging a 3D mesh.
         </p>
         <strong style={{ color: 'var(--text-primary)' }}>Reading.</strong>{' '}
         At short T the smile slice (left) shows σ_LV rising steeply into
