@@ -430,8 +430,8 @@ export default function GarchZoo() {
 
     const totalOk = fitState.fit.models.filter((m) => m.condVar != null).length;
     const titleText = visibleModels.length === totalOk
-      ? `GARCH Family · Conditional σ (Annualized) · ${totalOk} specifications + ensemble average`
-      : `GARCH Family · Conditional σ (Annualized) · ${visibleModels.length} of ${totalOk} specifications + ensemble average`;
+      ? `GARCH Ensemble · Conditional σ (Annualized) · ${totalOk} specifications + ensemble average`
+      : `GARCH Ensemble · Conditional σ (Annualized) · ${visibleModels.length} of ${totalOk} specifications + ensemble average`;
     const layout = plotly2DChartLayout({
       title: {
         ...plotlyTitle(titleText),
@@ -559,7 +559,7 @@ export default function GarchZoo() {
           marginBottom: '0.6rem',
         }}
       >
-        model · GARCH family zoo
+        GARCH Ensemble
       </div>
 
       <div

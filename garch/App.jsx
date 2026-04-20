@@ -39,7 +39,7 @@ export default function App() {
       </header>
 
       <section className="lab-slot">
-        <div className="lab-slot-label">GARCH FAMILY</div>
+        <div className="lab-slot-label">GARCH ENSEMBLE</div>
         <ErrorBoundary><GarchZoo /></ErrorBoundary>
       </section>
 
