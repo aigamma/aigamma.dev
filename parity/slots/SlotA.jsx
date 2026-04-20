@@ -736,7 +736,7 @@ export default function SlotA() {
           alignItems: 'center',
           gap: '0.4rem',
           flexWrap: 'wrap',
-          marginTop: '0.85rem',
+          marginTop: '2rem',
         }}
       >
         <span
@@ -786,7 +786,7 @@ export default function SlotA() {
           padding: '0.85rem 0',
           borderTop: '1px solid var(--bg-card-border)',
           borderBottom: '1px solid var(--bg-card-border)',
-          marginTop: '0.85rem',
+          marginTop: '2rem',
           marginBottom: '0.85rem',
         }}
       >
