@@ -5,7 +5,7 @@ import QuantMenu from '../src/components/QuantMenu';
 import Chat from '../src/components/Chat';
 import GarchZoo from './slots/GarchZoo';
 
-// /garch/ — GARCH family zoo page, bookmark-only, peer to /alpha and /dev.
+// /garch/ — GARCH Ensemble page, an integrated Quant Menu lab.
 // Single slot rendering 17 univariate GARCH-family specifications plus an
 // equal-weight master ensemble on daily SPX log returns, with a family
 // picker above the chart that lets a viewer hide a family — the ensemble
@@ -18,16 +18,20 @@ import GarchZoo from './slots/GarchZoo';
 // actionable reading attached, so the correlation chart was removed and
 // the freed space was redirected into a taller main chart.
 //
-// Like /alpha, /beta, and /dev, this page has no ingress or egress links:
-// nothing on the main site points here, the logo is not a hyperlink, and
-// the shell carries no nav. Reachable only by typing /garch or loading a
-// bookmark.
+// This page carries active egress back to the main dashboard at three
+// redundant affordances, matching the /jump/ and /local/ pattern: the
+// logo in the header is a hyperlink to `/`, a filled green RETURN HOME
+// button sits between the header and the slot as an obvious
+// call-to-action, and the footer carries a bolded Return Home link for a
+// reader who has scrolled to the bottom of the page.
 export default function App() {
   return (
     <div className="app-shell lab-shell">
       <header className="lab-header">
         <div className="lab-brand">
-          <img src="/logo.webp" alt="aigamma.com" className="lab-logo" />
+          <a href="/" className="lab-logo-link" aria-label="Return to aigamma.com homepage">
+            <img src="/logo.webp" alt="aigamma.com" className="lab-logo" />
+          </a>
           <span
             className="lab-badge"
             title="GARCH: 17-model univariate family zoo with equal-weight ensemble and a family picker"
@@ -38,8 +42,11 @@ export default function App() {
         <QuantMenu />
       </header>
 
+      <div className="lab-home-row">
+        <a href="/" className="lab-home-button">Return Home</a>
+      </div>
+
       <section className="lab-slot">
-        <div className="lab-slot-label">GARCH ENSEMBLE</div>
         <ErrorBoundary><GarchZoo /></ErrorBoundary>
       </section>
 
@@ -59,6 +66,7 @@ export default function App() {
         <span className="lab-footer-line">
           AI Gamma LLC · GARCH lab · univariate family zoo with picker
         </span>
+        <a href="/" className="lab-footer-home">Return Home</a>
       </footer>
     </div>
   );
