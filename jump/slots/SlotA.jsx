@@ -498,11 +498,11 @@ export default function SlotA() {
           fontSize: '0.7rem',
           letterSpacing: '0.14em',
           textTransform: 'uppercase',
-          color: 'var(--text-secondary)',
+          color: 'var(--accent-amber)',
           marginBottom: '0.85rem',
         }}
       >
-        model · merton · diffusion plus log-normal jumps · 4 free parameters
+        merton · diffusion plus log-normal jumps · 4 free parameters
       </div>
 
       <div

@@ -545,11 +545,11 @@ export default function SlotB() {
           fontSize: '0.7rem',
           letterSpacing: '0.14em',
           textTransform: 'uppercase',
-          color: 'var(--text-secondary)',
+          color: 'var(--accent-amber)',
           marginBottom: '0.85rem',
         }}
       >
-        model · kou · diffusion plus asymmetric exponential jumps · 5 parameters
+        kou · diffusion plus asymmetric exponential jumps · 5 parameters
       </div>
 
       <div

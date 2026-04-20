@@ -80,14 +80,6 @@ export default function App() {
         </div>
       </header>
 
-      <div className="lab-warning">
-        <strong>Experimental.</strong>{' '}
-        A four-slot jump-process model lab. Merton, Kou, Bates SVJ, and
-        Variance Gamma fit in-browser on live SPX option data. Math,
-        data, and rendering may be incomplete, incorrect, or change
-        without notice.
-      </div>
-
       <section className="lab-slot">
         <ErrorBoundary><SlotA /></ErrorBoundary>
       </section>
