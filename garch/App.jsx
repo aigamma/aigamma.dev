@@ -19,11 +19,14 @@ import GarchZoo from './slots/GarchZoo';
 // the freed space was redirected into a taller main chart.
 //
 // This page carries active egress back to the main dashboard at three
-// redundant affordances, matching the /jump/ and /local/ pattern: the
+// redundant affordances, matching the /parity/ and /jump/ pattern: the
 // logo in the header is a hyperlink to `/`, a filled green RETURN HOME
-// button sits between the header and the slot as an obvious
-// call-to-action, and the footer carries a bolded Return Home link for a
-// reader who has scrolled to the bottom of the page.
+// button sits in the header itself between the GARCH LAB brand on the
+// left and the QuantMenu trigger on the right — centered horizontally
+// on the same row as the other nav items via the header's flex
+// space-between distribution — and the footer carries a bolded Return
+// Home link for a reader who has scrolled past the slot and the Chat
+// panel.
 export default function App() {
   return (
     <div className="app-shell lab-shell">
@@ -39,12 +42,9 @@ export default function App() {
             GARCH LAB
           </span>
         </div>
+        <a href="/" className="lab-home-button lab-home-button--inline">Return Home</a>
         <QuantMenu />
       </header>
-
-      <div className="lab-home-row">
-        <a href="/" className="lab-home-button">Return Home</a>
-      </div>
 
       <section className="lab-slot">
         <ErrorBoundary><GarchZoo /></ErrorBoundary>
