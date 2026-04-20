@@ -2,6 +2,7 @@ import '../src/styles/theme.css';
 import '../src/styles/lab.css';
 import ErrorBoundary from '../src/ErrorBoundary';
 import QuantMenu from '../src/components/QuantMenu';
+import Chat from '../src/components/Chat';
 import SlotA from './slots/SlotA';
 import SlotB from './slots/SlotB';
 import SlotC from './slots/SlotC';
@@ -173,6 +174,18 @@ export default function App() {
         <div className="lab-slot-label">SLOT F · SSVI (GJ 2014)</div>
         <ErrorBoundary><SlotF /></ErrorBoundary>
       </section>
+
+      <ErrorBoundary>
+        <Chat
+          context="discrete"
+          welcome={{
+            quick:
+              'Ask about the six slots above, how discrete pricing engines (binomial, trinomial) relate to parametric surfaces (SVI raw, natural, JW, SSVI), or how the two schools work together on a production vol surface. Chat stays on volatility, options, and quantitative finance.',
+            deep:
+              'Deep Analysis mode — longer and more structurally detailed responses on tree convergence, SVI reparameterizations, SSVI arbitrage-freedom conditions, and the philosophy of treating every implied-vol number as the output of a model fit.',
+          }}
+        />
+      </ErrorBoundary>
 
       <footer className="lab-footer">
         <span className="lab-footer-line">

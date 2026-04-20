@@ -29,16 +29,17 @@ import stochasticPrompt from './prompts/stochastic.mjs';
 import localPrompt from './prompts/local.mjs';
 import jumpPrompt from './prompts/jump.mjs';
 import riskPrompt from './prompts/risk.mjs';
+import discretePrompt from './prompts/discrete.mjs';
 
 // Per-page system prompt registry. Keyed by the `context` field the client
 // sends in the POST body. The keys are short slugs that match the URL path
 // segment of the page the chat is mounted on (main = landing page at /,
 // garch = /garch/, regime = /regime/, rough = /rough/, stochastic =
-// /stochastic/, local = /local/, jump = /jump/, risk = /risk/). Add a new
-// key here and a new peer file in ./prompts/ when a new lab page wants its
-// own chat voice. An unknown or missing key falls through to the main-
-// dashboard prompt so a stale client that forgets to pass context still
-// gets a coherent answer.
+// /stochastic/, local = /local/, jump = /jump/, risk = /risk/, discrete =
+// /discrete/). Add a new key here and a new peer file in ./prompts/ when a
+// new lab page wants its own chat voice. An unknown or missing key falls
+// through to the main-dashboard prompt so a stale client that forgets to
+// pass context still gets a coherent answer.
 const SYSTEM_PROMPTS = {
   main: mainPrompt,
   garch: garchPrompt,
@@ -48,6 +49,7 @@ const SYSTEM_PROMPTS = {
   local: localPrompt,
   jump: jumpPrompt,
   risk: riskPrompt,
+  discrete: discretePrompt,
 };
 
 // Two-model config mirroring about.aigamma.com — Sonnet powers the default
