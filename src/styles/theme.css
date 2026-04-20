@@ -53,7 +53,13 @@ body {
 
 .site-nav {
   display: flex;
-  gap: 0.75rem;
+  /* Generous gap between the QuantMenu trigger and the About link so the
+     two read as distinct affordances rather than a stacked pair — QuantMenu
+     is the primary on-site navigation and gets visual breathing room, while
+     About tucks cleanly to the right as a secondary off-site exit. Mobile
+     override below tightens this back down so the header still fits cleanly
+     on narrow viewports. */
+  gap: 4rem;
   flex-wrap: wrap;
   align-items: center;
 }
@@ -543,6 +549,10 @@ body {
   .levels-row {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 0.75rem;
+  }
+
+  .site-nav {
+    gap: 1.5rem;
   }
 
   .site-nav a {
