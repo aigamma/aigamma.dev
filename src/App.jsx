@@ -294,8 +294,8 @@ export default function App() {
         </div>
 
         <nav className="site-nav">
-          <a href="https://about.aigamma.com/">About</a>
           <QuantMenu />
+          <a href="https://about.aigamma.com/">About</a>
         </nav>
 
         {freshness && (
