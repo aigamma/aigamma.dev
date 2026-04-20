@@ -64,16 +64,53 @@ export default function Chat() {
   // applyAssistantText finds the placeholder by scanning for the id.
   const assistantRef = useRef(null);
   const pendingIdRef = useRef(0);
+  // Bottom spacer height, sized on each new turn to guarantee the latest
+  // user prompt can be scrolled to the top of the chat body even when the
+  // assistant response is still empty or very short. Without it, a short
+  // response would leave scrollHeight < clientHeight + userMsg.offsetTop
+  // and scrollTop would clamp, so the prompt could not reach the top.
+  const [spacerHeight, setSpacerHeight] = useState(0);
 
-  const scrollToBottom = useCallback(() => {
-    const el = bodyRef.current;
-    if (!el) return;
-    el.scrollTop = el.scrollHeight;
-  }, []);
-
+  // Anchor the most recent user prompt to the top of the chat body on each
+  // *new turn* — i.e., whenever messages[activeTab].length changes (send
+  // adds two entries: the user message and the pending assistant placeholder).
+  // Streaming deltas mutate the existing assistant entry's text in place
+  // without changing array length, so this effect intentionally does not fire
+  // during streaming. Replaces a prior scrollToBottom call that ran on every
+  // messages change and dragged the viewport down with each token — the
+  // "jitter" the UX was suffering from. Now the prompt stays pinned and the
+  // user scrolls down only when they want to follow the stream.
+  const turnKey = messages[activeTab].length;
   useEffect(() => {
-    scrollToBottom();
-  }, [messages, activeTab, scrollToBottom]);
+    let raf2 = 0;
+    const raf1 = requestAnimationFrame(() => {
+      const el = bodyRef.current;
+      if (!el) return;
+
+      if (turnKey === 0) {
+        setSpacerHeight(0);
+        return;
+      }
+
+      const userMsgEls = el.querySelectorAll('.chat-msg-user');
+      const lastUserEl = userMsgEls[userMsgEls.length - 1];
+      if (!lastUserEl) {
+        setSpacerHeight(0);
+        return;
+      }
+
+      setSpacerHeight(Math.max(0, el.clientHeight - lastUserEl.offsetHeight - 16));
+
+      raf2 = requestAnimationFrame(() => {
+        el.scrollTop = Math.max(0, lastUserEl.offsetTop - 8);
+      });
+    });
+
+    return () => {
+      cancelAnimationFrame(raf1);
+      cancelAnimationFrame(raf2);
+    };
+  }, [turnKey, activeTab]);
 
   const autoResize = useCallback(() => {
     const el = textareaRef.current;
@@ -290,6 +327,13 @@ export default function Chat() {
             </div>
           </div>
         ))}
+
+        {spacerHeight > 0 && (
+          <div
+            aria-hidden="true"
+            style={{ flexShrink: 0, height: spacerHeight + 'px' }}
+          />
+        )}
       </div>
 
       <div className="chat-input-row">
