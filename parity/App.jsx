@@ -65,10 +65,6 @@ export default function App() {
           <QuantMenu />
           <div className="lab-meta">
             <span className="lab-meta-line">put-call parity</span>
-            <span className="lab-meta-sep">·</span>
-            <span className="lab-meta-line">2 slots</span>
-            <span className="lab-meta-sep">·</span>
-            <span className="lab-meta-line">pre-β</span>
           </div>
         </div>
       </header>
