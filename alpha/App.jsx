@@ -1,6 +1,7 @@
 import '../src/styles/theme.css';
 import '../src/styles/lab.css';
 import ErrorBoundary from '../src/ErrorBoundary';
+import QuantMenu from '../src/components/QuantMenu';
 import Chat from '../src/components/Chat';
 import SlotA, { slotName as slotAName } from './slots/SlotA';
 import SlotB, { slotName as slotBName } from './slots/SlotB';
@@ -17,16 +18,19 @@ import SlotB, { slotName as slotBName } from './slots/SlotB';
 // each slot file's exported `slotName` constant rather than typed
 // inline here, so the chrome dynamically reflects whatever model is
 // currently mounted in each slot — swap a slot's content and the
-// label updates from the same edit. Like /beta, this page has no
-// ingress or egress links: nothing on the main site points here, the
-// logo is not a hyperlink, and the shell carries no nav. Reachable
-// only by typing /alpha or loading a bookmark.
+// label updates from the same edit. The logo in the upper-left links
+// back to the homepage and the QuantMenu in the upper-right opens the
+// cross-lab navigator, matching the chrome on the integrated Quant
+// Menu labs; nothing on the main site points here, so the page is
+// still reached only by typing /alpha or loading a bookmark.
 export default function App() {
   return (
     <div className="app-shell lab-shell">
       <header className="lab-header">
         <div className="lab-brand">
-          <img src="/logo.webp" alt="aigamma.com" className="lab-logo" />
+          <a href="/" aria-label="aigamma.com home" style={{ display: 'block' }}>
+            <img src="/logo.webp" alt="aigamma.com" className="lab-logo" />
+          </a>
           <span
             className="lab-badge"
             title="Alpha · pre-β, software-stage sense"
@@ -34,13 +38,7 @@ export default function App() {
             Alpha Lab
           </span>
         </div>
-        <div className="lab-meta">
-          <span className="lab-meta-line">bookmark-only</span>
-          <span className="lab-meta-sep">·</span>
-          <span className="lab-meta-line">2 slots</span>
-          <span className="lab-meta-sep">·</span>
-          <span className="lab-meta-line">pre-β</span>
-        </div>
+        <QuantMenu />
       </header>
 
       <div className="lab-warning">
