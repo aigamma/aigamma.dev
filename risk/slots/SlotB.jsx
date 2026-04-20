@@ -427,64 +427,17 @@ export default function SlotB() {
 
   return (
     <div className="card" style={{ padding: '1.25rem 1.25rem 1rem' }}>
-      <div style={{ marginBottom: '0.85rem' }}>
-        <div
-          style={{
-            fontFamily: 'Courier New, monospace',
-            fontSize: '0.7rem',
-            letterSpacing: '0.14em',
-            textTransform: 'uppercase',
-            color: 'var(--text-secondary)',
-            marginBottom: '0.35rem',
-          }}
-        >
-          model · delta comparison · bsm / sticky-delta / minimum-variance / market
-        </div>
-        <div
-          style={{
-            fontSize: '0.95rem',
-            color: 'var(--text-secondary)',
-            lineHeight: 1.6,
-            maxWidth: '860px',
-          }}
-        >
-          <p style={{ margin: '0 0 0.75rem' }}>
-            Four notions of delta on one SPX slice. They all start from the same
-            market implied vol and the same option price. They differ only in
-            what they assume about how the smile moves when spot moves. That
-            one assumption is worth up to a few cents of hedge per dollar of
-            notional.
-          </p>
-          <p style={{ margin: '0 0 0.75rem' }}>
-            The{' '}
-            <strong style={{ color: PLOTLY_COLORS.primary }}>BSM line</strong>{' '}
-            is the quote delta. It assumes σ(K) is glued to the strike and
-            does not move with spot. This is the "sticky-strike" world and is
-            what every option-chain screen reports.
-          </p>
-          <p style={{ margin: '0 0 0.75rem' }}>
-            The{' '}
-            <strong style={{ color: PLOTLY_COLORS.highlight }}>sticky-delta line</strong>{' '}
-            assumes the whole smile rides with the underlying. Under SPX put
-            skew this makes call delta larger, because when spot rises the
-            smile at the call strike also rises and adds to the call value.
-          </p>
-          <p style={{ margin: '0 0 0.75rem' }}>
-            The{' '}
-            <strong style={{ color: PLOTLY_COLORS.secondary }}>minimum-variance line</strong>{' '}
-            is the Hull-White (2017) hedge: the delta that minimizes realized
-            P&amp;L variance given that on SPX vol tends to rise when spot
-            falls. It runs below the BSM call line because some of the
-            downside hedge is already done by your vega book.
-          </p>
-          <p style={{ margin: 0 }}>
-            The{' '}
-            <strong style={{ color: PLOTLY_COLORS.positive }}>green dots</strong>{' '}
-            are the market deltas carried on the feed, computed with BSM at
-            quote IV. They track the BSM line by construction. The gap when it
-            opens is quote-processing noise.
-          </p>
-        </div>
+      <div
+        style={{
+          fontFamily: 'Courier New, monospace',
+          fontSize: '0.7rem',
+          letterSpacing: '0.14em',
+          textTransform: 'uppercase',
+          color: 'var(--text-secondary)',
+          marginBottom: '0.85rem',
+        }}
+      >
+        model · delta comparison · bsm / sticky-delta / minimum-variance / market
       </div>
 
       <div
@@ -584,6 +537,42 @@ export default function SlotB() {
           lineHeight: 1.65,
         }}
       >
+        <p style={{ margin: '0 0 0.75rem' }}>
+          Four notions of delta on one SPX slice. They all start from the same
+          market implied vol and the same option price. They differ only in
+          what they assume about how the smile moves when spot moves. That
+          one assumption is worth up to a few cents of hedge per dollar of
+          notional.
+        </p>
+        <p style={{ margin: '0 0 0.75rem' }}>
+          The{' '}
+          <strong style={{ color: PLOTLY_COLORS.primary }}>BSM line</strong>{' '}
+          is the quote delta. It assumes σ(K) is glued to the strike and
+          does not move with spot. This is the "sticky-strike" world and is
+          what every option-chain screen reports.
+        </p>
+        <p style={{ margin: '0 0 0.75rem' }}>
+          The{' '}
+          <strong style={{ color: PLOTLY_COLORS.highlight }}>sticky-delta line</strong>{' '}
+          assumes the whole smile rides with the underlying. Under SPX put
+          skew this makes call delta larger, because when spot rises the
+          smile at the call strike also rises and adds to the call value.
+        </p>
+        <p style={{ margin: '0 0 0.75rem' }}>
+          The{' '}
+          <strong style={{ color: PLOTLY_COLORS.secondary }}>minimum-variance line</strong>{' '}
+          is the Hull-White (2017) hedge: the delta that minimizes realized
+          P&amp;L variance given that on SPX vol tends to rise when spot
+          falls. It runs below the BSM call line because some of the
+          downside hedge is already done by your vega book.
+        </p>
+        <p style={{ margin: '0 0 0.75rem' }}>
+          The{' '}
+          <strong style={{ color: PLOTLY_COLORS.positive }}>green dots</strong>{' '}
+          are the market deltas carried on the feed, computed with BSM at
+          quote IV. They track the BSM line by construction. The gap when it
+          opens is quote-processing noise.
+        </p>
         <p style={{ margin: '0 0 0.75rem' }}>
           <strong style={{ color: 'var(--text-primary)' }}>Reading.</strong>{' '}
           The vertical spread between the{' '}

@@ -374,70 +374,17 @@ export default function SlotD() {
 
   return (
     <div className="card" style={{ padding: '1.25rem 1.25rem 1rem' }}>
-      <div style={{ marginBottom: '0.85rem' }}>
-        <div
-          style={{
-            fontFamily: 'Courier New, monospace',
-            fontSize: '0.7rem',
-            letterSpacing: '0.14em',
-            textTransform: 'uppercase',
-            color: 'var(--text-secondary)',
-            marginBottom: '0.35rem',
-          }}
-        >
-          model · second-order greeks · vanna / volga / charm across strikes
-        </div>
-        <div
-          style={{
-            fontSize: '0.95rem',
-            color: 'var(--text-secondary)',
-            lineHeight: 1.6,
-            maxWidth: '860px',
-          }}
-        >
-          <p style={{ margin: '0 0 0.75rem' }}>
-            The first-order Greeks move the book when spot, vol, or time
-            move by a little. The second-order Greeks move when those
-            first-order Greeks themselves change. Three of them dominate
-            the SPX vol desk:{' '}
-            <strong style={{ color: PLOTLY_COLORS.primary }}>vanna</strong>,{' '}
-            <strong style={{ color: PLOTLY_COLORS.highlight }}>volga</strong>, and{' '}
-            <strong style={{ color: PLOTLY_COLORS.secondary }}>charm</strong>.
-          </p>
-          <p style={{ margin: '0 0 0.75rem' }}>
-            <strong style={{ color: PLOTLY_COLORS.primary }}>Vanna</strong>{' '}
-            is how much delta changes when vol changes. On a put-skewed
-            index a delta-neutral book at 15% vol is not delta-neutral at
-            20% vol. Vanna is why a vol rally quietly re-skews every
-            delta hedge in the book. It is near zero at ATM, flips sign
-            through the forward, and peaks one standard deviation out in
-            either wing.
-          </p>
-          <p style={{ margin: '0 0 0.75rem' }}>
-            <strong style={{ color: PLOTLY_COLORS.highlight }}>Volga</strong>{' '}
-            is the convexity of vega to vol. A long-volga book makes
-            money when vol moves either direction. A short-volga book
-            loses on vol spikes. Volga is small at ATM, positive in both
-            wings, and tallest where deep-OTM options still have
-            meaningful vega.
-          </p>
-          <p style={{ margin: '0 0 0.75rem' }}>
-            <strong style={{ color: PLOTLY_COLORS.secondary }}>Charm</strong>{' '}
-            is the daily bleed of delta through calendar time. Even in a
-            perfectly quiet market the delta of an option moves by a
-            small amount every day because time-to-expiry itself is
-            shrinking. Charm is the refresh amount a delta-hedged book
-            needs each session.
-          </p>
-          <p style={{ margin: 0 }}>
-            The chart below plots the selected Greek at every strike on
-            the current slice, evaluated at the market implied vol for
-            that strike. The shape is the combined effect of BSM's
-            analytic formula and the actual SPX smile. Switch between
-            Greeks with the dropdown. The stat row reports the ATM value
-            plus where the Greek peaks on either side of spot.
-          </p>
-        </div>
+      <div
+        style={{
+          fontFamily: 'Courier New, monospace',
+          fontSize: '0.7rem',
+          letterSpacing: '0.14em',
+          textTransform: 'uppercase',
+          color: 'var(--text-secondary)',
+          marginBottom: '0.85rem',
+        }}
+      >
+        model · second-order greeks · vanna / volga / charm across strikes
       </div>
 
       <div
@@ -563,6 +510,48 @@ export default function SlotD() {
           lineHeight: 1.65,
         }}
       >
+        <p style={{ margin: '0 0 0.75rem' }}>
+          The first-order Greeks move the book when spot, vol, or time
+          move by a little. The second-order Greeks move when those
+          first-order Greeks themselves change. Three of them dominate
+          the SPX vol desk:{' '}
+          <strong style={{ color: PLOTLY_COLORS.primary }}>vanna</strong>,{' '}
+          <strong style={{ color: PLOTLY_COLORS.highlight }}>volga</strong>, and{' '}
+          <strong style={{ color: PLOTLY_COLORS.secondary }}>charm</strong>.
+        </p>
+        <p style={{ margin: '0 0 0.75rem' }}>
+          <strong style={{ color: PLOTLY_COLORS.primary }}>Vanna</strong>{' '}
+          is how much delta changes when vol changes. On a put-skewed
+          index a delta-neutral book at 15% vol is not delta-neutral at
+          20% vol. Vanna is why a vol rally quietly re-skews every
+          delta hedge in the book. It is near zero at ATM, flips sign
+          through the forward, and peaks one standard deviation out in
+          either wing.
+        </p>
+        <p style={{ margin: '0 0 0.75rem' }}>
+          <strong style={{ color: PLOTLY_COLORS.highlight }}>Volga</strong>{' '}
+          is the convexity of vega to vol. A long-volga book makes
+          money when vol moves either direction. A short-volga book
+          loses on vol spikes. Volga is small at ATM, positive in both
+          wings, and tallest where deep-OTM options still have
+          meaningful vega.
+        </p>
+        <p style={{ margin: '0 0 0.75rem' }}>
+          <strong style={{ color: PLOTLY_COLORS.secondary }}>Charm</strong>{' '}
+          is the daily bleed of delta through calendar time. Even in a
+          perfectly quiet market the delta of an option moves by a
+          small amount every day because time-to-expiry itself is
+          shrinking. Charm is the refresh amount a delta-hedged book
+          needs each session.
+        </p>
+        <p style={{ margin: '0 0 0.75rem' }}>
+          The chart above plots the selected Greek at every strike on
+          the current slice, evaluated at the market implied vol for
+          that strike. The shape is the combined effect of BSM's
+          analytic formula and the actual SPX smile. Switch between
+          Greeks with the dropdown. The stat row reports the ATM value
+          plus where the Greek peaks on either side of spot.
+        </p>
         <p style={{ margin: '0 0 0.75rem' }}>
           <strong style={{ color: 'var(--text-primary)' }}>Reading.</strong>{' '}
           Each of the three second-order Greeks has a signature shape

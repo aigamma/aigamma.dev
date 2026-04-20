@@ -558,70 +558,17 @@ export default function SlotC() {
 
   return (
     <div className="card" style={{ padding: '1.25rem 1.25rem 1rem' }}>
-      <div style={{ marginBottom: '0.85rem' }}>
-        <div
-          style={{
-            fontFamily: 'Courier New, monospace',
-            fontSize: '0.7rem',
-            letterSpacing: '0.14em',
-            textTransform: 'uppercase',
-            color: 'var(--text-secondary)',
-            marginBottom: '0.35rem',
-          }}
-        >
-          model · vanna-volga · three-anchor smile reconstruction
-        </div>
-        <div
-          style={{
-            fontSize: '0.95rem',
-            color: 'var(--text-secondary)',
-            lineHeight: 1.6,
-            maxWidth: '860px',
-          }}
-        >
-          <p style={{ margin: '0 0 0.75rem' }}>
-            The Vanna-Volga method pins the smile with three anchor strikes.
-            The{' '}
-            <strong style={{ color: PLOTLY_COLORS.secondary }}>25-delta put</strong>,
-            the{' '}
-            <strong style={{ color: PLOTLY_COLORS.highlight }}>ATM straddle</strong>,
-            and the{' '}
-            <strong style={{ color: PLOTLY_COLORS.positive }}>25-delta call</strong>{' '}
-            carry the bulk of options liquidity on an FX desk. Every other
-            strike is priced as a Black-Scholes baseline at the ATM vol plus
-            three correction terms that match the vega, vanna, and volga of
-            the target option against a basket of the three anchors.
-          </p>
-          <p style={{ margin: '0 0 0.75rem' }}>
-            The{' '}
-            <strong style={{ color: PLOTLY_COLORS.primary }}>blue line</strong>{' '}
-            is the reconstructed implied-vol smile. It passes through all
-            three colored diamond anchors exactly by construction. The
-            grey dots are the listed market IVs at every strike on the
-            current SPX slice. The gap between the grey dots and the blue
-            line is how much of the observed smile is not explained by the
-            three-Greek match at the anchors.
-          </p>
-          <p style={{ margin: '0 0 0.75rem' }}>
-            Two derived numbers from the anchors describe the smile's
-            shape. The{' '}
-            <strong>Risk Reversal (RR)</strong> is σ(25ΔC) minus σ(25ΔP),
-            which measures asymmetry. On SPX it is deeply negative because
-            puts are more expensive than equally out-of-the-money calls.
-            The{' '}
-            <strong>Butterfly (BF)</strong> is the average of the two wing
-            vols minus the ATM vol, which measures convexity. A positive
-            BF means the market prices fat tails on both sides.
-          </p>
-          <p style={{ margin: 0 }}>
-            The VV reconstruction is a local second-order approximation.
-            Between the anchors it bends naturally along the smile. Outside
-            the anchor band the line is an extrapolation built on the
-            three-Greek match and it can drift off the observed wing. The
-            RMSE at the bottom of the stat row measures that drift across
-            the listed strikes.
-          </p>
-        </div>
+      <div
+        style={{
+          fontFamily: 'Courier New, monospace',
+          fontSize: '0.7rem',
+          letterSpacing: '0.14em',
+          textTransform: 'uppercase',
+          color: 'var(--text-secondary)',
+          marginBottom: '0.85rem',
+        }}
+      >
+        model · vanna-volga · three-anchor smile reconstruction
       </div>
 
       <div
@@ -724,6 +671,48 @@ export default function SlotC() {
           lineHeight: 1.65,
         }}
       >
+        <p style={{ margin: '0 0 0.75rem' }}>
+          The Vanna-Volga method pins the smile with three anchor strikes.
+          The{' '}
+          <strong style={{ color: PLOTLY_COLORS.secondary }}>25-delta put</strong>,
+          the{' '}
+          <strong style={{ color: PLOTLY_COLORS.highlight }}>ATM straddle</strong>,
+          and the{' '}
+          <strong style={{ color: PLOTLY_COLORS.positive }}>25-delta call</strong>{' '}
+          carry the bulk of options liquidity on an FX desk. Every other
+          strike is priced as a Black-Scholes baseline at the ATM vol plus
+          three correction terms that match the vega, vanna, and volga of
+          the target option against a basket of the three anchors.
+        </p>
+        <p style={{ margin: '0 0 0.75rem' }}>
+          The{' '}
+          <strong style={{ color: PLOTLY_COLORS.primary }}>blue line</strong>{' '}
+          is the reconstructed implied-vol smile. It passes through all
+          three colored diamond anchors exactly by construction. The
+          grey dots are the listed market IVs at every strike on the
+          current SPX slice. The gap between the grey dots and the blue
+          line is how much of the observed smile is not explained by the
+          three-Greek match at the anchors.
+        </p>
+        <p style={{ margin: '0 0 0.75rem' }}>
+          Two derived numbers from the anchors describe the smile's
+          shape. The{' '}
+          <strong>Risk Reversal (RR)</strong> is σ(25ΔC) minus σ(25ΔP),
+          which measures asymmetry. On SPX it is deeply negative because
+          puts are more expensive than equally out-of-the-money calls.
+          The{' '}
+          <strong>Butterfly (BF)</strong> is the average of the two wing
+          vols minus the ATM vol, which measures convexity. A positive
+          BF means the market prices fat tails on both sides.
+        </p>
+        <p style={{ margin: '0 0 0.75rem' }}>
+          The VV reconstruction is a local second-order approximation.
+          Between the anchors it bends naturally along the smile. Outside
+          the anchor band the line is an extrapolation built on the
+          three-Greek match and it can drift off the observed wing. The
+          RMSE at the bottom of the stat row measures that drift across
+          the listed strikes.
+        </p>
         <p style={{ margin: '0 0 0.75rem' }}>
           <strong style={{ color: 'var(--text-primary)' }}>Reading.</strong>{' '}
           The three diamonds are where the reconstruction is pinned. The

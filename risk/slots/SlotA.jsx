@@ -622,54 +622,17 @@ export default function SlotA() {
 
   return (
     <div className="card" style={{ padding: '1.25rem 1.25rem 1rem' }}>
-      <div style={{ marginBottom: '0.85rem' }}>
-        <div
-          style={{
-            fontFamily: 'Courier New, monospace',
-            fontSize: '0.7rem',
-            letterSpacing: '0.14em',
-            textTransform: 'uppercase',
-            color: 'var(--text-secondary)',
-            marginBottom: '0.35rem',
-          }}
-        >
-          model · cross-model greeks · bsm / bachelier / heston on one slice
-        </div>
-        <div
-          style={{
-            fontSize: '0.95rem',
-            color: 'var(--text-secondary)',
-            lineHeight: 1.6,
-            maxWidth: '860px',
-          }}
-        >
-          <p style={{ margin: '0 0 0.75rem' }}>
-            Three pricing models compute the same Greek on the same SPX slice.
-            The{' '}
-            <strong style={{ color: PLOTLY_COLORS.primary }}>BSM</strong>{' '}
-            line is log-normal with constant vol, evaluated at the interpolated
-            market implied vol. This is the Greek every quote screen shows.
-          </p>
-          <p style={{ margin: '0 0 0.75rem' }}>
-            The{' '}
-            <strong style={{ color: PLOTLY_COLORS.highlight }}>Bachelier</strong>{' '}
-            dashed line is the same Greek under a normal spot process instead
-            of log-normal. Near the money the two are nearly identical. In the
-            wings they diverge because the normal tail is thinner.
-          </p>
-          <p style={{ margin: '0 0 0.75rem' }}>
-            The{' '}
-            <strong style={{ color: PLOTLY_COLORS.positive }}>Heston</strong>{' '}
-            line comes from a stochastic-variance fit on the current slice,
-            with Greeks by finite difference on the characteristic-function
-            call. It carries smile dynamics that the first two models cannot.
-          </p>
-          <p style={{ margin: 0 }}>
-            The reader takeaway is the vertical spacing between the three
-            curves at a strike you care about. That distance is the model
-            risk embedded in the Greek, before any quote-level noise enters.
-          </p>
-        </div>
+      <div
+        style={{
+          fontFamily: 'Courier New, monospace',
+          fontSize: '0.7rem',
+          letterSpacing: '0.14em',
+          textTransform: 'uppercase',
+          color: 'var(--text-secondary)',
+          marginBottom: '0.85rem',
+        }}
+      >
+        model · cross-model greeks · bsm / bachelier / heston on one slice
       </div>
 
       <div
@@ -796,6 +759,32 @@ export default function SlotA() {
           lineHeight: 1.65,
         }}
       >
+        <p style={{ margin: '0 0 0.75rem' }}>
+          Three pricing models compute the same Greek on the same SPX slice.
+          The{' '}
+          <strong style={{ color: PLOTLY_COLORS.primary }}>BSM</strong>{' '}
+          line is log-normal with constant vol, evaluated at the interpolated
+          market implied vol. This is the Greek every quote screen shows.
+        </p>
+        <p style={{ margin: '0 0 0.75rem' }}>
+          The{' '}
+          <strong style={{ color: PLOTLY_COLORS.highlight }}>Bachelier</strong>{' '}
+          dashed line is the same Greek under a normal spot process instead
+          of log-normal. Near the money the two are nearly identical. In the
+          wings they diverge because the normal tail is thinner.
+        </p>
+        <p style={{ margin: '0 0 0.75rem' }}>
+          The{' '}
+          <strong style={{ color: PLOTLY_COLORS.positive }}>Heston</strong>{' '}
+          line comes from a stochastic-variance fit on the current slice,
+          with Greeks by finite difference on the characteristic-function
+          call. It carries smile dynamics that the first two models cannot.
+        </p>
+        <p style={{ margin: '0 0 0.75rem' }}>
+          The reader takeaway is the vertical spacing between the three
+          curves at a strike you care about. That distance is the model
+          risk embedded in the Greek, before any quote-level noise enters.
+        </p>
         <p style={{ margin: '0 0 0.75rem' }}>
           <strong style={{ color: 'var(--text-primary)' }}>Reading.</strong>{' '}
           Near the money the three lines collapse almost on top of each other.

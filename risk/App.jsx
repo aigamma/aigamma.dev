@@ -82,22 +82,18 @@ export default function App() {
       </div>
 
       <section className="lab-slot">
-        <div className="lab-slot-label">SLOT A · CROSS-MODEL GREEKS</div>
         <ErrorBoundary><SlotA /></ErrorBoundary>
       </section>
 
       <section className="lab-slot">
-        <div className="lab-slot-label">SLOT B · DELTA COMPARISON</div>
         <ErrorBoundary><SlotB /></ErrorBoundary>
       </section>
 
       <section className="lab-slot">
-        <div className="lab-slot-label">SLOT C · VANNA-VOLGA DECOMPOSITION</div>
         <ErrorBoundary><SlotC /></ErrorBoundary>
       </section>
 
       <section className="lab-slot">
-        <div className="lab-slot-label">SLOT D · SECOND-ORDER GREEKS</div>
         <ErrorBoundary><SlotD /></ErrorBoundary>
       </section>
 
