@@ -1,6 +1,7 @@
 import '../src/styles/theme.css';
 import '../src/styles/lab.css';
 import ErrorBoundary from '../src/ErrorBoundary';
+import Chat from '../src/components/Chat';
 import SlotA, { slotName as slotAName } from './slots/SlotA';
 import SlotB, { slotName as slotBName } from './slots/SlotB';
 
@@ -57,6 +58,18 @@ export default function App() {
         <div className="lab-slot-label">{slotBName}</div>
         <ErrorBoundary><SlotB /></ErrorBoundary>
       </section>
+
+      <ErrorBoundary>
+        <Chat
+          context="alpha"
+          welcome={{
+            quick:
+              'Ask about whichever prototype is currently in SlotA and SlotB, the iteration path between them, or the math and quant-finance motivation behind the model under test.',
+            deep:
+              'Deep Analysis mode — longer and more structurally detailed responses on the model currently scaffolded in the two slots, the engineering decisions behind the iteration, and the broader quantitative-finance context this prototype sits inside.',
+          }}
+        />
+      </ErrorBoundary>
 
       <footer className="lab-footer">
         <span className="lab-footer-line">
