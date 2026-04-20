@@ -64,6 +64,17 @@ body {
   align-items: center;
 }
 
+/* Scoped left margin on the QuantMenu trigger only when it sits inside the
+   main landing page's .site-nav — shifts the trigger a touch to the right so
+   it sits more centrally between the status group on the left and the About
+   link to its right, giving the primary nav affordance more visual weight in
+   the header. Deliberately scoped under .site-nav (not on .quant-menu-trigger
+   globally) so the same trigger on every lab page's .lab-nav-group stays
+   unaffected. */
+.site-nav .quant-menu-trigger {
+  margin-left: 2rem;
+}
+
 .site-nav a {
   font-family: 'Courier New', monospace;
   font-size: 1.1rem;
