@@ -2,6 +2,7 @@ import '../src/styles/theme.css';
 import '../src/styles/lab.css';
 import ErrorBoundary from '../src/ErrorBoundary';
 import QuantMenu from '../src/components/QuantMenu';
+import Chat from '../src/components/Chat';
 import SlotA from './slots/SlotA';
 import SlotB from './slots/SlotB';
 import SlotC from './slots/SlotC';
@@ -79,6 +80,18 @@ export default function App() {
         <div className="lab-slot-label">SLOT C · WASSERSTEIN K-MEANS</div>
         <ErrorBoundary><SlotC /></ErrorBoundary>
       </section>
+
+      <ErrorBoundary>
+        <Chat
+          context="regime"
+          welcome={{
+            quick:
+              'Ask about regime identification, the three methods above, or how they disagree at transition boundaries. Chat stays on volatility, options, and regime modeling.',
+            deep:
+              'Deep Analysis mode — longer and more structurally detailed responses on mixture models, Markov regime switching, Wasserstein clustering, and the philosophy of answering one question three ways.',
+          }}
+        />
+      </ErrorBoundary>
 
       <footer className="lab-footer">
         <span className="lab-footer-line">

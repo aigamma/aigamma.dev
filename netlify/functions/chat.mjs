@@ -23,17 +23,19 @@
 
 import mainPrompt from './prompts/main.mjs';
 import garchPrompt from './prompts/garch.mjs';
+import regimePrompt from './prompts/regime.mjs';
 
 // Per-page system prompt registry. Keyed by the `context` field the client
 // sends in the POST body. The keys are short slugs that match the URL path
 // segment of the page the chat is mounted on (main = landing page at /,
-// garch = /garch/). Add a new key here and a new peer file in ./prompts/
-// when a new lab page wants its own chat voice. An unknown or missing key
-// falls through to the main-dashboard prompt so a stale client that forgets
-// to pass context still gets a coherent answer.
+// garch = /garch/, regime = /regime/). Add a new key here and a new peer
+// file in ./prompts/ when a new lab page wants its own chat voice. An
+// unknown or missing key falls through to the main-dashboard prompt so a
+// stale client that forgets to pass context still gets a coherent answer.
 const SYSTEM_PROMPTS = {
   main: mainPrompt,
   garch: garchPrompt,
+  regime: regimePrompt,
 };
 
 // Two-model config mirroring about.aigamma.com — Sonnet powers the default
