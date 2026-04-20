@@ -45,13 +45,14 @@ import SlotD from './slots/SlotD';
 // Greeks, deltas, and smile reconstructions describe one point-in-time
 // chain. Unlike the bookmark-only lab surfaces, this page carries
 // active egress back to the main dashboard at three redundant
-// affordances: the logo in the header is a hyperlink to `/`, a filled
-// green RETURN HOME button sits inside the header row itself as the
-// first child of a lab-nav-group cluster on the right — horizontally
-// aligned with and immediately preceding the QuantMenu trigger so the
-// two read as a single two-button nav cluster on the right edge of
-// the header — and the footer carries a bolded Return Home link for
-// a reader who has scrolled to the bottom of a long page.
+// affordances, matching the /parity/, /jump/, /garch/, /regime/, and
+// /stochastic/ pattern: the logo in the header is a hyperlink to `/`,
+// a filled green RETURN HOME button sits in the header itself between
+// the Risk Lab brand on the left and the QuantMenu trigger on the
+// right — centered horizontally as the midpoint of the other two nav
+// items via the header's flex space-between distribution across three
+// direct children — and the footer carries a bolded Return Home link
+// for a reader who has scrolled to the bottom of a long page.
 export default function App() {
   return (
     <div className="app-shell lab-shell">
@@ -67,10 +68,8 @@ export default function App() {
             Risk Lab
           </span>
         </div>
-        <div className="lab-nav-group">
-          <a href="/" className="lab-home-button lab-home-button--inline">Return Home</a>
-          <QuantMenu />
-        </div>
+        <a href="/" className="lab-home-button lab-home-button--inline">Return Home</a>
+        <QuantMenu />
       </header>
 
       <section className="lab-slot">
