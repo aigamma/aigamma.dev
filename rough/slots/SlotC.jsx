@@ -411,53 +411,17 @@ export default function SlotC() {
 
   return (
     <div className="card" style={{ padding: '1.25rem 1.25rem 1rem' }}>
-      <div style={{ marginBottom: '0.85rem' }}>
-        <div
-          style={{
-            fontFamily: 'Courier New, monospace',
-            fontSize: '0.7rem',
-            letterSpacing: '0.14em',
-            textTransform: 'uppercase',
-            color: 'var(--text-secondary)',
-            marginBottom: '0.35rem',
-          }}
-        >
-          model · Hurst triangulation · three orthogonal estimators
-        </div>
-        <div
-          style={{
-            fontSize: '1.00rem',
-            color: 'var(--text-secondary)',
-            lineHeight: 1.6,
-            maxWidth: '820px',
-          }}
-        >
-          <p style={{ margin: '0 0 0.7rem' }}>
-            This card cross-checks the H reading from Slot A using three
-            independent measurement methods. All three should give a similar
-            number when the rough-vol regime is well defined.
-          </p>
-          <p style={{ margin: '0 0 0.4rem' }}>
-            <strong style={{ color: PLOTLY_COLORS.primary }}>Variogram</strong>{' '}
-            measures the typical squared difference between distant log-vol
-            observations.
-          </p>
-          <p style={{ margin: '0 0 0.4rem' }}>
-            <strong style={{ color: PLOTLY_COLORS.highlight }}>Absolute moments</strong>{' '}
-            uses absolute differences instead, which downweights the most
-            extreme days. It is more robust to outliers.
-          </p>
-          <p style={{ margin: '0 0 0.7rem' }}>
-            <strong style={{ color: PLOTLY_COLORS.positive }}>DFA</strong>{' '}
-            looks at how cumulative drift in log-vol scales with window size,
-            after removing local trends within each window.
-          </p>
-          <p style={{ margin: 0 }}>
-            When all three methods agree, the H reading is reliable. When
-            they diverge, the data is noisy or the regime is shifting, and
-            you should treat any single H estimate with skepticism.
-          </p>
-        </div>
+      <div
+        style={{
+          fontFamily: 'Courier New, monospace',
+          fontSize: '0.7rem',
+          letterSpacing: '0.14em',
+          textTransform: 'uppercase',
+          color: 'var(--text-secondary)',
+          marginBottom: '0.85rem',
+        }}
+      >
+        model · Hurst triangulation · three orthogonal estimators
       </div>
 
       <div
@@ -514,13 +478,38 @@ export default function SlotC() {
         }}
       >
         <p style={{ margin: '0 0 0.6rem' }}>
+          This card cross-checks the H reading from the RFSV signature above
+          using three independent measurement methods. All three should give
+          a similar number when the rough-vol regime is well defined.
+        </p>
+        <p style={{ margin: '0 0 0.4rem' }}>
+          <strong style={{ color: PLOTLY_COLORS.primary }}>Variogram</strong>{' '}
+          measures the typical squared difference between distant log-vol
+          observations.
+        </p>
+        <p style={{ margin: '0 0 0.4rem' }}>
+          <strong style={{ color: PLOTLY_COLORS.highlight }}>Absolute moments</strong>{' '}
+          uses absolute differences instead, which downweights the most
+          extreme days. It is more robust to outliers.
+        </p>
+        <p style={{ margin: '0 0 0.6rem' }}>
+          <strong style={{ color: PLOTLY_COLORS.positive }}>DFA</strong>{' '}
+          looks at how cumulative drift in log-vol scales with window size,
+          after removing local trends within each window.
+        </p>
+        <p style={{ margin: '0 0 0.6rem' }}>
+          When all three methods agree, the H reading is reliable. When
+          they diverge, the data is noisy or the regime is shifting, and
+          you should treat any single H estimate with skepticism.
+        </p>
+        <p style={{ margin: '0 0 0.6rem' }}>
           <strong style={{ color: 'var(--text-primary)' }}>How to use it.</strong>{' '}
           Look at the Triangulated H value first.
         </p>
         <p style={{ margin: '0 0 0.6rem' }}>
           A spread under 0.03 means all three methods agree. The H reading
-          is reliable. Plug it into the Slot B simulator as the calibration
-          starting point.
+          is reliable. Plug it into the rough Bergomi simulator above as the
+          calibration starting point.
         </p>
         <p style={{ margin: '0 0 0.6rem' }}>
           A wider spread means at least one method is reading the data

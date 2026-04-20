@@ -685,58 +685,17 @@ export default function SlotB() {
 
   return (
     <div className="card" style={{ padding: '1.25rem 1.25rem 1rem' }}>
-      <div style={{ marginBottom: '0.85rem' }}>
-        <div
-          style={{
-            fontFamily: 'Courier New, monospace',
-            fontSize: '0.7rem',
-            letterSpacing: '0.14em',
-            textTransform: 'uppercase',
-            color: 'var(--text-secondary)',
-            marginBottom: '0.35rem',
-          }}
-        >
-          model · Rough Bergomi · Bayer-Friz-Gatheral 2016
-        </div>
-        <div
-          style={{
-            fontSize: '1.00rem',
-            color: 'var(--text-secondary)',
-            lineHeight: 1.6,
-            maxWidth: '820px',
-          }}
-        >
-          <p style={{ margin: '0 0 0.7rem' }}>
-            This is a forward-looking simulator. Set the four sliders to the
-            regime you want to test, and {N_PATHS} Monte Carlo paths will
-            project a year of SPX volatility plus the implied vol smile that
-            regime would produce.
-          </p>
-          <p style={{ margin: '0 0 0.4rem' }}>
-            <strong style={{ color: 'var(--text-primary)' }}>The four sliders.</strong>
-          </p>
-          <p style={{ margin: '0 0 0.4rem' }}>
-            <strong style={{ color: PLOTLY_COLORS.highlight }}>Hurst H</strong>{' '}
-            controls how rough the volatility moves are. Lower H means more
-            violent short-term swings.
-          </p>
-          <p style={{ margin: '0 0 0.4rem' }}>
-            <strong style={{ color: PLOTLY_COLORS.highlight }}>Vol-of-vol η</strong>{' '}
-            scales how dramatically vol can change in either direction.
-            Higher η produces a wider fan.
-          </p>
-          <p style={{ margin: '0 0 0.4rem' }}>
-            <strong style={{ color: PLOTLY_COLORS.highlight }}>Correlation ρ</strong>{' '}
-            links spot moves to vol moves. The standard equity setting is
-            negative, which produces the put-skew that you see on real SPX
-            chains.
-          </p>
-          <p style={{ margin: 0 }}>
-            <strong style={{ color: PLOTLY_COLORS.highlight }}>Initial vol √ξ₀</strong>{' '}
-            is the starting at-the-money vol level. Set this to current
-            1-month at-the-money vol to anchor the simulation to today.
-          </p>
-        </div>
+      <div
+        style={{
+          fontFamily: 'Courier New, monospace',
+          fontSize: '0.7rem',
+          letterSpacing: '0.14em',
+          textTransform: 'uppercase',
+          color: 'var(--text-secondary)',
+          marginBottom: '0.85rem',
+        }}
+      >
+        model · Rough Bergomi · Bayer-Friz-Gatheral 2016
       </div>
 
       <div
@@ -867,12 +826,43 @@ export default function SlotB() {
         }}
       >
         <p style={{ margin: '0 0 0.6rem' }}>
+          This is a forward-looking simulator. Set the four sliders to the
+          regime you want to test, and {N_PATHS} Monte Carlo paths will
+          project a year of SPX volatility plus the implied vol smile that
+          regime would produce.
+        </p>
+        <p style={{ margin: '0 0 0.4rem' }}>
+          <strong style={{ color: 'var(--text-primary)' }}>The four sliders.</strong>
+        </p>
+        <p style={{ margin: '0 0 0.4rem' }}>
+          <strong style={{ color: PLOTLY_COLORS.highlight }}>Hurst H</strong>{' '}
+          controls how rough the volatility moves are. Lower H means more
+          violent short-term swings.
+        </p>
+        <p style={{ margin: '0 0 0.4rem' }}>
+          <strong style={{ color: PLOTLY_COLORS.highlight }}>Vol-of-vol η</strong>{' '}
+          scales how dramatically vol can change in either direction.
+          Higher η produces a wider fan.
+        </p>
+        <p style={{ margin: '0 0 0.4rem' }}>
+          <strong style={{ color: PLOTLY_COLORS.highlight }}>Correlation ρ</strong>{' '}
+          links spot moves to vol moves. The standard equity setting is
+          negative, which produces the put-skew that you see on real SPX
+          chains.
+        </p>
+        <p style={{ margin: '0 0 0.6rem' }}>
+          <strong style={{ color: PLOTLY_COLORS.highlight }}>Initial vol √ξ₀</strong>{' '}
+          is the starting at-the-money vol level. Set this to current
+          1-month at-the-money vol to anchor the simulation to today.
+        </p>
+        <p style={{ margin: '0 0 0.6rem' }}>
           <strong style={{ color: 'var(--text-primary)' }}>How to use it.</strong>{' '}
           Anchor the simulator to today first.
         </p>
         <p style={{ margin: '0 0 0.6rem' }}>
           Set √ξ₀ to the current SPX 1-month at-the-money implied vol. Set H
-          to the value reported in Slot A or C, typically near 0.12. Leave ρ
+          to the value reported by the RFSV signature or the three-estimator
+          triangulation on this page, typically near 0.12. Leave ρ
           near −0.9 and η near 1.9 as a reasonable equity baseline. Then
           read the smile chart against today's SPX option chain.
         </p>

@@ -83,17 +83,14 @@ export default function App() {
       </div>
 
       <section className="lab-slot">
-        <div className="lab-slot-label">SLOT A · RFSV HURST SIGNATURE</div>
         <ErrorBoundary><SlotA /></ErrorBoundary>
       </section>
 
       <section className="lab-slot">
-        <div className="lab-slot-label">SLOT B · ROUGH BERGOMI SIMULATOR</div>
         <ErrorBoundary><SlotB /></ErrorBoundary>
       </section>
 
       <section className="lab-slot">
-        <div className="lab-slot-label">SLOT C · HURST ESTIMATOR TRIANGULATION</div>
         <ErrorBoundary><SlotC /></ErrorBoundary>
       </section>
 

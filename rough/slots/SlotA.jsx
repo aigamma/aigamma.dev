@@ -344,47 +344,17 @@ export default function SlotA() {
 
   return (
     <div className="card" style={{ padding: '1.25rem 1.25rem 1rem' }}>
-      <div style={{ marginBottom: '0.85rem' }}>
-        <div
-          style={{
-            fontFamily: 'Courier New, monospace',
-            fontSize: '0.7rem',
-            letterSpacing: '0.14em',
-            textTransform: 'uppercase',
-            color: 'var(--text-secondary)',
-            marginBottom: '0.35rem',
-          }}
-        >
-          model · RFSV · Gatheral-Jaisson-Rosenbaum 2018 structure function
-        </div>
-        <div
-          style={{
-            fontSize: '1.00rem',
-            color: 'var(--text-secondary)',
-            lineHeight: 1.6,
-            maxWidth: '820px',
-          }}
-        >
-          <p style={{ margin: '0 0 0.7rem' }}>
-            This chart measures how SPX volatility correlates with itself
-            across time scales from 1 day to 60 days. Each colored line tracks
-            how much daily log-return magnitudes spread apart over that range
-            of lags.
-          </p>
-          <p style={{ margin: '0 0 0.7rem' }}>
-            The slope of each line is what matters. The{' '}
-            <strong style={{ color: PLOTLY_COLORS.highlight }}>Hurst parameter H</strong>{' '}
-            condenses that slope into one number that describes how rough or
-            smooth volatility behaves on this market.
-          </p>
-          <p style={{ margin: 0 }}>
-            For SPX, H typically lands between 0.08 and 0.18. Lines that stay
-            roughly parallel across the five q values mean a single H
-            describes the regime well, which is the normal state. Lines that
-            fan apart mean the regime is in flux and a single H value is
-            unreliable.
-          </p>
-        </div>
+      <div
+        style={{
+          fontFamily: 'Courier New, monospace',
+          fontSize: '0.7rem',
+          letterSpacing: '0.14em',
+          textTransform: 'uppercase',
+          color: 'var(--text-secondary)',
+          marginBottom: '0.85rem',
+        }}
+      >
+        model · RFSV · Gatheral-Jaisson-Rosenbaum 2018 structure function
       </div>
 
       <div
@@ -436,6 +406,25 @@ export default function SlotA() {
         }}
       >
         <p style={{ margin: '0 0 0.6rem' }}>
+          This chart measures how SPX volatility correlates with itself
+          across time scales from 1 day to 60 days. Each colored line tracks
+          how much daily log-return magnitudes spread apart over that range
+          of lags.
+        </p>
+        <p style={{ margin: '0 0 0.6rem' }}>
+          The slope of each line is what matters. The{' '}
+          <strong style={{ color: PLOTLY_COLORS.highlight }}>Hurst parameter H</strong>{' '}
+          condenses that slope into one number that describes how rough or
+          smooth volatility behaves on this market.
+        </p>
+        <p style={{ margin: '0 0 0.6rem' }}>
+          For SPX, H typically lands between 0.08 and 0.18. Lines that stay
+          roughly parallel across the five q values mean a single H
+          describes the regime well, which is the normal state. Lines that
+          fan apart mean the regime is in flux and a single H value is
+          unreliable.
+        </p>
+        <p style={{ margin: '0 0 0.6rem' }}>
           <strong style={{ color: 'var(--text-primary)' }}>How to use it.</strong>{' '}
           Read the pooled H value first.
         </p>
@@ -443,7 +432,7 @@ export default function SlotA() {
           H around{' '}
           <strong style={{ color: PLOTLY_COLORS.highlight }}>0.10 to 0.15</strong>{' '}
           is the normal SPX regime. Use the headline H from this card as the
-          calibration starting point for the Slot B simulator.
+          calibration starting point for the rough Bergomi simulator below.
         </p>
         <p style={{ margin: '0 0 0.6rem' }}>
           H below 0.08 signals a more turbulent vol regime. Short-dated
@@ -461,7 +450,8 @@ export default function SlotA() {
           under 0.03 is a clean read. A spread above 0.05 means the lines on
           the chart fan apart visibly, the regime is shifting, and the
           headline H should not be used for sizing decisions until it
-          stabilizes. Cross-check with Slot C in that case.
+          stabilizes. Cross-check with the three-estimator triangulation
+          below in that case.
         </p>
       </div>
     </div>
