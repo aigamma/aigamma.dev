@@ -53,6 +53,40 @@ const REGIME_COLORS = {
   amber: 'var(--accent-amber)',
 };
 
+// Favicon state mirrors the three-state iconography of the AI Gamma browser
+// extension (green plus, coral minus, AiG monogram). positive/negative only
+// ship at 16 and 32 px in the extension bundle, so 48 and 128 fall back to
+// the 32 px asset under upscaling; neutral ships at all four sizes natively.
+// NEAR FLIP (amber tone on the dashboard) collapses to neutral here so the
+// tab icon matches what the approved Chrome Store extension already shows.
+const FAVICON_PATHS = {
+  positive: {
+    16: '/favicons/positive/icon16.png',
+    32: '/favicons/positive/icon32.png',
+    48: '/favicons/positive/icon32.png',
+    128: '/favicons/positive/icon32.png',
+  },
+  negative: {
+    16: '/favicons/negative/icon16.png',
+    32: '/favicons/negative/icon32.png',
+    48: '/favicons/negative/icon32.png',
+    128: '/favicons/negative/icon32.png',
+  },
+  neutral: {
+    16: '/favicons/neutral/icon16.png',
+    32: '/favicons/neutral/icon32.png',
+    48: '/favicons/neutral/icon48.png',
+    128: '/favicons/neutral/icon128.png',
+  },
+};
+
+function faviconStateFromRegime(regime) {
+  if (!regime) return 'neutral';
+  if (regime.tone === 'green') return 'positive';
+  if (regime.tone === 'coral') return 'negative';
+  return 'neutral';
+}
+
 function readExpFromUrl() {
   if (typeof window === 'undefined') return null;
   const params = new URLSearchParams(window.location.search);
@@ -251,6 +285,21 @@ export default function App() {
   const isSynthetic = data && data.source === 'synthetic';
   const regime = data ? classifyGammaRegime(correctedLevels, data.spotPrice) : null;
   const marketClosed = isMarketClosed(new Date());
+
+  // Dynamic favicon: sync the tab icon with the same regime classification
+  // that drives the on-page STATUS badge, so the tab chrome always agrees
+  // with the dashboard header. Keyed on the primitive state string so the
+  // effect fires only on actual regime transitions, not on every data
+  // refetch that returns a fresh object with the same tone.
+  const faviconState = faviconStateFromRegime(regime);
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    const paths = FAVICON_PATHS[faviconState];
+    for (const size of [16, 32, 48, 128]) {
+      const link = document.getElementById(`favicon-${size}`);
+      if (link) link.setAttribute('href', paths[size]);
+    }
+  }, [faviconState]);
 
   return (
     <div className="app-shell">
