@@ -417,11 +417,11 @@ export default function SlotC() {
           fontSize: '0.7rem',
           letterSpacing: '0.14em',
           textTransform: 'uppercase',
-          color: 'var(--text-secondary)',
+          color: 'var(--accent-amber)',
           marginBottom: '0.85rem',
         }}
       >
-        model · Hurst triangulation · three orthogonal estimators
+        Hurst triangulation · three orthogonal estimators
       </div>
 
       <div

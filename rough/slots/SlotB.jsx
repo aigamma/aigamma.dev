@@ -691,11 +691,11 @@ export default function SlotB() {
           fontSize: '0.7rem',
           letterSpacing: '0.14em',
           textTransform: 'uppercase',
-          color: 'var(--text-secondary)',
+          color: 'var(--accent-amber)',
           marginBottom: '0.85rem',
         }}
       >
-        model · Rough Bergomi · Bayer-Friz-Gatheral 2016
+        Rough Bergomi · Bayer-Friz-Gatheral 2016
       </div>
 
       <div

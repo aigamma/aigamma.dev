@@ -350,11 +350,11 @@ export default function SlotA() {
           fontSize: '0.7rem',
           letterSpacing: '0.14em',
           textTransform: 'uppercase',
-          color: 'var(--text-secondary)',
+          color: 'var(--accent-amber)',
           marginBottom: '0.85rem',
         }}
       >
-        model · RFSV · Gatheral-Jaisson-Rosenbaum 2018 structure function
+        RFSV · Gatheral-Jaisson-Rosenbaum 2018 structure function
       </div>
 
       <div
