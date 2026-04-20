@@ -371,11 +371,11 @@ export default function SlotD() {
           fontSize: '0.7rem',
           letterSpacing: '0.14em',
           textTransform: 'uppercase',
-          color: 'var(--text-secondary)',
+          color: 'var(--accent-amber)',
           marginBottom: '0.85rem',
         }}
       >
-        model · rough bergomi · skew term-structure scaling law
+        rough bergomi · skew term-structure scaling law
       </div>
 
       <div
@@ -431,62 +431,91 @@ export default function SlotD() {
         }}
       >
         <p style={{ margin: '0 0 0.75rem' }}>
-          Rough volatility predicts that ATM skew scales as{' '}
-          <code style={{ color: 'var(--text-primary)' }}>|∂σ_ATM/∂k| ~ c · T^(H − ½)</code>.
-          The Hurst parameter <strong>H</strong> measures how rough the
-          variance driving noise is.
+          This card answers one question a short-dated options trader has to
+          have an opinion on: how steep is the near-term skew going to get
+          as time to expiration shrinks. The rough-vol answer is "steeper
+          than classical models predict, by a predictable amount," and the
+          single number <strong>H</strong> (the Hurst exponent) sets how
+          steep. Lower H means a rougher vol path, which means the skew on
+          near-dated puts blows up faster as you approach expiration than a
+          Heston-style model would predict.
         </p>
         <p style={{ margin: '0 0 0.75rem' }}>
-          H = ½ is standard Brownian motion, which is where Heston (above)
-          lives. It predicts a flat skew at short T.
-        </p>
-        <p style={{ margin: '0 0 0.75rem' }}>
-          H &lt; ½ is rougher. The volatility path becomes more jagged than
-          Brownian and generates the steep short-dated skew that classical SV
-          models cannot produce without jumps. SPX consensus since
-          Gatheral-Jaisson-Rosenbaum (2018) is H ≈ 0.1.
-        </p>
-        <p style={{ margin: '0 0 0.75rem' }}>
+          <strong style={{ color: 'var(--text-primary)' }}>Reading the chart.</strong>{' '}
           Each{' '}
-          <strong style={{ color: PLOTLY_COLORS.titleText }}>observed point</strong>{' '}
-          on the chart is the ATM skew from one SVI slice. The{' '}
+          <strong style={{ color: PLOTLY_COLORS.titleText }}>point</strong>{' '}
+          is the ATM skew at one SPX expiration in today&apos;s chain, plotted
+          against tenor on log-log axes. The{' '}
           <strong style={{ color: PLOTLY_COLORS.positive }}>green line</strong>{' '}
-          is the fitted power law. The{' '}
-          <strong style={{ color: PLOTLY_COLORS.secondary }}>coral</strong>,{' '}
-          <strong style={{ color: PLOTLY_COLORS.highlight }}>amber</strong>, and{' '}
-          <strong style={{ color: PLOTLY_COLORS.primary }}>blue</strong>{' '}
-          reference lines are T^(H−½) for H = 0.10 / 0.30 / 0.50, each pinned
-          to the same intercept so the comparison reads as slope-only.
+          is the power-law fit through those points; its slope translates
+          straight into H. The three reference lines are what you would see
+          at H = 0.10 ({' '}
+          <strong style={{ color: PLOTLY_COLORS.secondary }}>coral, rough</strong>),
+          H = 0.30 ({' '}
+          <strong style={{ color: PLOTLY_COLORS.highlight }}>amber, intermediate</strong>),
+          and H = 0.50 ({' '}
+          <strong style={{ color: PLOTLY_COLORS.primary }}>blue, classical</strong>),
+          all pinned to the same intercept so you are comparing slopes only.
+          A steeper line means rougher vol means a sharper short-dated skew.
+          The H = 0.5 blue line is what the Heston card above would produce;
+          the gap between that line and the actual dots at the short end is
+          what Heston misses and rough Bergomi was built to price.
         </p>
         <p style={{ margin: '0 0 0.75rem' }}>
-          <strong style={{ color: 'var(--text-primary)' }}>Reading.</strong>{' '}
-          On log-log axes a single Hurst exponent turns into a straight line
-          whose slope is H − ½. A fitted{' '}
-          <strong style={{ color: isRough ? PLOTLY_COLORS.secondary : PLOTLY_COLORS.primary }}>
-            H ≈ {fit ? fit.H.toFixed(2) : '-'}
-          </strong>{' '}
-          in the 0.05–0.15 band is the canonical rough-vol finding, and it is
-          what drove adoption of the Bayer-Friz-Gatheral paper.
+          <strong style={{ color: 'var(--text-primary)' }}>Practical use.</strong>{' '}
+          Use the fitted H as a short-dated skew forecast. If H prints in the
+          canonical SPX band (roughly 0.05 to 0.15), the skew on a put
+          expiring in a few days will be materially steeper than the skew at
+          the monthly. That matters for two concrete trades:
         </p>
         <p style={{ margin: '0 0 0.75rem' }}>
-          The H = 0.5 reference line is what Heston above would trace out.
-          The visible gap between that line and the observed points at the
-          short end is the empirical anomaly. Heston systematically undershoots.
+          <strong>(1) Short-dated put overwriting and put-spread selling.</strong>{' '}
+          When H is low, the skew on near-dated puts is priced at a premium
+          that decays hard as you walk out in time. Selling the short-dated
+          leg and buying a longer-dated leg at the same strike (a put
+          calendar) monetizes that decay. The lower the fitted H, the richer
+          that trade is in steady state. When H drifts higher (toward 0.30
+          or above) the skew term structure has flattened out, which
+          usually coincides with post-crash or low-realized-vol regimes and
+          compresses the calendar edge.
         </p>
         <p style={{ margin: '0 0 0.75rem' }}>
-          Why it matters operationally. If skew scales as T^(−0.4) rather than
-          T^(−0.5), then short-dated put risk grows less steeply than a
-          classical SV model predicts as you shorten T. That changes both
-          hedging cost estimates and forward skew projections for variance-swap
-          and VIX-like products.
+          <strong>(2) Hedging cost projections.</strong> If you mark put-hedge
+          cost assuming a classical (H = 0.5) skew term structure, you will
+          underestimate the cost of rolling short-dated protection. A
+          rough-vol fit (H near 0.1) says rolling a weekly put costs more per
+          day than a classical model predicts, so systematic put-rolling
+          programs should budget for that gap or rotate to monthly hedges
+          where the rough premium is smaller.
+        </p>
+        <p style={{ margin: '0 0 0.75rem' }}>
+          A rising H on sequential refreshes (say H moving from 0.10 to 0.25
+          over days) is a regime signal: short-dated skew is flattening
+          relative to long-dated, which historically pairs with dealers
+          running less short gamma and a calmer intraday tape. A falling H
+          is the opposite, short-dated crash premium is steepening and the
+          market is getting jumpier at the front end.
+        </p>
+        <p style={{ margin: '0 0 0.75rem' }}>
+          Disagreement check against the Heston card. If Heston above shows
+          a big residual at short-dated downside strikes and H here prints
+          low, the two are telling the same story from opposite directions:
+          rough vol is the explanation for why the mean-reverting SV fit
+          misses the short-end put skew. If Heston fits cleanly at short T
+          and H here prints near 0.5, the market is in a regime where
+          classical SV is sufficient, which is unusual for SPX and is worth
+          noticing.
         </p>
         <p style={{ margin: 0 }}>
-          Caveats. The SVI-implied ATM skew is a local tangent read at y = 0,
-          so thin wings or bad fits (filtered out above {MAX_RMSE * 100}%%&nbsp;RMSE)
-          can still pull the power-law slope. And the ATM skew definition used
-          here is ∂σ/∂k, not the variance-swap skew ∂σ²T/∂k that shows up in
-          some rough-vol derivations. The two scale the same way at short T
-          but carry different intercepts.
+          Caveats. The ATM skew is read from the SVI tangent at y = 0, so
+          expirations with thin wings or poor SVI fits (filtered above{' '}
+          {MAX_RMSE * 100}% RMSE) can still pull the power-law slope. The
+          skew definition here is ∂σ/∂k; some rough-vol derivations use the
+          variance-swap skew ∂(σ²T)/∂k, which scales the same way at short T
+          but with a different intercept. Treat the printed H as a working
+          number rather than a precise estimate, and read it in the context
+          of how it moves day to day more than its exact value on a single
+          snapshot.
         </p>
       </div>
     </div>

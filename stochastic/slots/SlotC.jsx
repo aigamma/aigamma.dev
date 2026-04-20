@@ -402,11 +402,11 @@ export default function SlotC() {
           fontSize: '0.7rem',
           letterSpacing: '0.14em',
           textTransform: 'uppercase',
-          color: 'var(--text-secondary)',
+          color: 'var(--accent-amber)',
           marginBottom: '0.85rem',
         }}
       >
-        model · dupire local vol · surface from SVI slice set
+        dupire local vol · surface from SVI slice set
       </div>
 
       <div
@@ -464,58 +464,82 @@ export default function SlotC() {
         }}
       >
         <p style={{ margin: '0 0 0.75rem' }}>
-          The{' '}
-          <strong style={{ color: PLOTLY_COLORS.primary }}>Dupire local volatility</strong>{' '}
-          function σ_LV(K, T) is the deterministic diffusion coefficient that
-          reproduces every European option price on today&apos;s implied-vol
-          surface exactly.
+          This heatmap is the {' '}
+          <strong style={{ color: PLOTLY_COLORS.primary }}>Dupire local
+          volatility surface</strong>, a decoded version of the entire SPX
+          smile laid out in one picture. Every point on the map is the
+          vol-per-unit-time that the options market is pricing for a specific
+          strike at a specific future date, after you strip out the averaging
+          that implied vol quietly does. Where the amber on the chart gets
+          hot, the market is pricing genuine spot-and-time-specific risk. Where
+          it stays cool, there is no extra premium being charged for that
+          region.
         </p>
         <p style={{ margin: '0 0 0.75rem' }}>
-          It is computed in (y, T) coordinates with y = ln(K/F) from the SVI
-          fits at every expiration in the current snapshot. The T-derivative
-          comes from a finite difference across adjacent slices, and the
-          y-derivatives are closed-form from the SVI parameters.
+          <strong style={{ color: 'var(--text-primary)' }}>Reading the chart.</strong>{' '}
+          Horizontal axis is how far out-of-the-money a strike is (negative
+          numbers are downside puts, positive numbers are upside calls).
+          Vertical axis is how far out in time (log scale, so a day reads as
+          far from a week as a week does from a month). The hottest band sits
+          in the upper-left corner: short-dated downside strikes. That is
+          where the crash premium lives. Read straight up a column and you see
+          term structure for one strike; read across a row and you see the
+          local-vol smile at one tenor.
         </p>
         <p style={{ margin: '0 0 0.75rem' }}>
-          The heatmap above is σ_LV as a function of log-moneyness and tenor.
-          Read it vertically and you see what the forward diffusion coefficient
-          has to look like for a specific strike at every future date. Read it
-          horizontally and you see the local-vol smile at one tenor.
+          <strong style={{ color: 'var(--text-primary)' }}>Practical use.</strong>{' '}
+          This surface is the cleanest available read on{' '}
+          <em>where in strike-and-time space the market is charging the most
+          premium</em>. Compare the short T row to the long T row: if the
+          ratio of short-dated put vol to long-dated put vol is unusually
+          high (more than 2 to 3x), short-dated crash protection is expensive
+          in absolute terms and will bleed hard if nothing happens,
+          which favors selling calendar puts (sell short-dated, buy
+          longer-dated at the same strike) to collect that decay. When the
+          surface is relatively flat across T on the downside, the crash term
+          structure has compressed and long-dated puts are offering crash
+          protection at near-parity with short-dated ones, which is the
+          setup for buying longer-dated tails.
         </p>
         <p style={{ margin: '0 0 0.75rem' }}>
-          <strong>Local Stochastic Vol</strong> (LSV) upgrades pure local vol
-          by multiplying a stochastic factor v_t by a leverage function L(S,t)
-          chosen so L² · E[v_t|S_t=S] = σ²_LV(S, t). That means{' '}
-          <em>this</em> surface is the left-hand side of the LSV calibration
-          condition.
+          Within a single tenor row, the slope from ATM to the deep downside
+          is the local skew. When that slope is unusually steep (the row
+          colors warm fast as you move left of zero), put overwriters and put
+          spread sellers are being paid above the long-run average for the
+          same risk. Stat-row numbers above give the quick version: the{' '}
+          <strong>short put skew</strong> stat is σ_LV at the deep downside
+          minus σ_LV at ATM on the shortest tenor, so values above about 0.10
+          are in the historically steep range and point to a crowded
+          protection bid.
         </p>
         <p style={{ margin: '0 0 0.75rem' }}>
-          <strong style={{ color: 'var(--text-primary)' }}>Reading.</strong>{' '}
-          The hottest regions in the upper-left corner (short T, deep OTM puts
-          at negative y) are where the short-dated put skew lives. σ_LV there
-          is often 2-3× its ATM long-T value. That is what the observed
-          crash risk premium looks like when you unpack it into a deterministic
-          diffusion coefficient.
+          <strong>Why Dupire matters over a single-model fit.</strong> The
+          Heston and SABR cards above fit one expiration at a time. This
+          surface uses every expiration in the chain at once, so it shows you
+          the shape of vol across strike and time in a single object rather
+          than four independent slices. When the models above argue (Heston
+          misses the short end, SABR hugs each slice cleanly but carries no
+          dynamics), this surface is the arbiter: it is the actual smile the
+          market quoted, in local-vol coordinates, with nothing fit to it.
         </p>
         <p style={{ margin: '0 0 0.75rem' }}>
-          Pure local vol reproduces today&apos;s smile by construction. What it
-          fails at is the <em>forward</em> smile: the smile the model implies
-          for a future date conditioned on a future spot. Deterministic σ(S,t)
-          produces flat forward smiles, which empirically disagrees with how
-          real smiles reshape when spot moves.
-        </p>
-        <p style={{ margin: '0 0 0.75rem' }}>
-          LSV fixes this. It preserves today&apos;s fit via the leverage
-          function L(S,t) while a stochastic vol factor provides
-          smile-preserving dynamics. The standard calibration solves a forward
-          PDE or runs a particle Monte Carlo for L given σ_LV from this
-          surface and a Heston-style v_t.
+          <strong>Caveat on the forward smile.</strong> A pure local-vol model
+          reproduces today&apos;s prices exactly but gives a forward smile
+          that flattens with time, which the real market does not do. If you
+          are pricing a forward-starting structure (cliquets, forward variance
+          swaps, barrier options whose value depends on how the smile will
+          look next month), this surface alone will underprice wing risk.
+          Local stochastic vol (LSV) is the model that uses this surface as
+          its input and then adds a stochastic factor on top to produce
+          realistic forward dynamics; the surface here is the first half of
+          that calibration.
         </p>
         <p style={{ margin: 0 }}>
-          The top of the chart (T &lt; 7d) is clipped. The 1/T factor in the
-          Dupire numerator amplifies any mark-level noise in the SVI fits to
-          the point where the local-vol read becomes mostly numerical artifact
-          rather than signal.
+          Noise note. The very top of the chart (tenors shorter than about a
+          week) is clipped because the 1/T factor in the Dupire formula
+          amplifies any noise in the underlying SVI fits to the point where
+          the read is mostly numerical artifact. Treat anything inside a week
+          as directional only.
         </p>
       </div>
     </div>

@@ -434,11 +434,11 @@ export default function SlotB() {
           fontSize: '0.7rem',
           letterSpacing: '0.14em',
           textTransform: 'uppercase',
-          color: 'var(--text-secondary)',
+          color: 'var(--accent-amber)',
           marginBottom: '0.85rem',
         }}
       >
-        model · sabr · hagan closed-form · β pinned to 1
+        sabr · hagan closed-form · β pinned to 1
       </div>
 
       <div
@@ -534,51 +534,69 @@ export default function SlotB() {
         }}
       >
         <p style={{ margin: '0 0 0.75rem' }}>
-          SABR has three tunable parameters. α sets the overall vol level. ρ is
-          the correlation between spot and vol shocks, which tilts the skew. ν
-          is vol-of-vol, which sets wing curvature. All three map directly into{' '}
-          <strong style={{ color: PLOTLY_COLORS.positive }}>Black-implied vol</strong>{' '}
-          through Hagan&apos;s asymptotic expansion.
+          SABR is the smile model that reads the way a trader eyeballs a
+          smile. Three numbers with three clear jobs:{' '}
+          <strong>α</strong> sets the level (where ATM sits),{' '}
+          <strong>ρ</strong> sets the tilt (how asymmetric the skew is), and{' '}
+          <strong>ν</strong> sets the curvature (how steep the wings turn
+          up). When the Heston fit above wrestles with dynamics and
+          stochastic structure, SABR just carves the visible curve and gives
+          you numbers you can trade against directly.
         </p>
         <p style={{ margin: '0 0 0.75rem' }}>
-          β is pinned to 1 so the equity backbone is lognormal. With β fixed,
-          the other three are identifiable on a single slice.
-        </p>
-        <p style={{ margin: '0 0 0.75rem' }}>
-          Calibration is a 3-parameter Nelder-Mead on the same strike set
-          Heston above fits, so the two fits are directly comparable. The{' '}
-          <strong style={{ color: PLOTLY_COLORS.highlight }}>dashed ATM backbone</strong>{' '}
-          is flat under β = 1 by construction, so every bit of visible smile
-          curvature is driven by ρ and ν.
-        </p>
-        <p style={{ margin: '0 0 0.75rem' }}>
-          <strong style={{ color: 'var(--text-primary)' }}>Reading.</strong>{' '}
-          The{' '}
+          <strong style={{ color: 'var(--text-primary)' }}>Reading the chart.</strong>{' '}
+          Blue dots are the same SPX observations the Heston card fits. The{' '}
           <strong style={{ color: PLOTLY_COLORS.positive }}>green curve</strong>{' '}
-          is Hagan&apos;s closed-form implied vol under SABR β = 1. Compared
-          to the Heston fit above on the same slice, SABR usually matches
-          the ATM level and the wings very cleanly at a single maturity.
+          is the SABR smile. SABR usually hugs the observed dots much more
+          tightly than Heston at a single expiration because it is purpose-built
+          for smile geometry, not underlying dynamics. If the green line tracks
+          the dots cleanly while the Heston amber line above misses, that is
+          a normal state of the world: SABR prices what the market is, Heston
+          prices what a mean-reverting SV process would produce, and the
+          difference is the premium the market is putting on structure Heston
+          cannot capture.
         </p>
         <p style={{ margin: '0 0 0.75rem' }}>
-          What SABR does not carry is dynamic structure. α, ρ, ν are
-          parameters of a <em>smile</em>, not of a <em>process</em>.
-          Extrapolating an SABR fit forward in time or across maturities
-          requires a separate term-structure model on top.
+          <strong style={{ color: 'var(--text-primary)' }}>Practical use.</strong>{' '}
+          Treat SABR as the interpolator between the strikes that trade. Once
+          it fits, you can price a strike that has no quote, mark a spread,
+          or compute a delta at a strike the book does not cover, and the
+          answer will be consistent with the observed smile. Watch{' '}
+          <strong>ρ</strong> across the trading day: ρ drifting more negative
+          means the market is paying up for downside relative to upside (put
+          skew steepening) and is often the first signal that dealer gamma
+          positioning has flipped or that hedging flows are one-sided. ρ
+          drifting toward zero means the skew is flattening, which after a
+          crash is a setup where short-dated puts have lost their crash
+          premium and are cheaper relative to calls than usual.
         </p>
         <p style={{ margin: '0 0 0.75rem' }}>
-          The z/x(z) ratio in the Hagan formula is where the skew lives:
-          z = (ν/α)·ln(F/K). A larger ν or smaller α stretches the skew,
-          and the ρ inside x(z) tilts the smile asymmetrically.
+          Read <strong>ν</strong> as a wing-richness gauge. A high ν produces
+          steep wings, so deep out-of-the-money options (far puts and far
+          calls) are priced with a lot of curvature. When ν is elevated
+          relative to recent days the market is overpaying for tail optionality,
+          which sets up wing-selling trades (iron condors, put-spread sales,
+          call-spread overwrites). When ν is compressed the tails are cheap
+          and long-wing structures (risk reversals, broken-wing flies, outright
+          OTM puts for crash protection) are efficient.
         </p>
-        <p style={{ margin: 0 }}>
+        <p style={{ margin: '0 0 0.75rem' }}>
           The{' '}
           <strong style={{ color: PLOTLY_COLORS.highlight }}>dashed backbone</strong>{' '}
-          is σ_ATM. Under β = 1 the ATM vol does not drift with F, so all
-          visible smile curvature is off-ATM skew and wings rather than
-          backbone motion. β &lt; 1 would add a downward-sloping backbone
-          (skew-by-strike-level). That matters for FX and rates but is
-          usually redundant for equity indices, where ρ already carries
-          the leverage effect.
+          is ATM vol under the pinned β = 1 lognormal regime. It is flat by
+          construction, so every bit of visible curvature on the green line
+          is ρ and ν doing work, not the backbone moving. That clean
+          separation is why SABR became the practitioner&apos;s standard
+          smile model: if ρ or ν changes on the next refresh, you know
+          which dimension of the smile actually moved.
+        </p>
+        <p style={{ margin: 0 }}>
+          Caveat. SABR describes a smile, not a process. It tells you what
+          the current expiration looks like and lets you interpolate within
+          it, but it does not forecast how the smile will evolve as spot
+          moves or time passes. For that you need the Heston, Dupire, or
+          Rough Bergomi view on the same data. Use SABR to price what is,
+          use the dynamic models to think about what is coming.
         </p>
       </div>
     </div>

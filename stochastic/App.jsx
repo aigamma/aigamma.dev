@@ -98,9 +98,9 @@ export default function App() {
           context="stochastic"
           welcome={{
             quick:
-              'Ask about the Heston, SABR, Local Stochastic Vol, and Rough Bergomi slots above, where each model misses the observed SPX smile, or how the lineage maps onto three decades of responses to the short-end skew anomaly. Chat stays on volatility, options, and stochastic-vol modeling.',
+              'Ask about the four models above, how to read the residuals between a fit and the observed smile for market edge, which model to trust for which trading decision, and how to turn a parameter change into a position. Chat stays on volatility, options, and how stochastic-vol reads translate into SPX options trades.',
             deep:
-              'Deep Analysis mode — longer and more structurally detailed responses on affine characteristic functions, the Hagan SABR expansion, Dupire local vol and Gyöngy projection, fractional Brownian motion, and the philosophy of calibrating a four-model lineage to one chain snapshot.',
+              'Deep Analysis mode: longer and more structurally detailed responses on how each model works, where it breaks down, what the gap between its fit and the market is pricing, and how to act on that gap in practical SPX options structures.',
           }}
         />
       </ErrorBoundary>

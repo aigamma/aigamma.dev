@@ -622,11 +622,11 @@ export default function SlotA() {
           fontSize: '0.7rem',
           letterSpacing: '0.14em',
           textTransform: 'uppercase',
-          color: 'var(--text-secondary)',
+          color: 'var(--accent-amber)',
           marginBottom: '0.85rem',
         }}
       >
-        model · heston · cir stochastic variance · 5 parameters
+        heston · cir stochastic variance · 5 parameters
       </div>
 
       <div
@@ -727,37 +727,53 @@ export default function SlotA() {
         }}
       >
         <p style={{ margin: '0 0 0.75rem' }}>
-          Heston is the first stochastic-volatility model that people routinely
-          calibrate in closed form. Instead of pinning volatility to a single
-          constant, it lets variance itself drift around a long-run level through
-          the mean-reverting process{' '}
-          <code style={{ color: 'var(--text-primary)' }}>dv = κ(θ−v)dt + ξ√v dW</code>,
-          with a correlation ρ linking variance shocks to spot shocks.
+          Heston is the benchmark a vol trader reads a smile against. It says
+          variance is a mean-reverting random process that pulls toward a
+          long-run level θ at speed κ, wiggles with intensity ξ, and moves in
+          sync with spot through a correlation ρ. Fit those five numbers to
+          today&apos;s SPX slice and you have a view of where vol should settle,
+          how fast it should get there, and how tightly the market is
+          connecting spot moves to vol moves.
         </p>
         <p style={{ margin: '0 0 0.75rem' }}>
-          Five parameters (κ, θ, ξ, ρ, v₀) are calibrated to the{' '}
-          <strong style={{ color: PLOTLY_COLORS.primary }}>observed SPX IV smile</strong>{' '}
-          at one expiration. The optimizer is Nelder-Mead in IV-space, and the
-          model prices come from the two-integral Heston formula using the
-          Little-Trap stable characteristic function.
-        </p>
-        <p style={{ margin: '0 0 0.75rem' }}>
+          <strong style={{ color: 'var(--text-primary)' }}>Reading the chart.</strong>{' '}
           The{' '}
-          <strong style={{ color: PLOTLY_COLORS.highlight }}>fitted smile</strong>{' '}
-          tracks the shape pretty well for monthly tenors. It systematically
-          undershoots the short end, though. The square-root diffusion just cannot
-          produce enough short-dated skew. That gap is the empirical anomaly
-          that motivates jumps (Bates), rough vol (the Rough Bergomi model below),
-          and local-stochastic hybrids (the LSV model below).
+          <strong style={{ color: PLOTLY_COLORS.primary }}>blue dots</strong>{' '}
+          are the SPX options chain at this expiration (out-of-the-money puts
+          below spot, out-of-the-money calls above). The{' '}
+          <strong style={{ color: PLOTLY_COLORS.highlight }}>amber curve</strong>{' '}
+          is the best-fit Heston smile. The gap between the two is the actual
+          edge. Heston is the classical stochastic-vol story, so wherever the
+          dots sit above the amber curve (usually on the downside puts at
+          short tenors), the market is paying extra for risk the classical
+          story cannot price. That residual is where jump risk, crash premium,
+          and dealer positioning live.
         </p>
         <p style={{ margin: '0 0 0.75rem' }}>
-          <strong style={{ color: 'var(--text-primary)' }}>Reading.</strong>{' '}
-          The <strong style={{ color: PLOTLY_COLORS.primary }}>blue dots</strong>{' '}
-          are the chain&apos;s observed IVs (OTM puts below spot, OTM calls
-          above). The{' '}
-          <strong style={{ color: PLOTLY_COLORS.highlight }}>amber curve</strong>{' '}
-          is the Heston smile that best fits them in IV-space under
-          5-parameter Nelder-Mead.
+          <strong style={{ color: 'var(--text-primary)' }}>Practical use.</strong>{' '}
+          Compare <strong>v₀</strong> (today&apos;s spot vol) to{' '}
+          <strong style={{ color: PLOTLY_COLORS.primary }}>√θ</strong> (the
+          long-run vol the model thinks variance is pulling toward). When v₀
+          runs well above √θ, spot vol is elevated relative to the model&apos;s
+          equilibrium and has a mean-reversion tailwind over the coming weeks,
+          which favors selling short-dated vol into the fade (short strangles,
+          iron condors, calendar spreads that are short near-dated gamma).
+          When v₀ runs well below √θ the market is complacent and near-dated
+          vol has room to lift, which favors owning gamma rather than writing
+          it. The speed κ tells you how long that reversion should take: a
+          high κ (say above 3) means days to weeks, a low κ (below 1) means
+          months, so a high-κ fit with a big v₀/θ gap is a shorter-dated
+          trade than a low-κ fit with the same gap.
+        </p>
+        <p style={{ margin: '0 0 0.75rem' }}>
+          Read <strong>ρ</strong> as a sanity check. SPX calibrations should
+          come out between roughly -0.5 and -0.9 because down moves in spot
+          coincide with up moves in vol (people bid protection on the way
+          down). A ρ that prints near zero or positive is a red flag: either
+          the slice is too thin, the fit has not converged, or the market is
+          in an unusual regime where the normal co-move has broken down. Do
+          not size a trade off Heston parameters on a slice that produces the
+          wrong sign on ρ.
         </p>
         <p style={{ margin: '0 0 0.75rem' }}>
           The <strong>Feller condition</strong> 2κθ &gt; ξ² is{' '}
@@ -773,20 +789,30 @@ export default function SlotA() {
             '-'
           )}
           {'. '}
-          When Feller fails, the variance process can touch zero. This is
-          usually treated as an artifact of the calibration pushing ξ up to
-          match deep-OTM put skew that the square-root diffusion cannot
-          produce without extra state.
+          When it fails, the market is paying for tail scenarios that a
+          simple mean-reverting variance process cannot produce, so the
+          optimizer is cranking ξ up to match. A violated Feller with a big
+          ξ is the market telling you wings are rich relative to the body.
+          The trade that lines up with that signal depends on your view: if
+          you think wings are too rich, sell vol of vol (short the wings,
+          buy closer-to-ATM); if you think wings are cheap given where the
+          world is, own them.
         </p>
         <p style={{ margin: '0 0 0.75rem' }}>
-          A strongly negative ρ is the equity-leverage effect. Variance and
-          spot co-move down on sell-offs, which is why the sign of ρ comes
-          out clearly negative on any SPX calibration.
+          Where Heston systematically misses: the short-dated skew. A square-root
+          variance process simply cannot produce the sharp short-tenor put skew
+          SPX shows, so the amber curve will undershoot the steep left wing on
+          near-term expirations. That shortfall is not a bug in the fit, it is
+          a real feature of the market that motivates both the jump models and
+          the rough-vol lineage. The Rough Bergomi card below quantifies exactly
+          how much steeper than Heston the observed short-end is.
         </p>
         <p style={{ margin: 0 }}>
-          The fit is local to one slice. A full surface calibration across
-          expirations would add term-structure constraints the single-slice
-          fit does not see.
+          Caveat. This fit is local to one expiration, not a surface calibration,
+          so the printed parameters describe the smile at this tenor rather
+          than a consistent term structure. Use them as "what the market is
+          saying right now at this tenor" rather than "these are the Heston
+          parameters for SPX."
         </p>
       </div>
     </div>
