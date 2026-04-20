@@ -13,9 +13,9 @@ import {
 import { daysToExpiration } from '../../src/lib/dates';
 
 // -----------------------------------------------------------------------------
-// Put-call parity — box-spread r vs direct-PCP r at q = 0
+// Put-call parity — box-spread r vs direct-PCP r at q = 0, with SPX forward
 //
-// Alpha-stage, v2 of the put-call-parity card prompted by sflush in Discord.
+// Alpha-stage, v3 of the put-call-parity card prompted by sflush in Discord.
 // v1 rendered a single term-structure curve of the box-spread-implied borrow
 // rate. The 4-option box construction cancels S₀ exactly, so r_box is
 // model-free and spot-invariant — which is the whole point of the box, but
@@ -52,12 +52,33 @@ import { daysToExpiration } from '../../src/lib/dates';
 // disagreement between them at the same T is a second, orthogonal view of
 // the same instability.
 //
-// With only a current snapshot this is a cross-sectional view: how the two
-// methods disagree across expirations at a single moment. The richer time-
-// series view — how each method's r wobbles from snapshot to snapshot as
-// S₀ moves between 5-minute ingests — needs a persisted series and is a
-// separate piece of work; sketched at the bottom of the card as the
-// natural next step.
+// v3 adds a bottom price panel that ties the two r curves back to SPX. v2
+// plotted only rates, which left the reader without a direct visual anchor
+// to "where SPX was when these options were priced" — sflush's v2 follow-up
+// asked for SPX in the chart so the relationship between r and spot is
+// legible at a glance. The bottom panel renders two things on a shared
+// DTE x-axis:
+//
+//   (1) S₀ as a horizontal dashed reference at the current SPX spot price,
+//   (2) F(T) = K₁ + (C₁ − P₁)·exp(r_box·T) — the per-expiration implied
+//       SPX forward price recovered from put-call parity using r_box as
+//       the discount rate.
+//
+// F(T) from K₁ and F(T) from K₂ are algebraically identical when evaluated
+// at r_box (the box-cost identity forces F₁ = F₂; proof: substitute
+// box_cost = (K₂−K₁)·exp(−r_box·T) into F₂ − F₁ and the difference
+// collapses), so one curve suffices and we pick the K₁ leg. F(T) grows
+// above S₀ at rate (r_box − q_implied), so the *vertical gap* between F(T)
+// and the flat S₀ reference is S₀·((r_box − q)·T + O(T²)) — the cash-carry
+// term. If r_box is 4.5% and q is 1.3%, that's a ~3.2% net forward drift
+// per year, and a forward-curve that lies above spot by that amount is
+// the direct price-domain analogue of the r_box curve in the top panel.
+//
+// With only a current snapshot this is still a cross-sectional view: how
+// the two methods (and the implied forward) disagree across expirations at
+// a single moment. The richer time-series view — how each method's r and
+// F(T) wobble from snapshot to snapshot as S₀ moves between 5-minute
+// ingests — needs a persisted series and is a separate piece of work.
 // -----------------------------------------------------------------------------
 
 function groupByExpiration(contracts) {
@@ -157,11 +178,24 @@ function computeRateSeries(contracts, spotPrice, capturedAt) {
     const rPcpSpread =
       rPcp1 != null && rPcp2 != null ? Math.abs(rPcp1 - rPcp2) : null;
 
+    // Per-expiration implied SPX forward, recovered from PCP using r_box
+    // as the discount rate: F = K + (C − P)·exp(r·T). The K₁ and K₂ legs
+    // give algebraically identical forwards at r_box because the box-cost
+    // identity forces F₁ = F₂ — see the header comment for the proof —
+    // so one leg is enough. Using K₁ (the lower strike) here.
+    const fwd = K1 + (C1 - P1) * Math.exp(rBox * T);
+    // The no-dividend reference S₀·exp(r_box·T) is what F(T) would be
+    // if q = 0. The observed gap F(T) − S₀·exp(r_box·T) ≈ −S₀·q·T at
+    // first order, so a forward curve below this reference line is the
+    // direct price-domain signature of a positive implied dividend yield.
+    const fwdNoDiv = spotPrice * Math.exp(rBox * T);
+
     rows.push({
       expiration, dte, T,
       K1, K2, C1, P1, C2, P2,
       boxCost, strikeSpread,
       rBox, rPcp, rPcp1, rPcp2, rDiff, rPcpSpread,
+      fwd, fwdNoDiv,
     });
   }
   return rows.sort((a, b) => a.dte - b.dte);
@@ -244,10 +278,13 @@ export default function SlotA() {
   useEffect(() => {
     if (!Plotly || !chartRef.current || rows.length === 0) return;
 
+    const S0 = data?.spotPrice;
+
     const xs = rows.map((r) => r.dte);
     const yBox = rows.map((r) => r.rBox * 100);
     const yPcp = rows.map((r) => (r.rPcp != null ? r.rPcp * 100 : null));
     const yDiff = rows.map((r) => (r.rDiff != null ? r.rDiff * 100 : null));
+    const yFwd = rows.map((r) => r.fwd);
 
     const xMin = 0;
     const xMax = Math.max(...xs) * 1.04 + 1;
@@ -263,6 +300,19 @@ export default function SlotA() {
     const y2Max = yDiffFiltered.length ? Math.max(...yDiffFiltered) : 1;
     const y2Span = y2Max - y2Min;
     const y2Pad = y2Span > 0 ? y2Span * 0.25 : Math.abs(y2Max) * 0.3 || 0.2;
+
+    // Price-axis range for the bottom SPX panel. Anchor both to S₀ and to
+    // the full forward curve so the S₀ reference line is always in frame
+    // and the F(T) curve's climb above spot is easy to eyeball. Pad 18%
+    // of the observed (F_max − min(S₀, F_min)) span so the curve doesn't
+    // hug the axis edges; fall back to 0.5% of S₀ when the curve is flat.
+    const priceAnchors = [S0, ...yFwd.filter((v) => Number.isFinite(v))];
+    const priceMin = Math.min(...priceAnchors);
+    const priceMax = Math.max(...priceAnchors);
+    const priceSpan = priceMax - priceMin;
+    const pricePad = priceSpan > 0 ? priceSpan * 0.18 : S0 * 0.005;
+    const priceLo = priceMin - pricePad;
+    const priceHi = priceMax + pricePad;
 
     const hoverBox = rows.map((r) =>
       [
@@ -305,6 +355,28 @@ export default function SlotA() {
           ].join('<br>')
         : '',
     );
+
+    // Forward-curve hover exposes the raw PCP-recovered forward, the gap
+    // vs S₀ (raw carry + dividends), and the gap vs S₀·exp(r_box·T) (which
+    // is the pure q signature — gap divided by S₀·T is ≈ q at first order).
+    const hoverFwd = rows.map((r) => {
+      const fwdMinusSpot = r.fwd - S0;
+      const fwdMinusNoDiv = r.fwd - r.fwdNoDiv;
+      const qApprox = r.T > 0 ? -fwdMinusNoDiv / (S0 * r.T) : null;
+      return [
+        `<b>${r.expiration}</b>`,
+        `DTE ${r.dte.toFixed(1)}`,
+        `<b>F(T) ${r.fwd.toFixed(2)}</b>`,
+        `F − S₀ ${fwdMinusSpot >= 0 ? '+' : ''}${fwdMinusSpot.toFixed(2)}`,
+        `S₀·exp(r<sub>box</sub>·T) ${r.fwdNoDiv.toFixed(2)}`,
+        `F − S₀·exp(r<sub>box</sub>·T) ${fwdMinusNoDiv >= 0 ? '+' : ''}${fwdMinusNoDiv.toFixed(2)}`,
+        qApprox != null
+          ? `<span style="opacity:0.7">≈ q ${(qApprox * 100).toFixed(2)}%</span>`
+          : '',
+      ]
+        .filter(Boolean)
+        .join('<br>');
+    });
 
     const traces = [
       {
@@ -353,6 +425,24 @@ export default function SlotA() {
         yaxis: 'y2',
         connectgaps: false,
       },
+      {
+        x: xs,
+        y: yFwd,
+        name: 'F(T) · SPX forward · K₁+(C−P)·e<sup>r·T</sup>',
+        mode: 'lines+markers',
+        type: 'scatter',
+        line: { color: PLOTLY_COLORS.positive, width: 1.5 },
+        marker: {
+          color: PLOTLY_COLORS.positive,
+          size: mobile ? 6 : 8,
+          symbol: 'square',
+          line: { width: 0 },
+        },
+        hoverinfo: 'text',
+        text: hoverFwd,
+        xaxis: 'x2',
+        yaxis: 'y3',
+      },
     ];
 
     const shapes = [];
@@ -384,6 +474,36 @@ export default function SlotA() {
       });
     }
 
+    // Horizontal S₀ reference on the bottom SPX price panel. The visual
+    // distance between the F(T) trace and this line is S₀·((r_box − q)·T)
+    // to first order — i.e. the cash-and-carry term made visible. Drawn
+    // in primarySoft so it reads as "this is SPX, not a data series."
+    if (Number.isFinite(S0)) {
+      shapes.push({
+        type: 'line',
+        xref: 'x2',
+        yref: 'y3',
+        x0: xMin,
+        x1: xMax,
+        y0: S0,
+        y1: S0,
+        line: { color: PLOTLY_COLORS.primarySoft, width: 1, dash: 'dash' },
+      });
+      annotations.push({
+        x: xMin,
+        y: S0,
+        xref: 'x2',
+        yref: 'y3',
+        xanchor: 'left',
+        yanchor: 'bottom',
+        text: `S₀ ${S0.toLocaleString(undefined, { maximumFractionDigits: 2 })}`,
+        showarrow: false,
+        font: { family: PLOTLY_FONT_FAMILY, color: PLOTLY_COLORS.primarySoft, size: 11 },
+        xshift: 4,
+        yshift: 2,
+      });
+    }
+
     const layout = plotly2DChartLayout({
       title: {
         ...plotlyTitle('Put-Call Parity · Box vs Direct PCP'),
@@ -392,31 +512,62 @@ export default function SlotA() {
         yanchor: 'top',
       },
       margin: mobile
-        ? { t: 50, r: 55, b: 95, l: 60 }
-        : { t: 70, r: 75, b: 105, l: 75 },
-      xaxis: plotlyAxis('Days to Expiration', { range: [xMin, xMax], autorange: false }),
-      yaxis: plotlyAxis('r (%)', {
-        range: [yMin - yPad, yMax + yPad],
-        autorange: false,
-        ticksuffix: '%',
-        tickformat: '.2f',
-      }),
-      yaxis2: plotlyAxis('q ≈ box − PCP (%)', {
-        range: [y2Min - y2Pad, y2Max + y2Pad],
-        autorange: false,
+        ? { t: 50, r: 55, b: 105, l: 60 }
+        : { t: 70, r: 75, b: 115, l: 75 },
+      // Top panel (r%) owns xaxis anchored to y; its tick labels are
+      // hidden so the shared DTE axis reads only once at the bottom.
+      xaxis: {
+        ...plotlyAxis('', { range: [xMin, xMax], autorange: false }),
+        anchor: 'y',
+        showticklabels: false,
+      },
+      // Bottom panel (SPX $) owns xaxis2 anchored to y3 and carries the
+      // Days-to-Expiration axis title. `matches: 'x'` locks both panels
+      // to the same x range so a DTE read lines up vertically.
+      xaxis2: {
+        ...plotlyAxis('Days to Expiration', { range: [xMin, xMax], autorange: false }),
+        anchor: 'y3',
+        matches: 'x',
+      },
+      yaxis: {
+        ...plotlyAxis('r (%)', {
+          range: [yMin - yPad, yMax + yPad],
+          autorange: false,
+          ticksuffix: '%',
+          tickformat: '.2f',
+        }),
+        domain: [0.32, 1.0],
+        anchor: 'x',
+      },
+      yaxis2: {
+        ...plotlyAxis('q ≈ box − PCP (%)', {
+          range: [y2Min - y2Pad, y2Max + y2Pad],
+          autorange: false,
+          ticksuffix: '%',
+          tickformat: '.2f',
+          showgrid: false,
+        }),
+        domain: [0.32, 1.0],
         overlaying: 'y',
         side: 'right',
-        showgrid: false,
-        ticksuffix: '%',
-        tickformat: '.2f',
-      }),
+        anchor: 'x',
+      },
+      yaxis3: {
+        ...plotlyAxis('SPX ($)', {
+          range: [priceLo, priceHi],
+          autorange: false,
+          tickformat: ',.0f',
+        }),
+        domain: [0.0, 0.22],
+        anchor: 'x2',
+      },
       shapes,
       annotations,
       hovermode: 'closest',
       showlegend: true,
       legend: {
         orientation: 'h',
-        y: -0.22,
+        y: -0.32,
         x: 0.5,
         xanchor: 'center',
         font: PLOTLY_FONTS.legend,
@@ -427,7 +578,7 @@ export default function SlotA() {
       responsive: true,
       displayModeBar: false,
     });
-  }, [Plotly, rows, medianDiff, mobile]);
+  }, [Plotly, rows, medianDiff, data, mobile]);
 
   if (loading && !data) {
     return (
@@ -498,8 +649,10 @@ export default function SlotA() {
           }}
         >
           <p style={{ margin: '0 0 0.6rem' }}>
-            Two implied borrow-rate reads from the same SPX chain, plotted
-            together so any gap between them is visible at a glance.
+            Two implied borrow-rate reads from the same SPX chain plus the
+            PCP-recovered forward-price term structure, stacked so any gap
+            between them is visible at a glance alongside where SPX itself
+            was when the chain was priced.
           </p>
           <p style={{ margin: '0 0 0.6rem' }}>
             The{' '}
@@ -519,7 +672,7 @@ export default function SlotA() {
             in the equation, so it absorbs the dividend yield plus any
             per-strike mark noise sitting in the chain.
           </p>
-          <p style={{ margin: 0 }}>
+          <p style={{ margin: '0 0 0.6rem' }}>
             The{' '}
             <strong style={{ color: PLOTLY_COLORS.highlight }}>
               amber line (box minus PCP, right axis)
@@ -528,13 +681,29 @@ export default function SlotA() {
             cleanly. It spikes off that baseline at any expiration where
             one of the four options is mispriced. That spike is the signal.
           </p>
+          <p style={{ margin: 0 }}>
+            The bottom panel ties it all back to price. The{' '}
+            <strong style={{ color: PLOTLY_COLORS.positive }}>
+              green line (F(T) forward)
+            </strong>{' '}
+            is the SPX forward recovered from each expiration&rsquo;s
+            options using the box r, and the{' '}
+            <strong style={{ color: PLOTLY_COLORS.primarySoft }}>
+              dashed reference
+            </strong>{' '}
+            is SPX spot S₀ at the snapshot. The gap between them is the
+            cash-and-carry term — box r net of dividends, in dollars. When
+            F(T) tracks S₀·exp(box r · T) the chain is internally
+            consistent; when it sags below, the shortfall is the
+            market-implied dividend drag.
+          </p>
         </div>
       </div>
 
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: mobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)',
+          gridTemplateColumns: mobile ? 'repeat(2, 1fr)' : 'repeat(5, 1fr)',
           gap: '1rem',
           padding: '0.85rem 0',
           borderTop: '1px solid var(--bg-card-border)',
@@ -565,13 +734,23 @@ export default function SlotA() {
           accent={PLOTLY_COLORS.highlight}
         />
         <StatCell
+          label="Fwd F(T)"
+          value={headline?.fwd ? headline.fwd.toFixed(2) : '–'}
+          sub={
+            headline?.fwd && data?.spotPrice
+              ? `F − S₀ ${headline.fwd - data.spotPrice >= 0 ? '+' : ''}${(headline.fwd - data.spotPrice).toFixed(2)}`
+              : 'PCP-implied'
+          }
+          accent={PLOTLY_COLORS.positive}
+        />
+        <StatCell
           label="Spot"
           value={data?.spotPrice ? data.spotPrice.toFixed(2) : '–'}
           sub="SPX index"
         />
       </div>
 
-      <div ref={chartRef} style={{ width: '100%', height: mobile ? 380 : 480 }} />
+      <div ref={chartRef} style={{ width: '100%', height: mobile ? 460 : 560 }} />
 
       <div
         style={{
@@ -612,6 +791,17 @@ export default function SlotA() {
           <strong style={{ color: PLOTLY_COLORS.secondary }}>r(K₂)</strong>{' '}
           disagree within the same T, the edge is usually a single-contract
           fix.
+        </p>
+        <p style={{ margin: '0 0 0.55rem' }}>
+          <strong style={{ color: PLOTLY_COLORS.positive }}>
+            F(T) (bottom panel, green)
+          </strong>{' '}
+          should climb smoothly above S₀ at a pace that matches box r minus
+          the ~1.3% SPX dividend yield. A bent, wavy, or locally-inverted
+          F(T) at a specific DTE is the price-domain view of the same leg
+          mispricing the amber line flags overhead — the signals rhyme at
+          the same expiration, and a clean edge is one where both agree
+          about which strike is stale.
         </p>
         <p style={{ margin: 0 }}>
           Sub-7d points are almost always 1/T-amplified mark noise rather
