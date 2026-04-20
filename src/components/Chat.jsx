@@ -102,6 +102,13 @@ export default function Chat() {
       setSpacerHeight(Math.max(0, el.clientHeight - lastUserEl.offsetHeight - 16));
 
       raf2 = requestAnimationFrame(() => {
+        // Scroll the *page* so the chat card sits at the top of the viewport,
+        // covering whatever dashboard content was visible before the send;
+        // then scroll the chat body internally so the latest user prompt
+        // anchors at the top of the (now viewport-sized) card. The two
+        // scrolls are independent (window vs .chat-body) so both are needed.
+        const cardEl = el.closest('.chat-card');
+        if (cardEl) cardEl.scrollIntoView({ block: 'start', behavior: 'smooth' });
         el.scrollTop = Math.max(0, lastUserEl.offsetTop - 8);
       });
     });
@@ -280,10 +287,17 @@ export default function Chat() {
 
   const currentMessages = messages[activeTab];
   const cardStyle = { '--glow-rgb': GLOW_RGB[activeTab] };
+  // Once the user has sent at least one prompt in the active tab, the chat
+  // switches into "active" mode: the card swells to fill nearly the full
+  // viewport (see .chat-card.chat-active .chat-body in theme.css) and the
+  // turn-anchor effect below scrollIntoViews the card to the top of the
+  // page so the conversation takes over the screen — the user is no longer
+  // asked to page-scroll down into a 520px box to follow a streaming reply.
+  const isActive = currentMessages.length > 0;
 
   return (
     <div
-      className="card chat-card"
+      className={'card chat-card' + (isActive ? ' chat-active' : '')}
       aria-label="Ask the dashboard a question"
       style={cardStyle}
     >

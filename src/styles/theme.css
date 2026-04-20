@@ -356,6 +356,22 @@ body {
   overflow-y: auto;
 }
 
+/* Once the user sends their first prompt in the active tab (see `isActive`
+   in Chat.jsx), the card swells so the chat body is almost the whole
+   viewport. Combined with the `cardEl.scrollIntoView({ block: 'start' })`
+   call in Chat.jsx's turn-anchor effect, this makes the chat card dominate
+   the screen during a conversation — the dashboard content above is scrolled
+   offscreen, and the user's latest prompt anchors at the top of the viewport
+   while the assistant streams below it. 180px is the approximate sum of the
+   tabs row (~44px), the input row (~76px), the card's bottom breathing room,
+   and some slack for mobile chrome; tune together if the tabs or input row
+   height ever changes materially. */
+.chat-card.chat-active .chat-body {
+  height: calc(100vh - 180px);
+  min-height: calc(100vh - 180px);
+  max-height: calc(100vh - 180px);
+}
+
 .chat-welcome {
   font-family: 'Courier New', monospace;
   font-size: 1.15rem;
