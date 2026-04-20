@@ -1,9 +1,21 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 // Shared quant-menu dropdown. Rendered in the main dashboard header and
-// in every lab header so the eight bookmark-only labs are reachable from
+// in every lab header so the nine bookmark-only labs are reachable from
 // any page without touching the URL bar. Descriptors were cross-checked
 // against each lab's App.jsx slot list (see commit rationale).
+//
+// Ordering is a story: start with the discrete pricers and smile fits
+// that convert an option chain into tradeable prices (trees + SVI),
+// add continuous vol dynamics (local vol → stochastic vol → rough
+// vol), layer in discontinuous dynamics (jumps), step across to
+// historical real-world vol (GARCH, regimes), and close with the
+// cross-model risk view (greeks, Vanna-Volga). Parity is the tail
+// entry — the no-arbitrage diagnostic that extracts r, q, and F from
+// the chain itself with no pricing model on top. It lives at the
+// bottom because it is a measurement surface rather than a trading
+// strategy (box spreads are not the desk's focus); anyone who needs
+// to audit the carry implied by the current chain finds it there.
 const LAB_ITEMS = [
   { path: '/discrete/',   desc: 'Binomial and trinomial trees, SVI and SSVI surfaces' },
   { path: '/local/',      desc: 'Dupire extraction and local vol pricing' },
@@ -13,6 +25,7 @@ const LAB_ITEMS = [
   { path: '/garch/',      desc: 'GARCH family and ensemble forecasts' },
   { path: '/regime/',     desc: 'Mixture, Markov, Wasserstein regimes' },
   { path: '/risk/',       desc: 'Cross-model Greeks, Vanna-Volga, second-order' },
+  { path: '/parity/',     desc: 'Put-call parity, box-spread rate, implied forward' },
 ];
 
 export default function QuantMenu() {
