@@ -45,16 +45,23 @@ import SlotC from './slots/SlotC';
 //            short, too noisy, or non-monofractal.
 //
 // All three consume daily SPX closes through the existing useGexHistory
-// hook — same calendar axis as the /regime and /garch labs. As with the
-// other labs, this page has no ingress or egress links: the logo is not a
-// hyperlink, nothing on the main site points here, and the page is
-// reachable only by typing /rough or loading a bookmark.
+// hook — same calendar axis as the /regime and /garch labs. Navigation
+// back to the homepage is provided in three redundant places so the path
+// out of the lab is unmissable: the logo in the upper-left of the header
+// is wrapped in an anchor to /, a prominent green "RETURN HOME" button
+// sits between the slot stack and the Chat panel, and the footer carries
+// a bold "Return Home" link on its own line. The QuantMenu in the
+// upper-right remains the cross-lab navigator for the nine integrated
+// Quant Menu labs; nothing on the main site's public nav points here, so
+// /rough is still reached by typing the URL or loading a bookmark.
 export default function App() {
   return (
     <div className="app-shell lab-shell">
       <header className="lab-header">
         <div className="lab-brand">
-          <img src="/logo.webp" alt="aigamma.com" className="lab-logo" />
+          <a href="/" aria-label="aigamma.com home" style={{ display: 'block' }}>
+            <img src="/logo.webp" alt="aigamma.com" className="lab-logo" />
+          </a>
           <span
             className="lab-badge"
             title="Rough Volatility Lab · fractional-Brownian / Volterra model zoo"
@@ -77,6 +84,34 @@ export default function App() {
         <ErrorBoundary><SlotC /></ErrorBoundary>
       </section>
 
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'center',
+          margin: '1.5rem 0',
+        }}
+      >
+        <a
+          href="/"
+          style={{
+            display: 'inline-block',
+            padding: '0.85rem 2rem',
+            backgroundColor: 'var(--accent-green)',
+            color: '#0a0d14',
+            fontFamily: "'Courier New', monospace",
+            fontSize: '0.9rem',
+            fontWeight: 700,
+            letterSpacing: '0.18em',
+            textTransform: 'uppercase',
+            textDecoration: 'none',
+            borderRadius: '4px',
+            border: '1px solid var(--accent-green)',
+          }}
+        >
+          Return Home
+        </a>
+      </div>
+
       <ErrorBoundary>
         <Chat
           context="rough"
@@ -92,6 +127,11 @@ export default function App() {
       <footer className="lab-footer">
         <span className="lab-footer-line">
           AI Gamma LLC · rough vol lab · three-method zoo · v0.1.0
+        </span>
+        <span className="lab-footer-line">
+          <a href="/" style={{ fontWeight: 700, color: 'var(--accent-green)' }}>
+            Return Home
+          </a>
         </span>
       </footer>
     </div>
