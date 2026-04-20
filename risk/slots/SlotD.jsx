@@ -185,9 +185,9 @@ function StatCell({ label, value, sub, accent }) {
 }
 
 const GREEK_CHOICES = [
-  { id: 'vanna', label: 'Vanna', axis: 'Vanna (∂Δ/∂σ)', tickformat: '.3f', color: PLOTLY_COLORS.primary },
-  { id: 'volga', label: 'Volga', axis: 'Volga (∂Vega/∂σ)', tickformat: '.1f', color: PLOTLY_COLORS.highlight },
-  { id: 'charm', label: 'Charm', axis: 'Charm (−∂Δ/∂T, per year)', tickformat: '.3f', color: PLOTLY_COLORS.secondary },
+  { id: 'vanna', label: 'Vanna', axis: 'Vanna (delta change per vol)', tickformat: '.3f', color: PLOTLY_COLORS.primary },
+  { id: 'volga', label: 'Volga', axis: 'Volga (vega change per vol)', tickformat: '.1f', color: PLOTLY_COLORS.highlight },
+  { id: 'charm', label: 'Charm', axis: 'Charm (delta drift per year)', tickformat: '.3f', color: PLOTLY_COLORS.secondary },
 ];
 
 export default function SlotD() {
@@ -380,11 +380,11 @@ export default function SlotD() {
           fontSize: '0.7rem',
           letterSpacing: '0.14em',
           textTransform: 'uppercase',
-          color: 'var(--text-secondary)',
+          color: 'var(--accent-amber)',
           marginBottom: '0.85rem',
         }}
       >
-        model · second-order greeks · vanna / volga / charm across strikes
+        second-order greeks · vanna / volga / charm across strikes
       </div>
 
       <div
@@ -469,19 +469,19 @@ export default function SlotD() {
         <StatCell
           label="ATM vanna"
           value={atmVals ? formatFixed(atmVals.vanna, 4) : '-'}
-          sub="∂Δ/∂σ at spot"
+          sub="delta change per vol bump"
           accent={PLOTLY_COLORS.primary}
         />
         <StatCell
           label="ATM volga"
           value={atmVals ? formatFixed(atmVals.volga, 1) : '-'}
-          sub="∂Vega/∂σ at spot"
+          sub="vega change per vol bump"
           accent={PLOTLY_COLORS.highlight}
         />
         <StatCell
           label="ATM charm"
           value={atmVals ? formatFixed(atmVals.charm, 4) : '-'}
-          sub="−∂Δ/∂T at spot"
+          sub="daily delta drift at spot"
           accent={PLOTLY_COLORS.secondary}
         />
         <StatCell
@@ -511,81 +511,98 @@ export default function SlotD() {
         }}
       >
         <p style={{ margin: '0 0 0.75rem' }}>
-          The first-order Greeks move the book when spot, vol, or time
-          move by a little. The second-order Greeks move when those
-          first-order Greeks themselves change. Three of them dominate
-          the SPX vol desk:{' '}
+          First-order Greeks (delta, gamma, vega, theta) are every desk's
+          bread-and-butter PnL drivers. The second-order Greeks describe how
+          those first-order drivers move when the market moves. Three of
+          them dominate the SPX book:{' '}
           <strong style={{ color: PLOTLY_COLORS.primary }}>vanna</strong>,{' '}
           <strong style={{ color: PLOTLY_COLORS.highlight }}>volga</strong>, and{' '}
           <strong style={{ color: PLOTLY_COLORS.secondary }}>charm</strong>.
+          Each one is worth real money per week on an options book, and each
+          has a signature shape across strikes that the chart reveals.
         </p>
         <p style={{ margin: '0 0 0.75rem' }}>
           <strong style={{ color: PLOTLY_COLORS.primary }}>Vanna</strong>{' '}
-          is how much delta changes when vol changes. On a put-skewed
-          index a delta-neutral book at 15% vol is not delta-neutral at
-          20% vol. Vanna is why a vol rally quietly re-skews every
-          delta hedge in the book. It is near zero at ATM, flips sign
-          through the forward, and peaks one standard deviation out in
-          either wing.
+          is how much delta changes when vol changes. On a put-skewed index
+          a delta-neutral book at 15% vol is not delta-neutral at 20% vol.
+          Vanna is why a vol rally quietly re-skews every delta hedge in
+          the book. The signature shape is near zero at ATM, flips sign at
+          the forward, and peaks roughly one standard deviation out into
+          each wing.
         </p>
         <p style={{ margin: '0 0 0.75rem' }}>
           <strong style={{ color: PLOTLY_COLORS.highlight }}>Volga</strong>{' '}
-          is the convexity of vega to vol. A long-volga book makes
-          money when vol moves either direction. A short-volga book
-          loses on vol spikes. Volga is small at ATM, positive in both
-          wings, and tallest where deep-OTM options still have
-          meaningful vega.
+          is the convexity of vega to vol. A long-volga book gains from
+          vol moves in either direction. A short-volga book (classic
+          short-premium structures sitting at the ATM trough) loses on
+          vol spikes. Volga is small at ATM, positive in both wings, and
+          tallest where deep-OTM options still carry meaningful vega.
         </p>
         <p style={{ margin: '0 0 0.75rem' }}>
           <strong style={{ color: PLOTLY_COLORS.secondary }}>Charm</strong>{' '}
           is the daily bleed of delta through calendar time. Even in a
-          perfectly quiet market the delta of an option moves by a
-          small amount every day because time-to-expiry itself is
-          shrinking. Charm is the refresh amount a delta-hedged book
-          needs each session.
+          perfectly quiet market the delta of an option moves by a small
+          amount every day because time-to-expiry is shrinking. Charm is
+          the refresh amount a delta-hedged book needs each session, and
+          the magnitude grows as expiration approaches.
         </p>
         <p style={{ margin: '0 0 0.75rem' }}>
-          The chart above plots the selected Greek at every strike on
-          the current slice, evaluated at the market implied vol for
-          that strike. The shape is the combined effect of BSM's
-          analytic formula and the actual SPX smile. Switch between
-          Greeks with the dropdown. The stat row reports the ATM value
-          plus where the Greek peaks on either side of spot.
+          The chart plots the selected Greek at every strike on the
+          current slice, evaluated at the market implied vol for that
+          strike. Switch Greeks with the dropdown. The stat row reports
+          the ATM value and the peak and trough locations on either side
+          of spot. The fill color below the line makes the sign obvious
+          at a glance.
         </p>
         <p style={{ margin: '0 0 0.75rem' }}>
-          <strong style={{ color: 'var(--text-primary)' }}>Reading.</strong>{' '}
-          Each of the three second-order Greeks has a signature shape
-          across strikes. The stat row pulls out the ATM value for each
-          and the peak and trough of whichever Greek is on the chart.
-          The shape below the line is fill-colored to make the sign
-          obvious.
+          <strong style={{ color: 'var(--text-primary)' }}>Practical use.</strong>{' '}
+          Vanna is the "quiet re-hedge" number. Any vol move silently
+          shifts your delta. For a short-put book hedged with short
+          stock, a vol spike pushes put delta further from zero, your
+          position delta grows more positive, and you have to sell more
+          stock into a falling tape to stay neutral. That is the mechanism
+          behind classic short-vol carnage on SPX: vol gaps up, short-put
+          delta explodes, the short-vol crowd is forced to sell stock in
+          thin tape, which accelerates the drop. Reading the vanna curve
+          on your current slice tells you where on the strike ladder this
+          feedback is sharpest, which is where the tail risk on a
+          short-premium book actually lives.
         </p>
         <p style={{ margin: '0 0 0.75rem' }}>
-          <strong style={{ color: PLOTLY_COLORS.primary }}>Vanna</strong>{' '}
-          should cross zero right around the forward and then flip sign.
-          The typical SPX pattern is positive vanna on the call side and
-          negative vanna on the put side, because raising vol widens the
-          distribution and pushes probability toward both wings. The
-          vanna trough on the put side is what drives put-skew carry
-          into delta-hedge P&amp;L when vol changes.
+          Volga is the "vol convexity" number and it maps directly onto
+          the premium-selling versus premium-buying trade choice. Short
+          ATM straddles sit in the volga trough and collect theta cheaply,
+          but any reasonable vol move in either direction pulls premium
+          back out of the pocket. Long wings sit high on the volga
+          shoulders and pay off on a vol regime change. The volga curve
+          here shows where wing premium is really worth something versus
+          where the ATM trough can be harvested for theta without outsized
+          tail risk.
         </p>
         <p style={{ margin: '0 0 0.75rem' }}>
-          <strong style={{ color: PLOTLY_COLORS.highlight }}>Volga</strong>{' '}
-          is positive on both wings and small near ATM. That is why
-          traders say ATM straddles are "short volga" and wing
-          strangles are "long volga". The volga surface is shaped like
-          a shallow bathtub around spot, and a short-premium book that
-          sits in the trough can take significant losses if vol moves
-          either direction.
+          Charm is the "you still have to hedge every day" number. For a
+          long-dated book it is small and predictable, and a weekly
+          rebalance picks it up with no drama. For a short-dated book
+          (weekly expiry, especially 0DTE) charm grows fast and flips sign
+          on the far side of the forward, so a delta-hedged position at
+          3pm is not delta-hedged at 3:30pm even if nothing in the market
+          has moved. Traders running 0DTE SPX structures see the charm
+          term dominate hedge PnL in the final session, and the right
+          refresh cadence on the last day is hourly rather than daily.
         </p>
         <p style={{ margin: 0 }}>
-          <strong style={{ color: PLOTLY_COLORS.secondary }}>Charm</strong>{' '}
-          is usually positive around the ATM strike and flips sign on
-          the far side of the forward. The magnitude grows as expiration
-          approaches because delta has less room to move and every day
-          matters more. A fund running weekly 0DTE exposures sees the
-          charm term dominate the daily hedge PnL in the final two
-          sessions before expiry.
+          Where the peak of the displayed Greek sits is itself information.
+          When the peak sits close to spot, second-order risk is
+          concentrated near the ATM strike and a delta-hedged book can
+          carry fewer strikes before it runs out of risk budget. When the
+          peak sits far into a wing, the tail of the book is doing most
+          of the work and structure-of-wings choices (which OTM strikes
+          to own or sell) matter more than ATM sizing. The typical SPX
+          pattern is vanna positive on the call side and negative on the
+          put side with the biggest magnitude in the put wing, volga
+          positive on both wings with a mild asymmetry toward puts, and
+          charm positive at ATM that flips sign a short distance into
+          each wing.
         </p>
       </div>
     </div>

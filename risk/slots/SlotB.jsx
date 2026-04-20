@@ -433,11 +433,11 @@ export default function SlotB() {
           fontSize: '0.7rem',
           letterSpacing: '0.14em',
           textTransform: 'uppercase',
-          color: 'var(--text-secondary)',
+          color: 'var(--accent-amber)',
           marginBottom: '0.85rem',
         }}
       >
-        model · delta comparison · bsm / sticky-delta / minimum-variance / market
+        delta comparison · bsm / sticky-delta / minimum-variance / market
       </div>
 
       <div
@@ -520,9 +520,9 @@ export default function SlotB() {
           accent={PLOTLY_COLORS.positive}
         />
         <StatCell
-          label="ATM skew ∂σ/∂k"
+          label="ATM skew"
           value={atmSkew != null ? formatFixed(atmSkew, 3) : '-'}
-          sub="negative = put-skew"
+          sub="negative = puts richer than calls"
           accent={atmSkew != null && atmSkew < 0 ? PLOTLY_COLORS.secondary : undefined}
         />
       </div>
@@ -538,73 +538,82 @@ export default function SlotB() {
         }}
       >
         <p style={{ margin: '0 0 0.75rem' }}>
-          Four notions of delta on one SPX slice. They all start from the same
-          market implied vol and the same option price. They differ only in
-          what they assume about how the smile moves when spot moves. That
-          one assumption is worth up to a few cents of hedge per dollar of
-          notional.
+          Four hedge ratios on the same SPX option, from the same market vol
+          and the same option price. They differ only in how they assume the
+          smile moves when spot moves, and that single assumption is worth
+          several cents of stock per option on every daily rebalance. Across
+          a full position cycle it compounds into a real PnL line.
         </p>
         <p style={{ margin: '0 0 0.75rem' }}>
           The{' '}
           <strong style={{ color: PLOTLY_COLORS.primary }}>BSM line</strong>{' '}
-          is the quote delta. It assumes σ(K) is glued to the strike and
-          does not move with spot. This is the "sticky-strike" world and is
-          what every option-chain screen reports.
+          is the quote delta. It assumes every strike's vol is glued in place
+          when spot moves. This is the delta your broker and every option
+          chain print. It is the only line on this chart that is not trying
+          to describe SPX specifically.
         </p>
         <p style={{ margin: '0 0 0.75rem' }}>
           The{' '}
           <strong style={{ color: PLOTLY_COLORS.highlight }}>sticky-delta line</strong>{' '}
-          assumes the whole smile rides with the underlying. Under SPX put
-          skew this makes call delta larger, because when spot rises the
-          smile at the call strike also rises and adds to the call value.
+          assumes the whole smile slides with the underlying. Under SPX put
+          skew that makes call deltas larger and put deltas less negative,
+          because when spot rises the whole smile rises with it. This is the
+          bull-regime hedge. It is empirically wrong for SPX most of the
+          time, where vol usually falls on up days, but becomes the right
+          answer in a rare grinding-up-with-rising-vol tape.
         </p>
         <p style={{ margin: '0 0 0.75rem' }}>
           The{' '}
           <strong style={{ color: PLOTLY_COLORS.secondary }}>minimum-variance line</strong>{' '}
-          is the Hull-White (2017) hedge: the delta that minimizes realized
-          P&amp;L variance given that on SPX vol tends to rise when spot
-          falls. It runs below the BSM call line because some of the
-          downside hedge is already done by your vega book.
+          is Hull-White (2017): the delta that empirically minimizes daily
+          PnL variance on SPX given that vol rises when spot falls. Because
+          the leverage effect is the dominant SPX regime, MV pushes call
+          delta below BSM and put delta further below BSM. The gap is the
+          hedging work your vega book is already doing on the spot move,
+          which BSM cannot see.
         </p>
         <p style={{ margin: '0 0 0.75rem' }}>
           The{' '}
           <strong style={{ color: PLOTLY_COLORS.positive }}>green dots</strong>{' '}
-          are the market deltas carried on the feed, computed with BSM at
-          quote IV. They track the BSM line by construction. The gap when it
-          opens is quote-processing noise.
+          are the market deltas from the feed, computed with BSM at quote
+          IV. They track the BSM line by construction, and a visible gap is
+          quote-feed noise rather than model disagreement.
         </p>
         <p style={{ margin: '0 0 0.75rem' }}>
-          <strong style={{ color: 'var(--text-primary)' }}>Reading.</strong>{' '}
-          The vertical spread between the{' '}
-          <strong style={{ color: PLOTLY_COLORS.primary }}>BSM</strong>,{' '}
-          <strong style={{ color: PLOTLY_COLORS.highlight }}>sticky-delta</strong>, and{' '}
-          <strong style={{ color: PLOTLY_COLORS.secondary }}>MV</strong>{' '}
-          lines is largest in the wings and near zero at ATM. Out-of-the-money
-          options are almost all vega, so the ∂σ/∂S term dominates their
-          hedge ratio. At-the-money options are mostly intrinsic, so the
-          smile-dynamics correction barely moves them.
+          <strong style={{ color: 'var(--text-primary)' }}>Practical use.</strong>{' '}
+          The BSM line is what your platform shows. The MV line is closer to
+          what SPX actually wants you to hedge with. The gap between them is
+          the daily adjustment you are over-paying or under-paying for, and
+          it runs in opposite directions on the two sides of spot.
         </p>
         <p style={{ margin: '0 0 0.75rem' }}>
-          For SPX monthly calls, the sticky-delta line sits above BSM and the
-          MV line sits below. Both adjustments are driven by the same negative
-          ATM skew. Sticky-delta says the smile rides with spot (vol up when
-          spot up). MV says the smile moves opposite spot (vol up when spot
-          down, the leverage effect). The empirical reality for SPX is much
-          closer to MV.
+          For an upside position (long calls, or short calls that you are
+          hedging by buying stock), BSM over-hedges. A long 0.50-delta call
+          hedged with BSM puts 50 shares short against every contract. MV
+          says the right hedge is closer to 40 shares. You are carrying
+          extra short stock you do not need, paying borrow on it, and
+          reversing it on every up-day rebalance. Swapping to the MV delta
+          takes that adjustment off the table on every hedge cycle.
         </p>
         <p style={{ margin: '0 0 0.75rem' }}>
-          For SPX monthly puts, the picture flips. The sticky-delta line is
-          less negative than BSM and the MV line is more negative. A
-          delta-hedged long put under the MV framework requires selling a bit
-          more stock than BSM asks for, because the vega payoff on a
-          sell-off also contributes to the hedge.
+          For a downside position (long puts, or short puts that you are
+          hedging by selling stock), BSM under-hedges. A long put with a
+          BSM delta near -0.50 looks like it wants 50 long shares against
+          it. MV says closer to 55 shares, because when spot falls your
+          vega gain rides with the put gain and a bigger stock hedge locks
+          that compound move into delta-neutral PnL. A BSM-hedged long put
+          leaks the leverage pickup back to the market on every down move.
         </p>
         <p style={{ margin: 0 }}>
-          If the four lines bunch together, smile dynamics are not moving the
-          hedge much. If they fan out strongly, the smile-dynamics assumption
-          is material for how you hedge this slice today. The cubic
-          adjustment coefficients come from Hull-White (2017) and are
-          indicative, not refitted to the current snapshot.
+          If the four lines bunch together, smile dynamics are weak on this
+          slice and the choice of delta barely matters. If they fan in the
+          typical SPX pattern (MV below BSM on calls, MV further below BSM
+          on puts, sticky-delta on the other side), the smile is doing real
+          hedging work and using the MV line is the cleanest way to bank
+          that work into your PnL. The Hull-White coefficients here are the
+          paper's published values rather than a live refit on your own
+          return series, so the direction of the adjustment is reliable but
+          the exact magnitude should be sized conservatively.
         </p>
       </div>
     </div>

@@ -628,11 +628,11 @@ export default function SlotA() {
           fontSize: '0.7rem',
           letterSpacing: '0.14em',
           textTransform: 'uppercase',
-          color: 'var(--text-secondary)',
+          color: 'var(--accent-amber)',
           marginBottom: '0.85rem',
         }}
       >
-        model · cross-model greeks · bsm / bachelier / heston on one slice
+        cross-model greeks · bsm / bachelier / heston on one slice
       </div>
 
       <div
@@ -733,18 +733,18 @@ export default function SlotA() {
           accent={PLOTLY_COLORS.positive}
         />
         <StatCell
-          label="κ, θ, ξ, ρ, v₀"
+          label="Heston fit"
           value={calib
             ? `${calib.params.kappa.toFixed(1)} · ${formatPct(Math.sqrt(calib.params.theta), 0)}`
             : '-'}
           sub={calib
-            ? `ρ ${calib.params.rho.toFixed(2)} · √v₀ ${formatPct(Math.sqrt(calib.params.v0), 1)}`
+            ? `corr ${calib.params.rho.toFixed(2)} · now-vol ${formatPct(Math.sqrt(calib.params.v0), 1)}`
             : '-'}
         />
         <StatCell
-          label="Heston fit RMSE"
+          label="Heston fit error"
           value={calib ? formatPct(calib.rmse, 2) : '-'}
-          sub="in IV-space"
+          sub="vs market IV"
           accent={calib && calib.rmse < 0.01 ? PLOTLY_COLORS.positive : undefined}
         />
       </div>
@@ -760,60 +760,79 @@ export default function SlotA() {
         }}
       >
         <p style={{ margin: '0 0 0.75rem' }}>
-          Three pricing models compute the same Greek on the same SPX slice.
+          Every hedge ratio on a quote screen is the answer to a math
+          problem, and the math problem depends on what you assume about
+          how spot moves. The three lines here are the same Greek computed
+          under three different assumptions, evaluated at the market implied
+          vol for each strike. The vertical gap between them is how much of
+          your hedge is coming from the model you picked rather than from
+          the market itself.
+        </p>
+        <p style={{ margin: '0 0 0.75rem' }}>
           The{' '}
           <strong style={{ color: PLOTLY_COLORS.primary }}>BSM</strong>{' '}
-          line is log-normal with constant vol, evaluated at the interpolated
-          market implied vol. This is the Greek every quote screen shows.
+          line is the industry default: log-normal spot with constant vol.
+          This is the Greek your broker platform and quote screen show.
         </p>
         <p style={{ margin: '0 0 0.75rem' }}>
           The{' '}
           <strong style={{ color: PLOTLY_COLORS.highlight }}>Bachelier</strong>{' '}
-          dashed line is the same Greek under a normal spot process instead
-          of log-normal. Near the money the two are nearly identical. In the
-          wings they diverge because the normal tail is thinner.
+          dashed line swaps log-normal for a normal arithmetic process.
+          Near the money the two overlap almost perfectly. Out in the wings
+          Bachelier bends faster because a normal distribution has thinner
+          tails than a log-normal.
         </p>
         <p style={{ margin: '0 0 0.75rem' }}>
           The{' '}
           <strong style={{ color: PLOTLY_COLORS.positive }}>Heston</strong>{' '}
-          line comes from a stochastic-variance fit on the current slice,
-          with Greeks by finite difference on the characteristic-function
-          call. It carries smile dynamics that the first two models cannot.
+          line is a stochastic-vol fit calibrated on the current slice. It
+          knows the smile is not flat and carries the way vol moves with
+          spot. Close to the money Heston tracks BSM. Further out it bulges
+          in the direction of whichever wing the smile is leaning on, which
+          on SPX is almost always the put side.
         </p>
         <p style={{ margin: '0 0 0.75rem' }}>
-          The reader takeaway is the vertical spacing between the three
-          curves at a strike you care about. That distance is the model
-          risk embedded in the Greek, before any quote-level noise enters.
+          The stat row shows the selected Greek at spot under each model,
+          the Heston calibration as mean-reversion speed and long-run vol
+          with the correlation and current vol underneath, and the fit
+          error against the observed market smile. A fit error around 1% or
+          under means Heston is reproducing the slice faithfully and the
+          green-to-blue gap is real model disagreement, not calibration
+          noise.
         </p>
         <p style={{ margin: '0 0 0.75rem' }}>
-          <strong style={{ color: 'var(--text-primary)' }}>Reading.</strong>{' '}
-          Near the money the three lines collapse almost on top of each other.
-          That is expected. ATM is where every sensible option model agrees,
-          because the payoff is dominated by its linear piece and the shape of
-          the tail barely matters.
+          <strong style={{ color: 'var(--text-primary)' }}>Practical use.</strong>{' '}
+          If you delta-hedge a wing position using the BSM delta on your
+          screen, you systematically over-hedge or under-hedge because the
+          screen ignores smile dynamics. On SPX the Heston delta for a
+          25-delta put is noticeably lower in magnitude than the BSM delta,
+          because the vega gain on a sell-off already does part of the
+          hedging work. Swapping in the Heston delta closes the sizing gap
+          and cuts daily hedge-rebalance costs.
         </p>
         <p style={{ margin: '0 0 0.75rem' }}>
-          Away from the money the three lines fan out. The{' '}
-          <strong style={{ color: PLOTLY_COLORS.highlight }}>Bachelier</strong>{' '}
-          curve bends fastest because the normal distribution underweights
-          extreme moves relative to the log-normal. The{' '}
-          <strong style={{ color: PLOTLY_COLORS.positive }}>Heston</strong>{' '}
-          curve tracks the BSM curve out to a few percent of spot and then
-          starts to bulge because stochastic vol reprices the tail.
+          Gamma scalpers can read the Heston gamma peak as the true location
+          of the scalping edge, which often sits slightly off spot rather
+          than right on it. If your program triggers re-hedges on BSM gamma
+          bumps, you will under-scalp the real gamma in the wings and
+          over-scalp at spot. The Heston curve tells you where to concentrate
+          the work.
         </p>
         <p style={{ margin: '0 0 0.75rem' }}>
-          For <strong>delta</strong>, the gap between BSM and Heston in the
-          left wing is a read on how much your delta hedge changes if you
-          allow vol to move with spot. For <strong>gamma</strong>, the
-          Heston peak can be fatter or shifted because the smile has
-          curvature in K that a flat-vol model cannot see. For{' '}
-          <strong>vega</strong>, Bachelier and BSM disagree the most because
-          they carry different notional interpretations of σ.
+          Wing vega buyers should note that both BSM and Bachelier undercount
+          vega out in the tails relative to Heston, because neither carries
+          smile dynamics. If you are long far-OTM options as a vol play, the
+          vega exposure you are carrying is larger than the quote-screen
+          number, and a spike in implied vol pays you more than BSM vega
+          suggests.
         </p>
         <p style={{ margin: 0 }}>
-          The goal of the chart is not to decide which model is right. It is
-          to give a visual answer to the question of how sensitive your
-          hedge ratio is to the modelling assumption itself.
+          When the three lines bunch tightly on your current expiration,
+          model risk is small and the BSM hedge on your screen is trustworthy.
+          When they fan out, the choice of model is worth real daily PnL,
+          and the empirically correct answer on SPX is almost always closer
+          to the Heston line than to BSM, especially past 5% OTM on the put
+          side.
         </p>
       </div>
     </div>

@@ -564,11 +564,11 @@ export default function SlotC() {
           fontSize: '0.7rem',
           letterSpacing: '0.14em',
           textTransform: 'uppercase',
-          color: 'var(--text-secondary)',
+          color: 'var(--accent-amber)',
           marginBottom: '0.85rem',
         }}
       >
-        model · vanna-volga · three-anchor smile reconstruction
+        vanna-volga · three-anchor smile reconstruction
       </div>
 
       <div
@@ -654,9 +654,9 @@ export default function SlotC() {
           accent={bf != null && bf > 0 ? PLOTLY_COLORS.highlight : undefined}
         />
         <StatCell
-          label="VV fit RMSE"
+          label="VV fit error"
           value={curves?.rmse != null ? formatPct(curves.rmse, 2) : '-'}
-          sub="in IV-space"
+          sub="vs market smile"
           accent={curves?.rmse != null && curves.rmse < 0.015 ? PLOTLY_COLORS.positive : undefined}
         />
       </div>
@@ -672,82 +672,85 @@ export default function SlotC() {
         }}
       >
         <p style={{ margin: '0 0 0.75rem' }}>
-          The Vanna-Volga method pins the smile with three anchor strikes.
-          The{' '}
+          The Vanna-Volga method takes three strikes on the smile (the{' '}
           <strong style={{ color: PLOTLY_COLORS.secondary }}>25-delta put</strong>,
           the{' '}
           <strong style={{ color: PLOTLY_COLORS.highlight }}>ATM straddle</strong>,
           and the{' '}
-          <strong style={{ color: PLOTLY_COLORS.positive }}>25-delta call</strong>{' '}
-          carry the bulk of options liquidity on an FX desk. Every other
-          strike is priced as a Black-Scholes baseline at the ATM vol plus
-          three correction terms that match the vega, vanna, and volga of
-          the target option against a basket of the three anchors.
+          <strong style={{ color: PLOTLY_COLORS.positive }}>25-delta call</strong>
+          ) and treats them as the liquid anchors. Every other strike is
+          priced as a Black-Scholes baseline at the ATM vol plus three
+          correction terms that match vega, vanna, and volga of the target
+          option against a basket of the three anchors. Applied to SPX this
+          breaks the smile into three tradable dimensions: symmetric wing
+          lift, asymmetry between puts and calls, and convexity of vega to
+          vol.
         </p>
         <p style={{ margin: '0 0 0.75rem' }}>
           The{' '}
           <strong style={{ color: PLOTLY_COLORS.primary }}>blue line</strong>{' '}
-          is the reconstructed implied-vol smile. It passes through all
-          three colored diamond anchors exactly by construction. The
-          grey dots are the listed market IVs at every strike on the
-          current SPX slice. The gap between the grey dots and the blue
-          line is how much of the observed smile is not explained by the
-          three-Greek match at the anchors.
+          is the reconstructed smile. It passes through all three colored
+          diamonds exactly by construction. The grey dots are the listed
+          market IVs at every strike on the current slice. The gap between
+          the dots and the line is how much of the observed smile is not
+          explained by the three-Greek match at the anchors.
         </p>
         <p style={{ margin: '0 0 0.75rem' }}>
-          Two derived numbers from the anchors describe the smile's
-          shape. The{' '}
-          <strong>Risk Reversal (RR)</strong> is σ(25ΔC) minus σ(25ΔP),
-          which measures asymmetry. On SPX it is deeply negative because
-          puts are more expensive than equally out-of-the-money calls.
+          Two derived numbers from the anchors describe the shape of the
+          smile. The{' '}
+          <strong>Risk Reversal</strong> (call-wing IV minus put-wing IV)
+          measures asymmetry. On SPX it is deeply negative because puts are
+          expensive relative to equally-OTM calls. The{' '}
+          <strong>Butterfly</strong> (average wing IV minus ATM IV) measures
+          convexity. Positive BF means the market prices fat tails on both
+          sides.
+        </p>
+        <p style={{ margin: '0 0 0.75rem' }}>
+          <strong style={{ color: 'var(--text-primary)' }}>Practical use.</strong>{' '}
+          RR and Butterfly are the two independent vol trades you can put on
+          against the smile, so watch each against its own recent
+          distribution for a slice of similar DTE. When RR is more negative
+          than its recent range, the put premium over equally-OTM calls is
+          rich and a long-25ΔC / short-25ΔP risk reversal is relatively
+          cheap to put on as a directional long-upside position. When RR is
+          flatter than usual, the market is not charging its usual fear
+          premium and the same structure is a poor entry even if the dollar
+          cost looks similar on the option chain.
+        </p>
+        <p style={{ margin: '0 0 0.75rem' }}>
+          Butterfly flips the smile into a convexity trade. When BF is wide
+          versus its recent distribution, the market is charging a fat
+          premium for both wings, and a long-body / short-wings structure
+          (long ATM straddle against a short 25-delta strangle) collects
+          that premium. When BF is narrow, the wings are cheap and the
+          opposite structure gets paid to carry the tail risk that the
+          market is currently under-pricing.
+        </p>
+        <p style={{ margin: '0 0 0.75rem' }}>
           The{' '}
-          <strong>Butterfly (BF)</strong> is the average of the two wing
-          vols minus the ATM vol, which measures convexity. A positive
-          BF means the market prices fat tails on both sides.
-        </p>
-        <p style={{ margin: '0 0 0.75rem' }}>
-          The VV reconstruction is a local second-order approximation.
-          Between the anchors it bends naturally along the smile. Outside
-          the anchor band the line is an extrapolation built on the
-          three-Greek match and it can drift off the observed wing. The
-          RMSE at the bottom of the stat row measures that drift across
-          the listed strikes.
-        </p>
-        <p style={{ margin: '0 0 0.75rem' }}>
-          <strong style={{ color: 'var(--text-primary)' }}>Reading.</strong>{' '}
-          The three diamonds are where the reconstruction is pinned. The
-          blue line leaves the ATM diamond and bends toward the 25-delta
-          wings, picking up curvature on the way. The amount of bend
-          depends on the Risk Reversal and the Butterfly alone: RR
-          controls tilt, BF controls convexity.
-        </p>
-        <p style={{ margin: '0 0 0.75rem' }}>
-          A{' '}
-          <strong style={{ color: PLOTLY_COLORS.secondary }}>large negative RR</strong>{' '}
-          is the SPX leverage signal. It says the market charges more
-          premium for downside protection than for an equally-out-of-
-          the-money call, which is the vanna dimension of the smile.
-          When RR gets more negative the blue line tilts further to the
-          left wing and the put-anchor diamond rides visibly above the
-          call-anchor diamond.
-        </p>
-        <p style={{ margin: '0 0 0.75rem' }}>
-          A{' '}
-          <strong style={{ color: PLOTLY_COLORS.highlight }}>large positive BF</strong>{' '}
-          is the fat-tails signal. It says the market prices both wings
-          above the ATM vol, which is the volga dimension of the smile.
-          When BF grows the blue line arcs up toward both sides and the
-          ATM diamond sits in a visible trough below the two wing
-          diamonds.
+          <strong style={{ color: PLOTLY_COLORS.primary }}>VV fit error</strong>{' '}
+          at the bottom of the stat row is the quality check on using RR and
+          BF as sufficient smile descriptors. A low value (under about 1-2%
+          in IV space) means the entire slice is explained by those two
+          numbers plus the ATM level, and any trade structured off them will
+          fit the rest of the smile cleanly. An elevated value means
+          higher-order structure is in play, typically a concentrated tail
+          concern around a specific strike that the three-anchor match
+          cannot see. In that state shorting the wings against the anchors
+          carries more risk than the three numbers suggest.
         </p>
         <p style={{ margin: 0 }}>
-          The{' '}
-          <strong style={{ color: PLOTLY_COLORS.primary }}>VV fit RMSE</strong>{' '}
-          is how well a three-parameter local model captures every listed
-          strike in the slice. Low RMSE means the smile really is driven
-          by RR and BF and is close to a clean three-anchor picture.
-          Elevated RMSE means higher-order effects are in play that
-          need a full smile fit like SVI to capture.
+          Close to the money the blue line leaves the ATM diamond and bends
+          toward the 25-delta wings along a smooth curve. The amount of bend
+          is exactly RR and BF working together: RR tilts it (left wing up
+          under SPX skew), BF curves it (both wings up under SPX convexity).
+          When the market shifts regime you see the blue line reshape: a
+          fear rally deepens the put wing, a vol-crush flattens everything,
+          a specific-strike pin around a large open-interest level pushes a
+          grey dot visibly off the line. That deviation is often the most
+          tradable information on the page, because it flags exactly the
+          strike where the market is pricing something the smooth three-
+          anchor model cannot.
         </p>
       </div>
     </div>
