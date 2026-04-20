@@ -365,56 +365,17 @@ export default function SlotD() {
 
   return (
     <div className="card" style={{ padding: '1.25rem 1.25rem 1rem' }}>
-      <div style={{ marginBottom: '0.85rem' }}>
-        <div
-          style={{
-            fontFamily: 'Courier New, monospace',
-            fontSize: '0.7rem',
-            letterSpacing: '0.14em',
-            textTransform: 'uppercase',
-            color: 'var(--text-secondary)',
-            marginBottom: '0.35rem',
-          }}
-        >
-          model · rough bergomi · skew term-structure scaling law
-        </div>
-        <div
-          style={{
-            fontSize: '0.95rem',
-            color: 'var(--text-secondary)',
-            lineHeight: 1.6,
-            maxWidth: '860px',
-          }}
-        >
-          <p style={{ margin: '0 0 0.75rem' }}>
-            Rough volatility predicts that ATM skew scales as{' '}
-            <code style={{ color: 'var(--text-primary)' }}>|∂σ_ATM/∂k| ~ c · T^(H − ½)</code>.
-            The Hurst parameter <strong>H</strong> measures how rough the
-            variance driving noise is.
-          </p>
-          <p style={{ margin: '0 0 0.75rem' }}>
-            H = ½ is standard Brownian motion, which is where Slot A&apos;s
-            Heston lives. It predicts a flat skew at short T.
-          </p>
-          <p style={{ margin: '0 0 0.75rem' }}>
-            H &lt; ½ is rougher. The volatility path becomes more jagged than
-            Brownian and generates the steep short-dated skew that classical SV
-            models cannot produce without jumps. SPX consensus since
-            Gatheral-Jaisson-Rosenbaum (2018) is H ≈ 0.1.
-          </p>
-          <p style={{ margin: 0 }}>
-            Each{' '}
-            <strong style={{ color: PLOTLY_COLORS.titleText }}>observed point</strong>{' '}
-            on the chart is the ATM skew from one SVI slice. The{' '}
-            <strong style={{ color: PLOTLY_COLORS.positive }}>green line</strong>{' '}
-            is the fitted power law. The{' '}
-            <strong style={{ color: PLOTLY_COLORS.secondary }}>coral</strong>,{' '}
-            <strong style={{ color: PLOTLY_COLORS.highlight }}>amber</strong>, and{' '}
-            <strong style={{ color: PLOTLY_COLORS.primary }}>blue</strong>{' '}
-            reference lines are T^(H−½) for H = 0.10 / 0.30 / 0.50, each pinned
-            to the same intercept so the comparison reads as slope-only.
-          </p>
-        </div>
+      <div
+        style={{
+          fontFamily: 'Courier New, monospace',
+          fontSize: '0.7rem',
+          letterSpacing: '0.14em',
+          textTransform: 'uppercase',
+          color: 'var(--text-secondary)',
+          marginBottom: '0.85rem',
+        }}
+      >
+        model · rough bergomi · skew term-structure scaling law
       </div>
 
       <div
@@ -470,6 +431,34 @@ export default function SlotD() {
         }}
       >
         <p style={{ margin: '0 0 0.75rem' }}>
+          Rough volatility predicts that ATM skew scales as{' '}
+          <code style={{ color: 'var(--text-primary)' }}>|∂σ_ATM/∂k| ~ c · T^(H − ½)</code>.
+          The Hurst parameter <strong>H</strong> measures how rough the
+          variance driving noise is.
+        </p>
+        <p style={{ margin: '0 0 0.75rem' }}>
+          H = ½ is standard Brownian motion, which is where Heston (above)
+          lives. It predicts a flat skew at short T.
+        </p>
+        <p style={{ margin: '0 0 0.75rem' }}>
+          H &lt; ½ is rougher. The volatility path becomes more jagged than
+          Brownian and generates the steep short-dated skew that classical SV
+          models cannot produce without jumps. SPX consensus since
+          Gatheral-Jaisson-Rosenbaum (2018) is H ≈ 0.1.
+        </p>
+        <p style={{ margin: '0 0 0.75rem' }}>
+          Each{' '}
+          <strong style={{ color: PLOTLY_COLORS.titleText }}>observed point</strong>{' '}
+          on the chart is the ATM skew from one SVI slice. The{' '}
+          <strong style={{ color: PLOTLY_COLORS.positive }}>green line</strong>{' '}
+          is the fitted power law. The{' '}
+          <strong style={{ color: PLOTLY_COLORS.secondary }}>coral</strong>,{' '}
+          <strong style={{ color: PLOTLY_COLORS.highlight }}>amber</strong>, and{' '}
+          <strong style={{ color: PLOTLY_COLORS.primary }}>blue</strong>{' '}
+          reference lines are T^(H−½) for H = 0.10 / 0.30 / 0.50, each pinned
+          to the same intercept so the comparison reads as slope-only.
+        </p>
+        <p style={{ margin: '0 0 0.75rem' }}>
           <strong style={{ color: 'var(--text-primary)' }}>Reading.</strong>{' '}
           On log-log axes a single Hurst exponent turns into a straight line
           whose slope is H − ½. A fitted{' '}
@@ -480,7 +469,7 @@ export default function SlotD() {
           what drove adoption of the Bayer-Friz-Gatheral paper.
         </p>
         <p style={{ margin: '0 0 0.75rem' }}>
-          The H = 0.5 reference line is what Heston (Slot A) would trace out.
+          The H = 0.5 reference line is what Heston above would trace out.
           The visible gap between that line and the observed points at the
           short end is the empirical anomaly. Heston systematically undershoots.
         </p>

@@ -396,54 +396,17 @@ export default function SlotC() {
 
   return (
     <div className="card" style={{ padding: '1.25rem 1.25rem 1rem' }}>
-      <div style={{ marginBottom: '0.85rem' }}>
-        <div
-          style={{
-            fontFamily: 'Courier New, monospace',
-            fontSize: '0.7rem',
-            letterSpacing: '0.14em',
-            textTransform: 'uppercase',
-            color: 'var(--text-secondary)',
-            marginBottom: '0.35rem',
-          }}
-        >
-          model · dupire local vol · surface from SVI slice set
-        </div>
-        <div
-          style={{
-            fontSize: '0.95rem',
-            color: 'var(--text-secondary)',
-            lineHeight: 1.6,
-            maxWidth: '860px',
-          }}
-        >
-          <p style={{ margin: '0 0 0.75rem' }}>
-            The{' '}
-            <strong style={{ color: PLOTLY_COLORS.primary }}>Dupire local volatility</strong>{' '}
-            function σ_LV(K, T) is the deterministic diffusion coefficient that
-            reproduces every European option price on today&apos;s implied-vol
-            surface exactly.
-          </p>
-          <p style={{ margin: '0 0 0.75rem' }}>
-            It is computed in (y, T) coordinates with y = ln(K/F) from the SVI
-            fits at every expiration in the current snapshot. The T-derivative
-            comes from a finite difference across adjacent slices, and the
-            y-derivatives are closed-form from the SVI parameters.
-          </p>
-          <p style={{ margin: '0 0 0.75rem' }}>
-            The heatmap below is σ_LV as a function of log-moneyness and tenor.
-            Read it vertically and you see what the forward diffusion coefficient
-            has to look like for a specific strike at every future date. Read it
-            horizontally and you see the local-vol smile at one tenor.
-          </p>
-          <p style={{ margin: 0 }}>
-            <strong>Local Stochastic Vol</strong> (LSV) upgrades pure local vol
-            by multiplying a stochastic factor v_t by a leverage function L(S,t)
-            chosen so L² · E[v_t|S_t=S] = σ²_LV(S, t). That means{' '}
-            <em>this</em> surface is the left-hand side of the LSV calibration
-            condition.
-          </p>
-        </div>
+      <div
+        style={{
+          fontFamily: 'Courier New, monospace',
+          fontSize: '0.7rem',
+          letterSpacing: '0.14em',
+          textTransform: 'uppercase',
+          color: 'var(--text-secondary)',
+          marginBottom: '0.85rem',
+        }}
+      >
+        model · dupire local vol · surface from SVI slice set
       </div>
 
       <div
@@ -500,6 +463,32 @@ export default function SlotC() {
           lineHeight: 1.65,
         }}
       >
+        <p style={{ margin: '0 0 0.75rem' }}>
+          The{' '}
+          <strong style={{ color: PLOTLY_COLORS.primary }}>Dupire local volatility</strong>{' '}
+          function σ_LV(K, T) is the deterministic diffusion coefficient that
+          reproduces every European option price on today&apos;s implied-vol
+          surface exactly.
+        </p>
+        <p style={{ margin: '0 0 0.75rem' }}>
+          It is computed in (y, T) coordinates with y = ln(K/F) from the SVI
+          fits at every expiration in the current snapshot. The T-derivative
+          comes from a finite difference across adjacent slices, and the
+          y-derivatives are closed-form from the SVI parameters.
+        </p>
+        <p style={{ margin: '0 0 0.75rem' }}>
+          The heatmap above is σ_LV as a function of log-moneyness and tenor.
+          Read it vertically and you see what the forward diffusion coefficient
+          has to look like for a specific strike at every future date. Read it
+          horizontally and you see the local-vol smile at one tenor.
+        </p>
+        <p style={{ margin: '0 0 0.75rem' }}>
+          <strong>Local Stochastic Vol</strong> (LSV) upgrades pure local vol
+          by multiplying a stochastic factor v_t by a leverage function L(S,t)
+          chosen so L² · E[v_t|S_t=S] = σ²_LV(S, t). That means{' '}
+          <em>this</em> surface is the left-hand side of the LSV calibration
+          condition.
+        </p>
         <p style={{ margin: '0 0 0.75rem' }}>
           <strong style={{ color: 'var(--text-primary)' }}>Reading.</strong>{' '}
           The hottest regions in the upper-left corner (short T, deep OTM puts

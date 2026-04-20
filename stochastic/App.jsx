@@ -95,22 +95,18 @@ export default function App() {
       </div>
 
       <section className="lab-slot">
-        <div className="lab-slot-label">SLOT A · HESTON (1993)</div>
         <ErrorBoundary><SlotA /></ErrorBoundary>
       </section>
 
       <section className="lab-slot">
-        <div className="lab-slot-label">SLOT B · SABR (HAGAN 2002)</div>
         <ErrorBoundary><SlotB /></ErrorBoundary>
       </section>
 
       <section className="lab-slot">
-        <div className="lab-slot-label">SLOT C · LOCAL STOCHASTIC VOL</div>
         <ErrorBoundary><SlotC /></ErrorBoundary>
       </section>
 
       <section className="lab-slot">
-        <div className="lab-slot-label">SLOT D · ROUGH BERGOMI (BFG 2016)</div>
         <ErrorBoundary><SlotD /></ErrorBoundary>
       </section>
 

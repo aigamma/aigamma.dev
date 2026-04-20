@@ -616,52 +616,17 @@ export default function SlotA() {
 
   return (
     <div className="card" style={{ padding: '1.25rem 1.25rem 1rem' }}>
-      <div style={{ marginBottom: '0.85rem' }}>
-        <div
-          style={{
-            fontFamily: 'Courier New, monospace',
-            fontSize: '0.7rem',
-            letterSpacing: '0.14em',
-            textTransform: 'uppercase',
-            color: 'var(--text-secondary)',
-            marginBottom: '0.35rem',
-          }}
-        >
-          model · heston · cir stochastic variance · 5 parameters
-        </div>
-        <div
-          style={{
-            fontSize: '0.95rem',
-            color: 'var(--text-secondary)',
-            lineHeight: 1.6,
-            maxWidth: '860px',
-          }}
-        >
-          <p style={{ margin: '0 0 0.75rem' }}>
-            Heston is the first stochastic-volatility model that people routinely
-            calibrate in closed form. Instead of pinning volatility to a single
-            constant, it lets variance itself drift around a long-run level through
-            the mean-reverting process{' '}
-            <code style={{ color: 'var(--text-primary)' }}>dv = κ(θ−v)dt + ξ√v dW</code>,
-            with a correlation ρ linking variance shocks to spot shocks.
-          </p>
-          <p style={{ margin: '0 0 0.75rem' }}>
-            Five parameters (κ, θ, ξ, ρ, v₀) are calibrated to the{' '}
-            <strong style={{ color: PLOTLY_COLORS.primary }}>observed SPX IV smile</strong>{' '}
-            at one expiration. The optimizer is Nelder-Mead in IV-space, and the
-            model prices come from the two-integral Heston formula using the
-            Little-Trap stable characteristic function.
-          </p>
-          <p style={{ margin: 0 }}>
-            The{' '}
-            <strong style={{ color: PLOTLY_COLORS.highlight }}>fitted smile</strong>{' '}
-            tracks the shape pretty well for monthly tenors. It systematically
-            undershoots the short end, though. The square-root diffusion just cannot
-            produce enough short-dated skew. That gap is the empirical anomaly
-            that motivates jumps (Bates), rough vol (Slot D), and local-stochastic
-            hybrids (Slot C).
-          </p>
-        </div>
+      <div
+        style={{
+          fontFamily: 'Courier New, monospace',
+          fontSize: '0.7rem',
+          letterSpacing: '0.14em',
+          textTransform: 'uppercase',
+          color: 'var(--text-secondary)',
+          marginBottom: '0.85rem',
+        }}
+      >
+        model · heston · cir stochastic variance · 5 parameters
       </div>
 
       <div
@@ -761,6 +726,30 @@ export default function SlotA() {
           lineHeight: 1.65,
         }}
       >
+        <p style={{ margin: '0 0 0.75rem' }}>
+          Heston is the first stochastic-volatility model that people routinely
+          calibrate in closed form. Instead of pinning volatility to a single
+          constant, it lets variance itself drift around a long-run level through
+          the mean-reverting process{' '}
+          <code style={{ color: 'var(--text-primary)' }}>dv = κ(θ−v)dt + ξ√v dW</code>,
+          with a correlation ρ linking variance shocks to spot shocks.
+        </p>
+        <p style={{ margin: '0 0 0.75rem' }}>
+          Five parameters (κ, θ, ξ, ρ, v₀) are calibrated to the{' '}
+          <strong style={{ color: PLOTLY_COLORS.primary }}>observed SPX IV smile</strong>{' '}
+          at one expiration. The optimizer is Nelder-Mead in IV-space, and the
+          model prices come from the two-integral Heston formula using the
+          Little-Trap stable characteristic function.
+        </p>
+        <p style={{ margin: '0 0 0.75rem' }}>
+          The{' '}
+          <strong style={{ color: PLOTLY_COLORS.highlight }}>fitted smile</strong>{' '}
+          tracks the shape pretty well for monthly tenors. It systematically
+          undershoots the short end, though. The square-root diffusion just cannot
+          produce enough short-dated skew. That gap is the empirical anomaly
+          that motivates jumps (Bates), rough vol (the Rough Bergomi model below),
+          and local-stochastic hybrids (the LSV model below).
+        </p>
         <p style={{ margin: '0 0 0.75rem' }}>
           <strong style={{ color: 'var(--text-primary)' }}>Reading.</strong>{' '}
           The <strong style={{ color: PLOTLY_COLORS.primary }}>blue dots</strong>{' '}

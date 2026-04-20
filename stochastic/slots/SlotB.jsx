@@ -428,46 +428,17 @@ export default function SlotB() {
 
   return (
     <div className="card" style={{ padding: '1.25rem 1.25rem 1rem' }}>
-      <div style={{ marginBottom: '0.85rem' }}>
-        <div
-          style={{
-            fontFamily: 'Courier New, monospace',
-            fontSize: '0.7rem',
-            letterSpacing: '0.14em',
-            textTransform: 'uppercase',
-            color: 'var(--text-secondary)',
-            marginBottom: '0.35rem',
-          }}
-        >
-          model · sabr · hagan closed-form · β pinned to 1
-        </div>
-        <div
-          style={{
-            fontSize: '0.95rem',
-            color: 'var(--text-secondary)',
-            lineHeight: 1.6,
-            maxWidth: '860px',
-          }}
-        >
-          <p style={{ margin: '0 0 0.75rem' }}>
-            SABR has three tunable parameters. α sets the overall vol level. ρ is
-            the correlation between spot and vol shocks, which tilts the skew. ν
-            is vol-of-vol, which sets wing curvature. All three map directly into{' '}
-            <strong style={{ color: PLOTLY_COLORS.positive }}>Black-implied vol</strong>{' '}
-            through Hagan&apos;s asymptotic expansion.
-          </p>
-          <p style={{ margin: '0 0 0.75rem' }}>
-            β is pinned to 1 so the equity backbone is lognormal. With β fixed,
-            the other three are identifiable on a single slice.
-          </p>
-          <p style={{ margin: 0 }}>
-            Calibration is a 3-parameter Nelder-Mead on the same strike set Slot
-            A fits with Heston, so the two fits are directly comparable. The{' '}
-            <strong style={{ color: PLOTLY_COLORS.highlight }}>dashed ATM backbone</strong>{' '}
-            is flat under β = 1 by construction, so every bit of visible smile
-            curvature is driven by ρ and ν.
-          </p>
-        </div>
+      <div
+        style={{
+          fontFamily: 'Courier New, monospace',
+          fontSize: '0.7rem',
+          letterSpacing: '0.14em',
+          textTransform: 'uppercase',
+          color: 'var(--text-secondary)',
+          marginBottom: '0.85rem',
+        }}
+      >
+        model · sabr · hagan closed-form · β pinned to 1
       </div>
 
       <div
@@ -563,11 +534,29 @@ export default function SlotB() {
         }}
       >
         <p style={{ margin: '0 0 0.75rem' }}>
+          SABR has three tunable parameters. α sets the overall vol level. ρ is
+          the correlation between spot and vol shocks, which tilts the skew. ν
+          is vol-of-vol, which sets wing curvature. All three map directly into{' '}
+          <strong style={{ color: PLOTLY_COLORS.positive }}>Black-implied vol</strong>{' '}
+          through Hagan&apos;s asymptotic expansion.
+        </p>
+        <p style={{ margin: '0 0 0.75rem' }}>
+          β is pinned to 1 so the equity backbone is lognormal. With β fixed,
+          the other three are identifiable on a single slice.
+        </p>
+        <p style={{ margin: '0 0 0.75rem' }}>
+          Calibration is a 3-parameter Nelder-Mead on the same strike set
+          Heston above fits, so the two fits are directly comparable. The{' '}
+          <strong style={{ color: PLOTLY_COLORS.highlight }}>dashed ATM backbone</strong>{' '}
+          is flat under β = 1 by construction, so every bit of visible smile
+          curvature is driven by ρ and ν.
+        </p>
+        <p style={{ margin: '0 0 0.75rem' }}>
           <strong style={{ color: 'var(--text-primary)' }}>Reading.</strong>{' '}
           The{' '}
           <strong style={{ color: PLOTLY_COLORS.positive }}>green curve</strong>{' '}
           is Hagan&apos;s closed-form implied vol under SABR β = 1. Compared
-          to Slot A&apos;s Heston fit on the same slice, SABR usually matches
+          to the Heston fit above on the same slice, SABR usually matches
           the ATM level and the wings very cleanly at a single maturity.
         </p>
         <p style={{ margin: '0 0 0.75rem' }}>
