@@ -43,16 +43,21 @@ import SlotD from './slots/SlotD';
 //
 // All four slots consume the same live /api/data snapshot so their
 // Greeks, deltas, and smile reconstructions describe one point-in-time
-// chain. Like the other lab surfaces, this page has no ingress or
-// egress links: the logo is not a hyperlink, nothing on the main site
-// points here, and the page is reachable only by typing /risk or
-// loading a bookmark.
+// chain. Unlike the bookmark-only lab surfaces, this page carries
+// active egress back to the main dashboard at three redundant
+// affordances: the logo in the header is a hyperlink to `/`, a filled
+// green RETURN HOME button sits between the header and the first slot
+// as an obvious call-to-action, and the footer carries a bolded
+// Return Home link for a reader who has scrolled to the bottom of a
+// long page.
 export default function App() {
   return (
     <div className="app-shell lab-shell">
       <header className="lab-header">
         <div className="lab-brand">
-          <img src="/logo.webp" alt="aigamma.com" className="lab-logo" />
+          <a href="/" className="lab-logo-link" aria-label="Return to aigamma.com homepage">
+            <img src="/logo.webp" alt="aigamma.com" className="lab-logo" />
+          </a>
           <span
             className="lab-badge"
             title="Risk Lab · cross-model Greeks, delta comparison, Vanna-Volga, second-order Greeks"
@@ -62,6 +67,10 @@ export default function App() {
         </div>
         <QuantMenu />
       </header>
+
+      <div className="lab-home-row">
+        <a href="/" className="lab-home-button">Return Home</a>
+      </div>
 
       <section className="lab-slot">
         <ErrorBoundary><SlotA /></ErrorBoundary>
@@ -95,6 +104,7 @@ export default function App() {
         <span className="lab-footer-line">
           AI Gamma LLC · risk lab · four-model comparison · v0.1.0
         </span>
+        <a href="/" className="lab-footer-home">Return Home</a>
       </footer>
     </div>
   );
