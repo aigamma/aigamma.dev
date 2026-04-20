@@ -2,6 +2,7 @@ import '../src/styles/theme.css';
 import '../src/styles/lab.css';
 import ErrorBoundary from '../src/ErrorBoundary';
 import QuantMenu from '../src/components/QuantMenu';
+import Chat from '../src/components/Chat';
 import SlotA from './slots/SlotA';
 import SlotB from './slots/SlotB';
 import SlotC from './slots/SlotC';
@@ -106,6 +107,18 @@ export default function App() {
         <div className="lab-slot-label">SLOT D · VARIANCE GAMMA (MCC 1998)</div>
         <ErrorBoundary><SlotD /></ErrorBoundary>
       </section>
+
+      <ErrorBoundary>
+        <Chat
+          context="jump"
+          welcome={{
+            quick:
+              'Ask about jump-process option pricing, the four slots above, or how the Merton, Kou, Bates, and Variance Gamma lineage relates to the pure stochastic-vol, local-vol, and rough-vol lineages on the sibling labs. Chat stays on volatility, options, and quantitative finance.',
+            deep:
+              'Deep Analysis mode — longer and more structurally detailed responses on compound Poisson and double-exponential jump measures, affine jump-diffusion transform analysis, Levy processes and the Levy-Khintchine decomposition, Variance Gamma as a time-changed Brownian motion, and the philosophy of pricing a jump-augmented market that is formally incomplete.',
+          }}
+        />
+      </ErrorBoundary>
 
       <footer className="lab-footer">
         <span className="lab-footer-line">
