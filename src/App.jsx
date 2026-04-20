@@ -253,7 +253,7 @@ export default function App() {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          flexWrap: 'wrap',
+          flexWrap: 'nowrap',
           gap: '0.75rem',
           marginBottom: '1rem',
         }}
@@ -293,10 +293,15 @@ export default function App() {
           )}
         </div>
 
-        <nav className="site-nav">
-          <QuantMenu />
-          <a href="https://about.aigamma.com/">About</a>
-        </nav>
+        {/* QuantMenu and About are direct children of the header (rather
+            than grouped inside a .site-nav wrapper) so the header's
+            `justify-content: space-between` distributes four equal gaps
+            across four items, placing QuantMenu's center exactly at the
+            midpoint between the status group's right edge and About's
+            left edge — Eric's requested "roughly center QUANT MENU in
+            between the gamma status and ABOUT". */}
+        <QuantMenu />
+        <a href="https://about.aigamma.com/" className="site-about-link">About</a>
 
         {freshness && (
           <div

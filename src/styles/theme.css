@@ -51,31 +51,17 @@ body {
   font-family: 'Courier New', monospace;
 }
 
-.site-nav {
-  display: flex;
-  /* Generous gap between the QuantMenu trigger and the About link so the
-     two read as distinct affordances rather than a stacked pair — QuantMenu
-     is the primary on-site navigation and gets visual breathing room, while
-     About tucks cleanly to the right as a secondary off-site exit. Mobile
-     override below tightens this back down so the header still fits cleanly
-     on narrow viewports. */
-  gap: 4rem;
-  flex-wrap: wrap;
-  align-items: center;
-}
-
-/* Scoped left margin on the QuantMenu trigger only when it sits inside the
-   main landing page's .site-nav — shifts the trigger a touch to the right so
-   it sits more centrally between the status group on the left and the About
-   link to its right, giving the primary nav affordance more visual weight in
-   the header. Deliberately scoped under .site-nav (not on .quant-menu-trigger
-   globally) so the same trigger on every lab page's .lab-nav-group stays
-   unaffected. */
-.site-nav .quant-menu-trigger {
-  margin-left: 2rem;
-}
-
-.site-nav a {
+/* About button on the landing page header. A direct child of the <header>
+   flex container (not wrapped in a .site-nav group anymore) so the header's
+   `justify-content: space-between` can distribute four equal gaps across
+   four items — logo+status, QuantMenu, About, timestamp — which places
+   QuantMenu's center exactly at the midpoint between the status group's
+   right edge and About's left edge. Color is text-primary (white) rather
+   than accent-blue so it reads as the secondary off-site exit against the
+   purple QuantMenu trigger's primary on-site nav. Border and hover use
+   currentColor so the 1px stroke tracks the text color and the hover tint
+   is a low-alpha white wash that works against the dark header. */
+.site-about-link {
   font-family: 'Courier New', monospace;
   font-size: 1.1rem;
   letter-spacing: 0.08em;
@@ -88,18 +74,11 @@ body {
   align-items: center;
   border-radius: 3px;
   border: 1px solid currentColor;
+  color: var(--text-primary);
   transition: background-color 0.2s ease;
 }
 
-.site-nav a:nth-child(odd) {
-  color: var(--accent-blue);
-}
-
-.site-nav a:nth-child(even) {
-  color: var(--text-primary);
-}
-
-.site-nav a:hover {
+.site-about-link:hover {
   background-color: rgba(255, 255, 255, 0.06);
 }
 
@@ -562,11 +541,7 @@ body {
     gap: 0.75rem;
   }
 
-  .site-nav {
-    gap: 1.5rem;
-  }
-
-  .site-nav a {
+  .site-about-link {
     font-size: 0.95rem;
     height: 2.8rem;
     padding: 0 0.75rem;
