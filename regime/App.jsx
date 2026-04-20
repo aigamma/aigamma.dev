@@ -29,16 +29,23 @@ import SlotC from './slots/SlotC';
 //            assigned windows).
 //
 // All three consume the same SPX daily closes via useGexHistory so the
-// answers line up on a common calendar axis. Like /alpha, /dev, /beta,
-// and /garch, this lab has no ingress or egress links; the logo is not
-// a hyperlink, nothing on the main site points here, and the page is
-// reachable only by typing /regime or loading a bookmark.
+// answers line up on a common calendar axis. Unlike the bookmark-only
+// scratch-pad labs at /alpha, /dev, and /beta, this page carries active
+// egress back to the main dashboard at three redundant affordances: the
+// logo in the header is a hyperlink to `/`, a filled green RETURN HOME
+// button sits between the header and the first slot as an obvious call-
+// to-action, and the footer carries a bolded Return Home link for a
+// reader who has scrolled past all three slots. Nothing on the main
+// site's public nav points here, so the page is still reached only by
+// typing /regime or loading a bookmark.
 export default function App() {
   return (
     <div className="app-shell lab-shell">
       <header className="lab-header">
         <div className="lab-brand">
-          <img src="/logo.webp" alt="aigamma.com" className="lab-logo" />
+          <a href="/" className="lab-logo-link" aria-label="Return to aigamma.com homepage">
+            <img src="/logo.webp" alt="aigamma.com" className="lab-logo" />
+          </a>
           <span
             className="lab-badge"
             title="Regime Lab · regime-identification model zoo"
@@ -48,6 +55,10 @@ export default function App() {
         </div>
         <QuantMenu />
       </header>
+
+      <div className="lab-home-row">
+        <a href="/" className="lab-home-button">Return Home</a>
+      </div>
 
       <section className="lab-slot">
         <ErrorBoundary><SlotA /></ErrorBoundary>
@@ -77,6 +88,7 @@ export default function App() {
         <span className="lab-footer-line">
           AI Gamma LLC · regime lab · three-method zoo · v0.1.0
         </span>
+        <a href="/" className="lab-footer-home">Return Home</a>
       </footer>
     </div>
   );
