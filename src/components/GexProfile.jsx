@@ -9,7 +9,7 @@ import {
   plotlyAxis,
 } from '../lib/plotlyTheme';
 import { computeGexByStrike, symlog, symlogTicks } from '../lib/gex';
-import { formatInteger } from '../lib/format';
+import { formatInteger, formatRatio } from '../lib/format';
 import RangeBrush from './RangeBrush';
 import ResetButton from './ResetButton';
 
@@ -278,6 +278,38 @@ export default function GexProfile({ contracts, spotPrice, levels, prevContracts
             position: 'relative',
           }}
         >
+          {levels?.put_call_ratio_oi != null && (
+            <div
+              style={{
+                position: 'absolute',
+                left: 0,
+                display: 'flex',
+                alignItems: 'baseline',
+                gap: '0.5rem',
+                fontFamily: 'Courier New, monospace',
+              }}
+            >
+              <span
+                style={{
+                  color: 'var(--text-secondary)',
+                  fontSize: '0.75rem',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.08em',
+                }}
+              >
+                P/C (OI)
+              </span>
+              <span
+                style={{
+                  color: 'var(--accent-cyan)',
+                  fontSize: '1rem',
+                  fontWeight: 'bold',
+                }}
+              >
+                {formatRatio(levels.put_call_ratio_oi)}
+              </span>
+            </div>
+          )}
           <span
             style={{
               color: PLOTLY_COLORS.titleText,

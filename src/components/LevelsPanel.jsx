@@ -78,6 +78,25 @@ function alignmentValue(score) {
   return `${prefix}${score}`;
 }
 
+// Gamma Index is an oscillator in [-10, +10] sourced from the most recent
+// daily_gex_stats row and held fixed through the session because OI only
+// refreshes overnight. Accent follows the same three-band threshold as
+// Overnight Alignment so the two cells read in the same visual register:
+// clearly positive paints green, clearly negative paints coral, near-zero
+// paints amber.
+function gammaIndexAccent(value) {
+  if (value == null) return undefined;
+  if (value >= 2) return 'var(--accent-green)';
+  if (value <= -2) return 'var(--accent-coral)';
+  return 'var(--accent-amber)';
+}
+
+function gammaIndexValue(value) {
+  if (value == null) return '—';
+  const prefix = value > 0 ? '+' : '';
+  return `${prefix}${value.toFixed(2)}`;
+}
+
 function Stat({ label, value, accent, sub, bold }) {
   return (
     <div style={{ minWidth: 0 }}>
@@ -228,22 +247,19 @@ export default function LevelsPanel({ levels, spotPrice, prevClose, expirationMe
           bold
         />
         <Stat
+          label="Gamma Index"
+          value={gammaIndexValue(levels.gamma_index)}
+          accent={gammaIndexAccent(levels.gamma_index)}
+          sub={levels.gamma_index_date ? `as of ${levels.gamma_index_date}` : null}
+          bold
+        />
+        <Stat
           label="P/C Ratio (Volume)"
           value={formatRatio(levels.put_call_ratio_volume)}
           accent="var(--accent-cyan)"
           sub={
             levels.total_put_volume != null && levels.total_call_volume != null
               ? `${formatGamma(levels.total_put_volume)}P / ${formatGamma(levels.total_call_volume)}C`
-              : null
-          }
-        />
-        <Stat
-          label="P/C Ratio (OI)"
-          value={formatRatio(levels.put_call_ratio_oi)}
-          accent="var(--accent-cyan)"
-          sub={
-            levels.total_put_oi != null && levels.total_call_oi != null
-              ? `${formatGamma(levels.total_put_oi)}P / ${formatGamma(levels.total_call_oi)}C`
               : null
           }
         />

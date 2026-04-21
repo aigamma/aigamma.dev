@@ -12,8 +12,8 @@ import {
 import ResetButton from './ResetButton';
 
 // Scatter of gamma index (x) vs 10-day realized volatility (y). The
-// gamma index is (call_gex − put_gex) / (call_gex + put_gex), a unitless
-// ratio bounded [-1, +1]. Each dot is one trading day, colored on a
+// gamma index is 10 × (call_gex − put_gex) / (call_gex + put_gex), an
+// oscillator bounded [-10, +10]. Each dot is one trading day, colored on a
 // continuous scale by index value: coral (deep negative gamma) through
 // amber (neutral) to blue (strong positive gamma). A custom HTML/CSS
 // date-brush below the scatter controls which historical window is
@@ -291,15 +291,15 @@ export default function GammaIndexScatter() {
     const colorVals = filtered.map((r) => r.gamma_index);
     const hoverText = filtered.map(
       (r) =>
-        `${r.trading_date}<br>Gamma Index: ${r.gamma_index.toFixed(3)}<br>10d RV: ${(r.hv_10d * 100).toFixed(1)}%<br>${r.regime === 'positive' ? 'Positive' : 'Negative'} Gamma`,
+        `${r.trading_date}<br>Gamma Index: ${r.gamma_index.toFixed(2)}<br>10d RV: ${(r.hv_10d * 100).toFixed(1)}%<br>${r.regime === 'positive' ? 'Positive' : 'Negative'} Gamma`,
     );
 
-    const cmin = Math.max(Math.min(...colorVals, -0.1), -0.8);
-    const cmax = Math.min(Math.max(...colorVals, 0.1), 0.6);
+    const cmin = Math.max(Math.min(...colorVals, -1), -8);
+    const cmax = Math.min(Math.max(...colorVals, 1), 6);
 
     const xMin = Math.min(...indexVals);
     const xMax = Math.max(...indexVals);
-    const xPad = Math.max((xMax - xMin) * 0.05, 0.02);
+    const xPad = Math.max((xMax - xMin) * 0.05, 0.2);
     const yMax = Math.max(...rvVals);
 
     const traces = [];
@@ -352,14 +352,14 @@ export default function GammaIndexScatter() {
         textfont: { family: PLOTLY_FONT_FAMILY, color: PLOTLY_COLORS.titleText, size: 13 },
         showlegend: false,
         hovertemplate:
-          `${lastPoint.trading_date}<br>Gamma Index: ${lastPoint.gamma_index.toFixed(3)}<br>10d RV: ${(lastPoint.hv_10d * 100).toFixed(2)}%<extra></extra>`,
+          `${lastPoint.trading_date}<br>Gamma Index: ${lastPoint.gamma_index.toFixed(2)}<br>10d RV: ${(lastPoint.hv_10d * 100).toFixed(2)}%<extra></extra>`,
       });
     }
 
     const annotations = [];
     if (lastPoint) {
       const lines = [
-        `Gamma Index: ${lastPoint.gamma_index.toFixed(3)}`,
+        `Gamma Index: ${lastPoint.gamma_index.toFixed(2)}`,
         `10d RV: ${(lastPoint.hv_10d * 100).toFixed(2)}%`,
       ];
       if (stats.total > 0) {

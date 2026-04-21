@@ -2,13 +2,15 @@
 // Reads daily_gex_stats and returns a time series of daily dealer gamma
 // exposure metrics plus derived scalars computed on the fly:
 //
-//   gamma_index    — (call_gex - put_gex) / (call_gex + put_gex),
-//                    a unitless ratio bounded [-1, +1]. Positive = call
-//                    gamma dominates (stabilizing); negative = put gamma
-//                    dominates (destabilizing). The ratio is normalized so
-//                    the metric is comparable across different market
-//                    regimes where absolute GEX levels differ by orders
-//                    of magnitude.
+//   gamma_index    — 10 × (call_gex - put_gex) / (call_gex + put_gex),
+//                    an oscillator bounded [-10, +10]. The ×10 scalar is
+//                    a display choice so the number reads like a RSI-style
+//                    oscillator around zero rather than a tiny decimal.
+//                    Positive = call gamma dominates (stabilizing);
+//                    negative = put gamma dominates (destabilizing). The
+//                    ratio is normalized so the metric is comparable
+//                    across different market regimes where absolute GEX
+//                    levels differ by orders of magnitude.
 //
 //   regime         — 'positive' if spot >= vol_flip, else 'negative'.
 //
@@ -140,13 +142,14 @@ export default async function handler(request) {
       const volFlip = toNum(r.vol_flip_strike);
       const spxClose = toNum(r.spx_close);
 
-      // Gamma index: unitless ratio of net to total, bounded [-1, +1].
-      // Null out for days with very low contract counts (early-close sessions,
-      // sparse data) where the aggregate GEX is unreliable.
+      // Gamma index: ratio of net to total, scaled ×10 so the oscillator
+      // reads in [-10, +10]. Null out for days with very low contract
+      // counts (early-close sessions, sparse data) where the aggregate
+      // GEX is unreliable.
       const contractCount = r.contract_count != null ? Number(r.contract_count) : 0;
       let gammaIndex = null;
       if (callGex != null && putGex != null && (callGex + putGex) > 0 && contractCount >= 1000) {
-        gammaIndex = (callGex - putGex) / (callGex + putGex);
+        gammaIndex = ((callGex - putGex) / (callGex + putGex)) * 10;
       }
 
       // Regime: spot above vol flip = positive gamma
@@ -161,7 +164,7 @@ export default async function handler(request) {
         trading_date: r.trading_date,
         spx_close: spxClose,
         net_gex: netGex,
-        gamma_index: gammaIndex != null ? Math.round(gammaIndex * 10000) / 10000 : null,
+        gamma_index: gammaIndex != null ? Math.round(gammaIndex * 1000) / 1000 : null,
         vol_flip: volFlip,
         regime,
         hv_10d: rv10[i] != null ? Math.round(rv10[i] * 10000) / 10000 : null,

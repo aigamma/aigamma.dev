@@ -133,7 +133,18 @@ export default async function handler(request) {
         )
       : Promise.resolve(null);
 
-    const [levelsRes, expMetricsRes, sviRes, prevCloseRes, cloudBandsDateResolved] = await Promise.all([
+    // Gamma Index comes from the most-recent daily_gex_stats row, not from
+    // the live computed_levels. OI is reported once overnight and stays
+    // fixed through the session; intraday IV/spot drift the live call_gex
+    // and put_gex aggregates but the dealer positioning book the market
+    // is facing today is whatever last night's EOD sweep produced.
+    const dailyGexRes = fetchWithTimeout(
+      `${supabaseUrl}/rest/v1/daily_gex_stats?select=trading_date,call_gex,put_gex,contract_count&order=trading_date.desc&limit=1`,
+      { headers },
+      'daily_gex_stats_latest'
+    );
+
+    const [levelsRes, expMetricsRes, sviRes, prevCloseRes, cloudBandsDateResolved, dailyGexResolved] = await Promise.all([
       fetchWithTimeout(
         `${supabaseUrl}/rest/v1/computed_levels?run_id=eq.${run.id}`,
         { headers },
@@ -157,6 +168,7 @@ export default async function handler(request) {
           )
         : Promise.resolve(null),
       cloudBandsDateRes,
+      dailyGexRes,
     ]);
 
     if (!levelsRes.ok) throw new Error(`computed_levels query failed: ${levelsRes.status}`);
@@ -241,6 +253,23 @@ export default async function handler(request) {
           .filter((p) => p.s != null && p.g != null)
       : null;
 
+    let dailyGex = null;
+    if (dailyGexResolved?.ok) {
+      const rows = await dailyGexResolved.json();
+      if (Array.isArray(rows) && rows.length > 0) dailyGex = rows[0];
+    }
+    let gammaIndex = null;
+    let gammaIndexDate = null;
+    if (dailyGex) {
+      const cg = toNum(dailyGex.call_gex);
+      const pg = toNum(dailyGex.put_gex);
+      const cc = dailyGex.contract_count != null ? Number(dailyGex.contract_count) : 0;
+      if (cg != null && pg != null && (cg + pg) > 0 && cc >= 1000) {
+        gammaIndex = Math.round(((cg - pg) / (cg + pg)) * 10 * 1000) / 1000;
+        gammaIndexDate = dailyGex.trading_date;
+      }
+    }
+
     const levels = levelsRows.length > 0
       ? {
           call_wall: toNum(levelsRows[0].call_wall_strike),
@@ -255,6 +284,8 @@ export default async function handler(request) {
           total_call_volume: levelsRows[0].total_call_volume,
           total_put_volume: levelsRows[0].total_put_volume,
           gamma_profile: gammaProfile,
+          gamma_index: gammaIndex,
+          gamma_index_date: gammaIndexDate,
         }
       : null;
 
