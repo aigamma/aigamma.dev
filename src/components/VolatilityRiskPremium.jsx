@@ -157,8 +157,35 @@ export default function VolatilityRiskPremium() {
   useEffect(() => {
     if (!Plotly || !chartRef.current || series.length === 0 || spxSeries.length === 0) return;
 
-    const spxMin = Math.min(...spxSeries.map((r) => r.spx_close));
-    const spxMax = Math.max(...spxSeries.map((r) => r.spx_close));
+    const firstDate = series[0].trading_date;
+    const lastDate = series[series.length - 1].trading_date;
+    // Default zoom: last 6 calendar months. The external brush exposes the
+    // full backfill range, so the user can drag the left handle out to see
+    // the April 2025 tariff vol spike and the months of negative VRP.
+    const sixMonthsBack = addMonthsIso(lastDate, -6);
+    const defaultStart = sixMonthsBack >= firstDate ? sixMonthsBack : firstDate;
+    const windowStart = timeRange ? timeRange[0] : defaultStart;
+    const windowEnd = timeRange ? timeRange[1] : lastDate;
+
+    // Fit both y-axes to the rows visible in the active window, not the
+    // full backfill. SPX has climbed ~50% off the Jan-2022 low that sits
+    // at the start of the Index-Standard history, so sourcing the left
+    // axis range from the full series used to trap the visible SPX line
+    // in a thin strip at the top of the chart at any zoom that did not
+    // already include the 2022 lows — which forced the chart to carry
+    // 720px of vertical budget just to keep the line legible. The same
+    // compression hit the vol axis, where historical shocks at 60-80%
+    // pushed typical 15-25% IV and RV into a sliver near the floor.
+    // RangeBrush only emits onChange on pointer release, so the range
+    // recomputation fires once per drag — no mid-drag jitter.
+    const inWindow = (d) => d >= windowStart && d <= windowEnd;
+    const windowedSpx = spxSeries.filter((r) => inWindow(r.trading_date));
+    const windowedSeries = series.filter((r) => inWindow(r.trading_date));
+    const spxSource = windowedSpx.length > 0 ? windowedSpx : spxSeries;
+    const volSource = windowedSeries.length > 0 ? windowedSeries : series;
+
+    const spxMin = Math.min(...spxSource.map((r) => r.spx_close));
+    const spxMax = Math.max(...spxSource.map((r) => r.spx_close));
     const spxLo = spxMin * 0.95;
     const spxHi = spxMax * 1.02;
 
@@ -166,8 +193,11 @@ export default function VolatilityRiskPremium() {
     // constant axis-floor along the bottom. `fill: 'toself'` + the
     // reversed-x trick avoids the y=0 waste that `fill: 'tozeroy'`
     // would produce on a chart whose y-axis floor sits far above zero.
-    const spxDates = spxSeries.map((r) => r.trading_date);
-    const spxClose = spxSeries.map((r) => r.spx_close);
+    // Pre-filter to the window so SPX values outside the brush cannot
+    // produce inverted polygon regions when older SPX sits below the
+    // windowed floor.
+    const spxDates = spxSource.map((r) => r.trading_date);
+    const spxClose = spxSource.map((r) => r.spx_close);
     const spxAreaTrace = {
       x: [...spxDates, ...spxDates.slice().reverse()],
       y: [...spxClose, ...spxClose.map(() => spxLo)],
@@ -234,21 +264,11 @@ export default function VolatilityRiskPremium() {
       ivLine,
     ];
 
-    const volValues = series.flatMap((r) => [r.iv, r.hv]);
+    const volValues = volSource.flatMap((r) => [r.iv, r.hv]);
     const volMin = Math.min(...volValues);
     const volMax = Math.max(...volValues);
     const volLo = Math.max(0, volMin * 0.85);
     const volHi = volMax * 1.1;
-
-    const firstDate = series[0].trading_date;
-    const lastDate = series[series.length - 1].trading_date;
-    // Default zoom: last 6 calendar months. The external brush exposes the
-    // full backfill range, so the user can drag the left handle out to see
-    // the April 2025 tariff vol spike and the months of negative VRP.
-    const sixMonthsBack = addMonthsIso(lastDate, -6);
-    const defaultStart = sixMonthsBack >= firstDate ? sixMonthsBack : firstDate;
-    const windowStart = timeRange ? timeRange[0] : defaultStart;
-    const windowEnd = timeRange ? timeRange[1] : lastDate;
 
     // Top margin has to hold both the chart title and the horizontal legend
     // row, so it's noticeably taller than the 50px used on single-row-title
@@ -362,7 +382,7 @@ export default function VolatilityRiskPremium() {
     );
   }
   if (loading) {
-    return <div className="skeleton-card" style={{ height: '760px', marginBottom: '1rem' }} />;
+    return <div className="skeleton-card" style={{ height: '640px', marginBottom: '1rem' }} />;
   }
   if (!data || series.length === 0) {
     return (
@@ -382,7 +402,7 @@ export default function VolatilityRiskPremium() {
   return (
     <div className="card" style={{ marginBottom: '1rem', position: 'relative' }}>
       <ResetButton visible={timeRange != null} onClick={() => setTimeRange(null)} />
-      <div ref={chartRef} style={{ width: '100%', height: '720px', backgroundColor: 'var(--bg-card)' }} />
+      <div ref={chartRef} style={{ width: '100%', height: '600px', backgroundColor: 'var(--bg-card)' }} />
       <RangeBrush
         min={isoToMs(firstDate)}
         max={isoToMs(lastDate)}
