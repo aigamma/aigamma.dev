@@ -250,13 +250,11 @@ export default async function handler(request) {
       close_price: toNum(c.close_price),
     }));
 
-    const rawGammaProfile = levelsRows.length > 0 ? levelsRows[0].gamma_profile : null;
-    const gammaProfile = Array.isArray(rawGammaProfile)
-      ? rawGammaProfile
-          .map((p) => ({ s: toNum(p.s), g: toNum(p.g) }))
-          .filter((p) => p.s != null && p.g != null)
-      : null;
-
+    // Note: the gamma_profile column is no longer read or shipped. The
+    // frontend recomputes the profile client-side from contracts + spot in
+    // App.jsx (see the correctedLevels useMemo around line 228), which
+    // overwrites any server-shipped profile, so projecting it onto the
+    // wire was ~15 KB per response of dead weight.
     let dailyGex = null;
     if (dailyGexResolved?.ok) {
       const rows = await dailyGexResolved.json();
@@ -288,16 +286,11 @@ export default async function handler(request) {
       ? {
           call_wall: toNum(levelsRows[0].call_wall_strike),
           put_wall: toNum(levelsRows[0].put_wall_strike),
-          abs_gamma_strike: toNum(levelsRows[0].abs_gamma_strike),
           volatility_flip: toNum(levelsRows[0].volatility_flip),
-          net_gamma_notional: toNum(levelsRows[0].net_gamma_notional),
           put_call_ratio_oi: toNum(levelsRows[0].put_call_ratio_oi),
           put_call_ratio_volume: toNum(levelsRows[0].put_call_ratio_volume),
-          total_call_oi: levelsRows[0].total_call_oi,
-          total_put_oi: levelsRows[0].total_put_oi,
           total_call_volume: levelsRows[0].total_call_volume,
           total_put_volume: levelsRows[0].total_put_volume,
-          gamma_profile: gammaProfile,
           gamma_index: gammaIndex,
           gamma_index_date: gammaIndexDate,
         }
@@ -306,7 +299,6 @@ export default async function handler(request) {
     const expirationMetrics = expMetricsRows.map((m) => ({
       expiration_date: m.expiration_date,
       atm_iv: toNum(m.atm_iv),
-      atm_strike: toNum(m.atm_strike),
       put_25d_iv: toNum(m.put_25d_iv),
       call_25d_iv: toNum(m.call_25d_iv),
     }));
@@ -343,7 +335,6 @@ export default async function handler(request) {
       },
       rmse_iv: toNum(r.rmse_iv),
       sample_count: r.sample_count,
-      iterations: r.iterations,
       converged: r.converged,
       tenor_window: toNum(r.tenor_window),
       non_negative_variance: r.non_negative_variance,
@@ -352,7 +343,6 @@ export default async function handler(request) {
       density_strikes: Array.isArray(r.density_strikes) ? r.density_strikes.map(toNum) : null,
       density_values: Array.isArray(r.density_values) ? r.density_values.map(toNum) : null,
       density_integral: toNum(r.density_integral),
-      fitted_at: r.fitted_at,
     }));
 
     const payload = {
@@ -364,8 +354,6 @@ export default async function handler(request) {
       tradingDate: run.trading_date,
       snapshotType: run.snapshot_type,
       source: run.source,
-      runId: run.id,
-      contractCount: contracts.length,
       expirations,
       selectedExpiration: expirationFilter || null,
       contracts,
