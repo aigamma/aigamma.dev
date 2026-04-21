@@ -99,8 +99,16 @@ export default async function handler(request) {
 
     const snapParams = new URLSearchParams({
       run_id: `eq.${run.id}`,
+      // Projection intentionally omits theta, vega, bid_price, ask_price — the
+      // frontend reads none of them today, and any future model that needs them
+      // (SVI/Heston/Merton calibrations, spread-based liquidity overlays) is
+      // expected to reconstruct them locally from IV + strike + spot + T, or to
+      // fetch them through a purpose-built model-inputs endpoint. The fields
+      // remain in the snapshots table; only the wire projection is trimmed to
+      // keep this response comfortably under the Netlify/AWS Lambda 6 MB
+      // synchronous response cap as the SPX chain grows over time.
       select:
-        'expiration_date,strike,contract_type,implied_volatility,delta,gamma,theta,vega,open_interest,volume,close_price,bid_price,ask_price',
+        'expiration_date,strike,contract_type,implied_volatility,delta,gamma,open_interest,volume,close_price',
       order: 'expiration_date.asc,strike.asc',
     });
     if (expirationFilter) snapParams.set('expiration_date', `eq.${expirationFilter}`);
@@ -237,13 +245,9 @@ export default async function handler(request) {
       implied_volatility: toNum(c.implied_volatility),
       delta: toNum(c.delta),
       gamma: toNum(c.gamma),
-      theta: toNum(c.theta),
-      vega: toNum(c.vega),
       open_interest: c.open_interest,
       volume: c.volume,
       close_price: toNum(c.close_price),
-      bid_price: toNum(c.bid_price),
-      ask_price: toNum(c.ask_price),
     }));
 
     const rawGammaProfile = levelsRows.length > 0 ? levelsRows[0].gamma_profile : null;
