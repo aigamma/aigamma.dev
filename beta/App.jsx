@@ -2,14 +2,16 @@ import '../src/styles/theme.css';
 import '../src/styles/lab.css';
 import ErrorBoundary from '../src/ErrorBoundary';
 import QuantMenu from '../src/components/QuantMenu';
-import SlotA, { slotName as slotAName } from './slots/SlotA';
 import SlotB, { slotName as slotBName } from './slots/SlotB';
 
-// Beta Lab shell — three vertically stacked slots for models under test.
-// Visual language intentionally mirrors the production dashboard (dark card
-// chrome, Courier New monospace accents, four-token palette) so that a
-// component developed here can be dropped into the main App with zero
-// restyle. The amber badge and warning strip are the only signals that this
+// Beta Lab shell — single slot for models under test. Graduated
+// slots (previously SlotA/SPX-vs-Vol-Flip and SlotC/Gamma-Index-
+// Oscillator) now live on the main dashboard; SlotB remains as the
+// one experimental surface in the lab. Visual language intentionally
+// mirrors the production dashboard (dark card chrome, Courier New
+// monospace accents, four-token palette) so that a component
+// developed here can be dropped into the main App with zero restyle.
+// The amber badge and warning strip are the only signals that this
 // is a sandbox rather than the production dashboard.
 //
 // The logo in the header links back to the homepage and the QuantMenu on
@@ -37,11 +39,6 @@ export default function App() {
         Models in these slots are under test. Data, math, and rendering may
         be incomplete, incorrect, or change without notice.
       </div>
-
-      <section className="lab-slot">
-        <div className="lab-slot-label">{slotAName}</div>
-        <ErrorBoundary><SlotA /></ErrorBoundary>
-      </section>
 
       <section className="lab-slot">
         <div className="lab-slot-label">{slotBName}</div>

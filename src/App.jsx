@@ -10,6 +10,7 @@ import FixedStrikeIvMatrix from './components/FixedStrikeIvMatrix';
 import RiskNeutralDensity from './components/RiskNeutralDensity';
 import VolatilityRiskPremium from './components/VolatilityRiskPremium';
 import DealerGammaRegime from './components/DealerGammaRegime';
+import SpxVolFlip from './components/SpxVolFlip';
 import GammaIndexOscillator from './components/GammaIndexOscillator';
 import GammaIndexScatter from './components/GammaIndexScatter';
 import Chat from './components/Chat';
@@ -414,6 +415,7 @@ export default function App() {
           <div className="skeleton-card" style={{ height: '394px' }} />
           <div className="skeleton-card" style={{ height: '434px' }} />
           <div className="skeleton-card" style={{ height: '600px' }} />
+          <div className="skeleton-card" style={{ height: '600px' }} />
           <div className="skeleton-card" style={{ height: '454px' }} />
         </div>
       )}
@@ -487,6 +489,8 @@ export default function App() {
           </ErrorBoundary>
 
           <ErrorBoundary><DealerGammaRegime /></ErrorBoundary>
+
+          <ErrorBoundary><SpxVolFlip /></ErrorBoundary>
 
           <ErrorBoundary><GammaIndexOscillator /></ErrorBoundary>
 

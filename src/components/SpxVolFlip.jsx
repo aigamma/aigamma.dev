@@ -1,16 +1,16 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import usePlotly from '../../src/hooks/usePlotly';
-import useIsMobile from '../../src/hooks/useIsMobile';
-import { useGexHistory } from '../../src/hooks/useHistoricalData';
+import usePlotly from '../hooks/usePlotly';
+import useIsMobile from '../hooks/useIsMobile';
+import { useGexHistory } from '../hooks/useHistoricalData';
 import {
   PLOTLY_COLORS,
   PLOTLY_FONT_FAMILY,
   plotly2DChartLayout,
   plotlyAxis,
   plotlyTitle,
-} from '../../src/lib/plotlyTheme';
-import RangeBrush from '../../src/components/RangeBrush';
-import ResetButton from '../../src/components/ResetButton';
+} from '../lib/plotlyTheme';
+import RangeBrush from './RangeBrush';
+import ResetButton from './ResetButton';
 
 // Daily SPX EOD close against the daily Vol Flip level with two-color shading
 // between them — blue where SPX closed above the flip (positive dealer gamma
@@ -193,9 +193,7 @@ function computeYRange(series, xStart, xEnd) {
   return [yMin - pad, yMax + pad];
 }
 
-export const slotName = 'SPX vs Vol Flip · Daily Gamma Regime';
-
-export default function SlotA() {
+export default function SpxVolFlip() {
   const chartRef = useRef(null);
   const { plotly: Plotly, error: plotlyError } = usePlotly();
   const { data, loading, error } = useGexHistory({ from: HISTORY_FROM });
@@ -263,7 +261,13 @@ export default function SlotA() {
     // convention: Call Wall = positive green, Put Wall = negative red.
     // Values are null for days where the /api/gex-history endpoint
     // hasn't received the backfill yet — Plotly gaps the line at null
-    // points rather than interpolating across them.
+    // points rather than interpolating across them. `showlegend: false`
+    // on both traces keeps the lines painted on the chart but hides
+    // them from the legend row, which lets SPX · above/below Flip +
+    // Vol Flip carry the legend narrative (spot's regime plus the
+    // zero-crossing reference) while the walls remain visible as
+    // supporting reference levels that the unified hover tooltip still
+    // reports numerically on every x-cursor.
     const callWallValues = series.map((r) => r.cw);
     const putWallValues = series.map((r) => r.pw);
     const callWallTrace = {
@@ -275,6 +279,7 @@ export default function SlotA() {
       name: '<b>Call Wall</b>',
       hovertemplate: '%{x|%b %d, %Y}<br>Call Wall: %{y:,.0f}<extra></extra>',
       connectgaps: false,
+      showlegend: false,
     };
     const putWallTrace = {
       x: times,
@@ -285,6 +290,7 @@ export default function SlotA() {
       name: '<b>Put Wall</b>',
       hovertemplate: '%{x|%b %d, %Y}<br>Put Wall: %{y:,.0f}<extra></extra>',
       connectgaps: false,
+      showlegend: false,
     };
 
     let aboveLegendShown = false;
