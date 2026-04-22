@@ -1,0 +1,46 @@
+RESUME PROMPT FOR WALLS BACKFILL
+
+Context for next Claude session if this conversation times out before the
+backfill completes:
+
+1. Task: Historical Put Wall / Call Wall backfill for /beta/ SlotA.
+   Phase 1 script: scripts/backfill/recompute-walls.mjs
+   Phase 1 output: scripts/backfill/state/walls-recompute-results.jsonl
+   Range:  2022-01-03 → 2026-04-22 (1079 trading days)
+   Started: 2026-04-22T19:21 UTC
+
+2. Resumability: Script reads the JSONL on startup and skips completed
+   dates. Safe to kill and restart with the same command:
+     node scripts/backfill/recompute-walls.mjs --start 2022-01-03 --end 2026-04-22
+
+3. Preconditions:
+   - Theta Terminal must be running at http://127.0.0.1:25503 (Options
+     Standard + Index Standard subscription).
+   - If Theta Terminal has been restarted: kill all java.exe processes
+     (tasklist //FI "IMAGENAME eq java.exe") and relaunch a single
+     instance. Multiple launcher sessions cause "Invalid session ID".
+
+4. Phase 2 (after JSONL is complete):
+   - Columns already added to daily_gex_stats: call_wall_strike,
+     put_wall_strike (see 2026-04-22 ALTER TABLE migration).
+   - Build UPDATE SQL from JSONL. Mirror the pattern in
+     scripts/backfill/build-vol-flip-update-sql.mjs — generate a
+     VALUES list, UPDATE daily_gex_stats SET call_wall_strike = v.cw,
+     put_wall_strike = v.pw FROM (VALUES (date, cw, pw), ...) AS
+     v(trading_date, cw, pw) WHERE daily_gex_stats.trading_date =
+     v.trading_date. Apply via Supabase MCP execute_sql.
+
+5. Frontend:
+   - /api/gex-history endpoint (netlify/functions/gex-history.mjs)
+     should be extended to project call_wall_strike, put_wall_strike
+     into the response alongside vol_flip and spx_close.
+   - beta/slots/SlotA.jsx should render two more step lines (shape='hv',
+     coral for Put Wall, a distinct color for Call Wall) with their
+     segment tracing the same step shape as the yellow Vol Flip line.
+
+6. Definitions (user confirmed on 2026-04-22):
+   Call Wall = strike maximizing (call_gex - put_gex)
+   Put Wall  = strike minimizing (call_gex - put_gex)
+             = strike maximizing (put_gex - call_gex)
+   Formula per contract: gex = gamma * open_interest * 100 * spot^2 * 0.01
+   Same convention as ingest-background.mjs::388-404 live pipeline.
