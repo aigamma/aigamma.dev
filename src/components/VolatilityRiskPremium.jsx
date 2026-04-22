@@ -242,7 +242,7 @@ export default function VolatilityRiskPremium({ spotPrice, capturedAt }) {
       type: 'scatter',
       line: { color: RV_COLOR, width: 2 },
       yaxis: 'y2',
-      name: '<b>Realized Vol (20d YZ)</b>',
+      name: `<span style="color: ${RV_COLOR}"><b>Realized Vol (20d YZ)</b></span>`,
       hovertemplate: '%{x}<br>RV: %{y:.2f}%<extra></extra>',
     };
     const ivLine = {
