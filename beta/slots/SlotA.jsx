@@ -574,7 +574,7 @@ export default function SlotA() {
         mode: 'markers',
         name: 'observed IV',
         marker: {
-          color: PLOTLY_COLORS.titleText,
+          color: PLOTLY_COLORS.primary,
           size: mobile ? 7 : 9,
           line: { width: 0 },
         },
@@ -585,7 +585,7 @@ export default function SlotA() {
         y: gridHeston,
         mode: 'lines',
         name: 'Heston Smile Fit',
-        line: { color: PLOTLY_COLORS.primary, width: 2 },
+        line: { color: PLOTLY_COLORS.positive, width: 2 },
         hoverinfo: 'skip',
         connectgaps: false,
       },
@@ -594,7 +594,7 @@ export default function SlotA() {
         y: gridMerton,
         mode: 'lines',
         name: 'Merton Jump Fit',
-        line: { color: PLOTLY_COLORS.secondary, width: 2 },
+        line: { color: PLOTLY_COLORS.highlight, width: 2 },
         hoverinfo: 'skip',
         connectgaps: false,
       },
@@ -603,7 +603,7 @@ export default function SlotA() {
         y: gridSvi,
         mode: 'lines',
         name: 'SVI Raw Fit',
-        line: { color: PLOTLY_COLORS.highlight, width: 2 },
+        line: { color: '#BF7FFF', width: 2 },
         hoverinfo: 'skip',
         connectgaps: false,
       },
@@ -760,17 +760,17 @@ export default function SlotA() {
         <StatCell
           label="Heston RMSE (IV)"
           value={fits?.heston ? formatPct(fits.heston.rmse, 2) : '-'}
-          accent={PLOTLY_COLORS.primary}
+          accent={PLOTLY_COLORS.positive}
         />
         <StatCell
           label="Merton RMSE (IV)"
           value={fits?.merton ? formatPct(fits.merton.rmse, 2) : '-'}
-          accent={PLOTLY_COLORS.secondary}
+          accent={PLOTLY_COLORS.highlight}
         />
         <StatCell
           label="SVI RMSE (IV)"
           value={fits?.svi ? formatPct(fits.svi.rmse, 2) : '-'}
-          accent={PLOTLY_COLORS.highlight}
+          accent="#BF7FFF"
         />
       </div>
 
@@ -786,19 +786,20 @@ export default function SlotA() {
       >
         <p style={{ margin: '0 0 0.75rem' }}>
           Three smile models, one SPX slice, same IV-space objective. The{' '}
-          <strong style={{ color: PLOTLY_COLORS.primary }}>blue Heston fit</strong>{' '}
+          <strong style={{ color: PLOTLY_COLORS.positive }}>green Heston fit</strong>{' '}
           is a mean-reverting stochastic-variance story — five parameters
           describing where vol pulls toward, how fast it pulls, how it wiggles,
           and how tightly it co-moves with spot. The{' '}
-          <strong style={{ color: PLOTLY_COLORS.secondary }}>coral Merton fit</strong>{' '}
+          <strong style={{ color: PLOTLY_COLORS.highlight }}>yellow Merton fit</strong>{' '}
           is the same Black-Scholes diffusion with a compound Poisson jump
           overlay, which buys the left wing through discrete crash risk rather
           than a smoothly varying variance. The{' '}
-          <strong style={{ color: PLOTLY_COLORS.highlight }}>amber SVI fit</strong>{' '}
+          <strong style={{ color: '#BF7FFF' }}>purple SVI fit</strong>{' '}
           is Gatheral&apos;s raw parameterization — five parameters that are
           pure curve-fit, derived from no dynamics, so it should always hug
-          the dots most tightly. The grey dots are observed IVs (OTM puts
-          below spot, OTM calls above).
+          the dots most tightly. The{' '}
+          <strong style={{ color: PLOTLY_COLORS.primary }}>blue dots</strong>{' '}
+          are observed IVs (OTM puts below spot, OTM calls above).
         </p>
         <p style={{ margin: '0 0 0.75rem' }}>
           The RMSE row tells the comparison story honestly. SVI is the
