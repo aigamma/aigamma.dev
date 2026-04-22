@@ -1,16 +1,16 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import usePlotly from '../../src/hooks/usePlotly';
-import useIsMobile from '../../src/hooks/useIsMobile';
-import { useGexHistory } from '../../src/hooks/useHistoricalData';
+import usePlotly from '../hooks/usePlotly';
+import useIsMobile from '../hooks/useIsMobile';
+import { useGexHistory } from '../hooks/useHistoricalData';
 import {
   PLOTLY_COLORS,
   PLOTLY_FONT_FAMILY,
   plotly2DChartLayout,
   plotlyAxis,
   plotlyTitle,
-} from '../../src/lib/plotlyTheme';
-import RangeBrush from '../../src/components/RangeBrush';
-import ResetButton from '../../src/components/ResetButton';
+} from '../lib/plotlyTheme';
+import RangeBrush from './RangeBrush';
+import ResetButton from './ResetButton';
 
 // Gamma Index Oscillator — historical levels of the daily Gamma Index
 // rendered as a regime-colored bounded oscillator. The index is
@@ -25,15 +25,17 @@ import ResetButton from '../../src/components/ResetButton';
 // with chain size and index level over the years.
 //
 // Visuals follow the site-wide dealer-gamma color language (green =
-// positive, red = negative) rather than SlotA's blue/coral SPX-versus-
-// Flip scheme, because the quantity being shown here is the gamma
-// regime itself rather than spot's position against a dealer level.
+// positive, red = negative), the same scheme DealerGammaRegime uses
+// for its SPX-vs-flip dots — what's being shown here is the gamma
+// regime itself rather than spot's position against a dealer level,
+// so green and red read as the direct sign of the quantity on screen.
 //
 // • Line split at each zero crossing (linearly interpolated in time) so
 //   positive stretches carry green, negative stretches carry red, with
 //   a shared crossing vertex between adjacent segments so the line
-//   reads as continuous. Same segmentation idiom as SlotA's SPX-vs-Flip
-//   fill, repurposed to split at y=0 instead of at the (s − f) zero.
+//   reads as continuous. Same segmentation idiom VolatilityRiskPremium
+//   uses for its positive/negative-VRP shading, repurposed to split at
+//   y=0 instead of at the two-line band's zero crossing.
 // • Translucent fill from each segment down/up to zero, clipped as a
 //   closed `toself` polygon so fills don't bleed across sign flips the
 //   way a `tozeroy` + null-mask approach would.
@@ -70,9 +72,8 @@ import ResetButton from '../../src/components/ResetButton';
 //   Scott's-rule (1.06σn^-1/5) with a 0.15 floor so ultra-narrow
 //   distributions don't collapse to a spike.
 // • Site-wide RangeBrush below the plot and ResetButton in the
-//   upper-left corner, matching SlotA and DealerGammaRegime: default
-//   window is the trailing 6 months, brush exposes full history for
-//   expansion.
+//   upper-left corner, matching DealerGammaRegime: default window is
+//   the trailing 6 months, brush exposes full history for expansion.
 
 const GREEN_FILL = 'rgba(46, 204, 113, 0.32)';
 const RED_FILL = 'rgba(231, 76, 60, 0.32)';
@@ -259,9 +260,9 @@ function segmentLineTrace(seg, color, showLegend, name, legendgroup) {
   };
 }
 
-// Y-axis range for the oscillator. Unlike SlotA (SPX, unbounded) which
-// tightens its y-axis to the brushed window, this chart plots a
-// bounded [-10, +10] oscillator whose meaningful zones (±5 extreme
+// Y-axis range for the oscillator. Unlike DealerGammaRegime (SPX,
+// unbounded) which tightens its y-axis to the brushed window, this
+// chart plots a bounded [-10, +10] oscillator whose meaningful zones (±5 extreme
 // bands, ±10 theoretical walls) are fixed regardless of which subset
 // of the history is on screen. Pinning the axis to a slightly padded
 // [-10.5, +10.5] keeps those zones in place as the brush moves, makes
@@ -300,9 +301,7 @@ function tailStreak(values) {
   return n;
 }
 
-export const slotName = 'Gamma Index Oscillator · Historical Levels';
-
-export default function SlotC() {
+export default function GammaIndexOscillator() {
   const chartRef = useRef(null);
   const { plotly: Plotly, error: plotlyError } = usePlotly();
   const { data, loading, error } = useGexHistory({ from: HISTORY_FROM });

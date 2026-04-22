@@ -4,7 +4,6 @@ import ErrorBoundary from '../src/ErrorBoundary';
 import QuantMenu from '../src/components/QuantMenu';
 import SlotA, { slotName as slotAName } from './slots/SlotA';
 import SlotB, { slotName as slotBName } from './slots/SlotB';
-import SlotC, { slotName as slotCName } from './slots/SlotC';
 
 // Beta Lab shell — three vertically stacked slots for models under test.
 // Visual language intentionally mirrors the production dashboard (dark card
@@ -47,11 +46,6 @@ export default function App() {
       <section className="lab-slot">
         <div className="lab-slot-label">{slotBName}</div>
         <ErrorBoundary><SlotB /></ErrorBoundary>
-      </section>
-
-      <section className="lab-slot">
-        <div className="lab-slot-label">{slotCName}</div>
-        <ErrorBoundary><SlotC /></ErrorBoundary>
       </section>
 
       <footer className="lab-footer">
