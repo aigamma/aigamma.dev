@@ -43,7 +43,7 @@ const BLUE_FILL = 'rgba(74, 158, 255, 0.28)';
 const RED_FILL = 'rgba(216, 90, 48, 0.30)';
 const BLUE_LINE = PLOTLY_COLORS.primary;
 const RED_LINE = '#d85a30';
-const FLIP_LINE = 'rgba(224, 224, 224, 0.55)';
+const FLIP_LINE = PLOTLY_COLORS.highlight;
 const HISTORY_FROM = '2022-01-03';
 
 function isoToMs(iso) {
@@ -204,7 +204,7 @@ export default function SlotA() {
       y: flip,
       mode: 'lines',
       type: 'scatter',
-      line: { color: FLIP_LINE, dash: 'dot', width: 1.5 },
+      line: { color: FLIP_LINE, width: 2, shape: 'hv' },
       name: '<b>Vol Flip</b>',
       hovertemplate: '%{x|%b %d, %Y}<br>Vol Flip: %{y:,.2f}<extra></extra>',
     };
