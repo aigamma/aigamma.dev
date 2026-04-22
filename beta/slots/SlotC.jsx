@@ -429,7 +429,15 @@ export default function SlotC() {
 
     // Highlighted marker on the most recent point — filled in regime
     // color and outlined in titleText white so it reads as the "you
-    // are here" dot above the fills.
+    // are here" dot above the fills. `cliponaxis: false` disables the
+    // per-subplot clip-rect for this trace so the marker isn't bisected
+    // by the main plot's right edge when latest.t coincides with
+    // windowEnd (the default view pins windowEnd to the latest date, so
+    // without this the right half of the circle gets chopped off by
+    // Plotly's clip-path). The trace is only included below when the
+    // brushed window actually contains latest.t — otherwise the
+    // unclipped marker would float into the gutter between the main
+    // plot and the density ribbon.
     const latest = series[series.length - 1];
     const latestTrace = {
       x: [latest.t],
@@ -442,10 +450,12 @@ export default function SlotC() {
         line: { color: PLOTLY_COLORS.titleText, width: 2 },
         symbol: 'circle',
       },
+      cliponaxis: false,
       showlegend: false,
       hovertemplate:
         `<b>Latest</b><br>%{x|%b %d, %Y}<br>Gamma Index: %{y:.2f}<extra></extra>`,
     };
+    const latestInWindow = latest.t >= windowStart && latest.t <= windowEnd;
 
     // Ribbon traces — two filled KDE silhouettes on xaxis2, sharing the
     // main plot's y-axis so the densities align to the oscillator's
@@ -486,7 +496,7 @@ export default function SlotC() {
       ...fillTraces,
       emaTrace,
       ...lineTraces,
-      latestTrace,
+      ...(latestInWindow ? [latestTrace] : []),
       ...ribbonTraces,
     ];
 
