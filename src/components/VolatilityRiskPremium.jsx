@@ -126,7 +126,7 @@ function addMonthsIso(iso, months) {
   return d.toISOString().slice(0, 10);
 }
 
-export default function VolatilityRiskPremium() {
+export default function VolatilityRiskPremium({ spotPrice, capturedAt }) {
   const chartRef = useRef(null);
   const { plotly: Plotly, error: plotlyError } = usePlotly();
   const { data, loading, error } = useVrpHistory({});
@@ -145,12 +145,26 @@ export default function VolatilityRiskPremium() {
       }));
   }, [data]);
 
+  // The VRP history API only contains EOD daily aggregates, so its latest
+  // row is the prior trading day's close. Extend the SPX series with the
+  // live intraday spot price (via data.spotPrice from the main dashboard's
+  // Massive snapshot) so the rightmost point reflects where SPX actually
+  // is right now rather than yesterday's settle — otherwise the line can
+  // sit visually far below today's level on a fast-moving session.
   const spxSeries = useMemo(() => {
     if (!data?.series) return [];
-    return data.series
+    const base = data.series
       .filter((r) => r.spx_close != null)
       .map((r) => ({ trading_date: r.trading_date, spx_close: r.spx_close }));
-  }, [data]);
+    if (spotPrice != null && capturedAt) {
+      const todayIso = capturedAt.slice(0, 10);
+      const lastIso = base.length > 0 ? base[base.length - 1].trading_date : null;
+      if (!lastIso || todayIso > lastIso) {
+        base.push({ trading_date: todayIso, spx_close: spotPrice });
+      }
+    }
+    return base;
+  }, [data, spotPrice, capturedAt]);
 
   const vrpSegments = useMemo(() => buildVrpSegments(series), [series]);
 
@@ -158,7 +172,7 @@ export default function VolatilityRiskPremium() {
     if (!Plotly || !chartRef.current || series.length === 0 || spxSeries.length === 0) return;
 
     const firstDate = series[0].trading_date;
-    const lastDate = series[series.length - 1].trading_date;
+    const lastDate = spxSeries[spxSeries.length - 1].trading_date;
     // Default zoom: last 6 calendar months. The external brush exposes the
     // full backfill range, so the user can drag the left handle out to see
     // the April 2025 tariff vol spike and the months of negative VRP.
@@ -393,7 +407,7 @@ export default function VolatilityRiskPremium() {
   }
 
   const firstDate = series[0].trading_date;
-  const lastDate = series[series.length - 1].trading_date;
+  const lastDate = spxSeries[spxSeries.length - 1].trading_date;
   const sixMonthsBack = addMonthsIso(lastDate, -6);
   const defaultStart = sixMonthsBack >= firstDate ? sixMonthsBack : firstDate;
   const activeMinIso = timeRange ? timeRange[0] : defaultStart;

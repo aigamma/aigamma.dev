@@ -460,7 +460,12 @@ export default function App() {
             />
           </ErrorBoundary>
 
-          <ErrorBoundary><VolatilityRiskPremium /></ErrorBoundary>
+          <ErrorBoundary>
+            <VolatilityRiskPremium
+              spotPrice={data.spotPrice}
+              capturedAt={data.capturedAt}
+            />
+          </ErrorBoundary>
 
           <ErrorBoundary>
             <TermStructure
