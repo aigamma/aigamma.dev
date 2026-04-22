@@ -82,6 +82,34 @@ body {
   background-color: rgba(255, 255, 255, 0.06);
 }
 
+/* Dashboard regime badge has two renderings: the full "STATUS: POSITIVE
+   GAMMA" text pill reads unambiguously at desktop widths where the
+   header has room to breathe, but it is the single largest horizontal
+   offender on phones and was driving the top-row collision. Below
+   768px we swap in a 3.2rem × 3.2rem dynamic favicon PNG (teal plus /
+   coral minus / AiG monogram) that occupies roughly one-fifth the
+   width of the text pill while carrying the same regime signal a
+   reader already recognizes from their browser tab and extension
+   toolbar. App.jsx always renders both elements; CSS here toggles
+   which one is visible at a given breakpoint. */
+.regime-badge-desktop {
+  display: inline-flex;
+}
+
+.regime-badge-mobile {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .regime-badge-desktop {
+    display: none;
+  }
+
+  .regime-badge-mobile {
+    display: block;
+  }
+}
+
 /* ===== QUANT MENU =====
    Dropdown nav exposing the eight bookmark-only lab directories from
    every page header. Purple accent matches the Expected Move metric in

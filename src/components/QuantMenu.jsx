@@ -123,8 +123,9 @@ export default function QuantMenu() {
         onClick={handleToggle}
         aria-expanded={isOpen}
         aria-haspopup="menu"
+        aria-label="Quant menu"
       >
-        <span>QUANT MENU</span>
+        <span>QUANT</span>
         <span
           className={`quant-menu-caret${isOpen ? ' is-open' : ''}`}
           aria-hidden="true"
