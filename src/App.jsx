@@ -308,6 +308,7 @@ export default function App() {
   return (
     <div className="app-shell">
       <header
+        className="site-header"
         style={{
           display: 'flex',
           alignItems: 'center',

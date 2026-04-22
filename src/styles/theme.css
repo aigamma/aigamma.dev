@@ -224,19 +224,25 @@ body {
   line-height: 1.4;
 }
 
-/* On narrow phone widths, the four header tokens (logo, status pill,
-   About / QuantMenu nav, timestamp) will not all fit on a single row
-   without the timestamp wrapping awkwardly under the logo. The
-   timestamp is secondary information — the dashboard carries the same
-   freshness signal in the live data itself — so below 640px we drop
-   it so the status pill, About, and QuantMenu stay visible in the
-   primary row. This media query is intentionally wider than the
-   main 768px dashboard breakpoint because the four-token header
-   starts crowding 480-640px before the content grid begins to
-   reflow. */
-@media (max-width: 640px) {
-  .site-timestamp {
+/* Mobile dashboard header reorganization. The four-token desktop
+   layout (logo+regime / QuantMenu / About / timestamp) was still
+   colliding at phone widths even after swapping the text regime pill
+   for the 3.2rem icon and shortening "QUANT MENU" to "QUANT". Below
+   768px (the main dashboard mobile breakpoint) we drop the timestamp
+   entirely because freshness is carried by the live metric cards
+   themselves, and we swap the visual order of About and QuantMenu
+   via flex order so the row reads logo+icon / About / QuantMenu with
+   justify-content: space-between distributing the three tokens across
+   the viewport — About lands in the centre and QuantMenu anchors to
+   the right edge, which leaves the About link's text at the natural
+   reading position between the brand mark and the dropdown trigger. */
+@media (max-width: 768px) {
+  .site-header .site-timestamp {
     display: none;
+  }
+
+  .site-header .quant-menu {
+    order: 1;
   }
 }
 
