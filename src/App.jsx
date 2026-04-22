@@ -47,12 +47,6 @@ function classifyGammaRegime(levels, spotPrice) {
   return { label: 'NEGATIVE GAMMA', tone: 'coral', hint: 'dealers amplify moves' };
 }
 
-const REGIME_COLORS = {
-  green: '#04A29F',
-  coral: 'var(--accent-coral)',
-  amber: 'var(--accent-amber)',
-};
-
 // Favicon state mirrors the three-state iconography of the AI Gamma browser
 // extension (green plus, coral minus, AiG monogram). positive/negative only
 // ship at 16 and 32 px in the extension bundle, so 48 and 128 fall back to
@@ -329,26 +323,17 @@ export default function App() {
             />
           </a>
           {regime && (
-            <span
-              title={regime.hint}
+            <img
+              src={FAVICON_PATHS[faviconStateFromRegime(regime)][32]}
+              alt={`STATUS: ${regime.label}`}
+              title={`STATUS: ${regime.label} — ${regime.hint}`}
               style={{
-                fontFamily: 'Courier New, monospace',
-                fontSize: '1.25rem',
-                padding: '0 1rem',
-                border: `1px solid ${REGIME_COLORS[regime.tone]}`,
-                color: REGIME_COLORS[regime.tone],
-                borderRadius: '3px',
-                letterSpacing: '0.08em',
-                textTransform: 'uppercase',
-                whiteSpace: 'nowrap',
                 height: '3.2rem',
-                boxSizing: 'border-box',
-                display: 'inline-flex',
-                alignItems: 'center',
+                width: '3.2rem',
+                display: 'block',
+                flexShrink: 0,
               }}
-            >
-              STATUS: {regime.label}
-            </span>
+            />
           )}
         </div>
 
