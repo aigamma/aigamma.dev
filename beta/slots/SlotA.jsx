@@ -60,6 +60,31 @@ function addMonthsIso(iso, months) {
   return d.toISOString().slice(0, 10);
 }
 
+// Densify a daily series so the flip column steps at each day boundary.
+// For each adjacent pair (day_i, day_{i+1}), insert a synthetic vertex at
+// (t_{i+1}, s_{i+1}, f_i) just before the real (t_{i+1}, s_{i+1}, f_{i+1})
+// point. Feeding this to buildSegments produces fill polygons whose
+// flip-side edges trace the same horizontal-then-vertical step shape as
+// the yellow line (rendered separately with Plotly's shape:'hv'), so the
+// blue/red fill sits flush against the yellow line instead of slanting
+// between adjacent daily flip values and creating triangular gaps at
+// every step. The synthetic point carries day_{i+1}'s spot (not day_i's)
+// so the SPX-side edge of the polygon still slopes linearly from s_i to
+// s_{i+1} across the gap — only the flip side is step-shaped, which
+// matches the physical semantics of a piecewise-constant daily reference
+// signal drawn against a continuous intraday-reconstructable price.
+function densifyForStep(series) {
+  if (series.length === 0) return [];
+  const out = [{ ...series[0] }];
+  for (let i = 1; i < series.length; i++) {
+    const prev = series[i - 1];
+    const curr = series[i];
+    out.push({ t: curr.t, s: curr.s, f: prev.f });
+    out.push({ ...curr });
+  }
+  return out;
+}
+
 function buildSegments(series) {
   const segments = [];
   if (!series || series.length === 0) return segments;
@@ -172,7 +197,7 @@ export default function SlotA() {
       .filter((r) => r.t && Number.isFinite(r.s) && Number.isFinite(r.f));
   }, [data]);
 
-  const segments = useMemo(() => buildSegments(series), [series]);
+  const segments = useMemo(() => buildSegments(densifyForStep(series)), [series]);
 
   const firstDate = series.length > 0 ? series[0].t : null;
   const lastDate = series.length > 0 ? series[series.length - 1].t : null;
@@ -204,7 +229,7 @@ export default function SlotA() {
       y: flip,
       mode: 'lines',
       type: 'scatter',
-      line: { color: FLIP_LINE, width: 2, shape: 'hv' },
+      line: { color: FLIP_LINE, width: 1.5, shape: 'hv' },
       name: '<b>Vol Flip</b>',
       hovertemplate: '%{x|%b %d, %Y}<br>Vol Flip: %{y:,.2f}<extra></extra>',
     };
