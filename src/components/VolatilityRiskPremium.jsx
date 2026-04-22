@@ -264,7 +264,19 @@ export default function VolatilityRiskPremium({ spotPrice, capturedAt }) {
       ivLine,
     ];
 
-    const volValues = series.flatMap((r) => [r.iv, r.hv]);
+    // Vol axis is windowed to the active zoom (unlike the SPX axis, which
+    // uses the full backfill to pin SPX at the top). Using the full series
+    // here would inflate volMax with historical shocks — the April 2025
+    // tariff spike at ~65%, the 2022 inflation regime at ~50% — and
+    // compress typical 15-25% IV/RV readings into a sliver at the bottom
+    // of the chart, leaving a big empty band in the middle. Windowing lets
+    // the IV/RV ribbon fill its natural vertical extent so the right axis
+    // visually balances the SPX strip on the left.
+    const windowedSeries = series.filter(
+      (r) => r.trading_date >= windowStart && r.trading_date <= windowEnd,
+    );
+    const volSource = windowedSeries.length > 0 ? windowedSeries : series;
+    const volValues = volSource.flatMap((r) => [r.iv, r.hv]);
     const volMin = Math.min(...volValues);
     const volMax = Math.max(...volValues);
     const volLo = Math.max(0, volMin * 0.85);
