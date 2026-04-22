@@ -53,10 +53,18 @@ export default function App() {
             className="lab-badge"
             title="Regime Lab · regime-identification model zoo"
           >
-            Regime Lab
+            <span className="lab-badge__desktop-text">Regime Lab</span>
+            <span className="lab-badge__mobile-text">Regime</span>
           </span>
         </div>
-        <a href="/" className="lab-home-button lab-home-button--inline">Return Home</a>
+        <a
+          href="/"
+          className="lab-home-button lab-home-button--inline lab-home-button--split"
+          aria-label="Return Home"
+        >
+          <span className="lab-home-button__desktop-text">Return Home</span>
+          <span className="lab-home-button__mobile-text">Home</span>
+        </a>
         <QuantMenu />
       </header>
 
