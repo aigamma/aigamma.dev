@@ -53,6 +53,16 @@ import ResetButton from '../../src/components/ResetButton';
 //   been stable" in one glance.
 // • Highlighted marker on the most recent point, filled in regime
 //   color and outlined in titleText white so it pops above the fills.
+// • Density ribbon on the right margin — a vertical Gaussian KDE of the
+//   full-history gamma index, split at zero into green-above / red-below
+//   halves that match the oscillator's regime fills, with a white line
+//   across the ribbon at the current-value y-position so the reader can
+//   read "where does today sit in the distribution" directly off the
+//   ribbon shape. The ribbon shares the main plot's y-axis so the KDE
+//   y-positions align to the oscillator line-by-line, and the ribbon's
+//   xaxis2 is a hidden [0, 1.05]-normalized density axis. Bandwidth is
+//   Scott's-rule (1.06σn^-1/5) with a 0.15 floor so ultra-narrow
+//   distributions don't collapse to a spike.
 // • Site-wide RangeBrush below the plot and ResetButton in the
 //   upper-left corner, matching SlotA and DealerGammaRegime: default
 //   window is the trailing 6 months, brush exposes full history for
@@ -60,6 +70,8 @@ import ResetButton from '../../src/components/ResetButton';
 
 const GREEN_FILL = 'rgba(46, 204, 113, 0.32)';
 const RED_FILL = 'rgba(231, 76, 60, 0.32)';
+const RIBBON_GREEN_FILL = 'rgba(46, 204, 113, 0.45)';
+const RIBBON_RED_FILL = 'rgba(231, 76, 60, 0.45)';
 const GREEN_LINE = PLOTLY_COLORS.positive;
 const RED_LINE = PLOTLY_COLORS.negative;
 const EMA_LINE = PLOTLY_COLORS.highlight;
@@ -68,6 +80,60 @@ const EXTREME_LINE_COLOR = 'rgba(241, 196, 15, 0.35)';
 const EXTREME_THRESHOLD = 5;
 const MA_WINDOW = 20;
 const HISTORY_FROM = '2017-01-03';
+
+// Subplot domain split: main plot consumes 89% of the horizontal space,
+// a 3% gutter separates the two, and the ribbon takes the rightmost 8%.
+// At typical 1000-1200px card widths this gives the ribbon 80-95px —
+// enough for a readable KDE silhouette without crowding the oscillator.
+const MAIN_DOMAIN = [0, 0.89];
+const RIBBON_DOMAIN = [0.92, 1.0];
+const RIBBON_GRID_STEP = 0.25;
+
+// Precomputed grid [-10, -9.75, ..., 0, ..., +10] with y=0 landing
+// exactly on a grid point so the above/below split doesn't need
+// interpolation at the boundary.
+const RIBBON_GRID = (() => {
+  const out = [];
+  for (let k = -40; k <= 40; k++) out.push(k * RIBBON_GRID_STEP);
+  return out;
+})();
+
+// Scott's-rule bandwidth for Gaussian KDE — h = 1.06 * σ * n^(-1/5).
+// For ~1000 samples with σ ≈ 2.5 this lands around 0.66, which is
+// tight enough to preserve the bimodal structure of the index
+// distribution (peaks on either side of zero) without being so narrow
+// that each observation shows up as its own spike. Floored at 0.15
+// for safety on pathologically narrow input.
+function scottBandwidth(values) {
+  if (values.length < 2) return 1;
+  let mean = 0;
+  for (const v of values) mean += v;
+  mean /= values.length;
+  let variance = 0;
+  for (const v of values) variance += (v - mean) ** 2;
+  variance /= values.length - 1;
+  const sigma = Math.sqrt(variance);
+  const bw = 1.06 * sigma * Math.pow(values.length, -0.2);
+  return Math.max(bw, 0.15);
+}
+
+// Gaussian KDE: density(y) = (1 / nh√(2π)) * Σ exp(−½ ((y−v)/h)²).
+// O(n·|grid|) which for n=1069 and |grid|=81 is ~87k evaluations —
+// fine for a one-time page-load computation.
+function computeKde(values, grid, bandwidth) {
+  const n = values.length;
+  if (n === 0) return grid.map((y) => ({ y, density: 0 }));
+  const norm = 1 / (n * bandwidth * Math.sqrt(2 * Math.PI));
+  const twoHSq = 2 * bandwidth * bandwidth;
+  return grid.map((y) => {
+    let sum = 0;
+    for (const v of values) {
+      const d = y - v;
+      sum += Math.exp(-(d * d) / twoHSq);
+    }
+    return { y, density: sum * norm };
+  });
+}
 
 function isoToMs(iso) {
   return new Date(`${iso}T00:00:00Z`).getTime();
@@ -180,26 +246,20 @@ function segmentLineTrace(seg, color, showLegend, name, legendgroup) {
   };
 }
 
-// Tight y-range around the visible window, padded so the line never
-// sits flush against the plot edge. Clamped to [-10.5, 10.5] since
-// the index is mathematically bounded to [-10, +10] and any visible
-// stretch should read against the same extrema.
-function computeYRange(series, xStart, xEnd) {
-  let yMin = Infinity;
-  let yMax = -Infinity;
-  for (const r of series) {
-    if (r.t < xStart || r.t > xEnd) continue;
-    if (!Number.isFinite(r.g)) continue;
-    if (r.g < yMin) yMin = r.g;
-    if (r.g > yMax) yMax = r.g;
-  }
-  if (!Number.isFinite(yMin) || !Number.isFinite(yMax)) return [-10.5, 10.5];
-  // Symmetric pad around whichever side has more room, so the zero line
-  // stays centered when the visible window is balanced and shifts only
-  // when the data itself is skewed.
-  const pad = Math.max((yMax - yMin) * 0.12, 0.8);
-  return [Math.max(-10.5, yMin - pad), Math.min(10.5, yMax + pad)];
-}
+// Y-axis range for the oscillator. Unlike SlotA (SPX, unbounded) which
+// tightens its y-axis to the brushed window, this chart plots a
+// bounded [-10, +10] oscillator whose meaningful zones (±5 extreme
+// bands, ±10 theoretical walls) are fixed regardless of which subset
+// of the history is on screen. Pinning the axis to a slightly padded
+// [-10.5, +10.5] keeps those zones in place as the brush moves, makes
+// the ±5 bands and the ±10 boundaries always visible, and — critically
+// for the right-margin density ribbon — lets the KDE silhouette taper
+// to zero at both extremes instead of being truncated mid-curve by a
+// tight axis. Flat low-vol windows will sit as near-horizontal lines
+// near zero, which is the honest rendering ("this stretch was
+// quiet") rather than a misleadingly-stretched axis that makes quiet
+// stretches look oscillatory.
+const Y_RANGE = [-10.5, 10.5];
 
 // Percent of samples ≤ target. Fed into the latest-value badge so the
 // reader can see at a glance whether today's index is a typical
@@ -249,6 +309,26 @@ export default function SlotC() {
     () => simpleMovingAverage(series.map((r) => r.g), MA_WINDOW),
     [series],
   );
+
+  // Full-history KDE, normalized so the peak density maps to 1. Pre-
+  // split at y=0 into above/below halves that will render as two
+  // separate fill-to-zerox scatter traces on the ribbon, matching the
+  // oscillator's green-above / red-below regime coloring. Both halves
+  // include y=0 as an endpoint so the fills meet on a shared vertex
+  // and the green/red boundary reads flush without a gap or overlap.
+  const ribbon = useMemo(() => {
+    if (series.length === 0) return null;
+    const values = series.map((r) => r.g);
+    const bw = scottBandwidth(values);
+    const raw = computeKde(values, RIBBON_GRID, bw);
+    let peak = 0;
+    for (const p of raw) if (p.density > peak) peak = p.density;
+    if (peak === 0) return null;
+    const normalized = raw.map((p) => ({ y: p.y, density: p.density / peak }));
+    const above = normalized.filter((p) => p.y >= 0);
+    const below = normalized.filter((p) => p.y <= 0);
+    return { above, below, bandwidth: bw };
+  }, [series]);
 
   const firstDate = series.length > 0 ? series[0].t : null;
   const lastDate = series.length > 0 ? series[series.length - 1].t : null;
@@ -354,9 +434,48 @@ export default function SlotC() {
         `<b>Latest</b><br>%{x|%b %d, %Y}<br>Gamma Index: %{y:.2f}<extra></extra>`,
     };
 
-    const traces = [...fillTraces, maTrace, ...lineTraces, latestTrace];
+    // Ribbon traces — two filled KDE silhouettes on xaxis2, sharing the
+    // main plot's y-axis so the densities align to the oscillator's
+    // line-by-line. fill:'tozerox' fills between the curve and the
+    // ribbon's x=0 (its left edge) so the density reads as a horizontal
+    // distance from the gutter.
+    const ribbonTraces = [];
+    if (ribbon) {
+      ribbonTraces.push({
+        x: ribbon.above.map((p) => p.density),
+        y: ribbon.above.map((p) => p.y),
+        xaxis: 'x2',
+        yaxis: 'y',
+        mode: 'lines',
+        type: 'scatter',
+        fill: 'tozerox',
+        fillcolor: RIBBON_GREEN_FILL,
+        line: { color: GREEN_LINE, width: 1 },
+        hoverinfo: 'skip',
+        showlegend: false,
+      });
+      ribbonTraces.push({
+        x: ribbon.below.map((p) => p.density),
+        y: ribbon.below.map((p) => p.y),
+        xaxis: 'x2',
+        yaxis: 'y',
+        mode: 'lines',
+        type: 'scatter',
+        fill: 'tozerox',
+        fillcolor: RIBBON_RED_FILL,
+        line: { color: RED_LINE, width: 1 },
+        hoverinfo: 'skip',
+        showlegend: false,
+      });
+    }
 
-    const yRange = computeYRange(series, windowStart, windowEnd);
+    const traces = [
+      ...fillTraces,
+      maTrace,
+      ...lineTraces,
+      latestTrace,
+      ...ribbonTraces,
+    ];
 
     // Ambient structure: zero axis + two ±5 extreme-threshold bands,
     // drawn as layer:'below' so the fills and lines paint over them
@@ -396,6 +515,25 @@ export default function SlotC() {
         layer: 'below',
       },
     ];
+
+    // White horizontal bar across the ribbon at the current-value
+    // y-position. Spans only the ribbon's paper domain so it reads as a
+    // "you are here" tick on the distribution rather than a chart-wide
+    // reference line. Drawn at layer:'above' so the KDE fills don't
+    // obscure it.
+    if (stats && ribbon) {
+      shapes.push({
+        type: 'line',
+        xref: 'paper',
+        x0: RIBBON_DOMAIN[0],
+        x1: RIBBON_DOMAIN[1],
+        yref: 'y',
+        y0: stats.latest,
+        y1: stats.latest,
+        line: { color: PLOTLY_COLORS.titleText, width: 2 },
+        layer: 'above',
+      });
+    }
 
     const annotations = [];
     if (stats) {
@@ -460,6 +598,35 @@ export default function SlotC() {
       yanchor: 'top',
     });
 
+    // "LATEST" caption at the ribbon's right edge next to the white
+    // current-value line so the reader can tie the line to the
+    // present moment without looking back at the corner badge. No
+    // matching "DENSITY" header — the corner badge sits in that
+    // paper-margin zone and the vertical green/red silhouette is
+    // self-explanatory once the reader sees the oscillator and
+    // ribbon sharing y-axis positions. Skipped on mobile: the
+    // ribbon shrinks to ~40px at phone widths and extra labels
+    // crowd it.
+    if (ribbon && stats && !mobile) {
+      annotations.push({
+        x: RIBBON_DOMAIN[1] - 0.005,
+        y: stats.latest,
+        xref: 'paper',
+        yref: 'y',
+        text: '<b>LATEST</b>',
+        showarrow: false,
+        font: {
+          family: PLOTLY_FONT_FAMILY,
+          color: PLOTLY_COLORS.titleText,
+          size: 9,
+        },
+        bgcolor: 'rgba(20, 24, 32, 0.9)',
+        borderpad: 2,
+        xanchor: 'right',
+        yanchor: 'middle',
+      });
+    }
+
     const legendFont = {
       family: PLOTLY_FONT_FAMILY,
       color: PLOTLY_COLORS.titleText,
@@ -477,9 +644,27 @@ export default function SlotC() {
         type: 'date',
         range: [windowStart, windowEnd],
         autorange: false,
+        domain: MAIN_DOMAIN,
       }),
+      // Hidden density axis for the ribbon — no tick labels, no grid,
+      // fixedrange so any future pan/zoom affordance on the main plot
+      // doesn't drag the ribbon's density scale. Range runs slightly
+      // past 1.0 so the KDE silhouette doesn't touch the ribbon's
+      // right edge at its peak.
+      xaxis2: {
+        domain: RIBBON_DOMAIN,
+        anchor: 'y',
+        range: [0, 1.05],
+        autorange: false,
+        fixedrange: true,
+        showgrid: false,
+        showticklabels: false,
+        showline: true,
+        linecolor: PLOTLY_COLORS.grid,
+        zeroline: false,
+      },
       yaxis: plotlyAxis(mobile ? '' : 'Gamma Index', {
-        range: yRange,
+        range: Y_RANGE,
         autorange: false,
         zeroline: false,
         tickvals: [-10, -5, 0, 5, 10],
