@@ -111,7 +111,7 @@ export default function App() {
 
       <footer className="lab-footer">
         <span className="lab-footer-line">
-          AI Gamma LLC · parity lab · v1.0.0
+          AI Gamma · parity lab · v1.0.0
         </span>
         <a href="/" className="lab-footer-home">Return Home</a>
       </footer>

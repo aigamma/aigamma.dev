@@ -49,8 +49,8 @@ The structure of the layout is unchanged — nothing reflows, nothing
 hides on mobile — so a component developed in a lab slot on desktop
 renders in the same hierarchy on mobile. The two lab footers now
 include a `v1.1.2` version token at the end of their existing text; the
-alpha footer reads "AI Gamma LLC · α lab · software-stage sense ·
-v1.1.2" and the beta footer reads "AI Gamma LLC · internal beta lab ·
+alpha footer reads "AI Gamma · α lab · software-stage sense ·
+v1.1.2" and the beta footer reads "AI Gamma · internal beta lab ·
 not for public consumption · v1.1.2". The main dashboard at `/` does not
 carry a visible version marker because the production surface has never
 had a footer; readers who want to confirm the deployed version can read

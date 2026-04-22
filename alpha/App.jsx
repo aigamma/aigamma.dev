@@ -71,7 +71,7 @@ export default function App() {
 
       <footer className="lab-footer">
         <span className="lab-footer-line">
-          AI Gamma LLC · α lab · software-stage sense · v1.1.4
+          AI Gamma · α lab · software-stage sense · v1.1.4
         </span>
       </footer>
     </div>

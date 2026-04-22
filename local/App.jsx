@@ -120,7 +120,7 @@ export default function App() {
 
       <footer className="lab-footer">
         <span className="lab-footer-line">
-          AI Gamma LLC · local vol lab · dupire extraction + pricing · v0.1.0
+          AI Gamma · local vol lab · dupire extraction + pricing · v0.1.0
         </span>
         <a href="/" className="lab-footer-home">Return Home</a>
       </footer>

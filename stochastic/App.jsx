@@ -146,7 +146,7 @@ export default function App() {
 
       <footer className="lab-footer">
         <span className="lab-footer-line">
-          AI Gamma LLC · stochastic vol lab · four-model lineage · v0.1.0 ·{' '}
+          AI Gamma · stochastic vol lab · four-model lineage · v0.1.0 ·{' '}
           <a href="/" style={{ color: 'inherit', fontWeight: 700 }}>
             Return Home
           </a>

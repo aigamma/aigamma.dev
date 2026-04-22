@@ -72,7 +72,7 @@ export default function App() {
 
       <footer className="lab-footer">
         <span className="lab-footer-line">
-          AI Gamma LLC · GARCH lab · univariate family zoo with picker
+          AI Gamma · GARCH lab · univariate family zoo with picker
         </span>
         <a href="/" className="lab-footer-home">Return Home</a>
       </footer>

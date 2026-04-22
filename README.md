@@ -110,6 +110,6 @@ MIT. The code is free. The expertise is what employers are hiring.
 
 ## Author
 
-Eric Allione / AI Gamma LLC / Prescott, AZ
+Eric Allione / AI Gamma / Prescott, AZ
 Revenue Systems Architect
 

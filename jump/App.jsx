@@ -118,7 +118,7 @@ export default function App() {
 
       <footer className="lab-footer">
         <span className="lab-footer-line">
-          AI Gamma LLC · jump lab · four-model lineage · v0.1.0
+          AI Gamma · jump lab · four-model lineage · v0.1.0
         </span>
         <a href="/" className="lab-footer-home">Return Home</a>
       </footer>

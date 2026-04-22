@@ -4,7 +4,7 @@ Last updated: 2026-04-18
 Canonical URL: https://aigamma.com/extension-privacy
 
 The AI Gamma SPX Regime Status and Metrics browser extension ("the extension")
-is published by Eric Allione (AI Gamma LLC, Prescott, AZ) and operates as
+is published by Eric Allione (AI Gamma, Prescott, AZ) and operates as
 described below.
 
 ## What the extension does

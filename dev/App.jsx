@@ -57,7 +57,7 @@ export default function App() {
 
       <footer className="lab-footer">
         <span className="lab-footer-line">
-          AI Gamma LLC · dev lab · peer of /alpha
+          AI Gamma · dev lab · peer of /alpha
         </span>
       </footer>
     </div>

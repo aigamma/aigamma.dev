@@ -110,7 +110,7 @@ export default function App() {
 
       <footer className="lab-footer">
         <span className="lab-footer-line">
-          AI Gamma LLC · rough vol lab · three-method zoo · v0.1.0
+          AI Gamma · rough vol lab · three-method zoo · v0.1.0
         </span>
         <a href="/" className="lab-footer-home">Return Home</a>
       </footer>
