@@ -5,6 +5,7 @@ import LevelsPanel from './components/LevelsPanel';
 import GexProfile from './components/GexProfile';
 import GammaInflectionChart from './components/GammaInflectionChart';
 import TermStructure from './components/TermStructure';
+import VolatilitySmile from './components/VolatilitySmile';
 import FixedStrikeIvMatrix from './components/FixedStrikeIvMatrix';
 import RiskNeutralDensity from './components/RiskNeutralDensity';
 import VolatilityRiskPremium from './components/VolatilityRiskPremium';
@@ -466,6 +467,15 @@ export default function App() {
               expirationMetrics={data.expirationMetrics}
               capturedAt={data.capturedAt}
               cloudBands={data.cloudBands}
+            />
+          </ErrorBoundary>
+
+          <ErrorBoundary>
+            <VolatilitySmile
+              contracts={data.contracts}
+              spotPrice={data.spotPrice}
+              capturedAt={data.capturedAt}
+              expirations={data.expirations}
             />
           </ErrorBoundary>
 

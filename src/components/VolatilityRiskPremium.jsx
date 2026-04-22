@@ -268,7 +268,7 @@ export default function VolatilityRiskPremium() {
     const volMin = Math.min(...volValues);
     const volMax = Math.max(...volValues);
     const volLo = Math.max(0, volMin * 0.85);
-    const volHi = volMax * 1.1;
+    const volHi = volMax * 1.5;
 
     // Top margin has to hold both the chart title and the horizontal legend
     // row, so it's noticeably taller than the 50px used on single-row-title
