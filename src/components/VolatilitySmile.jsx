@@ -492,7 +492,7 @@ export default function VolatilitySmile({
   const [expiration, setExpiration] = useState(null);
   const activeExp = expiration || defaultExpiration;
 
-  const [visible, setVisible] = useState({ heston: true, merton: true, svi: false });
+  const [visible, setVisible] = useState({ heston: true, merton: false, svi: false });
 
   const { slice, contracts: sliceContracts } = useMemo(() => {
     if (!contracts || !activeExp) return { slice: [], contracts: [] };
