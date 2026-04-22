@@ -37,9 +37,15 @@ import ResetButton from '../../src/components/ResetButton';
 // • Translucent fill from each segment down/up to zero, clipped as a
 //   closed `toself` polygon so fills don't bleed across sign flips the
 //   way a `tozeroy` + null-mask approach would.
-// • 20-day simple MA overlaid in amber dashed to separate regime
-//   persistence (MA slow to cross) from short-term oscillation (index
-//   fast to cross).
+// • 20-day EMA overlaid in amber dashed to separate regime
+//   persistence (EMA slow to cross) from short-term oscillation (index
+//   fast to cross). EMA rather than SMA so the overlay reacts to
+//   recent regime shifts without waiting for a lagging observation to
+//   roll out of a fixed window — at α = 2/(N+1) = 2/21 ≈ 0.0952 the
+//   20d EMA weights the most recent sample by ~9.5% and carries a
+//   center-of-mass ≈ 10 trading days, so a regime flip registers in
+//   the overlay within about two weeks instead of the full 20 the
+//   SMA would need.
 // • Dotted amber reference bands at ±5 marking the 50%-amplitude
 //   threshold commonly used to flag a "significant" regime reading —
 //   the bands land on major tick positions so the axis structure
@@ -78,7 +84,7 @@ const EMA_LINE = PLOTLY_COLORS.highlight;
 const ZERO_LINE_COLOR = 'rgba(224, 224, 224, 0.5)';
 const EXTREME_LINE_COLOR = 'rgba(241, 196, 15, 0.35)';
 const EXTREME_THRESHOLD = 5;
-const MA_WINDOW = 20;
+const EMA_WINDOW = 20;
 const HISTORY_FROM = '2017-01-03';
 
 // Subplot domain split: main plot consumes 89% of the horizontal space,
@@ -149,18 +155,25 @@ function addMonthsIso(iso, months) {
   return d.toISOString().slice(0, 10);
 }
 
-// Simple moving average over the last N samples. Entries before
-// window-warm are null so Plotly gaps the line at those positions
-// rather than smoothing through partial windows.
-function simpleMovingAverage(values, window) {
+// Exponential moving average with smoothing α = 2 / (window + 1) —
+// the standard Wilder/textbook convention where a 20-period EMA
+// weights the most recent sample at ≈ 9.5%. The series is seeded
+// with the SMA of the first `window` samples so the warm-up period
+// emits null (Plotly gaps the line at those positions rather than
+// smoothing through partial windows, matching the prior SMA
+// behavior), and the recurrence EMA[t] = α·v[t] + (1−α)·EMA[t−1]
+// carries forward from there.
+function exponentialMovingAverage(values, window) {
   const out = new Array(values.length).fill(null);
   if (values.length < window) return out;
+  const alpha = 2 / (window + 1);
   let sum = 0;
   for (let i = 0; i < window; i++) sum += values[i];
-  out[window - 1] = sum / window;
+  let ema = sum / window;
+  out[window - 1] = ema;
   for (let i = window; i < values.length; i++) {
-    sum += values[i] - values[i - window];
-    out[i] = sum / window;
+    ema = alpha * values[i] + (1 - alpha) * ema;
+    out[i] = ema;
   }
   return out;
 }
@@ -305,8 +318,8 @@ export default function SlotC() {
 
   const segments = useMemo(() => buildSegments(series), [series]);
 
-  const ma = useMemo(
-    () => simpleMovingAverage(series.map((r) => r.g), MA_WINDOW),
+  const ema = useMemo(
+    () => exponentialMovingAverage(series.map((r) => r.g), EMA_WINDOW),
     [series],
   );
 
@@ -403,14 +416,14 @@ export default function SlotC() {
       }
     }
 
-    const maTrace = {
+    const emaTrace = {
       x: series.map((r) => r.t),
-      y: ma,
+      y: ema,
       mode: 'lines',
       type: 'scatter',
       line: { color: EMA_LINE, width: 1.5, dash: 'dash' },
-      name: `<b>${MA_WINDOW}d MA</b>`,
-      hovertemplate: `%{x|%b %d, %Y}<br>${MA_WINDOW}d MA: %{y:.2f}<extra></extra>`,
+      name: `<b>${EMA_WINDOW}d EMA</b>`,
+      hovertemplate: `%{x|%b %d, %Y}<br>${EMA_WINDOW}d EMA: %{y:.2f}<extra></extra>`,
       connectgaps: false,
     };
 
@@ -471,7 +484,7 @@ export default function SlotC() {
 
     const traces = [
       ...fillTraces,
-      maTrace,
+      emaTrace,
       ...lineTraces,
       latestTrace,
       ...ribbonTraces,
@@ -689,7 +702,7 @@ export default function SlotC() {
       responsive: true,
       displayModeBar: false,
     });
-  }, [Plotly, series, segments, ma, activeRange, stats, mobile]);
+  }, [Plotly, series, segments, ema, activeRange, stats, mobile]);
 
   const handleBrushChange = useCallback((minMs, maxMs) => {
     setTimeRange([msToIso(minMs), msToIso(maxMs)]);
