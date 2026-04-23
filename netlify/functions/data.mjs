@@ -442,17 +442,21 @@ export default async function handler(request) {
         iv_p90: roundTo(toNum(b.iv_p90), 5),
       }));
 
+    // Top-level scalars pruned to the set App.jsx / useOptionsData.js / all
+    // chart components actually consume: spotPrice, prevClose, capturedAt,
+    // source, expirations, plus the contractsV / contractCols / levels /
+    // expirationMetrics / cloudBands sub-objects below. Dropped fields
+    // (underlying, snapshotType, tradingDate, prevTradingDate,
+    // selectedExpiration) were grep-audited as zero-consumer in src/ —
+    // tradingDate is re-derived client-side from capturedAt via
+    // tradingDateFromCapturedAt, so shipping it was redundant with the
+    // capturedAt timestamp already on the wire.
     const payload = {
-      underlying: run.underlying,
       spotPrice: toNum(run.spot_price),
       prevClose,
-      prevTradingDate,
       capturedAt: run.captured_at,
-      tradingDate: run.trading_date,
-      snapshotType: run.snapshot_type,
       source: run.source,
       expirations,
-      selectedExpiration: expirationFilter || null,
       // Wire version sentinel. Client's useOptionsData checks this and
       // rehydrates contractCols into the `contracts` row-of-objects shape
       // downstream consumers expect. Bump if the columnar schema changes
