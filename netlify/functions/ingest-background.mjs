@@ -358,18 +358,6 @@ function computeGex(pages, targets, startedAt, partial, partialReason = null) {
       open_interest: r.open_interest ?? 0,
       volume: r.day?.volume ?? 0,
       close_price: r.day?.close ?? null,
-      // last_quote.bid / .ask are the current NBBO at snapshot time and are
-      // synchronous across all contracts in a single response. close_price
-      // is last-trade-of-day, which is last-trade-per-contract — different
-      // moments for different strikes, so using it in cross-contract math
-      // (put-call parity, box spreads, Breeden-Litzenberger densities)
-      // leaks asynchronous-trade noise at a magnitude the 1/T 1/ΔK
-      // amplifiers blow up into triple-digit rate errors. Capturing bid/ask
-      // here lets downstream consumers use mid = (bid + ask) / 2 as the
-      // synchronous mark and keeps close_price around for backward
-      // compatibility and for volume-weighted use cases.
-      bid_price: r.last_quote?.bid ?? null,
-      ask_price: r.last_quote?.ask ?? null,
     }));
 
   // Per-strike GEX accumulation.
