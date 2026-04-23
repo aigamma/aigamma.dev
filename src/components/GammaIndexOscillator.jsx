@@ -39,15 +39,6 @@ import ResetButton from './ResetButton';
 // • Translucent fill from each segment down/up to zero, clipped as a
 //   closed `toself` polygon so fills don't bleed across sign flips the
 //   way a `tozeroy` + null-mask approach would.
-// • 20-day EMA overlaid as a solid amber line to separate regime
-//   persistence (EMA slow to cross) from short-term oscillation (index
-//   fast to cross). EMA rather than SMA so the overlay reacts to
-//   recent regime shifts without waiting for a lagging observation to
-//   roll out of a fixed window — at α = 2/(N+1) = 2/21 ≈ 0.0952 the
-//   20d EMA weights the most recent sample by ~9.5% and carries a
-//   center-of-mass ≈ 10 trading days, so a regime flip registers in
-//   the overlay within about two weeks instead of the full 20 the
-//   SMA would need.
 // • Dotted amber reference bands at ±5 marking the 50%-amplitude
 //   threshold commonly used to flag a "significant" regime reading —
 //   the bands land on major tick positions so the axis structure
@@ -81,11 +72,9 @@ const RIBBON_GREEN_FILL = 'rgba(46, 204, 113, 0.45)';
 const RIBBON_RED_FILL = 'rgba(231, 76, 60, 0.45)';
 const GREEN_LINE = PLOTLY_COLORS.positive;
 const RED_LINE = PLOTLY_COLORS.negative;
-const EMA_LINE = PLOTLY_COLORS.highlight;
 const ZERO_LINE_COLOR = 'rgba(224, 224, 224, 0.5)';
 const EXTREME_LINE_COLOR = 'rgba(241, 196, 15, 0.35)';
 const EXTREME_THRESHOLD = 5;
-const EMA_WINDOW = 20;
 const HISTORY_FROM = '2017-01-03';
 
 // Subplot domain split: main plot consumes 89% of the horizontal space,
@@ -154,29 +143,6 @@ function addMonthsIso(iso, months) {
   const d = new Date(`${iso}T00:00:00Z`);
   d.setUTCMonth(d.getUTCMonth() + months);
   return d.toISOString().slice(0, 10);
-}
-
-// Exponential moving average with smoothing α = 2 / (window + 1) —
-// the standard Wilder/textbook convention where a 20-period EMA
-// weights the most recent sample at ≈ 9.5%. The series is seeded
-// with the SMA of the first `window` samples so the warm-up period
-// emits null (Plotly gaps the line at those positions rather than
-// smoothing through partial windows, matching the prior SMA
-// behavior), and the recurrence EMA[t] = α·v[t] + (1−α)·EMA[t−1]
-// carries forward from there.
-function exponentialMovingAverage(values, window) {
-  const out = new Array(values.length).fill(null);
-  if (values.length < window) return out;
-  const alpha = 2 / (window + 1);
-  let sum = 0;
-  for (let i = 0; i < window; i++) sum += values[i];
-  let ema = sum / window;
-  out[window - 1] = ema;
-  for (let i = window; i < values.length; i++) {
-    ema = alpha * values[i] + (1 - alpha) * ema;
-    out[i] = ema;
-  }
-  return out;
 }
 
 // Split the series at each zero crossing into contiguous same-sign
@@ -317,11 +283,6 @@ export default function GammaIndexOscillator() {
 
   const segments = useMemo(() => buildSegments(series), [series]);
 
-  const ema = useMemo(
-    () => exponentialMovingAverage(series.map((r) => r.g), EMA_WINDOW),
-    [series],
-  );
-
   // Full-history KDE, normalized so the peak density maps to 1. Pre-
   // split at y=0 into above/below halves that will render as two
   // separate fill-to-zerox scatter traces on the ribbon, matching the
@@ -415,17 +376,6 @@ export default function GammaIndexOscillator() {
       }
     }
 
-    const emaTrace = {
-      x: series.map((r) => r.t),
-      y: ema,
-      mode: 'lines',
-      type: 'scatter',
-      line: { color: EMA_LINE, width: 1.5 },
-      name: `<b>${EMA_WINDOW}d EMA</b>`,
-      hovertemplate: `%{x|%b %d, %Y}<br>${EMA_WINDOW}d EMA: %{y:.2f}<extra></extra>`,
-      connectgaps: false,
-    };
-
     // Highlighted marker on the most recent point — filled in regime
     // color and outlined in titleText white so it reads as the "you
     // are here" dot above the fills. `cliponaxis: false` disables the
@@ -493,7 +443,6 @@ export default function GammaIndexOscillator() {
 
     const traces = [
       ...fillTraces,
-      emaTrace,
       ...lineTraces,
       ...(latestInWindow ? [latestTrace] : []),
       ...ribbonTraces,
@@ -711,7 +660,7 @@ export default function GammaIndexOscillator() {
       responsive: true,
       displayModeBar: false,
     });
-  }, [Plotly, series, segments, ema, activeRange, stats, mobile]);
+  }, [Plotly, series, segments, activeRange, stats, mobile]);
 
   const handleBrushChange = useCallback((minMs, maxMs) => {
     setTimeRange([msToIso(minMs), msToIso(maxMs)]);
