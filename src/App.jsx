@@ -162,6 +162,66 @@ export default function App() {
     snapshotType: 'intraday',
     prevDay: true,
   });
+
+  // Prev-day contracts for below-fold diff charts (GexProfile's prev-day
+  // overlay + FixedStrikeIvMatrix's 1D-change mode) are fetched via a
+  // post-first-paint idle callback rather than the boot script. The boot
+  // script pre-fires the LITE prev-day response (no contractCols) so
+  // above-the-fold LevelsPanel + overnight-alignment render immediately
+  // without paying the ~240 KB brotli + ~100-200 ms Supabase snapshots-
+  // pagination time. The below-fold charts are LazyMount-gated behind a
+  // 400 px scroll margin, so by the time the reader scrolls within range
+  // of GexProfile this idle fetch has usually resolved and the prev-day
+  // diff lights up on first mount. On slow connections where the idle
+  // fetch is still in flight when scroll arrives, the diff stays null
+  // (chart still renders without overlay — GexProfile and
+  // FixedStrikeIvMatrix both handle prevContracts=null gracefully) and
+  // populates when the fetch completes.
+  const [prevDayContracts, setPrevDayContracts] = useState(null);
+  const [prevDaySpotPrice, setPrevDaySpotPrice] = useState(null);
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    let cancelled = false;
+    const idle = window.requestIdleCallback
+      ? window.requestIdleCallback
+      : (cb) => setTimeout(cb, 300);
+    const cancel = window.cancelIdleCallback
+      ? window.cancelIdleCallback
+      : clearTimeout;
+    const handle = idle(() => {
+      if (cancelled) return;
+      fetch('/api/data?underlying=SPX&snapshot_type=intraday&prev_day=1&v=2')
+        .then((r) => (r.ok ? r.json() : null))
+        .then((json) => {
+          if (cancelled || !json) return;
+          const cols = json.contractCols;
+          if (!cols || !Array.isArray(cols.strike)) return;
+          const exps = Array.isArray(json.expirations) ? json.expirations : [];
+          const n = cols.strike.length;
+          const contracts = new Array(n);
+          for (let i = 0; i < n; i++) {
+            const expIdx = cols.exp[i];
+            contracts[i] = {
+              expiration_date: expIdx >= 0 && expIdx < exps.length ? exps[expIdx] : null,
+              strike_price: cols.strike[i],
+              contract_type: cols.type[i] === 0 ? 'call' : 'put',
+              implied_volatility: cols.iv[i],
+              delta: cols.delta[i],
+              gamma: cols.gamma[i],
+              open_interest: cols.oi[i],
+              close_price: cols.px[i],
+            };
+          }
+          setPrevDayContracts(contracts);
+          setPrevDaySpotPrice(json.spotPrice);
+        })
+        .catch(() => {});
+    });
+    return () => {
+      cancelled = true;
+      cancel(handle);
+    };
+  }, []);
   const { data: vrpData } = useVrpHistory({});
   const vrpMetric = useMemo(() => {
     if (!vrpData?.series) return null;
@@ -300,23 +360,29 @@ export default function App() {
     };
   }, [data]);
 
-  // Mirror the client-side vol-flip recomputation on the previous trading
-  // day's snapshot so the overnight alignment score compares like with like
-  // (both days' flip values are the zero-crossing of the locally-computed
-  // gamma profile, not a mix of fresh profile today vs stale backend flip
-  // yesterday). put_wall and call_wall are read directly from the payload
-  // because no client-side correction is applied to them.
+  // Prev-day corrected levels. The boot-script fetches the prev-day payload
+  // in LITE form (skip_contracts=1 — no contractCols), so prevDayData
+  // typically has no .contracts on first render. We re-run the client-side
+  // gamma profile only AFTER the idle-fetch above populates
+  // prevDayContracts. Until then, the backend's stored volatility_flip is
+  // used as-is — which is fine because the ingest pipeline writes the
+  // zero-crossing flip per commit 65dc01e's ingest-background.mjs math, so
+  // the backend value IS the same zero-crossing the client would compute.
+  // This useMemo therefore only materially overrides the flip when the
+  // idle-fetch completes AND the resulting profile finds a different
+  // crossing than the stored one (rare — typically within $1). put_wall
+  // and call_wall come through unchanged as they always did.
   const prevCorrectedLevels = useMemo(() => {
     if (!prevDayData?.levels) return null;
-    if (!prevDayData.contracts || !(prevDayData.spotPrice > 0)) return prevDayData.levels;
-    const profile = computeGammaProfile(prevDayData.contracts, prevDayData.spotPrice, prevDayData.capturedAt);
+    if (!prevDayContracts || !(prevDaySpotPrice > 0)) return prevDayData.levels;
+    const profile = computeGammaProfile(prevDayContracts, prevDaySpotPrice, prevDayData.capturedAt);
     if (!profile || profile.length === 0) return prevDayData.levels;
     const flip = findFlipFromProfile(profile);
     return {
       ...prevDayData.levels,
       volatility_flip: flip ?? prevDayData.levels.volatility_flip,
     };
-  }, [prevDayData]);
+  }, [prevDayData, prevDayContracts, prevDaySpotPrice]);
 
   // Overnight alignment: compare today's put wall, vol flip, and call wall
   // against yesterday's corrected values. Each level contributes +1 if it
@@ -587,8 +653,8 @@ export default function App() {
                 contracts={data.contracts}
                 spotPrice={data.spotPrice}
                 levels={correctedLevels}
-                prevContracts={prevDayData?.contracts}
-                prevSpotPrice={prevDayData?.spotPrice}
+                prevContracts={prevDayContracts}
+                prevSpotPrice={prevDaySpotPrice}
               />
             </LazyMount>
           </ErrorBoundary>
@@ -612,7 +678,7 @@ export default function App() {
                 contracts={data.contracts}
                 spotPrice={data.spotPrice}
                 expirations={data.expirations}
-                prevContracts={prevDayData?.contracts}
+                prevContracts={prevDayContracts}
               />
             </LazyMount>
           </ErrorBoundary>

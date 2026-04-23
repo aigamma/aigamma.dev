@@ -60,10 +60,17 @@
             return r.json();
           });
         }
-        // Today's and the prior-trading-day's options chains (big payloads,
-        // both needed the moment React mounts).
+        // Today's full options chain (~247 KB brotli) and the prior trading
+        // day's LITE payload (~5-10 KB brotli, no contracts). Above-the-fold
+        // LevelsPanel + overnight-alignment only need prev-day levels and
+        // expirationMetrics — both scalar sub-objects — not the 19k-contract
+        // chain. Below-fold diff charts (GexProfile's prev-day overlay,
+        // FixedStrikeIvMatrix's 1D-change mode) pull prev-day contracts from
+        // a post-first-paint idle fetch in App.jsx that omits the
+        // skip_contracts flag. Net saving on the boot transit: ~240 KB br
+        // / ~500 ms on mobile 4G per cold first visit.
         var pToday = boot('/api/data?underlying=SPX&snapshot_type=intraday&v=2');
-        var pPrev = boot('/api/data?underlying=SPX&snapshot_type=intraday&prev_day=1&v=2');
+        var pPrev = boot('/api/data?underlying=SPX&snapshot_type=intraday&prev_day=1&skip_contracts=1&v=2');
         // /api/vrp-history feeds VolatilityRiskPremium (above-the-fold) and
         // the VRP pill in LevelsPanel. Prefiring overlaps its ~25 KB gzipped
         // download with the main bundle transit and shaves ~50-200 ms off

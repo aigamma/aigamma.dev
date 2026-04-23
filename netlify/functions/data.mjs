@@ -36,6 +36,21 @@ export default async function handler(request) {
   // ingest_runs internally, so today's and yesterday's payloads can be
   // fetched in parallel from the client. Ignored when `date` is set.
   const wantPrevDay = !tradingDate && url.searchParams.get('prev_day') === '1';
+  // skip_contracts=1 omits the 19k-contract snapshots fetch and the
+  // columnar contractCols field from the wire payload. The boot script in
+  // index.html uses this for the prev-day fetch because only LevelsPanel /
+  // overnight-alignment (both above-the-fold) need prev-day data on first
+  // paint, and everything they need is in levels / expirationMetrics —
+  // not in contracts. Below-the-fold diff features (GexProfile's prev-day
+  // overlay, FixedStrikeIvMatrix's 1D-change mode) are fed by a separate
+  // post-first-paint idle fetch in App.jsx that omits skip_contracts and
+  // gets the full prev-day chain. Trims ~240 KB brotli off the boot
+  // payload AND eliminates ~100-200 ms of snapshots-pagination time from
+  // the prev-day function cold path. Both effects stack on the existing
+  // Cache-Control: 1 h that prev-day responses already carry, so a
+  // returning reader's browser cache serves this lite payload without
+  // any edge touch.
+  const skipContracts = url.searchParams.get('skip_contracts') === '1';
 
   const supabaseUrl = process.env.SUPABASE_URL;
   const supabaseKey = process.env.SUPABASE_KEY;
@@ -284,8 +299,15 @@ export default async function handler(request) {
     // expirationFilter is set the contract_count overestimates the slice
     // size, which is fine: the extra pages just come back empty and get
     // filtered out below.
+    // Skipped entirely when skip_contracts=1: saves ~100-200 ms of
+    // Supabase RTT time on the prev-day cold path and trims ~240 KB br
+    // off the wire. The boot-script pre-fires prev-day with this flag;
+    // full prev-day contracts (needed by below-fold diff charts) come
+    // from a separate post-first-paint idle fetch in App.jsx.
     const PAGE_SIZE = 1000;
-    const totalPages = Math.max(1, Math.ceil((run.contract_count || 0) / PAGE_SIZE));
+    const totalPages = skipContracts
+      ? 0
+      : Math.max(1, Math.ceil((run.contract_count || 0) / PAGE_SIZE));
     const pageResults = await Promise.all(
       Array.from({ length: totalPages }, (_, i) => {
         const offset = i * PAGE_SIZE;
@@ -333,7 +355,12 @@ export default async function handler(request) {
     // objects shape downstream consumers expect, so no component code
     // changed. `type` is 0=call / 1=put. `exp` indexes into the
     // top-level `expirations` array (unique sorted, derived below).
-    const expirations = [...new Set(contractRows.map((c) => c.expiration_date).filter(Boolean))].sort();
+    // When skipContracts is set, expirations is derived from the
+    // expiration_metrics table instead (same set of dates, just the
+    // source that is still loaded in memory).
+    const expirations = skipContracts
+      ? [...new Set(expMetricsRows.map((m) => m.expiration_date).filter(Boolean))].sort()
+      : [...new Set(contractRows.map((c) => c.expiration_date).filter(Boolean))].sort();
     const expIndex = new Map(expirations.map((e, i) => [e, i]));
     const n = contractRows.length;
     const colExp = new Array(n);
@@ -451,6 +478,14 @@ export default async function handler(request) {
     // tradingDate is re-derived client-side from capturedAt via
     // tradingDateFromCapturedAt, so shipping it was redundant with the
     // capturedAt timestamp already on the wire.
+    // When skipContracts is set (prev-day boot path), omit contractsV
+    // and contractCols entirely — the client rehydrator in useOptionsData
+    // handles the absence and leaves payload.contracts undefined, which
+    // above-fold consumers (LevelsPanel, overnight-alignment, VRP pill)
+    // don't read for prev-day anyway. Below-fold diff charts that do
+    // need prev-day contracts receive them from the post-paint idle
+    // fetch in App.jsx, which requests the same URL without this flag
+    // and gets a full payload.
     const payload = {
       spotPrice: toNum(run.spot_price),
       prevClose,
@@ -461,8 +496,7 @@ export default async function handler(request) {
       // rehydrates contractCols into the `contracts` row-of-objects shape
       // downstream consumers expect. Bump if the columnar schema changes
       // in a way that isn't a superset of v2.
-      contractsV: 2,
-      contractCols,
+      ...(skipContracts ? {} : { contractsV: 2, contractCols }),
       levels,
       expirationMetrics,
       cloudBands,

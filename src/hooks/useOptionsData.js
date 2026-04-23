@@ -107,7 +107,19 @@ export default function useOptionsData({ underlying = 'SPX', snapshotType = 'int
           const params = new URLSearchParams({ underlying, snapshot_type: snapshotType });
           if (expiration) params.set('expiration', expiration);
           if (tradingDate) params.set('date', tradingDate);
-          if (prevDay && !tradingDate) params.set('prev_day', '1');
+          if (prevDay && !tradingDate) {
+            params.set('prev_day', '1');
+            // prev-day goes through the lite (skip_contracts) variant by
+            // default — above-fold only needs levels + expirationMetrics
+            // for overnight alignment, not the ~19k-contract chain. Below-
+            // fold diff charts that want prev-day contracts get them from
+            // a separate post-first-paint idle fetch in App.jsx that omits
+            // this flag. The boot script's __apiBoot.prevDay URL also
+            // includes skip_contracts=1 so the match-and-consume path
+            // resolves to this same response without triggering a second
+            // network call.
+            params.set('skip_contracts', '1');
+          }
           params.set('v', String(WIRE_VERSION));
 
           const response = await fetch(`/api/data?${params}`);
