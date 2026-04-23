@@ -578,8 +578,12 @@ export default function App() {
 
       {/* Chat renders regardless of dashboard load state so users can ask
           questions about the math and philosophy of the dashboard even if
-          the live options data is still loading or in an error state. */}
-      <ErrorBoundary><Chat /></ErrorBoundary>
+          the live options data is still loading or in an error state. It
+          sits at the very bottom of the dashboard so LazyMount defers the
+          ~6 KB gzipped Chat chunk's React mount work until a reader scrolls
+          within 400 px of the bottom of the page, which is long after all
+          11 above-Chat cards have had a chance to hydrate and paint. */}
+      <ErrorBoundary><LazyMount height="320px"><Chat /></LazyMount></ErrorBoundary>
     </div>
   );
 }

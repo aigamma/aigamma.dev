@@ -21,19 +21,58 @@ import { useEffect, useState } from 'react';
 const CACHE_TTL_MS = 60 * 1000;
 const entries = new Map();
 
+// Map of { url -> __apiBoot-key } for the history endpoints that the inline
+// boot-script in index.html pre-fires during HTML parse. On the first
+// sharedFetch call for one of these URLs we drain the booted promise so the
+// hook skips the regular fetch, cutting ~50-200 ms off the cold-visit paint
+// of the card that reads the endpoint (VolatilityRiskPremium and the VRP
+// pill in LevelsPanel are both above-the-fold on typical viewports). Mirror
+// the pattern in useOptionsData.js — the promise is consumed on first read,
+// and any mismatch (URL param variant, refetch after failure) falls through
+// to the regular fetch path.
+const BOOT_PROMISE_URLS = {
+  '/api/vrp-history': 'vrpHistory',
+};
+
+function consumeBootHistoryPromise(url) {
+  if (typeof window === 'undefined') return null;
+  const key = BOOT_PROMISE_URLS[url];
+  if (!key) return null;
+  const boot = window.__apiBoot;
+  if (!boot) return null;
+  const promise = boot[key];
+  if (!promise) return null;
+  boot[key] = null;
+  return promise;
+}
+
 async function sharedFetch(url) {
   const now = Date.now();
   const cached = entries.get(url);
   if (cached && cached.expiresAt > now) return cached.promise;
 
-  const promise = (async () => {
-    const response = await fetch(url);
-    if (!response.ok) {
-      const text = await response.text();
-      throw new Error(`API ${response.status}: ${text}`);
-    }
-    return response.json();
-  })();
+  const booted = consumeBootHistoryPromise(url);
+  const promise = booted
+    ? booted.catch(async () => {
+        // Boot fetch failed (network glitch, 5xx during deploy); fall
+        // through to a fresh fetch so the hook still has a chance to
+        // resolve rather than surfacing a boot-script error unrelated
+        // to the hook's own retry semantics.
+        const response = await fetch(url);
+        if (!response.ok) {
+          const text = await response.text();
+          throw new Error(`API ${response.status}: ${text}`);
+        }
+        return response.json();
+      })
+    : (async () => {
+        const response = await fetch(url);
+        if (!response.ok) {
+          const text = await response.text();
+          throw new Error(`API ${response.status}: ${text}`);
+        }
+        return response.json();
+      })();
 
   entries.set(url, { promise, expiresAt: now + CACHE_TTL_MS });
   // On error, evict immediately so a retry from any caller re-fires
