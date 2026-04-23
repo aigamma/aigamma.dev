@@ -156,23 +156,27 @@ export default async function handler(request) {
     }
     const run = runRows[0];
 
+    // Historically this was a paginated fetch: 19 parallel PostgREST
+    // requests with Range: 0-999, 1000-1999, ... building a row-of-objects
+    // contractRows array that was then transformed into columnar
+    // contractCols via a JS loop on the function side. Replaced with a
+    // single RPC call to get_contract_cols_v1(p_run_id) — a Postgres
+    // function that runs the snapshots scan, dedups expirations via
+    // row_number() window, LEFT JOINs each snapshot row to its expiration
+    // index, and array_agg's the nine columns into a single JSONB result
+    // that matches the shape the /api/data wire already ships. Eliminates
+    // 18 of the 19 Supabase round-trips on the function cold path,
+    // removes ~20-40 ms of JS columnar-build loop from the function,
+    // and shrinks data.mjs by ~30 lines. See migration
+    // add_get_contract_cols_rpc for the function body.
+    // When expirationFilter is set (historically scaffolded for a UI
+    // path that never shipped, and currently zero grep hits in src/),
+    // fall through to the legacy paginated path because the RPC
+    // function doesn't support per-expiration slicing — the path stays
+    // in place as a defensive fallback but shouldn't fire in practice.
+    const useRpcContracts = !skipContracts && !expirationFilter;
     const snapParams = new URLSearchParams({
       run_id: `eq.${run.id}`,
-      // Projection intentionally omits theta, vega — the frontend reads
-      // neither today, and any future model that needs them (SVI/Heston/Merton
-      // calibrations) is expected to reconstruct them locally from IV + strike
-      // + spot + T, or to fetch them through a purpose-built model-inputs
-      // endpoint. bid_price/ask_price/charm/vanna were dropped from the table
-      // entirely in the null-column cleanup; root_symbol is written for the
-      // SPX/SPXW disambiguation during ingest but no frontend surface reads
-      // it. Also omits volume: a grep across src/ found zero consumers that
-      // read the per-contract volume (LevelsPanel reads the pre-aggregated
-      // put_call_ratio_volume / total_call_volume / total_put_volume scalars
-      // from computed_levels, not the per-contract column). Dropping volume
-      // from the SELECT shaves bytes off the Supabase→function wire and off
-      // the rendered columnar payload (~17 KB gzipped saving on the browser
-      // wire). The fields that remain in snapshots after the cleanup are
-      // fully enumerated below.
       select:
         'expiration_date,strike,contract_type,implied_volatility,delta,gamma,open_interest,close_price',
       order: 'expiration_date.asc,strike.asc',
@@ -290,42 +294,79 @@ export default async function handler(request) {
       }
     }
 
-    // Page through snapshots via Range header. PostgREST/Supabase caps single
-    // responses at 1000 rows, and an SPX intraday run holds ~19k contracts.
-    // The page count is known up front from run.contract_count (populated
-    // by ingest before the snapshot INSERT lands), so all pages fire in
-    // parallel instead of sequentially — turning ~20 serial Supabase RTTs
-    // into ~20 concurrent ones bottlenecked on the slowest page. When
-    // expirationFilter is set the contract_count overestimates the slice
-    // size, which is fine: the extra pages just come back empty and get
-    // filtered out below.
-    // Skipped entirely when skip_contracts=1: saves ~100-200 ms of
-    // Supabase RTT time on the prev-day cold path and trims ~240 KB br
-    // off the wire. The boot-script pre-fires prev-day with this flag;
-    // full prev-day contracts (needed by below-fold diff charts) come
-    // from a separate post-first-paint idle fetch in App.jsx.
-    const PAGE_SIZE = 1000;
-    const totalPages = skipContracts
-      ? 0
-      : Math.max(1, Math.ceil((run.contract_count || 0) / PAGE_SIZE));
-    const pageResults = await Promise.all(
-      Array.from({ length: totalPages }, (_, i) => {
-        const offset = i * PAGE_SIZE;
-        const end = offset + PAGE_SIZE - 1;
-        return fetchWithTimeout(
-          `${supabaseUrl}/rest/v1/snapshots?${snapParams}`,
-          { headers: { ...headers, Range: `${offset}-${end}`, 'Range-Unit': 'items' } },
-          'snapshots'
-        );
-      })
-    );
-    const contractRows = [];
-    for (const pageRes of pageResults) {
-      if (!pageRes.ok && pageRes.status !== 206) {
-        throw new Error(`snapshots query failed: ${pageRes.status}`);
+    // Contracts fetch path. Three branches:
+    //
+    //   1. skipContracts — prev-day boot path. No Supabase query, no
+    //      columnar build. contractCols stays undefined in the payload;
+    //      the client's rehydrator handles the absence.
+    //
+    //   2. useRpcContracts (default hot path) — one POST to the
+    //      get_contract_cols_v1 RPC. Postgres returns the columnar JSONB
+    //      (expirations + eight per-contract arrays with precision
+    //      already trimmed server-side) in a single round-trip. Replaces
+    //      what used to be 19 parallel paginated Range:0-999 fetches plus
+    //      a JS columnar-build loop — saves 18 Supabase round-trips and
+    //      ~20-40 ms of JS CPU per function invocation.
+    //
+    //   3. Legacy paginated fallback — only fires when expirationFilter
+    //      is set (a URL-param path with zero grep hits in src/,
+    //      historically scaffolded for a UI that never shipped). The
+    //      RPC function doesn't support per-expiration slicing, so this
+    //      branch stays for defensive compatibility.
+    //
+    // In all three branches the downstream payload construction reads
+    // the same two locals: `expirations` (top-level array) and
+    // `contractCols` (either populated or undefined).
+    let expirations;
+    let contractCols;
+    let legacyContractRows = null;
+
+    if (skipContracts) {
+      // Branch 1: expirations come from expiration_metrics which is
+      // already loaded in the parallel batch below.
+      contractCols = undefined;
+      expirations = undefined;  // filled in after expMetricsRows resolves
+    } else if (useRpcContracts) {
+      // Branch 2: single RPC call for contractCols.
+      const rpcRes = await fetchWithTimeout(
+        `${supabaseUrl}/rest/v1/rpc/get_contract_cols_v1`,
+        {
+          method: 'POST',
+          headers: { ...headers, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ p_run_id: run.id }),
+        },
+        'get_contract_cols_v1'
+      );
+      if (!rpcRes.ok) {
+        throw new Error(`get_contract_cols_v1 RPC failed: ${rpcRes.status}`);
       }
-      const page = await pageRes.json();
-      if (Array.isArray(page) && page.length > 0) contractRows.push(...page);
+      const rpcJson = await rpcRes.json();
+      expirations = Array.isArray(rpcJson?.expirations) ? rpcJson.expirations : [];
+      const { expirations: _drop, ...cols } = rpcJson || {};
+      contractCols = cols;
+    } else {
+      // Branch 3: paginated fallback for expirationFilter path.
+      const PAGE_SIZE = 1000;
+      const totalPages = Math.max(1, Math.ceil((run.contract_count || 0) / PAGE_SIZE));
+      const pageResults = await Promise.all(
+        Array.from({ length: totalPages }, (_, i) => {
+          const offset = i * PAGE_SIZE;
+          const end = offset + PAGE_SIZE - 1;
+          return fetchWithTimeout(
+            `${supabaseUrl}/rest/v1/snapshots?${snapParams}`,
+            { headers: { ...headers, Range: `${offset}-${end}`, 'Range-Unit': 'items' } },
+            'snapshots'
+          );
+        })
+      );
+      legacyContractRows = [];
+      for (const pageRes of pageResults) {
+        if (!pageRes.ok && pageRes.status !== 206) {
+          throw new Error(`snapshots query failed: ${pageRes.status}`);
+        }
+        const page = await pageRes.json();
+        if (Array.isArray(page) && page.length > 0) legacyContractRows.push(...page);
+      }
     }
 
     const [levelsRows, expMetricsRows, prevCloseRows] = await Promise.all([
@@ -341,60 +382,48 @@ export default async function handler(request) {
       ? prevCloseRows[0].trading_date
       : null;
 
-    // Columnar encoding of the contracts array for wire transmission. SPX
-    // runs hit ~19k contracts; the row-of-objects shape repeats the nine
-    // JSON keys 19k times (~1.7 MB raw just for the keys) and pushes 15+
-    // decimal places for IV / delta / gamma (vastly beyond the ~1e-3
-    // precision the BSM model can actually resolve against the minimum
-    // option-tick). Columnar strips the key repetition and lets gzip
-    // exploit long identical runs in each per-field array; precision
-    // trimming drops 10+ noise digits per numeric. Measured on a live
-    // 18,878-contract SPX snapshot: 4.29 MB raw / 780 KB gzipped →
-    // 917 KB raw / 265 KB gzipped (−515 KB gzipped, 66% saving) on the
-    // wire. useOptionsData.js rehydrates this back into the row-of-
-    // objects shape downstream consumers expect, so no component code
-    // changed. `type` is 0=call / 1=put. `exp` indexes into the
-    // top-level `expirations` array (unique sorted, derived below).
-    // When skipContracts is set, expirations is derived from the
-    // expiration_metrics table instead (same set of dates, just the
-    // source that is still loaded in memory).
-    const expirations = skipContracts
-      ? [...new Set(expMetricsRows.map((m) => m.expiration_date).filter(Boolean))].sort()
-      : [...new Set(contractRows.map((c) => c.expiration_date).filter(Boolean))].sort();
-    const expIndex = new Map(expirations.map((e, i) => [e, i]));
-    const n = contractRows.length;
-    const colExp = new Array(n);
-    const colStrike = new Array(n);
-    const colType = new Array(n);
-    const colIv = new Array(n);
-    const colDelta = new Array(n);
-    const colGamma = new Array(n);
-    const colOi = new Array(n);
-    const colPx = new Array(n);
-    for (let i = 0; i < n; i++) {
-      const c = contractRows[i];
-      colExp[i] = expIndex.get(c.expiration_date) ?? -1;
-      colStrike[i] = toNum(c.strike);
-      colType[i] = c.contract_type === 'call' ? 0 : 1;
-      const iv = toNum(c.implied_volatility);
-      colIv[i] = iv == null ? null : roundTo(iv, 5);
-      const d = toNum(c.delta);
-      colDelta[i] = d == null ? null : roundTo(d, 5);
-      const g = toNum(c.gamma);
-      colGamma[i] = g == null ? null : toSigFig(g, 6);
-      colOi[i] = c.open_interest;
-      colPx[i] = toNum(c.close_price);
+    // Fill in expirations + columnar build for the branches that need it.
+    if (skipContracts) {
+      expirations = [...new Set(expMetricsRows.map((m) => m.expiration_date).filter(Boolean))].sort();
+    } else if (!useRpcContracts) {
+      // Legacy path: build columnar from row objects.
+      expirations = [...new Set(legacyContractRows.map((c) => c.expiration_date).filter(Boolean))].sort();
+      const expIndex = new Map(expirations.map((e, i) => [e, i]));
+      const n = legacyContractRows.length;
+      const colExp = new Array(n);
+      const colStrike = new Array(n);
+      const colType = new Array(n);
+      const colIv = new Array(n);
+      const colDelta = new Array(n);
+      const colGamma = new Array(n);
+      const colOi = new Array(n);
+      const colPx = new Array(n);
+      for (let i = 0; i < n; i++) {
+        const c = legacyContractRows[i];
+        colExp[i] = expIndex.get(c.expiration_date) ?? -1;
+        colStrike[i] = toNum(c.strike);
+        colType[i] = c.contract_type === 'call' ? 0 : 1;
+        const iv = toNum(c.implied_volatility);
+        colIv[i] = iv == null ? null : roundTo(iv, 5);
+        const d = toNum(c.delta);
+        colDelta[i] = d == null ? null : roundTo(d, 5);
+        const g = toNum(c.gamma);
+        colGamma[i] = g == null ? null : toSigFig(g, 6);
+        colOi[i] = c.open_interest;
+        colPx[i] = toNum(c.close_price);
+      }
+      contractCols = {
+        exp: colExp,
+        strike: colStrike,
+        type: colType,
+        iv: colIv,
+        delta: colDelta,
+        gamma: colGamma,
+        oi: colOi,
+        px: colPx,
+      };
     }
-    const contractCols = {
-      exp: colExp,
-      strike: colStrike,
-      type: colType,
-      iv: colIv,
-      delta: colDelta,
-      gamma: colGamma,
-      oi: colOi,
-      px: colPx,
-    };
+    // For useRpcContracts branch, expirations + contractCols are already set above.
 
     let dailyGex = null;
     if (dailyGexResolved?.ok) {
