@@ -261,13 +261,16 @@ export default function SpxVolFlip() {
     // convention: Call Wall = positive green, Put Wall = negative red.
     // Values are null for days where the /api/gex-history endpoint
     // hasn't received the backfill yet — Plotly gaps the line at null
-    // points rather than interpolating across them. `showlegend: false`
-    // on both traces keeps the lines painted on the chart but hides
-    // them from the legend row, which lets SPX · above/below Flip +
-    // Vol Flip carry the legend narrative (spot's regime plus the
-    // zero-crossing reference) while the walls remain visible as
-    // supporting reference levels that the unified hover tooltip still
-    // reports numerically on every x-cursor.
+    // points rather than interpolating across them. Off by default
+    // (visible:'legendonly') with a clickable legend entry — the SPX /
+    // Vol Flip story is the primary narrative of this card, and the
+    // walls crowd the chart with two additional step lines that often
+    // sit well outside the spot-vs-flip band (Call Wall 2-5% above
+    // spot, Put Wall 3-8% below) and stretch the y-axis vertically.
+    // The reader opts in to either wall by clicking the legend entry,
+    // which toggles it to fully visible without needing a separate
+    // control surface. Legend entries render grayed-out when hidden so
+    // the affordance is obvious.
     const callWallValues = series.map((r) => r.cw);
     const putWallValues = series.map((r) => r.pw);
     const callWallTrace = {
@@ -279,7 +282,8 @@ export default function SpxVolFlip() {
       name: '<b>Call Wall</b>',
       hovertemplate: '%{x|%b %d, %Y}<br>Call Wall: %{y:,.0f}<extra></extra>',
       connectgaps: false,
-      showlegend: false,
+      showlegend: true,
+      visible: 'legendonly',
     };
     const putWallTrace = {
       x: times,
@@ -290,7 +294,8 @@ export default function SpxVolFlip() {
       name: '<b>Put Wall</b>',
       hovertemplate: '%{x|%b %d, %Y}<br>Put Wall: %{y:,.0f}<extra></extra>',
       connectgaps: false,
-      showlegend: false,
+      showlegend: true,
+      visible: 'legendonly',
     };
 
     let aboveLegendShown = false;
