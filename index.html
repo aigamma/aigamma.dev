@@ -62,17 +62,31 @@
         // both needed the moment React mounts).
         var pToday = boot('/api/data?underlying=SPX&snapshot_type=intraday&v=2');
         var pPrev = boot('/api/data?underlying=SPX&snapshot_type=intraday&prev_day=1&v=2');
-        // /api/vrp-history feeds VolatilityRiskPremium (an above-the-fold
-        // card) and the VRP pill in LevelsPanel. Prefiring shaves another
-        // ~50-200 ms off the VRP chart paint on cold visits by overlapping
-        // its ~35 KB gzipped download with the main bundle transit.
-        // useHistoricalData.js's sharedFetch helper checks for this promise
-        // via window.__apiBoot.vrpHistory and consumes it on first read.
+        // /api/vrp-history feeds VolatilityRiskPremium (above-the-fold) and
+        // the VRP pill in LevelsPanel. Prefiring overlaps its ~25 KB gzipped
+        // download with the main bundle transit and shaves ~50-200 ms off
+        // the VRP chart paint.
         var pVrp = boot('/api/vrp-history');
+        // /api/gex-history feeds DealerGammaRegime, GammaIndexOscillator,
+        // and GammaIndexScatter — all LazyMounted below-the-fold. Pre-
+        // firing adds ~45 KB gzipped of transit that a reader who bounces
+        // above the fold never benefits from, but any reader who scrolls
+        // (the overwhelmingly common case on a dashboard designed to be
+        // scrolled through) gets all three charts' data ready before the
+        // IntersectionObserver triggers their mount. sharedFetch keys its
+        // cache on URL so all three consumers share the single booted
+        // promise.
+        var pGex = boot('/api/gex-history');
         pToday.catch(function () {});
         pPrev.catch(function () {});
         pVrp.catch(function () {});
-        window.__apiBoot = { today: pToday, prevDay: pPrev, vrpHistory: pVrp };
+        pGex.catch(function () {});
+        window.__apiBoot = {
+          today: pToday,
+          prevDay: pPrev,
+          vrpHistory: pVrp,
+          gexHistory: pGex,
+        };
       })();
     </script>
     <script type="module" src="/src/main.jsx"></script>

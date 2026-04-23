@@ -32,6 +32,7 @@ const entries = new Map();
 // to the regular fetch path.
 const BOOT_PROMISE_URLS = {
   '/api/vrp-history': 'vrpHistory',
+  '/api/gex-history': 'gexHistory',
 };
 
 function consumeBootHistoryPromise(url) {
