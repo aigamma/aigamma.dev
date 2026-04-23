@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { Suspense, useEffect, useRef, useState } from 'react';
 
 // Defer mounting a child component until its placeholder is within (or near)
 // the viewport. On the main dashboard this moves ~8 Plotly.newPlot calls (the
@@ -50,8 +50,16 @@ export default function LazyMount({ height, children, margin = '400px' }) {
     return () => observer.disconnect();
   }, [mounted, margin]);
 
-  if (mounted) return children;
-  return (
+  // The same skeleton is used as the pre-mount placeholder and as the
+  // Suspense fallback below. React.lazy children on the main dashboard
+  // resolve their dynamic-import chunks the first time their Suspense
+  // evaluates (the moment mounted flips to true), so a cold-first-visit
+  // reader briefly sees this skeleton twice — once for the IntersectionObs
+  // gate, and once for the chunk fetch — appearing as a single continuous
+  // skeleton because the bytes are identical. On a warm-cache repeat visit
+  // the chunk is already resolved, Suspense commits synchronously, and
+  // the reader only sees the IntersectionObs skeleton.
+  const skeleton = (
     <div
       ref={ref}
       className="skeleton-card"
@@ -59,4 +67,6 @@ export default function LazyMount({ height, children, margin = '400px' }) {
       aria-hidden="true"
     />
   );
+  if (!mounted) return skeleton;
+  return <Suspense fallback={skeleton}>{children}</Suspense>;
 }
