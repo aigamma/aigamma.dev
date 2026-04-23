@@ -170,10 +170,16 @@ export default async function handler(request) {
         regime = netGex >= 0 ? 'positive' : 'negative';
       }
 
+      // net_gex runs to ~1e10 dollars of dealer gamma per 1% spot move. 6
+      // significant figures (resolution ~1e4 dollars on a 1e10 scale = 1
+      // part per million) is three orders of magnitude below the measurement
+      // error on the underlying raw gamma values the Massive pipeline
+      // aggregates. Trimming strips ~12 trailing noise digits per row and
+      // cuts ~16 KB gzipped off the wire across a ~2,300-row SPX history.
       series.push({
         trading_date: r.trading_date,
         spx_close: spxClose,
-        net_gex: netGex,
+        net_gex: toSigFig(netGex, 6),
         gamma_index: gammaIndex != null ? Math.round(gammaIndex * 1000) / 1000 : null,
         vol_flip: volFlip,
         call_wall: callWall,
@@ -206,6 +212,12 @@ function toNum(value) {
   if (value == null) return null;
   const n = parseFloat(value);
   return Number.isFinite(n) ? n : null;
+}
+
+function toSigFig(value, sig) {
+  if (value == null) return null;
+  if (value === 0) return 0;
+  return +value.toPrecision(sig);
 }
 
 function jsonError(status, message) {
