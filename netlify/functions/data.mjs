@@ -50,6 +50,12 @@ export default async function handler(request) {
       snapshot_type: `eq.${snapshotType}`,
       order: 'captured_at.desc',
       limit: '10',
+      // Explicit projection skips error_message (TEXT, can hold a multi-kB
+      // stack trace from a prior failed run) and created_at (unused on the
+      // wire). Every remaining field feeds either the run-selection
+      // heuristic below or the final payload.
+      select:
+        'id,captured_at,trading_date,underlying,snapshot_type,spot_price,contract_count,status,source',
     });
     if (tradingDate) runParams.set('trading_date', `eq.${tradingDate}`);
 
@@ -68,45 +74,31 @@ export default async function handler(request) {
         `No ${snapshotType} run found for ${underlying}${tradingDate ? ` on ${tradingDate}` : ''}`
       );
     }
-    // Find the newest run that actually has snapshot rows in the database.
-    // The ingest writes the run header (with accurate contract_count) before
-    // the snapshot batch inserts, so a run can report contract_count=15000
-    // yet have zero rows in the snapshots table when writes fail (database
-    // storage limits, RLS misconfiguration, timeout on the 15-batch insert).
-    // Serving such a run produces an empty contracts array that blanks every
-    // chart. The check below probes each candidate with a single-row SELECT
-    // (~10ms per probe) until it finds one with actual data, then commits to
-    // the full paginated fetch for that run only.
-    const candidates = runRows.filter((r) => r.status === 'success');
-    if (candidates.length === 0) candidates.push(runRows[0]);
-
-    let run = null;
-    for (const candidate of candidates) {
-      const probeRes = await fetchWithTimeout(
-        `${supabaseUrl}/rest/v1/snapshots?run_id=eq.${candidate.id}&select=id&limit=1`,
-        { headers },
-        'snapshot_probe'
-      );
-      if (probeRes.ok) {
-        const probeRows = await probeRes.json();
-        if (Array.isArray(probeRows) && probeRows.length > 0) {
-          run = candidate;
-          break;
-        }
-      }
-    }
-    if (!run) run = runRows[0];
+    // Pick the newest successful run that reports a non-zero contract_count.
+    // The prior implementation probed each candidate with a serial single-row
+    // SELECT against snapshots to defend against a failure mode where the run
+    // header landed but the batched INSERT into snapshots didn't. That mode
+    // hasn't recurred in the current stable ingest path, and the probe loop
+    // was costing up to 10 sequential Supabase round-trips on every page
+    // load. If a header-with-no-body run ever slips through again, the symptom
+    // is a single 60-second-cache window serving an empty chain until the
+    // next 5-minute cron writes a healthy run — acceptable degradation
+    // relative to paying the probe cost on every successful load.
+    const run =
+      runRows.find((r) => r.status === 'success' && (r.contract_count ?? 0) > 0) ||
+      runRows[0];
 
     const snapParams = new URLSearchParams({
       run_id: `eq.${run.id}`,
-      // Projection intentionally omits theta, vega, bid_price, ask_price — the
-      // frontend reads none of them today, and any future model that needs them
-      // (SVI/Heston/Merton calibrations, spread-based liquidity overlays) is
-      // expected to reconstruct them locally from IV + strike + spot + T, or to
-      // fetch them through a purpose-built model-inputs endpoint. The fields
-      // remain in the snapshots table; only the wire projection is trimmed to
-      // keep this response comfortably under the Netlify/AWS Lambda 6 MB
-      // synchronous response cap as the SPX chain grows over time.
+      // Projection intentionally omits theta, vega — the frontend reads
+      // neither today, and any future model that needs them (SVI/Heston/Merton
+      // calibrations) is expected to reconstruct them locally from IV + strike
+      // + spot + T, or to fetch them through a purpose-built model-inputs
+      // endpoint. bid_price/ask_price/charm/vanna were dropped from the table
+      // entirely in the null-column cleanup; root_symbol is written for the
+      // SPX/SPXW disambiguation during ingest but no frontend surface reads
+      // it. The fields that remain in snapshots after the cleanup are fully
+      // enumerated below.
       select:
         'expiration_date,strike,contract_type,implied_volatility,delta,gamma,open_interest,volume,close_price',
       order: 'expiration_date.asc,strike.asc',
@@ -152,22 +144,30 @@ export default async function handler(request) {
       'daily_gex_stats_latest'
     );
 
-    const [levelsRes, expMetricsRes, sviRes, prevCloseRes, cloudBandsDateResolved, dailyGexResolved] = await Promise.all([
+    const [levelsRes, expMetricsRes, prevCloseRes, cloudBandsDateResolved, dailyGexResolved] = await Promise.all([
       fetchWithTimeout(
-        `${supabaseUrl}/rest/v1/computed_levels?run_id=eq.${run.id}`,
+        // Explicit projection — computed_levels has 21 columns including a
+        // gamma_profile JSONB blob (~5.2 kB per row) that App.jsx recomputes
+        // client-side and discards. Listing only the seven fields the wire
+        // payload exposes skips the blob entirely and shrinks the response
+        // to a few hundred bytes.
+        `${supabaseUrl}/rest/v1/computed_levels?run_id=eq.${run.id}&select=call_wall_strike,put_wall_strike,volatility_flip,put_call_ratio_oi,put_call_ratio_volume,total_call_volume,total_put_volume`,
         { headers },
         'computed_levels'
       ),
       fetchWithTimeout(
-        `${supabaseUrl}/rest/v1/expiration_metrics?run_id=eq.${run.id}&order=expiration_date.asc`,
+        `${supabaseUrl}/rest/v1/expiration_metrics?run_id=eq.${run.id}&order=expiration_date.asc&select=expiration_date,atm_iv,put_25d_iv,call_25d_iv`,
         { headers },
         'expiration_metrics'
       ),
-      fetchWithTimeout(
-        `${supabaseUrl}/rest/v1/svi_fits?run_id=eq.${run.id}&order=expiration_date.asc`,
-        { headers },
-        'svi_fits'
-      ),
+      // The svi_fits query used to sit here in parallel with the rest of the
+      // batch, but the table has been empty for the lifetime of this codebase
+      // (useSviFits always falls back to client-side calibration). The
+      // round-trip was costing ~40 ms on every page load for a guaranteed
+      // empty response. If scheduled SVI persistence ever lands, the query
+      // returns and the useSviFits hook picks up the backend fits without
+      // needing a wire-shape change — the frontend still accepts the
+      // sviFits array when present.
       prevCloseParamsStr
         ? fetchWithTimeout(
             `${supabaseUrl}/rest/v1/ingest_runs?${prevCloseParamsStr}`,
@@ -181,7 +181,6 @@ export default async function handler(request) {
 
     if (!levelsRes.ok) throw new Error(`computed_levels query failed: ${levelsRes.status}`);
     if (!expMetricsRes.ok) throw new Error(`expiration_metrics query failed: ${expMetricsRes.status}`);
-    if (!sviRes.ok) throw new Error(`svi_fits query failed: ${sviRes.status}`);
     if (prevCloseRes && !prevCloseRes.ok) throw new Error(`prev_close query failed: ${prevCloseRes.status}`);
 
     let cloudBandsRows = [];
@@ -203,31 +202,39 @@ export default async function handler(request) {
     }
 
     // Page through snapshots via Range header. PostgREST/Supabase caps single
-    // responses (default 1000 rows), and run 19 has 9k+ contracts — fetching a
-    // single unpaginated page silently truncates to the lowest strikes of the
-    // earliest expirations, which collapses the GEX profile onto one side of spot.
+    // responses at 1000 rows, and an SPX intraday run holds ~19k contracts.
+    // The page count is known up front from run.contract_count (populated
+    // by ingest before the snapshot INSERT lands), so all pages fire in
+    // parallel instead of sequentially — turning ~20 serial Supabase RTTs
+    // into ~20 concurrent ones bottlenecked on the slowest page. When
+    // expirationFilter is set the contract_count overestimates the slice
+    // size, which is fine: the extra pages just come back empty and get
+    // filtered out below.
     const PAGE_SIZE = 1000;
+    const totalPages = Math.max(1, Math.ceil((run.contract_count || 0) / PAGE_SIZE));
+    const pageResults = await Promise.all(
+      Array.from({ length: totalPages }, (_, i) => {
+        const offset = i * PAGE_SIZE;
+        const end = offset + PAGE_SIZE - 1;
+        return fetchWithTimeout(
+          `${supabaseUrl}/rest/v1/snapshots?${snapParams}`,
+          { headers: { ...headers, Range: `${offset}-${end}`, 'Range-Unit': 'items' } },
+          'snapshots'
+        );
+      })
+    );
     const contractRows = [];
-    for (let offset = 0; ; offset += PAGE_SIZE) {
-      const end = offset + PAGE_SIZE - 1;
-      const pageRes = await fetchWithTimeout(
-        `${supabaseUrl}/rest/v1/snapshots?${snapParams}`,
-        { headers: { ...headers, Range: `${offset}-${end}`, 'Range-Unit': 'items' } },
-        'snapshots'
-      );
+    for (const pageRes of pageResults) {
       if (!pageRes.ok && pageRes.status !== 206) {
         throw new Error(`snapshots query failed: ${pageRes.status}`);
       }
       const page = await pageRes.json();
-      if (!Array.isArray(page) || page.length === 0) break;
-      contractRows.push(...page);
-      if (page.length < PAGE_SIZE) break;
+      if (Array.isArray(page) && page.length > 0) contractRows.push(...page);
     }
 
-    const [levelsRows, expMetricsRows, sviRows, prevCloseRows] = await Promise.all([
+    const [levelsRows, expMetricsRows, prevCloseRows] = await Promise.all([
       levelsRes.json(),
       expMetricsRes.json(),
-      sviRes.json(),
       prevCloseRes ? prevCloseRes.json() : Promise.resolve([]),
     ]);
 
@@ -322,29 +329,6 @@ export default async function handler(request) {
 
     const expirations = [...new Set(contractRows.map((c) => c.expiration_date).filter(Boolean))].sort();
 
-    const sviFits = sviRows.map((r) => ({
-      expiration_date: r.expiration_date,
-      t_years: toNum(r.t_years),
-      forward_price: toNum(r.forward_price),
-      params: {
-        a: toNum(r.a),
-        b: toNum(r.b),
-        rho: toNum(r.rho),
-        m: toNum(r.m),
-        sigma: toNum(r.sigma),
-      },
-      rmse_iv: toNum(r.rmse_iv),
-      sample_count: r.sample_count,
-      converged: r.converged,
-      tenor_window: toNum(r.tenor_window),
-      non_negative_variance: r.non_negative_variance,
-      butterfly_arb_free: r.butterfly_arb_free,
-      min_durrleman_g: toNum(r.min_durrleman_g),
-      density_strikes: Array.isArray(r.density_strikes) ? r.density_strikes.map(toNum) : null,
-      density_values: Array.isArray(r.density_values) ? r.density_values.map(toNum) : null,
-      density_integral: toNum(r.density_integral),
-    }));
-
     const payload = {
       underlying: run.underlying,
       spotPrice: toNum(run.spot_price),
@@ -359,7 +343,6 @@ export default async function handler(request) {
       contracts,
       levels,
       expirationMetrics,
-      sviFits,
       cloudBands,
       cloudBandsTradingDate,
     };
