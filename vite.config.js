@@ -2,6 +2,67 @@ import { fileURLToPath } from 'node:url'
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
+// Inject <link rel="modulepreload"> for every dynamic-import chunk reachable
+// from the main entry, so Vite's React.lazy-generated chunks (the ten
+// below-the-fold chart components in App.jsx) start downloading during the
+// HTML parse window rather than waiting for the post-mount requestIdleCallback
+// prefetch in App.jsx to fire. Vite's default modulepreload behavior only
+// preloads STATIC imports of an entry — dynamic import chunks are deliberately
+// deferred, which is correct for truly-on-demand code paths (e.g., a modal
+// that rarely opens) but wasteful for a dashboard where every lazy chunk
+// will be consumed within seconds by a scrolling reader. This plugin
+// generates preload tags for the main-entry's dynamic chunks only, leaving
+// the twelve lab entries untouched (their charts aren't split and they
+// have their own noindex audience). The plugin reads the full rollup bundle
+// in generateBundle, then transformIndexHtml injects a tag per dynamic
+// chunk into the <head> of index.html. Uses `crossorigin` to match how
+// Vite's auto-generated modulepreload tags are crossorigin'd.
+const LAZY_CHUNK_NAMES = new Set([
+  'Chat',
+  'DealerGammaRegime',
+  'FixedStrikeIvMatrix',
+  'GammaIndexOscillator',
+  'GammaIndexScatter',
+  'GammaInflectionChart',
+  'GexProfile',
+  'RiskNeutralDensity',
+  'SpxVolFlip',
+  'VolatilitySmile',
+]);
+function lazyChunkPreloadPlugin() {
+  let dynamicChunks = [];
+  return {
+    name: 'lazy-chunk-preload',
+    apply: 'build',
+    generateBundle(_options, bundle) {
+      dynamicChunks = Object.values(bundle)
+        .filter((chunk) => chunk.type === 'chunk' && LAZY_CHUNK_NAMES.has(chunk.name))
+        .map((chunk) => chunk.fileName)
+        .sort();
+    },
+    transformIndexHtml: {
+      order: 'post',
+      handler(_html, ctx) {
+        // Only transform the main entry's HTML — the lab entries don't use
+        // React.lazy and gain nothing from preloading dynamic chunks that
+        // don't exist in their import graph.
+        if (ctx.filename && !ctx.filename.endsWith('index.html')) return;
+        if (ctx.chunk?.name && ctx.chunk.name !== 'main') return;
+        const tags = dynamicChunks.map((fileName) => ({
+          tag: 'link',
+          attrs: {
+            rel: 'modulepreload',
+            crossorigin: '',
+            href: '/' + fileName,
+          },
+          injectTo: 'head',
+        }));
+        return { html: undefined, tags };
+      },
+    },
+  };
+}
+
 // Multi-page build. Thirteen entries: the main dashboard at `index.html`
 // (served at `/`), the bookmark-only three-slot beta lab at
 // `beta/index.html` (served at `/beta/`), the bookmark-only two-slot
@@ -78,7 +139,7 @@ import react from '@vitejs/plugin-react'
 // stochastic/App.jsx, local/App.jsx, risk/App.jsx, jump/App.jsx,
 // discrete/App.jsx, and parity/App.jsx for the rationale.
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), lazyChunkPreloadPlugin()],
   server: {
     proxy: {
       '/api': {
