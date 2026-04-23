@@ -462,7 +462,13 @@ export default async function handler(request) {
       levels,
       expirationMetrics,
       cloudBands,
-      cloudBandsTradingDate,
+      // cloudBandsTradingDate was shipped here as a debug/provenance field
+      // pointing at the source trading_date for the cloud-band overlay
+      // (useful when the overlay falls back to yesterday's bands because
+      // today's EOD reconcile hasn't run yet). Grep across src/ confirmed
+      // no component reads it — TermStructure.jsx uses data.cloudBands
+      // directly and derives its own x-axis anchor from data.capturedAt,
+      // not from cloudBandsTradingDate. Dropped from the wire.
     };
 
     // Today's live run changes every ~5 minutes; serve with a short TTL
