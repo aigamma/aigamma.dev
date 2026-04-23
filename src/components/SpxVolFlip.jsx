@@ -34,8 +34,8 @@ import ResetButton from './ResetButton';
 //
 // The card ships with the site-wide RangeBrush below the plot and a
 // ResetButton in the upper-left corner, matching DealerGammaRegime's
-// interaction model: default window is the trailing 6 months of the
-// series, the brush exposes the full history for expansion, and the
+// interaction model: default window is the trailing ~60 calendar days of
+// the series, the brush exposes the full history for expansion, and the
 // y-axis tightens to the visible window on every brush commit so zoomed
 // regions don't sit flattened against distant out-of-view extrema.
 
@@ -56,9 +56,9 @@ function msToIso(ms) {
   return new Date(ms).toISOString().slice(0, 10);
 }
 
-function addMonthsIso(iso, months) {
+function addDaysIso(iso, days) {
   const d = new Date(`${iso}T00:00:00Z`);
-  d.setUTCMonth(d.getUTCMonth() + months);
+  d.setUTCDate(d.getUTCDate() + days);
   return d.toISOString().slice(0, 10);
 }
 
@@ -220,8 +220,8 @@ export default function SpxVolFlip() {
 
   const defaultRange = useMemo(() => {
     if (!firstDate || !lastDate) return null;
-    const sixMonthsBack = addMonthsIso(lastDate, -6);
-    return [sixMonthsBack >= firstDate ? sixMonthsBack : firstDate, lastDate];
+    const sixtyDaysBack = addDaysIso(lastDate, -60);
+    return [sixtyDaysBack >= firstDate ? sixtyDaysBack : firstDate, lastDate];
   }, [firstDate, lastDate]);
 
   const activeRange = timeRange || defaultRange;
