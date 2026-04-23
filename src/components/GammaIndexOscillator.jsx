@@ -88,7 +88,6 @@ const RED_LINE = PLOTLY_COLORS.negative;
 const ZERO_LINE_COLOR = 'rgba(224, 224, 224, 0.5)';
 const EXTREME_LINE_COLOR = 'rgba(241, 196, 15, 0.35)';
 const EXTREME_THRESHOLD = 5;
-const HISTORY_FROM = '2017-01-03';
 
 // Subplot domain split: main plot consumes 89% of the horizontal space,
 // a 3% gutter separates the two, and the ribbon takes the rightmost 8%.
@@ -283,7 +282,13 @@ function tailStreak(values) {
 export default function GammaIndexOscillator() {
   const chartRef = useRef(null);
   const { plotly: Plotly, error: plotlyError } = usePlotly();
-  const { data, loading, error } = useGexHistory({ from: HISTORY_FROM });
+  // Empty params = same URL as DealerGammaRegime and GammaIndexScatter
+  // (default from=2017-01-03 is applied server-side). sharedFetch in
+  // useHistoricalData.js dedupes same-URL requests, so dropping the
+  // redundant `from` param here collapses three separate cold-mount
+  // fetches to one — the other ~45 KB gzipped transit round-trip is
+  // shared across all three components instead of paid twice.
+  const { data, loading, error } = useGexHistory({});
   const mobile = useIsMobile();
   const [timeRange, setTimeRange] = useState(null);
 
