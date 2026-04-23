@@ -678,7 +678,7 @@ export default function GammaIndexOscillator() {
       responsive: true,
       displayModeBar: false,
     });
-  }, [Plotly, series, segments, activeRange, stats, mobile]);
+  }, [Plotly, series, segments, activeRange, stats, mobile, ribbon]);
 
   const handleBrushChange = useCallback((minMs, maxMs) => {
     setTimeRange([msToIso(minMs), msToIso(maxMs)]);
