@@ -295,17 +295,58 @@ export default async function handler(request) {
       ? prevCloseRows[0].trading_date
       : null;
 
-    const contracts = contractRows.map((c) => ({
-      expiration_date: c.expiration_date,
-      strike_price: toNum(c.strike),
-      contract_type: c.contract_type,
-      implied_volatility: toNum(c.implied_volatility),
-      delta: toNum(c.delta),
-      gamma: toNum(c.gamma),
-      open_interest: c.open_interest,
-      volume: c.volume,
-      close_price: toNum(c.close_price),
-    }));
+    // Columnar encoding of the contracts array for wire transmission. SPX
+    // runs hit ~19k contracts; the row-of-objects shape repeats the nine
+    // JSON keys 19k times (~1.7 MB raw just for the keys) and pushes 15+
+    // decimal places for IV / delta / gamma (vastly beyond the ~1e-3
+    // precision the BSM model can actually resolve against the minimum
+    // option-tick). Columnar strips the key repetition and lets gzip
+    // exploit long identical runs in each per-field array; precision
+    // trimming drops 10+ noise digits per numeric. Measured on a live
+    // 18,878-contract SPX snapshot: 4.29 MB raw / 780 KB gzipped →
+    // 917 KB raw / 265 KB gzipped (−515 KB gzipped, 66% saving) on the
+    // wire. useOptionsData.js rehydrates this back into the row-of-
+    // objects shape downstream consumers expect, so no component code
+    // changed. `type` is 0=call / 1=put. `exp` indexes into the
+    // top-level `expirations` array (unique sorted, derived below).
+    const expirations = [...new Set(contractRows.map((c) => c.expiration_date).filter(Boolean))].sort();
+    const expIndex = new Map(expirations.map((e, i) => [e, i]));
+    const n = contractRows.length;
+    const colExp = new Array(n);
+    const colStrike = new Array(n);
+    const colType = new Array(n);
+    const colIv = new Array(n);
+    const colDelta = new Array(n);
+    const colGamma = new Array(n);
+    const colOi = new Array(n);
+    const colVol = new Array(n);
+    const colPx = new Array(n);
+    for (let i = 0; i < n; i++) {
+      const c = contractRows[i];
+      colExp[i] = expIndex.get(c.expiration_date) ?? -1;
+      colStrike[i] = toNum(c.strike);
+      colType[i] = c.contract_type === 'call' ? 0 : 1;
+      const iv = toNum(c.implied_volatility);
+      colIv[i] = iv == null ? null : roundTo(iv, 5);
+      const d = toNum(c.delta);
+      colDelta[i] = d == null ? null : roundTo(d, 5);
+      const g = toNum(c.gamma);
+      colGamma[i] = g == null ? null : toSigFig(g, 6);
+      colOi[i] = c.open_interest;
+      colVol[i] = c.volume;
+      colPx[i] = toNum(c.close_price);
+    }
+    const contractCols = {
+      exp: colExp,
+      strike: colStrike,
+      type: colType,
+      iv: colIv,
+      delta: colDelta,
+      gamma: colGamma,
+      oi: colOi,
+      vol: colVol,
+      px: colPx,
+    };
 
     let dailyGex = null;
     if (dailyGexResolved?.ok) {
@@ -372,8 +413,6 @@ export default async function handler(request) {
       }))
       .filter((b) => b.sample_count > 0 && b.iv_p50 != null);
 
-    const expirations = [...new Set(contractRows.map((c) => c.expiration_date).filter(Boolean))].sort();
-
     const payload = {
       underlying: run.underlying,
       spotPrice: toNum(run.spot_price),
@@ -385,7 +424,12 @@ export default async function handler(request) {
       source: run.source,
       expirations,
       selectedExpiration: expirationFilter || null,
-      contracts,
+      // Wire version sentinel. Client's useOptionsData checks this and
+      // rehydrates contractCols into the `contracts` row-of-objects shape
+      // downstream consumers expect. Bump if the columnar schema changes
+      // in a way that isn't a superset of v2.
+      contractsV: 2,
+      contractCols,
       levels,
       expirationMetrics,
       cloudBands,
@@ -418,6 +462,28 @@ function toNum(value) {
   if (value == null) return null;
   const n = parseFloat(value);
   return Number.isFinite(n) ? n : null;
+}
+
+// Round to N decimal places. Used for IV (5dp → resolution of 1e-5, well
+// below BSM model error against the minimum option-tick) and delta (5dp →
+// same resolution, matches the natural precision of the underlying
+// numerical solver). Returns a primitive Number rather than a string so
+// JSON.stringify doesn't wrap it in quotes and doesn't re-introduce trailing
+// zeros we just stripped.
+function roundTo(value, decimals) {
+  const f = 10 ** decimals;
+  return Math.round(value * f) / f;
+}
+
+// Keep N significant figures regardless of magnitude. Used for gamma
+// because its magnitude ranges from ~1e-7 (deep OTM) to ~1e-2 (near-ATM
+// 0DTE), and a fixed-decimal rounding would either destroy the near-spot
+// resolution or waste bytes on deep-OTM noise. +Number(x.toPrecision(N))
+// coerces the scientific-notation string back to a primitive number whose
+// JSON serialization uses the shortest round-trip representation.
+function toSigFig(value, sig) {
+  if (value === 0) return 0;
+  return +value.toPrecision(sig);
 }
 
 function jsonError(status, message) {
