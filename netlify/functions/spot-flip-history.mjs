@@ -97,15 +97,23 @@ export default async function handler(request) {
 
     // Build series with forward-fill for missing flips. Skip rows before
     // any flip value is known so the frontend doesn't have to handle nulls.
+    // SPX spot is quoted to 2 decimal places by the CBOE feed (and by
+    // ThetaData's EOD normalization), but the value persisted in
+    // ingest_runs.spot_price carries the full float that came out of the
+    // intraday Massive response — e.g., 7136.368070360775. Rounding to 2dp
+    // matches the natural precision and saves ~500 bytes gzipped on a
+    // 380-row payload. Flip values are already stored at 2dp because
+    // computed_levels.volatility_flip is rounded at ingest time.
     let lastFlip = null;
     const series = [];
     for (const run of runs) {
       const flip = flipMap.get(run.id) ?? lastFlip;
       if (flip != null) lastFlip = flip;
       if (flip == null) continue;
+      const spot = toNum(run.spot_price);
       series.push({
         t: run.captured_at,
-        s: toNum(run.spot_price),
+        s: spot == null ? null : Math.round(spot * 100) / 100,
         f: flip,
       });
     }
