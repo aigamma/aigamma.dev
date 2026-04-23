@@ -23,18 +23,18 @@ import { useEffect, useRef, useState } from 'react';
 //     defaults to '400px' which gives ~1 s of prefetch on a fast-scroll
 //     phone at 400 px/s.
 export default function LazyMount({ height, children, margin = '400px' }) {
-  const [mounted, setMounted] = useState(false);
+  // Initializer runs once per mount. Environments without
+  // IntersectionObserver (server render, very old browsers) fall through to
+  // eager-mount so the dashboard still renders correctly — we only miss the
+  // deferred-mount performance win. Computing this during useState
+  // initialization rather than in an effect keeps the observer setup off
+  // the happy path for unsupported environments and avoids a cascading
+  // render that the react-hooks/set-state-in-effect lint rule flags.
+  const [mounted, setMounted] = useState(() => typeof IntersectionObserver === 'undefined');
   const ref = useRef(null);
 
   useEffect(() => {
     if (mounted) return;
-    if (typeof IntersectionObserver === 'undefined') {
-      // Environments without IntersectionObserver (server render, very old
-      // browsers) fall through to eager-mount so the dashboard still renders
-      // correctly — we only miss the deferred-mount performance win.
-      setMounted(true);
-      return;
-    }
     const el = ref.current;
     if (!el) return;
     const observer = new IntersectionObserver(
