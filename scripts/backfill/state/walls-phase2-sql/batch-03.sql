@@ -1,4 +1,4 @@
--- Walls Phase 2 batch 3/3 (78 rows, 2025-12-29 → 2026-04-21)
+-- Walls Phase 2 batch 3/3 (79 rows, 2025-12-29 → 2026-04-22)
 UPDATE daily_gex_stats
 SET call_wall_strike = v.cw,
     put_wall_strike = v.pw
@@ -80,6 +80,7 @@ FROM (VALUES
   ('2026-04-16'::date, 7050, 6500),
   ('2026-04-17'::date, 7200, 6800),
   ('2026-04-20'::date, 7200, 7110),
-  ('2026-04-21'::date, 7200, 7065)
+  ('2026-04-21'::date, 7200, 7065),
+  ('2026-04-22'::date, 7140, 6800)
 ) AS v(trading_date, cw, pw)
 WHERE daily_gex_stats.trading_date = v.trading_date;
