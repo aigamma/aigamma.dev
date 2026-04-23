@@ -127,8 +127,14 @@ let prefetchedBelowFold = false;
 function prefetchBelowFoldChunks() {
   if (prefetchedBelowFold) return;
   prefetchedBelowFold = true;
+  // requestIdleCallback with a 1500 ms timeout so slow-device busy-main-
+  // thread sessions don't starve the prefetch — the chunks must be warm
+  // before the reader scrolls into the first LazyMount's 400 px margin,
+  // which typically happens within 1-3 s of first paint on a dashboard
+  // designed for scroll-through reading.
   const idle = (typeof window !== 'undefined' && window.requestIdleCallback)
-    || ((cb) => setTimeout(cb, 200));
+    ? (cb) => window.requestIdleCallback(cb, { timeout: 1500 })
+    : (cb) => setTimeout(cb, 200);
   idle(() => {
     import('./components/VolatilitySmile');
     import('./components/DealerGammaRegime');
@@ -182,8 +188,14 @@ export default function App() {
   useEffect(() => {
     if (typeof window === 'undefined') return;
     let cancelled = false;
+    // requestIdleCallback with a 2000 ms timeout forces the callback to
+    // fire within 2 s even if the browser never reports idle — a guard
+    // against slow devices where the main thread stays busy past LazyMount
+    // scroll-trigger time and the idle callback would otherwise be
+    // starved. Falls back to plain setTimeout(300) on browsers that don't
+    // expose requestIdleCallback (Safari behind a flag, very old builds).
     const idle = window.requestIdleCallback
-      ? window.requestIdleCallback
+      ? (cb) => window.requestIdleCallback(cb, { timeout: 2000 })
       : (cb) => setTimeout(cb, 300);
     const cancel = window.cancelIdleCallback
       ? window.cancelIdleCallback
