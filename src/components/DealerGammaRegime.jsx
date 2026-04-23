@@ -247,7 +247,7 @@ export default function DealerGammaRegime() {
       hovermode: 'closest',
     });
 
-    Plotly.newPlot(chartRef.current, [priceLine, posTrace, negTrace], layout, {
+    Plotly.react(chartRef.current, [priceLine, posTrace, negTrace], layout, {
       responsive: true,
       displayModeBar: false,
     });

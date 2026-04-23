@@ -926,3 +926,15 @@
 {"date":"2025-09-11","call_wall":6600,"put_wall":6000,"spot":6587.47,"contracts":11624,"strike_count":379,"computed_at":"2026-04-23T05:26:24.676Z"}
 {"date":"2025-09-12","call_wall":6585,"put_wall":6000,"spot":6584.29,"contracts":11946,"strike_count":382,"computed_at":"2026-04-23T05:26:39.328Z"}
 {"date":"2025-09-15","call_wall":6615,"put_wall":6300,"spot":6615.2799,"contracts":12102,"strike_count":382,"computed_at":"2026-04-23T05:27:03.239Z"}
+{"date":"2025-09-16","call_wall":6600,"put_wall":6300,"spot":6606.76,"contracts":12880,"strike_count":389,"computed_at":"2026-04-23T05:27:19.207Z"}
+{"date":"2025-09-17","call_wall":6700,"put_wall":6600,"spot":6600.35,"contracts":13033,"strike_count":394,"computed_at":"2026-04-23T05:27:28.084Z"}
+{"date":"2025-09-18","call_wall":6650,"put_wall":6300,"spot":6631.96,"contracts":12942,"strike_count":394,"computed_at":"2026-04-23T05:27:50.599Z"}
+{"date":"2025-09-19","call_wall":6665,"put_wall":6400,"spot":6664.36,"contracts":11793,"strike_count":386,"computed_at":"2026-04-23T05:28:04.881Z"}
+{"date":"2025-09-22","call_wall":6695,"put_wall":6500,"spot":6693.75,"contracts":11869,"strike_count":385,"computed_at":"2026-04-23T05:28:15.213Z"}
+{"date":"2025-09-23","call_wall":6700,"put_wall":6655,"spot":6656.92,"contracts":12848,"strike_count":397,"computed_at":"2026-04-23T05:28:26.796Z"}
+{"date":"2025-09-24","call_wall":6700,"put_wall":6635,"spot":6637.97,"contracts":12978,"strike_count":407,"computed_at":"2026-04-23T05:28:35.743Z"}
+{"date":"2025-09-25","call_wall":6700,"put_wall":6600,"spot":6604.72,"contracts":13260,"strike_count":414,"computed_at":"2026-04-23T05:28:48.168Z"}
+{"date":"2025-09-26","call_wall":6645,"put_wall":6500,"spot":6643.6999,"contracts":12863,"strike_count":408,"computed_at":"2026-04-23T05:29:10.347Z"}
+{"date":"2025-09-29","call_wall":6700,"put_wall":6660,"spot":6661.21,"contracts":12517,"strike_count":409,"computed_at":"2026-04-23T05:29:18.468Z"}
+{"date":"2025-09-30","call_wall":6690,"put_wall":6400,"spot":6688.46,"contracts":11992,"strike_count":406,"computed_at":"2026-04-23T05:29:28.534Z"}
+{"date":"2025-10-01","call_wall":6710,"put_wall":6000,"spot":6711.2,"contracts":12298,"strike_count":408,"computed_at":"2026-04-23T05:29:40.199Z"}

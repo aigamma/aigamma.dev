@@ -236,7 +236,7 @@ export default function TermStructure({ expirationMetrics, capturedAt, cloudBand
       },
     });
 
-    Plotly.newPlot(chartRef.current, traces, layout, {
+    Plotly.react(chartRef.current, traces, layout, {
       responsive: true,
       displayModeBar: false,
     });

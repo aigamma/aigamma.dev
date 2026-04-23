@@ -268,7 +268,7 @@ export default function RiskNeutralDensity({ fits, spotPrice, capturedAt, loadin
       hovermode: 'closest',
     };
 
-    Plotly.newPlot(chartRef.current, traces, layout, {
+    Plotly.react(chartRef.current, traces, layout, {
       responsive: true,
       displayModeBar: false,
     });

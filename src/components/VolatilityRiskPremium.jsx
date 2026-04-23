@@ -381,7 +381,7 @@ export default function VolatilityRiskPremium({ spotPrice, capturedAt }) {
       hovermode: 'x unified',
     });
 
-    Plotly.newPlot(chartRef.current, traces, layout, {
+    Plotly.react(chartRef.current, traces, layout, {
       responsive: true,
       displayModeBar: false,
     });

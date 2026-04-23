@@ -411,7 +411,7 @@ export default function GammaIndexScatter() {
       annotations,
     });
 
-    Plotly.newPlot(scatterRef.current, traces, layout, {
+    Plotly.react(scatterRef.current, traces, layout, {
       responsive: true,
       displayModeBar: false,
     });

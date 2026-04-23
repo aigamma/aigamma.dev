@@ -284,7 +284,7 @@ export default function FixedStrikeIvMatrix({ contracts, spotPrice, expirations,
       },
     };
 
-    Plotly.newPlot(chartRef.current, [trace], layout, {
+    Plotly.react(chartRef.current, [trace], layout, {
       responsive: true,
       displayModeBar: false,
     });

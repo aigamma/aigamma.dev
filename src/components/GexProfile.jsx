@@ -235,7 +235,7 @@ export default function GexProfile({ contracts, spotPrice, levels, prevContracts
       plot_bgcolor: 'rgba(0,0,0,0)',
     };
 
-    Plotly.newPlot(chartRef.current, traces, layout, {
+    Plotly.react(chartRef.current, traces, layout, {
       responsive: true,
       displayModeBar: false,
     });
