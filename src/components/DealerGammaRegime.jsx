@@ -24,20 +24,20 @@ function msToIso(ms) {
 // SPX price as a thin connecting line with regime-colored dots overlaid.
 // Green dots = positive gamma (dealers dampen moves, spot >= vol flip).
 // Red dots = negative gamma (dealers amplify moves, spot < vol flip).
-// Brush zoom via rangeslider defaults to the last 6 months with the full
-// historical range available for expansion. Marker size and the y-axis
-// range are recomputed on every rangeslider drag — the dots grow as the
-// user zooms in, and the SPX y-axis tightens to exactly the visible
-// window's min/max so intraday detail is not flattened by distant
-// out-of-view highs or lows. Dots are fully opaque so that overlapping
-// markers in the zoomed-out view render as crisp shapes rather than
-// blending into a soft wash.
+// Brush zoom via rangeslider defaults to the last ~90 calendar days with
+// the full historical range available for expansion. Marker size and the
+// y-axis range are recomputed on every rangeslider drag — the dots grow
+// as the user zooms in, and the SPX y-axis tightens to exactly the
+// visible window's min/max so intraday detail is not flattened by
+// distant out-of-view highs or lows. Dots are fully opaque so that
+// overlapping markers in the zoomed-out view render as crisp shapes
+// rather than blending into a soft wash.
 
 const LINE_COLOR = 'rgba(138, 143, 156, 0.35)';
 
-function addMonthsIso(iso, months) {
+function addDaysIso(iso, days) {
   const d = new Date(`${iso}T00:00:00Z`);
-  d.setUTCMonth(d.getUTCMonth() + months);
+  d.setUTCDate(d.getUTCDate() + days);
   return d.toISOString().slice(0, 10);
 }
 
@@ -76,8 +76,8 @@ function computeYRange(allDates, allCloses, xStart, xEnd) {
 }
 
 // Scale marker diameter so dots fill roughly sqrt(pixels-per-point) of
-// their x-axis slot. At the default 6-month view (~125 trading days on a
-// ~900px-wide card) this gives ~11px dots; zooming to 1 month pushes them
+// their x-axis slot. At the default ~90-day view (~62 trading days on a
+// ~900px-wide card) this gives ~16px dots; zooming to 1 month pushes them
 // to ~27px and saturates at the 30px ceiling, which is about the point
 // where overlapping spheres start to blend meaningfully under the opacity
 // curve below. The floor at 7px keeps dots visible even at full-history
@@ -121,8 +121,8 @@ export default function DealerGammaRegime() {
   const lastDate = allDates[allDates.length - 1];
   const defaultRange = useMemo(() => {
     if (!firstDate || !lastDate) return null;
-    const sixMonthsBack = addMonthsIso(lastDate, -6);
-    return [sixMonthsBack >= firstDate ? sixMonthsBack : firstDate, lastDate];
+    const ninetyDaysBack = addDaysIso(lastDate, -90);
+    return [ninetyDaysBack >= firstDate ? ninetyDaysBack : firstDate, lastDate];
   }, [firstDate, lastDate]);
 
   const activeRange = timeRange || defaultRange;
