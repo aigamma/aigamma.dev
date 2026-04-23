@@ -29,12 +29,7 @@ import {
 // Regime is determined by spot's side of the volatility flip — the price at
 // which the dealer gamma profile crosses zero. When spot is above the flip,
 // γ(spot) is positive (dealers long gamma, dampen moves); when spot is below
-// the flip, γ(spot) is negative (dealers short gamma, amplify moves). This
-// matches the historical classification in netlify/functions/gex-history.mjs.
-// The scalar `net_gamma_notional` (total dollar gamma summed across the book)
-// is a different aggregate and does not flip sign at the vol flip, so using it
-// here produced incorrect labels whenever the book's integrated sign diverged
-// from the zero-crossing sign at spot.
+// the flip, γ(spot) is negative (dealers short gamma, amplify moves).
 function classifyGammaRegime(levels, spotPrice) {
   if (!levels || spotPrice == null) return null;
   const volFlip = levels.volatility_flip;

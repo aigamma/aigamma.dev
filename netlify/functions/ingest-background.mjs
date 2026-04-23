@@ -394,14 +394,12 @@ function computeGex(pages, targets, startedAt, partial, partialReason = null) {
   let callWallStrike = null, callWallNet = -Infinity;
   let putWallStrike = null, putWallNet = Infinity;
   let absGammaStrike = null, absGammaMax = 0;
-  let netGammaNotional = 0;
   const netGexArray = [];
 
   for (const K of strikes) {
     const cg = gexByStrike[K].callGex;
     const pg = gexByStrike[K].putGex;
     const netGex = cg - pg;
-    netGammaNotional += netGex;
     netGexArray.push({ strike: K, netGex });
     if (K >= wallMinStrike && K <= wallMaxStrike) {
       if (netGex > callWallNet) { callWallNet = netGex; callWallStrike = K; }
@@ -541,7 +539,6 @@ function computeGex(pages, targets, startedAt, partial, partialReason = null) {
   };
 
   const computedLevels = {
-    net_gamma_notional: round(netGammaNotional, 2),
     call_wall_strike: callWallStrike,
     put_wall_strike: putWallStrike,
     abs_gamma_strike: absGammaStrike,

@@ -20,7 +20,6 @@ Project ID: `tbxhvpoyyyhbvoyefggu`. All tables have RLS enabled. Netlify functio
 
 **computed_levels** — Aggregate metrics per run. PK: `id`. FK: `run_id` → ingest_runs (unique).
 - `call_wall_strike`, `put_wall_strike`, `abs_gamma_strike`, `volatility_flip` (numeric)
-- `net_gamma_notional` (numeric)
 - `atm_call_gex`, `atm_put_gex` (numeric), `atm_contract_count` (int) — ATM-bucket (|δ|∈[0.40, 0.60])
 - `put_call_ratio_oi`, `put_call_ratio_volume` (numeric)
 - `total_call_oi`, `total_put_oi`, `total_call_volume`, `total_put_volume` (bigint)
