@@ -51,44 +51,39 @@ export default async function handler(request) {
   };
 
   try {
-    // In prev-day mode, first resolve the actual trading_date we want: the
-    // most recent distinct trading_date strictly before the latest intraday
-    // run's trading_date. One cheap single-column query that returns at most
-    // a handful of rows.
+    // In prev-day mode, resolve the prior trading_date in one Supabase RTT
+    // by fetching the 20 most recent trading_dates (with duplicates because
+    // each trading day typically has ~80 intraday runs at the 5-minute
+    // cadence) and picking the second distinct date client-side. The prior
+    // implementation used two serialized queries — first a limit=1 to get
+    // the latest trading_date, then a limit=1 with trading_date=lt.{that}
+    // to get the prev — which cost two round-trips (~20-80 ms total
+    // depending on Supabase latency). The combined query retrieves at most
+    // ~20 rows of a single date column (~300 bytes raw) so the larger
+    // result set is essentially free compared to the saved round-trip.
     if (wantPrevDay) {
-      const latestParams = new URLSearchParams({
+      const prevResolveParams = new URLSearchParams({
         underlying: `eq.${underlying}`,
         snapshot_type: `eq.${snapshotType}`,
         order: 'trading_date.desc',
-        limit: '1',
+        limit: '20',
         select: 'trading_date',
       });
-      const latestRes = await fetchWithTimeout(
-        `${supabaseUrl}/rest/v1/ingest_runs?${latestParams}`,
+      const prevResolveRes = await fetchWithTimeout(
+        `${supabaseUrl}/rest/v1/ingest_runs?${prevResolveParams}`,
         { headers },
-        'latest_trading_date'
+        'prev_trading_date_resolve'
       );
-      if (!latestRes.ok) throw new Error(`latest_trading_date query failed: ${latestRes.status}`);
-      const latestRows = await latestRes.json();
-      const latestDate = Array.isArray(latestRows) && latestRows[0]?.trading_date;
-      if (latestDate) {
-        const prevParams = new URLSearchParams({
-          underlying: `eq.${underlying}`,
-          snapshot_type: `eq.${snapshotType}`,
-          trading_date: `lt.${latestDate}`,
-          order: 'trading_date.desc',
-          limit: '1',
-          select: 'trading_date',
-        });
-        const prevRes = await fetchWithTimeout(
-          `${supabaseUrl}/rest/v1/ingest_runs?${prevParams}`,
-          { headers },
-          'prev_trading_date'
-        );
-        if (prevRes.ok) {
-          const prevRows = await prevRes.json();
-          if (Array.isArray(prevRows) && prevRows[0]?.trading_date) {
-            tradingDate = prevRows[0].trading_date;
+      if (!prevResolveRes.ok) {
+        throw new Error(`prev_trading_date_resolve query failed: ${prevResolveRes.status}`);
+      }
+      const prevResolveRows = await prevResolveRes.json();
+      if (Array.isArray(prevResolveRows) && prevResolveRows.length > 0) {
+        const latestDate = prevResolveRows[0]?.trading_date;
+        for (const row of prevResolveRows) {
+          if (row?.trading_date && row.trading_date < latestDate) {
+            tradingDate = row.trading_date;
+            break;
           }
         }
       }
