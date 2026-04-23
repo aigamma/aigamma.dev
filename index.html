@@ -7,13 +7,15 @@
     <link id="favicon-32" rel="icon" type="image/png" sizes="32x32" href="/favicons/positive/icon32.png?v=2" />
     <link id="favicon-48" rel="icon" type="image/png" sizes="48x48" href="/favicons/positive/icon32.png?v=2" />
     <link id="favicon-128" rel="icon" type="image/png" sizes="128x128" href="/favicons/positive/icon32.png?v=2" />
-    <!-- Start the cdn.plot.ly handshake during HTML parse and kick off the
-         Plotly download in parallel with the React bundle. usePlotly.js
-         appends a <script> with this exact URL (no crossorigin attribute =
-         no-cors mode) so the preload hit is reused rather than duplicated.
-         Keep the URL in sync with src/hooks/usePlotly.js. -->
-    <link rel="preconnect" href="https://cdn.plot.ly" />
-    <link rel="preload" as="script" href="https://cdn.plot.ly/plotly-cartesian-2.35.2.min.js" />
+    <!-- Self-hosted plotly-cartesian-2.35.2.min.js. Same origin means no
+         extra DNS/TLS handshake (vs the old cdn.plot.ly fetch), the Netlify
+         immutable Cache-Control applies via netlify.toml's /vendor/* rule,
+         and the download multiplexes over the same HTTP/2 connection as
+         the main React bundle. usePlotly.js appends a <script> with this
+         exact URL (no crossorigin attribute = no-cors mode) so the preload
+         hit is reused instead of firing a second request. Keep the URL in
+         sync with src/hooks/usePlotly.js. -->
+    <link rel="preload" as="script" href="/vendor/plotly-cartesian-2.35.2.min.js" />
     <title>AI Gamma — SPX Gamma Exposure & Volatility Dashboard</title>
     <script type="application/ld+json">
     {

@@ -73,6 +73,18 @@
   [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"
 
+# /vendor/* hosts third-party libraries that are version-pinned in their
+# filenames (e.g., plotly-cartesian-2.35.2.min.js — the 2.35.2 version
+# string acts as the cache key). Upgrading Plotly means shipping a new
+# file with a different version in the name and updating the HTML preload
+# + usePlotly.js src references; old cached copies are orphaned but
+# harmless. 1-year immutable is safe because the URL itself encodes the
+# version.
+[[headers]]
+  for = "/vendor/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
 # Logo is not hash-named and not cache-busted, so it gets a moderate TTL
 # that balances repeat-visit speed against propagation of a future logo
 # update. A week (604800s) means most recurring readers avoid the re-

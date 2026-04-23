@@ -26,12 +26,23 @@ function loadPlotly() {
       return;
     }
     const script = document.createElement('script');
-    // Cartesian bundle (scatter/bar/heatmap/histogram/contour/box/pie) covers
-    // every trace type on the site and ships ~447 KB gzipped vs ~1.33 MB for
-    // the full plotly build — a ~890 KB first-visit saving. Keep the URL in
-    // sync with the <link rel="preload"> tag in index.html so the browser
-    // reuses the preloaded response instead of firing a second request.
-    script.src = 'https://cdn.plot.ly/plotly-cartesian-2.35.2.min.js';
+    // Self-hosted copy of plotly-cartesian-2.35.2.min.js (the cartesian
+    // subset covers every trace type on the site — scatter/bar/heatmap/
+    // histogram/box/pie — and ships ~447 KB gzipped vs ~1.33 MB for the
+    // full plotly build, a ~890 KB first-visit saving). Hosting on the
+    // same origin as everything else means: (1) no separate DNS lookup
+    // or TLS handshake for cdn.plot.ly, so the first paint doesn't pay
+    // that ~50-150 ms handshake latency; (2) the Netlify immutable
+    // Cache-Control header from netlify.toml's `/vendor/*` rule applies,
+    // so repeat visitors serve from disk cache without any edge touch;
+    // (3) the HTTP/2 connection already open for /assets/* multiplexes
+    // the Plotly download with the React bundle chunks, removing head-
+    // of-line blocking entirely; (4) Chrome's 2020+ cache partitioning
+    // means the shared-CDN-cache benefit of cdn.plot.ly is negligible
+    // for most users anyway. File lives at public/vendor/ so Vite copies
+    // it into dist/vendor/ during build. Keep in sync with the HTML
+    // preload tag so the browser reuses the preload cache entry.
+    script.src = '/vendor/plotly-cartesian-2.35.2.min.js';
     script.setAttribute('data-plotly-cdn', 'true');
     script.onload = () => resolve({ plotly: window.Plotly, error: null });
     script.onerror = () => {
