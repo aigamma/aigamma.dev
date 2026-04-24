@@ -34,6 +34,10 @@ import parityPrompt from './prompts/parity.mjs';
 import alphaPrompt from './prompts/alpha.mjs';
 import betaPrompt from './prompts/beta.mjs';
 
+import { CORE_PERSONA } from './prompts/core_persona.mjs';
+import { BEHAVIORAL_CONSTRAINTS } from './prompts/behavior.mjs';
+import { SITE_NAVIGATION_CONTEXT } from './prompts/site_nav.mjs';
+
 // Per-page system prompt registry. Keyed by the `context` field the client
 // sends in the POST body. The keys are short slugs that match the URL path
 // segment of the page the chat is mounted on (main = landing page at /,
@@ -228,10 +232,14 @@ export default async (req) => {
   // Resolve which per-page prompt to use. An unknown or missing context key
   // falls through to the main dashboard prompt so a stale or minimal client
   // that forgets to pass context still produces a coherent response.
-  const promptTemplate = SYSTEM_PROMPTS[context] || SYSTEM_PROMPTS.main;
-  const systemPrompt = promptTemplate.replace('MODEL_PLACEHOLDER', config.displayName);
-
-  const initialMessages = [
+    const rawTemplate = SYSTEM_PROMPTS[context] || SYSTEM_PROMPTS.main;
+    const promptTemplate = [
+      CORE_PERSONA,
+      SITE_NAVIGATION_CONTEXT,
+      rawTemplate,
+      BEHAVIORAL_CONSTRAINTS
+    ].join('\n\n');
+    const systemPrompt = promptTemplate.replace(/MODEL_PLACEHOLDER/g, config.displayName);
     ...(Array.isArray(history) ? history : []),
     { role: 'user', content: message.trim() }
   ];
