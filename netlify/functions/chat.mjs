@@ -232,14 +232,16 @@ export default async (req) => {
   // Resolve which per-page prompt to use. An unknown or missing context key
   // falls through to the main dashboard prompt so a stale or minimal client
   // that forgets to pass context still produces a coherent response.
-    const rawTemplate = SYSTEM_PROMPTS[context] || SYSTEM_PROMPTS.main;
-    const promptTemplate = [
-      CORE_PERSONA,
-      SITE_NAVIGATION_CONTEXT,
-      rawTemplate,
-      BEHAVIORAL_CONSTRAINTS
-    ].join('\n\n');
-    const systemPrompt = promptTemplate.replace(/MODEL_PLACEHOLDER/g, config.displayName);
+  const rawTemplate = SYSTEM_PROMPTS[context] || SYSTEM_PROMPTS.main;
+  const promptTemplate = [
+    CORE_PERSONA,
+    SITE_NAVIGATION_CONTEXT,
+    rawTemplate,
+    BEHAVIORAL_CONSTRAINTS
+  ].join('\n\n');
+  const systemPrompt = promptTemplate.replace(/MODEL_PLACEHOLDER/g, config.displayName);
+
+  const initialMessages = [
     ...(Array.isArray(history) ? history : []),
     { role: 'user', content: message.trim() }
   ];
