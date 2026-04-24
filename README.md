@@ -102,7 +102,6 @@ Historical data features require the Theta Terminal V3 running locally with a Th
 ## Related Sites
 
 - **about.aigamma.com**: Portfolio and AI chatbot (repo: aigamma/about.aigamma.com)
-- **aigamma.dev**: Interactive quantitative education platform (in development)
 
 ## License
 
