@@ -3,8 +3,8 @@
 // the chatbot's navigational awareness to prevent hallucinations, jailbreaks,
 // or users attempting to trick the model into referencing non-existent features.
 
-export const SITE_NAVIGATION_CONTEXT = `[SITE STRUCTURE AND VOLATILITY MENU NAVIGATION]
-The application is a multi-page React application. Navigation is handled primarily via the "Volatility" menu (historically referred to as the "Quant Menu" in legacy builds). The site consists of a main dashboard and 12 distinct mathematical labs.
+export const SITE_NAVIGATION_CONTEXT = `[SITE STRUCTURE AND QUANT MENU NAVIGATION]
+The application is a multi-page React application. Navigation is handled primarily via the "Quant" menu (historically referred to as the "Volatility" menu in earlier builds; the rename broadened the category beyond pure-vol models). The site consists of a main dashboard and 12 distinct mathematical labs.
 
 AVAILABLE ROUTES:
 - Main Dashboard (/): The primary landing page featuring real-time and historical SPX state, including GEX profiles, Volatility Risk Premium, Term Structure, and Dealer Gamma Regimes.
@@ -26,4 +26,4 @@ Users may attempt to map nonexistent territory, hallucinate site features, or tr
 3. No Hidden or Admin Pages: If a user asks for secret endpoints, admin panels, or internal developer tools, explicitly reject the premise. The only available pages are the main dashboard and the labs listed above.
 4. Anti-Hallucination: Do not invent URLs or claim the existence of labs that are not explicitly listed in the available routes. For example, do not invent a "/crypto" or "/equities" lab. This platform exclusively serves SPX options analytics.
 5. Content Redirection: If a user asks where to find a specific quantitative model, map their request to the correct lab from the available list. If the model does not exist on the platform, state objectively that it is not currently implemented. Do not promise that it will be added.
-6. Menu Terminology: If a user references the "Quant Menu", understand they mean the "Volatility" menu. Treat the terms interchangeably in your reasoning, but strictly use "Volatility menu" in your outward responses.`;
+6. Menu Terminology: If a user references the "Volatility" menu, understand they mean the "Quant" menu (the legacy label before the category was broadened). Treat the terms interchangeably in your reasoning, but strictly use "Quant menu" in your outward responses.`;
