@@ -210,13 +210,21 @@ export default async function handler(request) {
 
     // Bucket rows by symbol → date-sorted ascending close array. The
     // computations downstream need ascending order so SMA / stdev /
-    // diff windows reference past data correctly.
+    // diff windows reference past data correctly. Each symbol's series
+    // is then run through adjustForSplits to repair the 2:1 splits the
+    // SPDR sector family did on 2025-12-05 (XLB, XLE, XLK, XLU, XLY all
+    // halved on the same day; the pre-split closes in daily_eod are
+    // raw / unadjusted, so without this pass the 63-day EMA mixes
+    // pre-split values around 38 with post-split values around 16 and
+    // every split-affected component lands far off where StockCharts'
+    // adjusted-close baseline at C:\i\ shows it).
     const bySymbol = {};
     for (const r of rows) {
       (bySymbol[r.symbol] ||= []).push({ date: r.trading_date, close: Number(r.close) });
     }
     for (const sym of Object.keys(bySymbol)) {
       bySymbol[sym].sort((a, b) => a.date.localeCompare(b.date));
+      bySymbol[sym] = adjustForSplits(bySymbol[sym]);
     }
 
     const rawBenchSeries = bySymbol[benchmark];
@@ -350,6 +358,41 @@ function computeTail(series, benchByDate, benchDates, tail, stepConfig) {
   }
 
   return points.slice(-tail);
+}
+
+// Walks an ascending [{date, close}] series chronologically; whenever a
+// day-over-day jump bigger than ±35% appears (2:1 splits round-trip at
+// ~0.50, reverse 1:2 splits at ~2.00, common 3:1 splits at ~0.33), it
+// treats the jump as a stock split and multiplies every prior close by
+// the observed jump ratio so the pre-split portion of the series lands
+// on the post-split price scale. The threshold is wide enough that no
+// single-day move on a sector ETF in modern history would trigger it
+// (the largest 1-day moves on SPDR sector funds during the 2020 COVID
+// crash were ~−12%) and tight enough to catch all common split sizes.
+// Idempotent: running it on an already-adjusted series does nothing
+// because no split-sized jumps remain. Compounds correctly across
+// multiple historical splits — each split-day adjusts everything before
+// it, so a later split adjusts the earlier-adjusted values once more,
+// stacking the factors. The fix lives at the API layer rather than as
+// a one-time SQL UPDATE on daily_eod so the raw ThetaData EOD remains
+// the authoritative table on disk; if a future ETF split is detected
+// at fetch time, the rotation chart picks it up automatically without
+// a backfill rerun.
+function adjustForSplits(series) {
+  if (!series || series.length < 2) return series;
+  const adjusted = series.map((p) => ({ date: p.date, close: p.close }));
+  for (let i = 1; i < adjusted.length; i++) {
+    const prev = adjusted[i - 1].close;
+    const curr = adjusted[i].close;
+    if (!Number.isFinite(prev) || prev <= 0 || !Number.isFinite(curr) || curr <= 0) continue;
+    const r = curr / prev;
+    if (r < 0.65 || r > 1.55) {
+      for (let j = 0; j < i; j++) {
+        adjusted[j].close *= r;
+      }
+    }
+  }
+  return adjusted;
 }
 
 // Exponential moving average. Seeded with the SMA of the first `window`
