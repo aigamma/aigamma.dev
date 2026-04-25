@@ -383,7 +383,7 @@ export default function GammaIndexScatter() {
     const layout = plotly2DChartLayout({
       margin: mobile ? { t: 45, r: 15, b: 40, l: 50 } : { t: 80, r: 30, b: 45, l: 70 },
       title: {
-        ...plotlyTitle('Gamma Index vs. 10d RV'),
+        ...plotlyTitle('Gamma Index vs. RV'),
         y: 0.97,
         yref: 'container',
         yanchor: 'top',

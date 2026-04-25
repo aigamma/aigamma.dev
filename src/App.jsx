@@ -132,11 +132,11 @@ function prefetchBelowFoldChunks() {
     ? (cb) => window.requestIdleCallback(cb, { timeout: 1500 })
     : (cb) => setTimeout(cb, 200);
   idle(() => {
-    import('./components/DealerGammaRegime');
-    import('./components/SpxVolFlip');
-    import('./components/GammaIndexOscillator');
     import('./components/GammaInflectionChart');
     import('./components/GexProfile');
+    import('./components/SpxVolFlip');
+    import('./components/DealerGammaRegime');
+    import('./components/GammaIndexOscillator');
     import('./components/GammaIndexScatter');
     import('./components/Chat');
   });
@@ -498,11 +498,11 @@ export default function App() {
       {loading && (
         <div aria-busy="true" aria-label="Loading options data">
           <div className="skeleton-card" style={{ height: '260px' }} />
+          <div className="skeleton-card" style={{ height: '700px' }} />
+          <div className="skeleton-card" style={{ height: '700px' }} />
+          <div className="skeleton-card" style={{ height: '600px' }} />
           <div className="skeleton-card" style={{ height: '604px' }} />
           <div className="skeleton-card" style={{ height: '600px' }} />
-          <div className="skeleton-card" style={{ height: '600px' }} />
-          <div className="skeleton-card" style={{ height: '700px' }} />
-          <div className="skeleton-card" style={{ height: '700px' }} />
         </div>
       )}
 
@@ -599,12 +599,6 @@ export default function App() {
               focused on dealer-positioning mechanics — gamma profile, vol
               flip, GEX walls, and the three regime/oscillator/scatter views
               of the gamma index. */}
-          <ErrorBoundary><LazyMount height="604px"><DealerGammaRegime /></LazyMount></ErrorBoundary>
-
-          <ErrorBoundary><LazyMount height="600px"><SpxVolFlip /></LazyMount></ErrorBoundary>
-
-          <ErrorBoundary><LazyMount height="600px"><GammaIndexOscillator /></LazyMount></ErrorBoundary>
-
           <ErrorBoundary>
             <LazyMount height="700px">
               <GammaInflectionChart
@@ -625,6 +619,12 @@ export default function App() {
               />
             </LazyMount>
           </ErrorBoundary>
+
+          <ErrorBoundary><LazyMount height="600px"><SpxVolFlip /></LazyMount></ErrorBoundary>
+
+          <ErrorBoundary><LazyMount height="604px"><DealerGammaRegime /></LazyMount></ErrorBoundary>
+
+          <ErrorBoundary><LazyMount height="600px"><GammaIndexOscillator /></LazyMount></ErrorBoundary>
 
           <ErrorBoundary><LazyMount height="640px"><GammaIndexScatter /></LazyMount></ErrorBoundary>
         </>
