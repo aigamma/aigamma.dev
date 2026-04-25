@@ -493,33 +493,6 @@ export default function App() {
         </div>
 
         <Menu />
-
-        {freshness && (
-          <div
-            className="site-timestamp"
-            style={{
-              fontFamily: 'Courier New, monospace',
-              fontSize: '0.8rem',
-              color: 'var(--text-secondary)',
-              alignItems: 'center',
-              gap: '0.5rem',
-            }}
-          >
-            <span>{marketClosed ? 'Final:' : 'Last updated:'} {freshness}</span>
-            {isSynthetic && (
-              <span
-                style={{
-                  padding: '0.1rem 0.4rem',
-                  border: '1px solid var(--accent-amber)',
-                  color: 'var(--accent-amber)',
-                  borderRadius: '3px',
-                }}
-              >
-                SYNTHETIC
-              </span>
-            )}
-          </div>
-        )}
       </header>
 
       {loading && (
@@ -561,6 +534,35 @@ export default function App() {
 
       {data && (
         <>
+          {freshness && (
+            <div
+              className="site-timestamp"
+              style={{
+                fontFamily: 'Courier New, monospace',
+                fontSize: '0.8rem',
+                color: 'var(--text-secondary)',
+                justifyContent: 'center',
+                alignItems: 'center',
+                gap: '0.5rem',
+                marginBottom: '0.5rem',
+              }}
+            >
+              <span>{marketClosed ? 'Final:' : 'Last updated:'} {freshness}</span>
+              {isSynthetic && (
+                <span
+                  style={{
+                    padding: '0.1rem 0.4rem',
+                    border: '1px solid var(--accent-amber)',
+                    color: 'var(--accent-amber)',
+                    borderRadius: '3px',
+                  }}
+                >
+                  SYNTHETIC
+                </span>
+              )}
+            </div>
+          )}
+
           <ErrorBoundary>
             <LevelsPanel
               levels={correctedLevels}

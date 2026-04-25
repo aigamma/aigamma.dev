@@ -205,31 +205,14 @@ body {
   line-height: 1.4;
 }
 
-/* Base .site-timestamp layout is defined here rather than inline in
-   App.jsx because the mobile media query below needs to override
-   display to none, and an inline style wins against a class-scoped
-   media query on specificity (1,0,0,0 vs 0,2,0). Keeping display in
-   the class lets the @media rule take effect. */
+/* The freshness line sits on its own row, centered horizontally above
+   the LevelsPanel card rather than in the upper-right of the header,
+   so the right edge of the header is free for new top-nav buttons.
+   display: flex lets the inline gap between the "Last updated: …"
+   span and the optional SYNTHETIC pill take effect; alignment and
+   centering are set inline alongside the typographic styles in App.jsx. */
 .site-timestamp {
   display: flex;
-}
-
-/* Mobile dashboard header reorganization. The four-token desktop
-   layout (logo+regime / Menu / About / timestamp) was still
-   colliding at phone widths even after swapping the text regime pill
-   for the 3.2rem icon and shortening the dropdown trigger to a single
-   "MENU" word. Below 768px (the main dashboard mobile breakpoint) we
-   drop the timestamp entirely because freshness is carried by the live
-   metric cards themselves, and we swap the visual order of About and
-   Menu via flex order so the row reads logo+icon / About / Menu with
-   justify-content: space-between distributing the three tokens across
-   the viewport — About lands in the centre and Menu anchors to the
-   right edge, which leaves the About link's text at the natural
-   reading position between the brand mark and the dropdown trigger. */
-@media (max-width: 768px) {
-  .site-header .site-timestamp {
-    display: none;
-  }
 }
 
 .app-shell {
