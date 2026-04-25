@@ -4,8 +4,22 @@ import {
   plotly2DChartLayout,
   plotlyAxis,
   PLOTLY_COLORS,
-  PLOTLY_FONT_FAMILY,
 } from '../lib/plotlyTheme';
+
+// Local font override for this chart only. The rest of the platform uses
+// Courier New monospace per the brand guideline in CLAUDE.md, but the
+// Sector Performance bar trio renders enough small-size text (12-13px
+// y-axis sector labels, 12px bar-tip percent labels, 26px panel titles)
+// that Plotly's SVG-rendered Courier New comes out visibly thinner and
+// less legible than the surrounding body copy — which uses the system
+// sans-serif stack defined in src/styles/theme.css. Aligning the chart
+// to the same stack makes the chart and the explanatory text underneath
+// it match visually and reads cleanly at every size on the panel. The
+// stack is in fallback order: -apple-system on macOS Safari/Chrome,
+// BlinkMacSystemFont on macOS Chrome, Segoe UI on Windows, then a
+// generic sans-serif catch-all for anything else.
+const CHART_FONT_FAMILY =
+  '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
 
 // Sector-performance horizontal-bar trio. Renders the /api/sector-performance
 // payload as three horizontal Plotly bar charts stacked vertically (1 day,
@@ -90,7 +104,7 @@ function buildPanelTraces(rows) {
     textposition: 'outside',
     cliponaxis: false,
     textfont: {
-      family: PLOTLY_FONT_FAMILY,
+      family: CHART_FONT_FAMILY,
       color: PLOTLY_COLORS.titleText,
       size: 12,
     },
@@ -122,11 +136,11 @@ function buildPanelLayout(rows, panelTitle) {
   return plotly2DChartLayout({
     title: {
       text: panelTitle,
-      // 26px non-bold. The thin Courier-New stroke at this size reads as
-      // a clear header without the chunkier silhouette the bold variant
-      // produced — bold made the title feel heavier than the eleven
-      // sector labels under it, which fought for visual primacy.
-      font: { family: PLOTLY_FONT_FAMILY, color: PLOTLY_COLORS.titleText, size: 26 },
+      // 26px non-bold sans-serif. Same point size and weight regime as
+      // the .what-this-card paragraphs underneath the chart, so the
+      // panel headers and the explanatory copy share a typographic
+      // family — eye doesn't have to switch between two type systems.
+      font: { family: CHART_FONT_FAMILY, color: PLOTLY_COLORS.titleText, size: 26 },
       x: 0.5,
       xanchor: 'center',
       y: 0.99,
@@ -153,7 +167,7 @@ function buildPanelLayout(rows, panelTitle) {
       ticklen: 12,
       tickcolor: 'rgba(0,0,0,0)',
       tickfont: {
-        family: PLOTLY_FONT_FAMILY,
+        family: CHART_FONT_FAMILY,
         color: PLOTLY_COLORS.titleText,
         size: 12,
       },
