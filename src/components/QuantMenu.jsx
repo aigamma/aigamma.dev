@@ -2,30 +2,18 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 // Shared quant-menu dropdown. Rendered in the main dashboard header and
 // in every lab header so the nine bookmark-only labs are reachable from
-// any page without touching the URL bar. Descriptors were cross-checked
-// against each lab's App.jsx slot list (see commit rationale).
-//
-// Ordering is a story: start with the discrete pricers and smile fits
-// that convert an option chain into tradeable prices (trees + SVI),
-// add continuous vol dynamics (local vol → stochastic vol → rough
-// vol), layer in discontinuous dynamics (jumps), step across to
-// historical real-world vol (GARCH, regimes), and close with the
-// cross-model risk view (greeks, Vanna-Volga). Parity is the tail
-// entry — the no-arbitrage diagnostic that extracts r, q, and F from
-// the chain itself with no pricing model on top. It lives at the
-// bottom because it is a measurement surface rather than a trading
-// strategy (box spreads are not the desk's focus); anyone who needs
-// to audit the carry implied by the current chain finds it there.
+// any page without touching the URL bar. Items are alphabetized by path
+// so users get a stable scan order across every surface that mounts it.
 const LAB_ITEMS = [
   { path: '/discrete/',   desc: 'Binomial and trinomial trees, SVI and SSVI surfaces' },
-  { path: '/local/',      desc: 'Dupire extraction and local vol pricing' },
-  { path: '/stochastic/', desc: 'Heston, SABR, LSV, rough Bergomi' },
-  { path: '/rough/',      desc: 'Rough Bergomi and rough vol exploration' },
-  { path: '/jump/',       desc: 'Merton, Kou, Bates, variance gamma' },
   { path: '/garch/',      desc: 'GARCH family and ensemble forecasts' },
+  { path: '/jump/',       desc: 'Merton, Kou, Bates, variance gamma' },
+  { path: '/local/',      desc: 'Dupire extraction and local vol pricing' },
+  { path: '/parity/',     desc: 'Put-call parity, box-spread rate, implied forward' },
   { path: '/regime/',     desc: 'Mixture, Markov, Wasserstein regimes' },
   { path: '/risk/',       desc: 'Cross-model Greeks, Vanna-Volga, second-order' },
-  { path: '/parity/',     desc: 'Put-call parity, box-spread rate, implied forward' },
+  { path: '/rough/',      desc: 'Rough Bergomi and rough vol exploration' },
+  { path: '/stochastic/', desc: 'Heston, SABR, LSV, rough Bergomi' },
 ];
 
 export default function QuantMenu() {
