@@ -2,21 +2,24 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 // Shared menu dropdown. Rendered in the main dashboard header and in
 // every lab header so the bookmark-only labs are reachable from any
-// page without touching the URL bar. Items are alphabetized by path so
-// users get a stable scan order across every surface that mounts it.
-const LAB_ITEMS = [
-  { path: '/discrete/',    desc: 'Binomial and trinomial trees, SVI and SSVI surfaces' },
-  { path: '/garch/',       desc: 'GARCH family and ensemble forecasts' },
-  { path: '/jump/',        desc: 'Merton, Kou, Bates, variance gamma' },
-  { path: '/local/',       desc: 'Dupire extraction and local vol pricing' },
-  { path: '/parity/',      desc: 'Put-call parity, box-spread rate, implied forward' },
-  { path: '/regime/',      desc: 'Mixture, Markov, Wasserstein regimes' },
-  { path: '/risk/',        desc: 'Cross-model Greeks, Vanna-Volga, second-order' },
-  { path: '/rotations/',   desc: 'Relative sector rotation chart' },
-  { path: '/rough/',       desc: 'Rough Bergomi and rough vol exploration' },
-  { path: '/seasonality/', desc: 'SPX 30-minute intraday seasonality grid' },
-  { path: '/stochastic/',  desc: 'Heston, SABR, LSV, rough Bergomi' },
-  { path: '/tactical/',    desc: 'VRP, term structure, smile, RND, fixed-strike IV' },
+// page without touching the URL bar. Lab items are alphabetized by
+// path; the "About This Page" entry is pinned to the bottom as the
+// off-site exit (about.aigamma.com is a separate subdomain, so its
+// label drops the /slash-brackets/ format used for on-site labs).
+const MENU_ITEMS = [
+  { href: '/discrete/',                 label: '/discrete/',      desc: 'Binomial and trinomial trees, SVI and SSVI surfaces' },
+  { href: '/garch/',                    label: '/garch/',         desc: 'GARCH family and ensemble forecasts' },
+  { href: '/jump/',                     label: '/jump/',          desc: 'Merton, Kou, Bates, variance gamma' },
+  { href: '/local/',                    label: '/local/',         desc: 'Dupire extraction and local vol pricing' },
+  { href: '/parity/',                   label: '/parity/',        desc: 'Put-call parity, box-spread rate, implied forward' },
+  { href: '/regime/',                   label: '/regime/',        desc: 'Mixture, Markov, Wasserstein regimes' },
+  { href: '/risk/',                     label: '/risk/',          desc: 'Cross-model Greeks, Vanna-Volga, second-order' },
+  { href: '/rotations/',                label: '/rotations/',     desc: 'Relative sector rotation chart' },
+  { href: '/rough/',                    label: '/rough/',         desc: 'Rough Bergomi and rough vol exploration' },
+  { href: '/seasonality/',              label: '/seasonality/',   desc: 'SPX 30-minute intraday seasonality grid' },
+  { href: '/stochastic/',               label: '/stochastic/',    desc: 'Heston, SABR, LSV, rough Bergomi' },
+  { href: '/tactical/',                 label: '/tactical/',      desc: 'VRP, term structure, smile, RND, fixed-strike IV' },
+  { href: 'https://about.aigamma.com/', label: 'About This Page', desc: 'Portfolio and AI chatbot' },
 ];
 
 export default function Menu() {
@@ -51,14 +54,14 @@ export default function Menu() {
       } else if (e.key === 'ArrowDown') {
         e.preventDefault();
         setActiveIndex((prev) => {
-          const next = prev < LAB_ITEMS.length - 1 ? prev + 1 : 0;
+          const next = prev < MENU_ITEMS.length - 1 ? prev + 1 : 0;
           requestAnimationFrame(() => itemRefs.current[next]?.focus());
           return next;
         });
       } else if (e.key === 'ArrowUp') {
         e.preventDefault();
         setActiveIndex((prev) => {
-          const next = prev > 0 ? prev - 1 : LAB_ITEMS.length - 1;
+          const next = prev > 0 ? prev - 1 : MENU_ITEMS.length - 1;
           requestAnimationFrame(() => itemRefs.current[next]?.focus());
           return next;
         });
@@ -68,7 +71,7 @@ export default function Menu() {
         requestAnimationFrame(() => itemRefs.current[0]?.focus());
       } else if (e.key === 'End') {
         e.preventDefault();
-        const last = LAB_ITEMS.length - 1;
+        const last = MENU_ITEMS.length - 1;
         setActiveIndex(last);
         requestAnimationFrame(() => itemRefs.current[last]?.focus());
       }
@@ -131,17 +134,17 @@ export default function Menu() {
           role="menu"
           aria-label="Lab navigation"
         >
-          {LAB_ITEMS.map((item, idx) => (
+          {MENU_ITEMS.map((item, idx) => (
             <a
-              key={item.path}
+              key={item.href}
               ref={(el) => { itemRefs.current[idx] = el; }}
               role="menuitem"
               tabIndex={activeIndex === idx ? 0 : -1}
-              href={item.path}
+              href={item.href}
               className="menu-item"
               onClick={() => close(false)}
             >
-              <span className="menu-path">{item.path}</span>
+              <span className="menu-path">{item.label}</span>
               <span className="menu-desc">{item.desc}</span>
             </a>
           ))}

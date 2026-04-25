@@ -480,15 +480,7 @@ export default function App() {
           )}
         </div>
 
-        {/* Menu and About are direct children of the header (rather
-            than grouped inside a .site-nav wrapper) so the header's
-            `justify-content: space-between` distributes four equal gaps
-            across four items, placing Menu's center exactly at the
-            midpoint between the status group's right edge and About's
-            left edge — Eric's requested "roughly center MENU in
-            between the gamma status and ABOUT". */}
         <Menu />
-        <a href="https://about.aigamma.com/" className="site-about-link">About</a>
 
         {freshness && (
           <div

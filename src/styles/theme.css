@@ -63,37 +63,6 @@ body {
   font-family: 'Courier New', monospace;
 }
 
-/* About button on the landing page header. A direct child of the <header>
-   flex container (not wrapped in a .site-nav group anymore) so the header's
-   `justify-content: space-between` can distribute four equal gaps across
-   four items — logo+status, Menu, About, timestamp — which places
-   Menu's center exactly at the midpoint between the status group's
-   right edge and About's left edge. Color is text-primary (white) rather
-   than accent-blue so it reads as the secondary off-site exit against the
-   purple Menu trigger's primary on-site nav. Border and hover use
-   currentColor so the 1px stroke tracks the text color and the hover tint
-   is a low-alpha white wash that works against the dark header. */
-.site-about-link {
-  font-family: 'Courier New', monospace;
-  font-size: 1.1rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  text-decoration: none;
-  padding: 0 1rem;
-  height: 3.2rem;
-  box-sizing: border-box;
-  display: inline-flex;
-  align-items: center;
-  border-radius: 3px;
-  border: 1px solid currentColor;
-  color: var(--text-primary);
-  transition: background-color 0.2s ease;
-}
-
-.site-about-link:hover {
-  background-color: rgba(255, 255, 255, 0.06);
-}
-
 /* Dashboard regime badge has two renderings: the full "STATUS: POSITIVE
    GAMMA" text pill reads unambiguously at desktop widths where the
    header has room to breathe, but it is the single largest horizontal
@@ -649,12 +618,6 @@ body {
   .levels-row {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 0.75rem;
-  }
-
-  .site-about-link {
-    font-size: 0.95rem;
-    height: 2.8rem;
-    padding: 0 0.75rem;
   }
 
   .menu-trigger {
