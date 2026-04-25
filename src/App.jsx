@@ -405,7 +405,7 @@ export default function App() {
   const marketClosed = isMarketClosed(new Date());
 
   // Dynamic favicon: sync the tab icon with the same regime classification
-  // that drives the on-page STATUS badge, so the tab chrome always agrees
+  // that drives the on-page regime badge, so the tab chrome always agrees
   // with the dashboard header. Keyed on the primitive state string so the
   // effect fires only on actual regime transitions, not on every data
   // refetch that returns a fresh object with the same tone.
@@ -447,11 +447,11 @@ export default function App() {
             <>
               <span
                 className="regime-badge-desktop"
-                title={regime.hint}
+                title={`${regime.label} — ${regime.hint}`}
                 style={{
                   fontFamily: 'Courier New, monospace',
                   fontSize: '1.25rem',
-                  padding: '0 1rem',
+                  padding: '0 0.85rem',
                   border: `1px solid ${REGIME_COLORS[regime.tone]}`,
                   color: REGIME_COLORS[regime.tone],
                   borderRadius: '3px',
@@ -461,15 +461,27 @@ export default function App() {
                   height: '3.2rem',
                   boxSizing: 'border-box',
                   alignItems: 'center',
+                  gap: '0.5rem',
                 }}
               >
-                STATUS: {regime.label}
+                <img
+                  src={FAVICON_PATHS[faviconStateFromRegime(regime)][32]}
+                  alt=""
+                  aria-hidden="true"
+                  style={{
+                    height: '2rem',
+                    width: '2rem',
+                    display: 'block',
+                    flexShrink: 0,
+                  }}
+                />
+                {regime.tone === 'amber' ? 'Near Flip' : 'Gamma'}
               </span>
               <img
                 className="regime-badge-mobile"
                 src={FAVICON_PATHS[faviconStateFromRegime(regime)][32]}
-                alt={`STATUS: ${regime.label}`}
-                title={`STATUS: ${regime.label} — ${regime.hint}`}
+                alt={regime.label}
+                title={`${regime.label} — ${regime.hint}`}
                 style={{
                   height: '3.2rem',
                   width: '3.2rem',
