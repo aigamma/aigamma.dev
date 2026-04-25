@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex,nofollow,noarchive" />
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <link rel="preload" as="script" href="/vendor/plotly-cartesian-2.35.2.min.js" />
+    <title>AI Gamma · Tactical · VRP, term, smile, density, fixed-strike</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script>
+      // Boot script mirroring index.html's pattern for the two readers this
+      // lab fires before the main bundle has parsed: /api/data (today's full
+      // chain feeds the smile, RND, fixed-strike matrix, and the term
+      // structure observed-curve trace) and /api/vrp-history (feeds the VRP
+      // card). Both are consumed via the __apiBoot.today / __apiBoot.vrpHistory
+      // hooks in useOptionsData and useVrpHistory respectively. Prev-day
+      // contracts for the FixedStrikeIvMatrix 1D-change overlay are fetched
+      // by a post-first-paint requestIdleCallback in App.jsx instead of being
+      // booted here, so the visible-immediately surfaces (smile, RND, term)
+      // are not slowed by the ~240 KB brotli prev-day chain transit.
+      (function () {
+        function boot(url) {
+          return fetch(url).then(function (r) {
+            if (!r.ok) return r.text().then(function (t) { throw new Error('API ' + r.status + ': ' + t); });
+            return r.json();
+          });
+        }
+        var pToday = boot('/api/data?underlying=SPX&snapshot_type=intraday&v=2');
+        var pVrp   = boot('/api/vrp-history');
+        pToday.catch(function () {});
+        pVrp.catch(function () {});
+        window.__apiBoot = {
+          today: pToday,
+          vrpHistory: pVrp,
+        };
+      })();
+    </script>
+    <script type="module" src="./main.jsx"></script>
+  </body>
+</html>

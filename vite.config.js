@@ -20,14 +20,11 @@ import react from '@vitejs/plugin-react'
 const LAZY_CHUNK_NAMES = new Set([
   'Chat',
   'DealerGammaRegime',
-  'FixedStrikeIvMatrix',
   'GammaIndexOscillator',
   'GammaIndexScatter',
   'GammaInflectionChart',
   'GexProfile',
-  'RiskNeutralDensity',
   'SpxVolFlip',
-  'VolatilitySmile',
 ]);
 function lazyChunkPreloadPlugin() {
   let dynamicChunks = [];
@@ -167,6 +164,7 @@ export default defineConfig({
         parity: fileURLToPath(new URL('./parity/index.html', import.meta.url)),
         rotations: fileURLToPath(new URL('./rotations/index.html', import.meta.url)),
         seasonality: fileURLToPath(new URL('./seasonality/index.html', import.meta.url)),
+        tactical: fileURLToPath(new URL('./tactical/index.html', import.meta.url)),
       },
     },
   },

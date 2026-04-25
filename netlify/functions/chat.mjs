@@ -31,6 +31,7 @@ import jumpPrompt from './prompts/jump.mjs';
 import riskPrompt from './prompts/risk.mjs';
 import discretePrompt from './prompts/discrete.mjs';
 import parityPrompt from './prompts/parity.mjs';
+import tacticalPrompt from './prompts/tactical.mjs';
 import alphaPrompt from './prompts/alpha.mjs';
 import betaPrompt from './prompts/beta.mjs';
 
@@ -43,11 +44,11 @@ import { SITE_NAVIGATION_CONTEXT } from './prompts/site_nav.mjs';
 // segment of the page the chat is mounted on (main = landing page at /,
 // garch = /garch/, regime = /regime/, rough = /rough/, stochastic =
 // /stochastic/, local = /local/, jump = /jump/, risk = /risk/, discrete =
-// /discrete/, parity = /parity/, alpha = /alpha/, beta = /beta/). Add a new
-// key here and a new peer file in ./prompts/ when a new lab page wants its
-// own chat voice. An unknown or missing key falls through to the main-
-// dashboard prompt so a stale client that forgets to pass context still
-// gets a coherent answer.
+// /discrete/, parity = /parity/, tactical = /tactical/, alpha = /alpha/,
+// beta = /beta/). Add a new key here and a new peer file in ./prompts/ when
+// a new lab page wants its own chat voice. An unknown or missing key falls
+// through to the main-dashboard prompt so a stale client that forgets to
+// pass context still gets a coherent answer.
 const SYSTEM_PROMPTS = {
   main: mainPrompt,
   garch: garchPrompt,
@@ -59,6 +60,7 @@ const SYSTEM_PROMPTS = {
   risk: riskPrompt,
   discrete: discretePrompt,
   parity: parityPrompt,
+  tactical: tacticalPrompt,
   alpha: alphaPrompt,
   beta: betaPrompt,
 };

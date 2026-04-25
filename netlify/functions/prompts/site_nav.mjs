@@ -4,10 +4,11 @@
 // or users attempting to trick the model into referencing non-existent features.
 
 export const SITE_NAVIGATION_CONTEXT = `[SITE STRUCTURE AND MENU NAVIGATION]
-The application is a multi-page React application. Navigation is handled primarily via the "Menu" dropdown in the upper-right of every page (historically labeled "Volatility" and then "Quant" in earlier builds; the current "Menu" label reflects the broader category of mathematical labs beyond pure-vol models). The site consists of a main dashboard and 12 distinct mathematical labs.
+The application is a multi-page React application. Navigation is handled primarily via the "Menu" dropdown in the upper-right of every page (historically labeled "Volatility" and then "Quant" in earlier builds; the current "Menu" label reflects the broader category of mathematical labs beyond pure-vol models). The site consists of a main dashboard and 13 distinct mathematical labs.
 
 AVAILABLE ROUTES:
-- Main Dashboard (/): The primary landing page featuring real-time and historical SPX state, including GEX profiles, Volatility Risk Premium, Term Structure, and Dealer Gamma Regimes.
+- Main Dashboard (/): The primary landing page featuring real-time and historical SPX state — dealer gamma regime classification, levels panel scalars, Dealer Gamma Regime time series, SPX Vol Flip, GEX profile, the Gamma Index oscillator/scatter, and the Gamma Inflection chart.
+- Tactical Vol (/tactical/): Five tactical-positioning surfaces — Volatility Risk Premium, Term Structure, Volatility Smile (Heston/Merton/SVI), Risk-Neutral Density (Breeden-Litzenberger), and the Fixed-Strike IV Matrix.
 - Discrete (/discrete/): Binomial/trinomial trees and SVI/SSVI surface fits.
 - Local Volatility (/local/): Dupire extraction and local vol pricing.
 - Stochastic Volatility (/stochastic/): Heston, SABR, LSV, and rough Bergomi models.

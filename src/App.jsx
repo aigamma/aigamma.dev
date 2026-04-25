@@ -2,8 +2,6 @@ import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
 import './styles/theme.css';
 import ErrorBoundary from './ErrorBoundary';
 import LevelsPanel from './components/LevelsPanel';
-import TermStructure from './components/TermStructure';
-import VolatilityRiskPremium from './components/VolatilityRiskPremium';
 import Menu from './components/Menu';
 import LazyMount from './components/LazyMount';
 // Below-the-fold charts are code-split via React.lazy so their source bytes
@@ -17,16 +15,15 @@ import LazyMount from './components/LazyMount';
 // mobile. The chunks stay in the browser's disk cache with the immutable
 // Cache-Control header set in netlify.toml, so repeat visits skip the
 // re-download entirely and the ~30-100 ms chunk-fetch only happens on cold
-// first-visit scroll. The three above-the-fold components (LevelsPanel,
-// VolatilityRiskPremium, TermStructure) and Menu / LazyMount stay as
-// static imports because they render before any scroll-based gating
-// triggers — splitting them would force a serial chunk-fetch between
-// React mount and first paint rather than saving any of it.
+// first-visit scroll. LevelsPanel and Menu / LazyMount stay as static
+// imports because they render before any scroll-based gating triggers —
+// splitting them would force a serial chunk-fetch between React mount
+// and first paint rather than saving any of it. The five tactical-vol
+// surfaces (VRP, Term Structure, Smile, RND, Fixed-Strike IV) moved off
+// this page entirely to /tactical/, so they are not imported here in
+// either the static or lazy-chunk lists.
 const GexProfile = lazy(() => import('./components/GexProfile'));
 const GammaInflectionChart = lazy(() => import('./components/GammaInflectionChart'));
-const VolatilitySmile = lazy(() => import('./components/VolatilitySmile'));
-const FixedStrikeIvMatrix = lazy(() => import('./components/FixedStrikeIvMatrix'));
-const RiskNeutralDensity = lazy(() => import('./components/RiskNeutralDensity'));
 const DealerGammaRegime = lazy(() => import('./components/DealerGammaRegime'));
 const SpxVolFlip = lazy(() => import('./components/SpxVolFlip'));
 const GammaIndexOscillator = lazy(() => import('./components/GammaIndexOscillator'));
@@ -34,7 +31,6 @@ const GammaIndexScatter = lazy(() => import('./components/GammaIndexScatter'));
 const Chat = lazy(() => import('./components/Chat'));
 import useOptionsData from './hooks/useOptionsData';
 import { useVrpHistory } from './hooks/useHistoricalData';
-import useSviFits from './hooks/useSviFits';
 import { computeGammaProfile, findFlipFromProfile } from './lib/gammaProfile';
 import {
   filterPickerExpirations,
@@ -136,15 +132,12 @@ function prefetchBelowFoldChunks() {
     ? (cb) => window.requestIdleCallback(cb, { timeout: 1500 })
     : (cb) => setTimeout(cb, 200);
   idle(() => {
-    import('./components/VolatilitySmile');
     import('./components/DealerGammaRegime');
     import('./components/SpxVolFlip');
     import('./components/GammaIndexOscillator');
     import('./components/GammaInflectionChart');
     import('./components/GexProfile');
     import('./components/GammaIndexScatter');
-    import('./components/RiskNeutralDensity');
-    import('./components/FixedStrikeIvMatrix');
     import('./components/Chat');
   });
 }
@@ -169,20 +162,21 @@ export default function App() {
     prevDay: true,
   });
 
-  // Prev-day contracts for below-fold diff charts (GexProfile's prev-day
-  // overlay + FixedStrikeIvMatrix's 1D-change mode) are fetched via a
+  // Prev-day contracts for GexProfile's prev-day overlay are fetched via a
   // post-first-paint idle callback rather than the boot script. The boot
   // script pre-fires the LITE prev-day response (no contractCols) so
   // above-the-fold LevelsPanel + overnight-alignment render immediately
   // without paying the ~240 KB brotli + ~100-200 ms Supabase snapshots-
-  // pagination time. The below-fold charts are LazyMount-gated behind a
-  // 400 px scroll margin, so by the time the reader scrolls within range
-  // of GexProfile this idle fetch has usually resolved and the prev-day
-  // diff lights up on first mount. On slow connections where the idle
-  // fetch is still in flight when scroll arrives, the diff stays null
-  // (chart still renders without overlay — GexProfile and
-  // FixedStrikeIvMatrix both handle prevContracts=null gracefully) and
-  // populates when the fetch completes.
+  // pagination time. GexProfile is LazyMount-gated behind a 400 px scroll
+  // margin, so by the time the reader scrolls within range this idle fetch
+  // has usually resolved and the prev-day diff lights up on first mount.
+  // On slow connections where the idle fetch is still in flight when scroll
+  // arrives, the diff stays null and GexProfile renders without the overlay
+  // (it handles prevContracts=null gracefully), then populates when the
+  // fetch completes. The other prev-day-aware chart (FixedStrikeIvMatrix's
+  // 1D-change mode) used to live on this page too, but it moved to
+  // /tactical/ along with the other tactical-vol surfaces; that page fires
+  // its own idle prev-day fetch independently.
   const [prevDayContracts, setPrevDayContracts] = useState(null);
   const [prevDaySpotPrice, setPrevDaySpotPrice] = useState(null);
   useEffect(() => {
@@ -281,10 +275,7 @@ export default function App() {
   const [prevData, setPrevData] = useState(data);
 
   // The picker excludes the same-day expiration — see
-  // filterPickerExpirations in src/lib/dates.js for why. The
-  // FixedStrikeIvMatrix below continues to receive the unfiltered
-  // data.expirations because its matrix view is a different surface from
-  // the picker and renders its own handling of short-dated contracts.
+  // filterPickerExpirations in src/lib/dates.js for why.
   const pickerExpirations = useMemo(
     () => filterPickerExpirations(data?.expirations, data?.capturedAt),
     [data]
@@ -333,24 +324,6 @@ export default function App() {
       window.history.replaceState(null, '', next);
     }
   }, [selectedExpiration]);
-
-  // The SVI fit (~31 expirations × one Levenberg-Marquardt solve each,
-  // ~100-300 ms on a modern laptop) runs in a Web Worker — see
-  // src/workers/sviFits.worker.js and src/hooks/useSviFits.js for the
-  // dispatch protocol. The main thread stays responsive during the fit
-  // window (scroll, hover, click all continue to work), and the hook
-  // returns a `loading` flag while a dispatch is in flight. The prior
-  // useDeferredValue-based concurrent render pattern is no longer needed
-  // because the computation is off-thread: the hook returns immediately
-  // with stale fits (or empty on first mount) and setState-updates once
-  // the worker responds.
-  const sviFits = useSviFits({
-    contracts: data?.contracts,
-    spotPrice: data?.spotPrice,
-    capturedAt: data?.capturedAt,
-    backendFits: data?.sviFits,
-  });
-  const sviLoading = sviFits.loading;
 
   // Client-side override of the gamma inflection profile and volatility flip.
   // The backend pass that writes `gamma_profile` and recomputes
@@ -548,13 +521,11 @@ export default function App() {
       {loading && (
         <div aria-busy="true" aria-label="Loading options data">
           <div className="skeleton-card" style={{ height: '260px' }} />
-          <div className="skeleton-card" style={{ height: '564px' }} />
-          <div className="skeleton-card" style={{ height: '564px' }} />
-          <div className="skeleton-card" style={{ height: '394px' }} />
-          <div className="skeleton-card" style={{ height: '434px' }} />
+          <div className="skeleton-card" style={{ height: '604px' }} />
           <div className="skeleton-card" style={{ height: '600px' }} />
           <div className="skeleton-card" style={{ height: '600px' }} />
-          <div className="skeleton-card" style={{ height: '454px' }} />
+          <div className="skeleton-card" style={{ height: '700px' }} />
+          <div className="skeleton-card" style={{ height: '700px' }} />
         </div>
       )}
 
@@ -602,48 +573,26 @@ export default function App() {
             />
           </ErrorBoundary>
 
-          <ErrorBoundary>
-            <VolatilityRiskPremium
-              spotPrice={data.spotPrice}
-              capturedAt={data.capturedAt}
-            />
-          </ErrorBoundary>
-
-          <ErrorBoundary>
-            <TermStructure
-              expirationMetrics={data.expirationMetrics}
-              capturedAt={data.capturedAt}
-              cloudBands={data.cloudBands}
-            />
-          </ErrorBoundary>
-
-          {/* VolatilitySmile through FixedStrikeIvMatrix are wrapped in
-              LazyMount so their skeletons hold the page layout stable but
-              their Plotly.newPlot calls don't fire until the reader scrolls
-              within ~400 px of each card. On a typical 1080p viewport the
-              dashboard renders LevelsPanel + VRP + TermStructure eagerly
-              above the fold and defers the other eight charts; on mobile
-              even fewer cards paint on first frame. Each mounted chart
-              incurs 50-200 ms of Plotly DOM/layout work; deferring the
-              eight below-fold charts saves ~0.5-1.5 s of initial-render
-              main-thread blocking depending on device speed, and their
-              subsequent mount happens off the critical path so the user
-              sees above-fold charts immediately while the rest hydrate
-              quietly as they scroll. Heights match each component's real
-              rendered height (including brushes / reset-buttons / legends)
-              so the placeholder occupies the same vertical footprint as
-              the mounted chart and there is no CLS. */}
-          <ErrorBoundary>
-            <LazyMount height="600px">
-              <VolatilitySmile
-                contracts={data.contracts}
-                spotPrice={data.spotPrice}
-                capturedAt={data.capturedAt}
-                expirations={data.expirations}
-              />
-            </LazyMount>
-          </ErrorBoundary>
-
+          {/* Below-fold dealer-positioning charts are wrapped in LazyMount
+              so their skeletons hold the page layout stable but their
+              Plotly.newPlot calls don't fire until the reader scrolls within
+              ~400 px of each card. On a typical 1080p viewport the dashboard
+              renders LevelsPanel eagerly above the fold and defers the rest;
+              on mobile even fewer cards paint on first frame. Each mounted
+              chart incurs 50-200 ms of Plotly DOM/layout work; deferring the
+              below-fold charts saves ~0.5-1.5 s of initial-render main-
+              thread blocking depending on device speed, and their subsequent
+              mount happens off the critical path so the user sees the
+              above-fold panel immediately while the rest hydrate quietly as
+              they scroll. Heights match each component's real rendered
+              height (including brushes / reset-buttons / legends) so the
+              placeholder occupies the same vertical footprint as the mounted
+              chart and there is no CLS. The five tactical-vol surfaces (VRP,
+              Term Structure, Smile, RND, Fixed-Strike IV) that used to live
+              in this section moved to /tactical/, leaving the main dashboard
+              focused on dealer-positioning mechanics — gamma profile, vol
+              flip, GEX walls, and the three regime/oscillator/scatter views
+              of the gamma index. */}
           <ErrorBoundary><LazyMount height="604px"><DealerGammaRegime /></LazyMount></ErrorBoundary>
 
           <ErrorBoundary><LazyMount height="600px"><SpxVolFlip /></LazyMount></ErrorBoundary>
@@ -672,28 +621,6 @@ export default function App() {
           </ErrorBoundary>
 
           <ErrorBoundary><LazyMount height="640px"><GammaIndexScatter /></LazyMount></ErrorBoundary>
-
-          <ErrorBoundary>
-            <LazyMount height="560px">
-              <RiskNeutralDensity
-                fits={sviFits.byExpiration}
-                spotPrice={data.spotPrice}
-                capturedAt={data.capturedAt}
-                loading={sviLoading}
-              />
-            </LazyMount>
-          </ErrorBoundary>
-
-          <ErrorBoundary>
-            <LazyMount height="600px">
-              <FixedStrikeIvMatrix
-                contracts={data.contracts}
-                spotPrice={data.spotPrice}
-                expirations={data.expirations}
-                prevContracts={prevDayContracts}
-              />
-            </LazyMount>
-          </ErrorBoundary>
         </>
       )}
 
@@ -703,7 +630,7 @@ export default function App() {
           sits at the very bottom of the dashboard so LazyMount defers the
           ~6 KB gzipped Chat chunk's React mount work until a reader scrolls
           within 400 px of the bottom of the page, which is long after all
-          11 above-Chat cards have had a chance to hydrate and paint. */}
+          above-Chat cards have had a chance to hydrate and paint. */}
       <ErrorBoundary><LazyMount height="320px"><Chat /></LazyMount></ErrorBoundary>
     </div>
   );

@@ -16,6 +16,7 @@ const LAB_ITEMS = [
   { path: '/rough/',       desc: 'Rough Bergomi and rough vol exploration' },
   { path: '/seasonality/', desc: 'SPX 30-minute intraday seasonality grid' },
   { path: '/stochastic/',  desc: 'Heston, SABR, LSV, rough Bergomi' },
+  { path: '/tactical/',    desc: 'VRP, term structure, smile, RND, fixed-strike IV' },
 ];
 
 export default function Menu() {

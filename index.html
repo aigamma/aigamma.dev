@@ -25,7 +25,7 @@
       "url": "https://aigamma.com/",
       "applicationCategory": "FinanceApplication",
       "operatingSystem": "Any",
-      "description": "SPX zero-DTE and monthly options gamma exposure dashboard with computed dealer positioning levels, implied volatility surfaces, and Breeden-Litzenberger risk-neutral density plots.",
+      "description": "SPX zero-DTE and monthly options gamma exposure dashboard with computed dealer positioning levels, dealer-gamma regime classification, vol-flip and put/call wall analytics, and a tactical-vol companion lab covering volatility risk premium, term structure, smile fits, and Breeden-Litzenberger risk-neutral density.",
       "offers": {
         "@type": "Offer",
         "price": "0",
@@ -64,17 +64,19 @@
         // day's LITE payload (~5-10 KB brotli, no contracts). Above-the-fold
         // LevelsPanel + overnight-alignment only need prev-day levels and
         // expirationMetrics — both scalar sub-objects — not the 19k-contract
-        // chain. Below-fold diff charts (GexProfile's prev-day overlay,
-        // FixedStrikeIvMatrix's 1D-change mode) pull prev-day contracts from
-        // a post-first-paint idle fetch in App.jsx that omits the
+        // chain. The remaining prev-day-aware chart on this page is
+        // GexProfile's overlay; it pulls the full prev-day contracts from a
+        // post-first-paint idle fetch in App.jsx that omits the
         // skip_contracts flag. Net saving on the boot transit: ~240 KB br
         // / ~500 ms on mobile 4G per cold first visit.
         var pToday = boot('/api/data?underlying=SPX&snapshot_type=intraday&v=2');
         var pPrev = boot('/api/data?underlying=SPX&snapshot_type=intraday&prev_day=1&skip_contracts=1&v=2');
-        // /api/vrp-history feeds VolatilityRiskPremium (above-the-fold) and
-        // the VRP pill in LevelsPanel. Prefiring overlaps its ~25 KB gzipped
-        // download with the main bundle transit and shaves ~50-200 ms off
-        // the VRP chart paint.
+        // /api/vrp-history feeds the VRP pill in LevelsPanel. The full VRP
+        // chart card moved to /tactical/, but the pill stays on this page as
+        // part of the at-a-glance scalar status row, so the boot fetch keeps
+        // its place here. Prefiring overlaps its ~25 KB gzipped download
+        // with the main bundle transit and shaves ~50-200 ms off the VRP
+        // pill paint.
         var pVrp = boot('/api/vrp-history');
         // /api/gex-history feeds DealerGammaRegime, GammaIndexOscillator,
         // and GammaIndexScatter — all LazyMounted below-the-fold. Pre-
