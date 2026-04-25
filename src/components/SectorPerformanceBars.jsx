@@ -5,7 +5,6 @@ import {
   plotlyAxis,
   PLOTLY_COLORS,
   PLOTLY_FONT_FAMILY,
-  PLOTLY_FONTS,
 } from '../lib/plotlyTheme';
 
 // Sector-performance horizontal-bar trio. Renders the /api/sector-performance
@@ -48,21 +47,27 @@ function formatDateLabel(iso) {
 
 // One Plotly horizontal bar chart for a single horizon (1d / 1w / 1m).
 // The y-axis is the sector name in performance-descending order; the
-// x-axis is signed percent. autorange='reversed' on the y-axis flips
-// Plotly's default bottom-to-top ordering so the best sector appears
-// at the top of the chart (matching the reference image's layout).
+// x-axis is the absolute magnitude of the return — every bar starts at
+// zero and extends rightward so all magnitudes are visually comparable
+// against a common left baseline rather than splitting around a center
+// spine. The sign of each return is carried by color (green positive,
+// red negative) and by the signed text label printed at the bar's tip.
+// autorange='reversed' on the y-axis flips Plotly's default bottom-to-
+// top ordering so the best-performing sector appears at the top of the
+// chart, matching the reference image's layout.
 function buildPanelTraces(rows) {
   if (!rows || rows.length === 0) return { traces: [], names: [] };
 
   const names = rows.map((r) => r.name);
   const values = rows.map((r) => r.value);
+  const magnitudes = values.map((v) => Math.abs(v));
   const colors = values.map((v) => (v >= 0 ? POSITIVE_INK : NEGATIVE_INK));
   const labels = values.map(formatPct);
 
   const trace = {
     type: 'bar',
     orientation: 'h',
-    x: values,
+    x: magnitudes,
     y: names,
     marker: {
       color: colors,
@@ -78,8 +83,8 @@ function buildPanelTraces(rows) {
     },
     hovertemplate:
       '<b>%{customdata[0]}</b> · %{y}<br>' +
-      '%{x:.2f}%<extra></extra>',
-    customdata: rows.map((r) => [r.symbol]),
+      '%{customdata[1]:+.2f}%<extra></extra>',
+    customdata: rows.map((r) => [r.symbol, r.value]),
     showlegend: false,
   };
 
@@ -90,25 +95,23 @@ function buildPanelLayout(rows, panelTitle) {
   if (!rows || rows.length === 0) return null;
 
   const values = rows.map((r) => r.value);
-  const minV = Math.min(...values);
-  const maxV = Math.max(...values);
+  const maxMag = Math.max(...values.map((v) => Math.abs(v)), 0.5);
 
-  // Symmetric padding on both ends of the x range so the +N.NN bar-tip
-  // labels never get clipped against the right edge and the leftmost
-  // negative bar's label has space on the inside as well. The pad is a
-  // function of total span so a tight regime still feels framed and a
-  // wide regime doesn't waste real estate.
-  const span = Math.max(maxV - minV, 1);
-  const pad = Math.max(span * 0.25, 0.5);
-  const xRange = [minV - pad, maxV + pad];
+  // Bars all extend rightward from x=0, so the range starts at 0 (the
+  // common baseline) and runs out to maxMag plus 25% padding so the bar-
+  // tip ±N.NN labels never bump up against the plot's right edge.
+  const xRange = [0, maxMag * 1.25];
 
   return plotly2DChartLayout({
     title: {
-      text: panelTitle,
-      font: PLOTLY_FONTS.chartTitle,
+      text: `<b>${panelTitle}</b>`,
+      // Larger and bold — the panel headers were getting lost under the
+      // sector-bars meta band; bumping to 26px bold puts them on equal
+      // footing with the .sector-bars__title at the top of the card.
+      font: { family: PLOTLY_FONT_FAMILY, color: PLOTLY_COLORS.titleText, size: 26 },
       x: 0.5,
       xanchor: 'center',
-      y: 0.96,
+      y: 0.97,
       yanchor: 'top',
     },
     xaxis: plotlyAxis('', {
@@ -127,7 +130,7 @@ function buildPanelLayout(rows, panelTitle) {
         size: 12,
       },
     }),
-    margin: { t: 50, r: 70, b: 40, l: 170 },
+    margin: { t: 64, r: 70, b: 40, l: 170 },
     hovermode: 'closest',
     bargap: 0.25,
   });
