@@ -9,34 +9,44 @@
 // XLY / XME / KWEB. Source data is ThetaData /v3/stock/history/eod (Stock
 // Value tier on this account as of 2026-04-25).
 //
-// The math is a two-stage EMA-percentage construction with Roy
+// The math is a three-stage EMA-percentage construction with Roy
 // Mansfield's 1979 "Mansfield Relative Performance" indicator as the
 // foundational prior art on the ratio arm: relative strength expressed
 // as a percentage of its own long-period moving average, centered at
-// 100. The momentum arm applies the same percentage-of-moving-average
-// operation to the ratio with a faster smoother, producing a
-// velocity-like measure that leads ratio in time and gives the trail
-// its spiral structure as components rotate through the four quadrants.
+// 100. A short input smoother dampens period-to-period noise in the
+// raw RS series before the percentage-of-moving-average operation
+// runs; without it, the ratio output inherits high-frequency noise
+// from RS in the numerator (the slow EMA only smooths the divisor),
+// and the resulting trails zigzag on sideways-moving components
+// instead of tracing clean spirals. The momentum arm applies the
+// same percentage-of-moving-average operation to the ratio with a
+// faster smoother, producing a velocity-like measure that leads
+// ratio in time and gives the trail its spiral structure as
+// components rotate through the four quadrants.
 //
 //   1. Relative strength:
-//        RS_t = (close_component_t / close_benchmark_t) × 100
+//        RS_t = (close_component_t / close_benchmark_t) * 100
 //
-//   2. Rotation ratio — RS as a percentage of its own slow EMA
+//   2. Pre-smoothed RS (input filter):
+//        smoothed_RS_t = EMA(RS, smoothWindow)_t
+//
+//   3. Rotation ratio: smoothed RS as a percentage of its own slow EMA
 //      (Mansfield 1979 normalization, with EMA in place of his
 //      original 52-week SMA so old samples decay smoothly rather
 //      than dropping off a fixed-window edge):
-//        rotation_ratio_t = (RS_t / EMA(RS, slowWindow)_t) × 100
-//      Above 100 = component RS is above its long-term smooth average
-//      (leading); below 100 = lagging.
+//        rotation_ratio_t = (smoothed_RS_t / EMA(smoothed_RS, slowWindow)_t) * 100
+//      Above 100 means the component is above its long-term smooth
+//      average (leading); below 100 means lagging.
 //
-//   3. Rotation momentum — rotation ratio as a percentage of its own
+//   4. Rotation momentum: rotation ratio as a percentage of its own
 //      fast EMA:
 //        rotation_momentum_t = (rotation_ratio_t /
-//                               EMA(rotation_ratio, fastWindow)_t) × 100
-//      Above 100 = ratio is rising vs its recent average (gaining);
-//      below 100 = falling. The fast smoother is the source of the
-//      phase lead between momentum and ratio that produces clockwise
-//      spiral motion in the (ratio, momentum) plane.
+//                               EMA(rotation_ratio, fastWindow)_t) * 100
+//      Above 100 means ratio is rising vs its recent average
+//      (gaining); below 100 means falling. The fast smoother is the
+//      source of the phase lead between momentum and ratio that
+//      produces clockwise spiral motion in the (ratio, momentum)
+//      plane.
 //
 // Earlier iterations explored a Mansfield-style rate-of-change form
 // (ratio_t = RS_t / RS_{t-N}, momentum_t = ratio_t / ratio_{t-N})
@@ -87,40 +97,45 @@ const SUPABASE_TIMEOUT_MS = 8000;
 const DEFAULT_TAIL = 10;
 const MAX_TAIL = 60;
 
-// Per-step EMA windows for the two-stage rotation formula. slowWindow
-// drives the ratio (RS as a percentage of its own slow EMA); fastWindow
-// drives the momentum (ratio as a percentage of its own fast EMA).
-// The asymmetry is what produces the phase lead that traces spirals
-// in the (ratio, momentum) plane — momentum responds to recent
-// changes in ratio while ratio itself moves on the slower horizon.
+// Per-step EMA windows for the three-stage rotation formula.
+// smoothWindow is a short input filter that dampens period-to-period
+// noise in the relative-strength series before the rotation math
+// runs; without it the ratio output inherits high-frequency noise
+// from RS in the numerator, even though the slow EMA smooths the
+// divisor, and the resulting trails zigzag on sideways-moving
+// components instead of tracing clean spirals. slowWindow drives
+// the ratio (smoothed RS as a percentage of its own slow EMA);
+// fastWindow drives the momentum (ratio as a percentage of its own
+// fast EMA). The asymmetry between slow and fast is what produces
+// the phase lead that traces spirals in the (ratio, momentum)
+// plane: momentum responds to recent changes in ratio while ratio
+// itself moves on the slower horizon.
 //
-// Day mode 63/13 follows the conventional daily-rotation defaults
-// (~3 months slow, ~3 weeks fast) that match the user-supplied daily
-// reference well enough to put XLK in Leading, XLE in Lagging, and
-// the cluster of cap-weight peers near the 100/100 cross-hairs.
-// Week mode 26/5 sits between the failed prior calibrations: 13 was
-// too short and pushed defensives into Lagging when the weekly
-// baseline at C:\i\weekly baseline.png shows XLE/XLU/XLRE in Leading;
-// 52 was too long and burned ~65 weeks of warm-up out of the 104
-// weekly samples our 2-year backfill yields. 26 weeks (~6 months)
-// is the natural middle that puts high-yield defensives in the right
-// half of the plane while leaving ~73 valid weeks for the visible tail.
+// Day mode 5/63/13 pre-smooths RS over a trading week and pairs a
+// ~3-month slow EMA with a ~3-week fast EMA, the conventional
+// daily-rotation defaults. Week mode 3/26/5 pre-smooths RS over
+// three weeks and pairs a 26-week slow EMA with a 5-week fast EMA;
+// 26 weeks (~6 months) sits between the failed prior calibrations
+// (13 was too short and pushed defensives into Lagging, 52 burned
+// ~65 weeks of warm-up out of our 2-year backfill's 104 weekly
+// samples), leaving ~70 valid weeks for the visible tail.
 //
 // Hour values are placeholders; the step=hour branch returns 503
 // before they're consulted because no intraday ETF table exists yet.
 const STEP_CONFIG = {
-  day:  { slowWindow: 63, fastWindow: 13, label: 'days' },
-  week: { slowWindow: 26, fastWindow: 5,  label: 'weeks' },
-  hour: { slowWindow: 63, fastWindow: 13, label: 'hours' },
+  day:  { smoothWindow: 5, slowWindow: 63, fastWindow: 13, label: 'days' },
+  week: { smoothWindow: 3, slowWindow: 26, fastWindow: 5,  label: 'weeks' },
+  hour: { smoothWindow: 5, slowWindow: 63, fastWindow: 13, label: 'hours' },
 };
 const DEFAULT_STEP = 'day';
 
-// PostgREST caps at 1000 rows per response. We need (tail + slowWindow
-// + fastWindow + buffer) periods × ~15 symbols of rows so each EMA has
-// at least one full window of valid samples to seed against. Day mode
-// peaks around (10 + 63 + 13 + 10) ≈ 96 days × 15 = 1440 rows; week
-// mode needs (10 + 26 + 5 + 10) ≈ 51 weeks × 5 trading days = 255 days
-// × 15 = 3825 rows — both above the cap, so paginate.
+// PostgREST caps at 1000 rows per response. We need (tail + smoothWindow
+// + slowWindow + fastWindow + buffer) periods * ~15 symbols of rows so
+// each EMA has at least one full window of valid samples to seed
+// against. Day mode peaks around (10 + 5 + 63 + 13 + 10) ~= 101 days *
+// 15 = 1515 rows; week mode needs (10 + 3 + 26 + 5 + 10) ~= 54 weeks *
+// 5 trading days = 270 days * 15 = 4050 rows. Both above the cap, so
+// paginate.
 const PAGE_SIZE = 1000;
 
 const DEFAULT_BENCHMARK = 'SPY';
@@ -198,7 +213,7 @@ export default async function handler(request) {
     // weekend slack — and the rowLimit caps at the size of our 2-year
     // backfill (15 symbols × 501 days ≈ 7515 rows) so a request can't
     // ask for more rows than the table holds.
-    const minPeriods = stepConfig.slowWindow + stepConfig.fastWindow + tail + 10;
+    const minPeriods = stepConfig.smoothWindow + stepConfig.slowWindow + stepConfig.fastWindow + tail + 10;
     const periodToDayMultiplier = stepParam === 'week' ? 7 : 1;
     const minDays = minPeriods * periodToDayMultiplier;
     const rowLimit = Math.min(minDays * 20, 16000); // 15 symbols + headroom, capped
@@ -308,6 +323,7 @@ export default async function handler(request) {
       params: {
         step: stepParam,
         step_label: stepConfig.label,
+        smooth_window: stepConfig.smoothWindow,
         slow_window: stepConfig.slowWindow,
         fast_window: stepConfig.fastWindow,
       },
@@ -337,19 +353,21 @@ export default async function handler(request) {
 // ISO-week-end samples produced by resampleWeekly. The EMA windows
 // therefore count the chosen period, not always days.
 //
-// Two-stage EMA-percentage construction. Ratio is RS as a percentage of
-// its own slow EMA — Roy Mansfield's 1979 "Mansfield Relative
-// Performance" normalization, with EMA in place of his original 52-week
-// SMA so old samples decay smoothly rather than dropping off a hard
-// window edge. Momentum is the ratio as a percentage of its own fast
-// EMA — the same percentage-of-moving-average operation applied one
-// stage further with a faster smoother, which gives momentum a phase
-// lead over ratio and produces clockwise spiral motion as components
-// rotate through the four quadrants.
+// Three-stage EMA-percentage construction. Stage 0 pre-smooths RS with
+// a short EMA so period-to-period noise in the relative-strength
+// numerator does not zigzag the ratio output. Stage 1 expresses
+// smoothed RS as a percentage of its own slow EMA, the Roy Mansfield
+// 1979 "Mansfield Relative Performance" normalization with EMA in
+// place of his original 52-week SMA so old samples decay smoothly
+// rather than dropping off a hard window edge. Stage 2 applies the
+// same percentage-of-moving-average operation to the ratio with a
+// faster smoother, producing the momentum arm whose phase lead over
+// ratio traces the clockwise spiral motion as components rotate
+// through the four quadrants.
 function computeTail(series, benchByDate, benchDates, tail, stepConfig) {
-  const { slowWindow, fastWindow } = stepConfig;
+  const { smoothWindow, slowWindow, fastWindow } = stepConfig;
 
-  // Build RS aligned to the benchmark's date index — only the dates
+  // Build RS aligned to the benchmark's date index. Only the dates
   // present in BOTH series can contribute (a missing component bar on
   // a date when the benchmark trades is left out, so the EMAs operate
   // on consecutive aligned samples not calendar periods).
@@ -361,26 +379,34 @@ function computeTail(series, benchByDate, benchDates, tail, stepConfig) {
     if (!Number.isFinite(cClose) || !Number.isFinite(bClose) || bClose <= 0) continue;
     aligned.push({ date, rs: (cClose / bClose) * 100 });
   }
-  if (aligned.length < slowWindow + fastWindow) return [];
+  if (aligned.length < smoothWindow + slowWindow + fastWindow) return [];
 
   const rs = aligned.map((p) => p.rs);
 
-  // Stage 1 — rotation ratio = (RS / EMA(RS, slow)) × 100.
-  // First valid value lands at index slowWindow − 1 (when ema()'s
-  // SMA seed completes). Above 100 = component RS is above its
-  // long-term smooth average; below 100 = below.
-  const rsSlowEma = ema(rs, slowWindow);
-  const rotationRatio = rs.map((v, i) => {
+  // Stage 0: pre-smooth the RS series with a short EMA so the ratio
+  // arm's numerator carries less period-to-period noise. The slow
+  // EMA in stage 1 already smooths the divisor; pre-smoothing the
+  // numerator on a comparable horizon keeps both arms at a
+  // consistent noise floor and prevents the ratio output from
+  // zigzagging on sideways-moving components.
+  const rsSmooth = ema(rs, smoothWindow);
+
+  // Stage 1: rotation ratio = (smoothed RS / EMA(smoothed RS, slow)) * 100.
+  // First valid value lands at index smoothWindow + slowWindow - 2 (when
+  // both ema()'s SMA seeds are full). Above 100 means the component's
+  // smoothed relative strength is above its long-term smooth average
+  // (leading); below 100 means below it.
+  const rsSlowEma = ema(rsSmooth, slowWindow);
+  const rotationRatio = rsSmooth.map((v, i) => {
     const e = rsSlowEma[i];
-    if (e == null || e <= 0 || !Number.isFinite(v)) return null;
+    if (e == null || e <= 0 || v == null) return null;
     return (v / e) * 100;
   });
 
-  // Stage 2 — rotation momentum = (ratio / EMA(ratio, fast)) × 100.
-  // The fast EMA chains on top of the rotation ratio array, so its
-  // first valid value lands at index slowWindow + fastWindow − 2.
-  // Above 100 = ratio is rising vs its short-term average (gaining);
-  // below 100 = falling.
+  // Stage 2: rotation momentum = (ratio / EMA(ratio, fast)) * 100.
+  // Same percentage-of-moving-average operation applied to the ratio
+  // with a faster smoother. Above 100 means ratio is rising vs its
+  // short-term average (gaining); below 100 means falling.
   const ratioFastEma = ema(rotationRatio, fastWindow);
   const rotationMomentum = rotationRatio.map((v, i) => {
     const e = ratioFastEma[i];
