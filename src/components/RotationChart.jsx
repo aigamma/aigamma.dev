@@ -76,17 +76,15 @@ const STEP_OPTIONS = [
   { id: 'week', short: '1W', long: 'Week' },
 ];
 
-// Tail-length presets. Three well-spaced values that bracket what the
-// chart can show without trail overlap turning the scatter into an
-// unreadable mess: 5 for a tight "where did we just come from"
-// snapshot, 10 to match the StockCharts /RRG® default, 15 for slightly
-// more directional context. Anything past 15 stacks too many
-// crisscrossing trails on top of each other given 14 components in
-// the universe — the longer-tail experiment that briefly shipped
-// 5/10/20/40/60 surfaced the visual-clutter problem and got cut down
-// to this tighter triplet. Default stays at 10 so the chart preserves
-// its previous behavior for any reader who doesn't touch the toggle.
-const TAIL_OPTIONS = [5, 10, 15];
+// Tail-length presets. Two values: 5 for a tight recent snapshot, 10
+// to match the StockCharts /RRG® default. Anything past 10 stacks too
+// many crisscrossing trails on top of each other given 14 components
+// in the universe — the longer-tail experiment that briefly shipped
+// 5/10/20/40/60 and the follow-up 5/10/15 both surfaced the visual-
+// clutter problem and got cut down to this minimal pair. Default
+// stays at 10 so the chart preserves its previous behavior for any
+// reader who doesn't touch the toggle.
+const TAIL_OPTIONS = [5, 10];
 const DEFAULT_TAIL = 10;
 
 function RotationStepToggle({ step, onChange, disabled }) {
