@@ -77,15 +77,17 @@ const STEP_OPTIONS = [
 ];
 
 // Tail-length presets. Two values: 5 for a tight recent snapshot, 10
-// to match the StockCharts /RRG® default. Anything past 10 stacks too
-// many crisscrossing trails on top of each other given 14 components
-// in the universe — the longer-tail experiment that briefly shipped
-// 5/10/20/40/60 and the follow-up 5/10/15 both surfaced the visual-
-// clutter problem and got cut down to this minimal pair. Default
-// is 5 paired with the week step (see useState below) so a first-time
-// reader lands on the cleanest, least-cluttered view of the chart.
+// to match the conventional rotation-chart trail length. Anything past
+// 10 stacks too many crisscrossing trails on top of each other given
+// 14 components in the universe; the longer-tail experiment that
+// briefly shipped 5/10/20/40/60 and the follow-up 5/10/15 both
+// surfaced the visual-clutter problem and got cut down to this minimal
+// pair. Default is 10 paired with the week step (see useState below)
+// so a first-time reader lands on the trail length where the actual
+// clockwise spiral motion is visible; 5 stays available for the
+// tighter recent-snapshot view.
 const TAIL_OPTIONS = [5, 10];
-const DEFAULT_TAIL = 5;
+const DEFAULT_TAIL = 10;
 
 function RotationStepToggle({ step, onChange, disabled }) {
   return (
