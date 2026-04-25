@@ -78,11 +78,17 @@ export default function App() {
             Each component lands on the plane at coordinates (rotation
             ratio, rotation momentum). The ratio is a 100-centered
             standardized score of the component's price relative to SPY
-            over the last 63 trading days; the momentum is the same kind
-            of standardized score applied to the 5-day rate of change of
-            the ratio. Values above 100 on the x-axis mean the component
-            is leading SPY on price; above 100 on the y-axis means it's
-            gaining on that lead.
+            over a rolling window; the momentum is the same kind of
+            standardized score applied to the rate of change of the
+            ratio. The 1H · 1D · 1W toggle in the card's meta band
+            chooses the lookback granularity: Day uses a 63-day
+            normalization window with a 5-day momentum lookback (the
+            chart's default), Week resamples to ISO-week-end closes and
+            uses a 26-week / 2-week pair, and Hour requires intraday ETF
+            bars that are not yet ingested into Supabase. Values above
+            100 on the x-axis mean the component is leading SPY on
+            price; above 100 on the y-axis means it's gaining on that
+            lead.
           </p>
           <p style={{ margin: '0 0 0.7rem' }}>
             Quadrants describe a typical clockwise rotation:{' '}

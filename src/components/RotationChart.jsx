@@ -60,19 +60,79 @@ function formatDateLabel(iso) {
   return `${m}/${d}/${y}`;
 }
 
+// Three-position lookback toggle that drives the API's ?step= param. The
+// labels mirror the convention financial charts use elsewhere on the
+// dashboard: short alpha codes for the period (1H = one hour per tail
+// step, 1D = one trading day, 1W = one ISO-trading-week). Hour mode is
+// surfaced even though it currently returns 503 from /api/rotations
+// because the chart's job is to make the user's intended granularity
+// reachable via UI; the error path then explains the data prerequisite
+// when the user clicks it, which is more honest than hiding the option
+// entirely. Day stays the default to preserve the chart's behavior for
+// readers who don't touch the toggle.
+const STEP_OPTIONS = [
+  { id: 'hour', short: '1H', long: 'Hour' },
+  { id: 'day',  short: '1D', long: 'Day' },
+  { id: 'week', short: '1W', long: 'Week' },
+];
+
+function RotationStepToggle({ step, onChange, disabled }) {
+  return (
+    <div
+      className="rotation-step-toggle"
+      role="group"
+      aria-label="Lookback granularity"
+    >
+      {STEP_OPTIONS.map((opt) => {
+        const active = opt.id === step;
+        return (
+          <button
+            key={opt.id}
+            type="button"
+            className={
+              'rotation-step-toggle__btn' +
+              (active ? ' rotation-step-toggle__btn--active' : '')
+            }
+            aria-pressed={active}
+            disabled={disabled}
+            title={`${opt.long} per tail step`}
+            onClick={() => onChange(opt.id)}
+          >
+            {opt.short}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 export default function RotationChart() {
   const chartRef = useRef(null);
   const { plotly: Plotly, error: plotlyError } = usePlotly();
+  const [step, setStep] = useState('day');
   const [payload, setPayload] = useState(null);
   const [fetchError, setFetchError] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
+    setLoading(true);
+    setFetchError(null);
     async function load() {
       try {
-        const res = await fetch('/api/rotations?tail=10');
-        if (!res.ok) throw new Error(`rotations fetch failed: ${res.status}`);
+        const res = await fetch(`/api/rotations?tail=10&step=${step}`);
+        if (!res.ok) {
+          // The 503 path for hour mode returns a JSON {error: '...'}
+          // payload that's much more useful than a generic status code,
+          // so try to surface it directly. Fall back to the status code
+          // for non-JSON failures (network, html error page, etc.).
+          let msg = `rotations fetch failed: ${res.status}`;
+          try {
+            const j = await res.json();
+            if (j && j.error) msg = j.error;
+          } catch {}
+          throw new Error(msg);
+        }
         const json = await res.json();
         if (!cancelled) {
           setPayload(json);
@@ -81,13 +141,14 @@ export default function RotationChart() {
       } catch (err) {
         if (!cancelled) {
           setFetchError(String(err?.message || err));
+          setPayload(null);
           setLoading(false);
         }
       }
     }
     load();
     return () => { cancelled = true; };
-  }, []);
+  }, [step]);
 
   // Pre-compute axis ranges and trace data once payload is in hand.
   // The axis is symmetric around 100 with at least ±1.5 of half-extent
@@ -296,36 +357,44 @@ export default function RotationChart() {
     });
   }, [Plotly, payload, chartData]);
 
-  if (loading) {
-    return (
-      <div className="card rotation-card">
-        <div className="rotation-status">Loading rotation chart…</div>
-      </div>
-    );
-  }
-
-  if (fetchError || plotlyError || !payload) {
-    return (
-      <div className="card rotation-card">
-        <div className="rotation-status rotation-status--error">
-          {fetchError || plotlyError || 'No rotation data available.'}
-        </div>
-      </div>
-    );
-  }
+  // The card chrome (meta band + step toggle) renders in every state so
+  // the lookback control stays reachable even when the current step is
+  // erroring out — most importantly, when the user picks Hour and the
+  // API returns 503, we want them to be able to click Day or Week to get
+  // back to a working chart without reloading the page. The chart slot
+  // below the meta band swaps between loading / error / chart depending
+  // on the fetch state for the current step.
+  const benchmarkSymbol = payload?.benchmark?.symbol ?? 'SPY';
+  const stepLabel = payload?.params?.step_label || 'periods';
+  const errorMessage = fetchError || plotlyError;
 
   return (
     <div className="card rotation-card">
       <div className="rotation-meta">
-        <span className="rotation-ticker">{payload.benchmark?.symbol}</span>
-        <span className="rotation-meta-line">
-          {payload.tail} periods · {payload.components.length} components
-        </span>
-        <span className="rotation-asof">
-          Through {formatDateLabel(payload.asOf)}
-        </span>
+        <span className="rotation-ticker">{benchmarkSymbol}</span>
+        <RotationStepToggle step={step} onChange={setStep} disabled={loading} />
+        {payload && (
+          <>
+            <span className="rotation-meta-line">
+              {payload.tail} {stepLabel} · {payload.components.length} components
+            </span>
+            <span className="rotation-asof">
+              Through {formatDateLabel(payload.asOf)}
+            </span>
+          </>
+        )}
       </div>
-      <div ref={chartRef} className="rotation-chart" />
+      {loading && (
+        <div className="rotation-status">Loading rotation chart…</div>
+      )}
+      {!loading && errorMessage && (
+        <div className="rotation-status rotation-status--error">
+          {errorMessage}
+        </div>
+      )}
+      {!loading && !errorMessage && payload && (
+        <div ref={chartRef} className="rotation-chart" />
+      )}
     </div>
   );
 }
