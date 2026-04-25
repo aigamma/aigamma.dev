@@ -9,23 +9,36 @@
 // XLY / XME / KWEB. Source data is ThetaData /v3/stock/history/eod (Stock
 // Value tier on this account as of 2026-04-25).
 //
-// The math is the open standardized-relative-strength construction that
-// any reader can derive from a benchmark series and a component series:
+// The math is Julius de Kempenaer's canonical RRG construction (the
+// formula on which StockCharts' /RRG® reference chart at C:\i\RRG
+// baseline.png is built), expressed in two stages of EMA-normalised
+// percentage deviation:
 //
 //   1. Relative strength:
-//        RS_i,t = (close_i,t / close_benchmark,t) × 100
-//      A scale factor that makes "in line with benchmark" map to 100.
+//        RS_t = (close_component_t / close_benchmark_t) × 100
 //
-//   2. Rotation ratio — standardized RS centered at 100:
-//        μ = SMA(RS, L), σ = stdev(RS, L)
-//        rotation_ratio = 100 + (RS − μ) / σ
-//      L = norm_window. Above 100 = leading, below 100 = lagging.
+//   2. JdK RS-Ratio — RS as a percentage of its own slow EMA:
+//        rotation_ratio_t = (RS_t / EMA(RS, ratioWindow)_t) × 100
+//      Above 100 = component RS is above its long-term smooth average
+//      (leading); below 100 = lagging. Typical magnitudes for sector
+//      ETFs vs SPY are ±5-15 around 100, matching the StockCharts
+//      reference's ~88-114 x-range.
 //
-//   3. Rotation momentum — standardized ROC of rotation_ratio centered at 100:
-//        ROC = rotation_ratio_t − rotation_ratio_{t−M}
-//        μ_R = SMA(ROC, L), σ_R = stdev(ROC, L)
-//        rotation_momentum = 100 + (ROC − μ_R) / σ_R
-//      M = momentum_lookback. Above 100 = gaining momentum.
+//   3. JdK RS-Momentum — RS-Ratio as a percentage of its own fast EMA:
+//        rotation_momentum_t = (rotation_ratio_t /
+//                               EMA(rotation_ratio, momentumWindow)_t) × 100
+//      Above 100 = ratio is rising vs its recent average (gaining);
+//      below 100 = falling.
+//
+// The earlier Z-score variant (rotation_ratio = 100 + (RS−μ) / σ over
+// 63 days, with a second Z-score on the diff for momentum) compressed
+// every component into a tight ±3 band centered on 100 and amplified
+// daily SD-denominator wobble into squiggly trails — the prototype at
+// C:\i\RRG prototype.png shows the failure mode. Switching to the
+// EMA-percentage form gives smooth flowing trails because EMA is a
+// stable per-step denominator (it changes only by k×Δ each day, k ≈
+// 0.03 for window=63), and the 100-centered ratio surfaces the real
+// percentage deviations the reference chart shows.
 //
 // The four quadrants on the chart are:
 //     Leading    (ratio > 100, momentum > 100) — top-right, green
@@ -39,20 +52,20 @@
 //   symbols     — comma-separated component override (default = all in table)
 //   benchmark   — benchmark symbol (default 'SPY')
 //
-// step=day uses one daily close per tail point and standardizes over a
-// 63-day window with a 5-day momentum lookback. step=week resamples
-// daily_eod to one close per ISO week (the last trading day's close)
-// and uses a 26-week / 2-week pair, scaled down because two years of
-// daily data only yields ~104 weekly samples and a 63-week window would
-// chew most of it as warm-up. step=hour requires intraday ETF bars
-// that aren't yet ingested into Supabase — daily_eod is end-of-day only
-// and the existing intraday ingest path (Massive API → snapshots)
-// covers SPX option chains, not sector ETF prices — so hour mode
-// returns a 503 with a clear explanation. Adding hourly support is a
-// follow-up that needs a new etf_intraday_bars table fed by ThetaData
-// stock OHLC at the Stock Value tier (which the account has as of
-// 2026-04-25) plus a backfill script analogous to scripts/backfill/
-// spx-intraday-bars.mjs.
+// step=day uses one daily close per tail point with the canonical
+// 63-day RS-Ratio EMA and a 13-day RS-Momentum EMA — the StockCharts
+// daily-RRG default. step=week resamples daily_eod to one close per
+// ISO week (the last trading day's close, typically Friday) and uses
+// 13-week / 5-week EMAs; the windows shrink to fit the ~104 weekly
+// samples that two years of daily data yields without burning most of
+// it as warm-up. step=hour requires intraday ETF bars that aren't yet
+// ingested into Supabase — daily_eod is end-of-day only and the
+// existing intraday ingest path (Massive API → snapshots) covers SPX
+// option chains, not sector ETF prices — so hour mode returns a 503
+// with a clear explanation. Adding hourly support is a follow-up that
+// needs a new etf_intraday_bars table fed by ThetaData stock OHLC at
+// the Stock Value tier (which the account has as of 2026-04-25) plus a
+// backfill script analogous to scripts/backfill/spx-intraday-bars.mjs.
 //
 // Reads through the anon SUPABASE_KEY against the allow_anon_read RLS
 // policy on daily_eod. Cache-Control: 15 minutes at the edge with
@@ -64,24 +77,29 @@ const SUPABASE_TIMEOUT_MS = 8000;
 const DEFAULT_TAIL = 10;
 const MAX_TAIL = 60;
 
-// Per-step standardization parameters. Day mirrors the original 63-day /
-// 5-day pair that the chart was first calibrated against. Week shrinks to
-// 26-week / 2-week so a 2-year daily backfill (~104 weekly samples)
-// leaves plenty of headroom for the warm-up window, and the displayed
-// dynamics still capture quarter-scale relative-strength rotation. Hour
-// values are placeholders that future intraday support can use — the
-// step=hour branch errors out before they're consulted today.
+// Per-step EMA windows for the canonical RRG formula. Day uses the
+// StockCharts daily-RRG default (63-day RS-Ratio EMA, 13-day
+// RS-Momentum EMA) so the rendered chart reads the same numbers as the
+// /i/RRG baseline.png reference. Week shrinks to 13/5 because a 2-year
+// daily backfill resamples to ~104 weekly samples and a 63-week EMA
+// would burn most of it as warm-up — 13 weeks (~quarter) for the slow
+// smoother and 5 weeks (~month) for the fast one capture the same
+// relative cycle structure on the weekly grid. Hour values are
+// placeholders; the step=hour branch returns 503 before they're
+// consulted because no intraday ETF table exists yet.
 const STEP_CONFIG = {
-  day:  { normWindow: 63, momentumLookback: 5, label: 'days' },
-  week: { normWindow: 26, momentumLookback: 2, label: 'weeks' },
-  hour: { normWindow: 39, momentumLookback: 3, label: 'hours' },
+  day:  { ratioWindow: 63, momentumWindow: 13, label: 'days' },
+  week: { ratioWindow: 13, momentumWindow: 5,  label: 'weeks' },
+  hour: { ratioWindow: 39, momentumWindow: 8,  label: 'hours' },
 };
 const DEFAULT_STEP = 'day';
 
-// PostgREST caps at 1000 rows per response. We need (tail + 2L + M + buffer)
-// periods × ~15 symbols of rows. Day mode peaks around 150 days × 15 = 2250
-// rows; week mode needs 2×26+2+10 ≈ 65 weeks × 5 trading days = 325 days ×
-// 15 = 4875 rows — both well above the cap, so paginate.
+// PostgREST caps at 1000 rows per response. We need (tail + ratioWindow*2
+// + momentumWindow*2 + buffer) periods × ~15 symbols of rows so each EMA
+// has fully shaken off its SMA-seeded warm-up before the visible tail
+// starts. Day mode peaks around (10 + 126 + 26 + 5) ≈ 167 days × 15 =
+// 2505 rows; week mode needs (10 + 26 + 10 + 5) ≈ 51 weeks × 5 trading
+// days = 255 days × 15 = 3825 rows — both above the cap, so paginate.
 const PAGE_SIZE = 1000;
 
 const DEFAULT_BENCHMARK = 'SPY';
@@ -145,15 +163,17 @@ export default async function handler(request) {
   };
 
   try {
-    // Pull enough trailing rows to cover the longest computation window
-    // for every symbol, then trim to `tail` at the end. The window has
-    // to fit RS(t) → SMA(L) over RS → diff(M) over rotation_ratio →
-    // SMA(L) over diff = 2L + M − 2 periods of warm-up before the first
-    // valid rotation_momentum point, plus tail for the visible trail.
-    // Week mode multiplies that by ~5 to convert weekly periods into
+    // Pull enough trailing rows that each EMA has fully shaken off its
+    // SMA seed before the visible tail starts. EMA's seed weight decays
+    // by (1−k)^n where k = 2/(window+1); after 2*window samples the
+    // seed contributes ≈ 2.7%, which is small enough to treat the EMA
+    // as fully warm. The fast momentum EMA chains on top of the slow
+    // ratio EMA, so the effective warm-up is 2*ratioWindow +
+    // 2*momentumWindow periods, plus tail for the visible trail. Week
+    // mode multiplies that by ~5 to convert weekly periods into the
     // calendar days that need to be present in daily_eod before
     // resampling, plus a small slack for the resampler's last-day bias.
-    const minPeriods = 2 * stepConfig.normWindow + stepConfig.momentumLookback + tail + 5;
+    const minPeriods = 2 * stepConfig.ratioWindow + 2 * stepConfig.momentumWindow + tail + 5;
     const periodToDayMultiplier = stepParam === 'week' ? 7 : 1;
     const minDays = minPeriods * periodToDayMultiplier;
     const rowLimit = minDays * 20; // 15 symbols + headroom
@@ -255,8 +275,8 @@ export default async function handler(request) {
       params: {
         step: stepParam,
         step_label: stepConfig.label,
-        norm_window: stepConfig.normWindow,
-        momentum_lookback: stepConfig.momentumLookback,
+        ratio_window: stepConfig.ratioWindow,
+        momentum_window: stepConfig.momentumWindow,
       },
       source: 'thetadata',
     };
@@ -281,15 +301,15 @@ export default async function handler(request) {
 // where both metrics are defined (warm-up periods are dropped). The
 // `series` and `benchDates` arrays are already in the granularity the
 // step asks for: day mode passes daily samples, week mode passes
-// ISO-week-end samples produced by resampleWeekly. The standardization
-// windows therefore measure the chosen period count, not always days.
+// ISO-week-end samples produced by resampleWeekly. The EMA windows
+// therefore measure the chosen period count, not always days.
 function computeTail(series, benchByDate, benchDates, tail, stepConfig) {
-  const { normWindow, momentumLookback } = stepConfig;
+  const { ratioWindow, momentumWindow } = stepConfig;
 
   // Build RS aligned to the benchmark's date index — only the dates
   // present in BOTH series can contribute (a missing component bar on
-  // a date when the benchmark trades is left out, so the SMA/stdev
-  // windows are over consecutive aligned samples not calendar periods).
+  // a date when the benchmark trades is left out, so the EMA windows
+  // are over consecutive aligned samples not calendar periods).
   const componentByDate = new Map(series.map((p) => [p.date, p.close]));
   const aligned = [];
   for (const date of benchDates) {
@@ -298,21 +318,25 @@ function computeTail(series, benchByDate, benchDates, tail, stepConfig) {
     if (!Number.isFinite(cClose) || !Number.isFinite(bClose) || bClose <= 0) continue;
     aligned.push({ date, rs: (cClose / bClose) * 100 });
   }
-  if (aligned.length < normWindow + momentumLookback) return [];
+  if (aligned.length < ratioWindow + momentumWindow) return [];
 
-  // First standardization: RS → rotation ratio.
-  const rotationRatio = standardize(aligned.map((p) => p.rs), normWindow);
+  // Stage 1 — JdK RS-Ratio = (RS / EMA(RS, ratioWindow)) × 100.
+  const rs = aligned.map((p) => p.rs);
+  const rsEma = ema(rs, ratioWindow);
+  const rotationRatio = rsEma.map((m, i) =>
+    m == null || !Number.isFinite(m) || m === 0 ? null : (rs[i] / m) * 100,
+  );
 
-  // Rate of change of rotation ratio over momentumLookback periods, then
-  // standardize again to get rotation momentum. ROC values land at index
-  // i ≥ momentumLookback; before that they're null.
-  const roc = rotationRatio.map((v, i) => {
-    if (v == null) return null;
-    const prior = rotationRatio[i - momentumLookback];
-    if (prior == null) return null;
-    return v - prior;
-  });
-  const rotationMomentum = standardize(roc, normWindow);
+  // Stage 2 — JdK RS-Momentum = (RS-Ratio / EMA(RS-Ratio, momentumWindow))
+  // × 100. The momentum EMA chains on top of an already-warm ratio EMA,
+  // so its first valid output lands at index ratioWindow + momentumWindow
+  // − 1 (after both seeds are full).
+  const ratioEma = ema(rotationRatio, momentumWindow);
+  const rotationMomentum = ratioEma.map((m, i) =>
+    m == null || !Number.isFinite(m) || m === 0 || rotationRatio[i] == null
+      ? null
+      : (rotationRatio[i] / m) * 100,
+  );
 
   // Pack outputs aligned to dates.
   const points = [];
@@ -326,6 +350,43 @@ function computeTail(series, benchByDate, benchDates, tail, stepConfig) {
   }
 
   return points.slice(-tail);
+}
+
+// Exponential moving average. Seeded with the SMA of the first `window`
+// valid samples (standard TA-Lib seeding) so the very first emitted EMA
+// value is unbiased rather than dominated by an arbitrary first observation.
+// Subsequent values use the canonical recurrence ema_t = α·v_t + (1−α)·ema_{t−1}
+// with α = 2/(window+1). Returns one entry per input position; positions
+// before the SMA seed completes hold null. Treats nulls as gaps — a missing
+// input at position i carries the previous EMA forward without updating it,
+// which preserves the time alignment with the input array even when a few
+// component bars are missing relative to the benchmark.
+function ema(values, window) {
+  if (window <= 1) return values.slice();
+  const alpha = 2 / (window + 1);
+  const out = new Array(values.length).fill(null);
+  let acc = null;
+  let seedCount = 0;
+  let seedSum = 0;
+  for (let i = 0; i < values.length; i++) {
+    const v = values[i];
+    const valid = v != null && Number.isFinite(v);
+    if (acc == null) {
+      if (!valid) continue;
+      seedCount += 1;
+      seedSum += v;
+      if (seedCount === window) {
+        acc = seedSum / window;
+        out[i] = acc;
+      }
+    } else {
+      if (valid) {
+        acc = v * alpha + acc * (1 - alpha);
+      }
+      out[i] = acc;
+    }
+  }
+  return out;
 }
 
 // ISO-week resampler. Collapses an ascending [{date, close}] daily series
@@ -352,24 +413,6 @@ function resampleWeekly(series) {
     byWeek.set(isoWeek(p.date), p);
   }
   return [...byWeek.values()];
-}
-
-// Z-score-style standardization centered at 100. Returns null for indices
-// where the rolling window doesn't have enough non-null samples.
-function standardize(values, window) {
-  const out = new Array(values.length).fill(null);
-  for (let i = window - 1; i < values.length; i++) {
-    const slice = values.slice(i - window + 1, i + 1).filter((v) => v != null && Number.isFinite(v));
-    if (slice.length < Math.floor(window * 0.7)) continue; // require ≥70% of window present
-    const mean = slice.reduce((a, b) => a + b, 0) / slice.length;
-    const sqDiff = slice.reduce((a, b) => a + (b - mean) ** 2, 0);
-    const sd = Math.sqrt(sqDiff / (slice.length - 1));
-    if (!Number.isFinite(sd) || sd === 0) continue;
-    const v = values[i];
-    if (v == null || !Number.isFinite(v)) continue;
-    out[i] = 100 + (v - mean) / sd;
-  }
-  return out;
 }
 
 function round(node, decimals) {

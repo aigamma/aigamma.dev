@@ -76,19 +76,19 @@ export default function App() {
           <p style={{ margin: '0 0 0.7rem' }}>
             <strong style={{ color: 'var(--text-primary)' }}>Top — Relative Sector Rotation.</strong>{' '}
             Each component lands on the plane at coordinates (rotation
-            ratio, rotation momentum). The ratio is a 100-centered
-            standardized score of the component's price relative to SPY
-            over a rolling window; the momentum is the same kind of
-            standardized score applied to the rate of change of the
-            ratio. The 1H · 1D · 1W toggle in the card's meta band
-            chooses the lookback granularity: Day uses a 63-day
-            normalization window with a 5-day momentum lookback (the
-            chart's default), Week resamples to ISO-week-end closes and
-            uses a 26-week / 2-week pair, and Hour requires intraday ETF
-            bars that are not yet ingested into Supabase. Values above
-            100 on the x-axis mean the component is leading SPY on
-            price; above 100 on the y-axis means it's gaining on that
-            lead.
+            ratio, rotation momentum). The ratio is the component's
+            relative-strength price ratio expressed as a percentage of
+            its own slow exponential moving average; the momentum is the
+            ratio expressed as a percentage of its own fast exponential
+            moving average. The 1H · 1D · 1W toggle in the card's meta
+            band chooses the lookback granularity: Day pairs a 63-day
+            ratio EMA with a 13-day momentum EMA (the canonical RRG
+            daily defaults), Week resamples to ISO-week-end closes and
+            uses a 13-week / 5-week EMA pair, and Hour requires
+            intraday ETF bars that are not yet ingested into Supabase.
+            Values above 100 on the x-axis mean the component is
+            leading SPY on price; above 100 on the y-axis means it's
+            gaining on that lead.
           </p>
           <p style={{ margin: '0 0 0.7rem' }}>
             Quadrants describe a typical clockwise rotation:{' '}
