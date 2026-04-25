@@ -76,17 +76,17 @@ const STEP_OPTIONS = [
   { id: 'week', short: '1W', long: 'Week' },
 ];
 
-// Tail-length presets. Five well-spaced values that bracket the visual
-// range a reader would want: 5 for a tight "where did we just come
-// from" snapshot, 10 to match the StockCharts /RRG® default, 20 for
-// roughly a month of motion in day mode (or five months in week mode),
-// 40 for a full quarter in day mode (long enough that the canonical
-// clockwise spiral starts to be visible on slow-moving sectors), and
-// 60 for the maximum the API allows — useful when watching a sector
-// trace a complete rotation through all four quadrants. Default
-// stays at 10 so the chart preserves its previous behavior for any
-// reader who doesn't touch the new toggle.
-const TAIL_OPTIONS = [5, 10, 20, 40, 60];
+// Tail-length presets. Three well-spaced values that bracket what the
+// chart can show without trail overlap turning the scatter into an
+// unreadable mess: 5 for a tight "where did we just come from"
+// snapshot, 10 to match the StockCharts /RRG® default, 15 for slightly
+// more directional context. Anything past 15 stacks too many
+// crisscrossing trails on top of each other given 14 components in
+// the universe — the longer-tail experiment that briefly shipped
+// 5/10/20/40/60 surfaced the visual-clutter problem and got cut down
+// to this tighter triplet. Default stays at 10 so the chart preserves
+// its previous behavior for any reader who doesn't touch the toggle.
+const TAIL_OPTIONS = [5, 10, 15];
 const DEFAULT_TAIL = 10;
 
 function RotationStepToggle({ step, onChange, disabled }) {

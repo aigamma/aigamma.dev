@@ -86,11 +86,12 @@ export default function App() {
             momentum EMA, Week resamples to ISO-week-end closes and uses
             a 13-week / 5-week EMA pair, Hour requires intraday ETF
             bars that are not yet ingested into Supabase) and the
-            5 · 10 · 20 · 40 · 60 toggle chooses the trail length —
-            longer trails surface the canonical clockwise rotation
-            spiral through Improving → Leading → Weakening → Lagging
-            that is barely visible at the StockCharts default of 10
-            steps. Day mode uses the StockCharts daily-RRG defaults
+            5 · 10 · 15 toggle chooses the trail length — longer
+            trails surface more of the directional motion through
+            Improving → Leading → Weakening → Lagging, but anything
+            past 15 stacks too many crisscrossing trails on top of
+            each other given 14 components in the universe. Day mode
+            uses the StockCharts daily-RRG defaults
             (63-day / 13-day pair = 3-month range); week mode uses
             their weekly-RRG defaults (52-week / 13-week = 1-year
             range). Component positions read close to but not exactly
