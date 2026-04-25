@@ -794,3 +794,95 @@
     height: 460px;
   }
 }
+
+/* Sector-performance bars (1D / 1W / 1M horizontal bar trio) on the
+   /rotations page. The card holds three Plotly horizontal bar charts
+   stacked vertically, each independently sorted by its own horizon. The
+   meta band on top mirrors the rotation card's meta band so the two
+   surfaces feel like vertically stacked siblings inside the same lab
+   rather than unrelated cards. Each panel gets its own min-height so
+   the eleven y-axis labels don't squish together vertically; on mobile
+   the panels shrink proportionally but the labels stay legible. */
+.sector-bars-card {
+  padding: 1rem 1.1rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 1.25rem;
+}
+
+.sector-bars__meta {
+  display: flex;
+  align-items: baseline;
+  gap: 0.7rem;
+  flex-wrap: wrap;
+  font-family: 'Courier New', monospace;
+  letter-spacing: 0.04em;
+  margin-bottom: 0.4rem;
+}
+
+.sector-bars__title {
+  font-size: 1.6rem;
+  color: var(--accent-blue);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+.sector-bars__meta-line {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.sector-bars__asof {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  margin-left: auto;
+}
+
+.sector-bars__panel {
+  width: 100%;
+}
+
+.sector-bars__chart {
+  width: 100%;
+  height: 360px;
+}
+
+.sector-bars__status {
+  padding: 4rem 1rem;
+  text-align: center;
+  color: var(--text-secondary);
+  font-family: 'Courier New', monospace;
+  font-size: 0.95rem;
+  letter-spacing: 0.04em;
+}
+
+.sector-bars__status--error {
+  color: var(--accent-coral);
+}
+
+.sector-bars__panel--error {
+  padding: 2rem 1rem;
+  text-align: center;
+  color: var(--accent-coral);
+  font-family: 'Courier New', monospace;
+  font-size: 0.85rem;
+}
+
+@media (max-width: 768px) {
+  .sector-bars__chart {
+    height: 320px;
+  }
+  .sector-bars__title {
+    font-size: 1.3rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .sector-bars__chart {
+    height: 280px;
+  }
+}
