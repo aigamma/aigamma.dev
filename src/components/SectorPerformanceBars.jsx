@@ -125,6 +125,16 @@ function buildPanelLayout(rows, panelTitle) {
     }),
     yaxis: plotlyAxis('', {
       autorange: 'reversed',
+      // Push the sector labels away from the axis line so they don't
+      // butt up against the start of the bars. ticks: 'outside' with a
+      // transparent tickcolor draws invisible 12-pixel tick marks that
+      // create the gap without showing actual tick chrome — Plotly has
+      // no direct "tick label padding" property, so this is the
+      // canonical way to add breathing room between category labels and
+      // the data area on a horizontal-bar chart.
+      ticks: 'outside',
+      ticklen: 12,
+      tickcolor: 'rgba(0,0,0,0)',
       tickfont: {
         family: PLOTLY_FONT_FAMILY,
         color: PLOTLY_COLORS.titleText,
