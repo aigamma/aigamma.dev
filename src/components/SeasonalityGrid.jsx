@@ -146,7 +146,6 @@ export default function SeasonalityGrid() {
   return (
     <div className="card seasonality-card">
       <div className="seasonality-meta">
-        <span className="seasonality-symbol">S&P 500 Index</span>
         <span className="seasonality-ticker">SPX</span>
         <span className="seasonality-asof">
           Through {formatDateLabel(payload.asOf)}

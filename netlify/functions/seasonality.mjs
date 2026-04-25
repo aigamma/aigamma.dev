@@ -7,9 +7,12 @@
 //
 //   - The 14 30-minute column times (09:30 → 16:00) that SPX RTH covers.
 //   - Individual rows for the N most recent trading days (default 8).
-//   - Rolling-day averages over the last 5, 10, 20, 30, 40 sessions,
-//     computed column-wise so each "40 Day Avg" cell is the average of
-//     that time-of-day's cumulative change across the last 40 sessions.
+//   - Rolling-day averages over the last 5, 10, 20, 30, 40, 60, 120, 252
+//     sessions (one week through one calendar year), computed column-wise
+//     so each "252 Day Avg" cell is the average of that time-of-day's
+//     cumulative change across the last 252 sessions. The 252-day window
+//     is the conventional "1 year" rolling baseline in equity seasonality
+//     work, exposing the long-run drift signal that shorter windows miss.
 //
 // Query params:
 //   days         — how many individual recent-day rows to include (default 8, max 30)
@@ -27,8 +30,16 @@
 const SUPABASE_TIMEOUT_MS = 8000;
 const DEFAULT_DAYS = 8;
 const MAX_DAYS = 30;
-const DEFAULT_AVG_WINDOWS = [5, 10, 20, 30, 40];
-const MAX_AVG_WINDOW = 60;
+const DEFAULT_AVG_WINDOWS = [5, 10, 20, 30, 40, 60, 120, 252];
+// 252 trading days ≈ one calendar year of NYSE sessions, the deepest
+// rolling baseline a seasonality reader typically wants. Cap above that
+// gates against accidentally-pathological queries; the function silently
+// truncates to available samples when the underlying backfill is shorter.
+const MAX_AVG_WINDOW = 252;
+// PostgREST silently caps a single response at 1000 rows regardless of
+// the ?limit= query param, so we page through with Range headers. A 252
+// day window at 14 bars/day is ~3528 rows, well above the cap.
+const PAGE_SIZE = 1000;
 
 async function fetchWithTimeout(url, options, label) {
   try {
@@ -86,14 +97,27 @@ export default async function handler(request) {
       limit: String(rowLimit),
     });
 
-    const barsRes = await fetchWithTimeout(
-      `${supabaseUrl}/rest/v1/spx_intraday_bars?${barsParams}`,
-      { headers },
-      'spx_intraday_bars',
-    );
-    if (!barsRes.ok) throw new Error(`spx_intraday_bars query failed: ${barsRes.status}`);
-    const barRows = await barsRes.json();
-    if (!Array.isArray(barRows) || barRows.length === 0) {
+    // Page through the bars via Range headers — PostgREST caps a single
+    // response at PAGE_SIZE rows even when ?limit= is larger, and the
+    // 252-day window needs ~3528 rows. Stop when a page returns fewer
+    // than PAGE_SIZE (last page) or when we hit the requested rowLimit.
+    const barRows = [];
+    for (let offset = 0; offset < rowLimit; offset += PAGE_SIZE) {
+      const end = Math.min(offset + PAGE_SIZE, rowLimit) - 1;
+      const pageRes = await fetchWithTimeout(
+        `${supabaseUrl}/rest/v1/spx_intraday_bars?${barsParams}`,
+        { headers: { ...headers, Range: `${offset}-${end}`, 'Range-Unit': 'items' } },
+        'spx_intraday_bars',
+      );
+      if (!pageRes.ok && pageRes.status !== 206) {
+        throw new Error(`spx_intraday_bars query failed: ${pageRes.status}`);
+      }
+      const page = await pageRes.json();
+      if (!Array.isArray(page) || page.length === 0) break;
+      barRows.push(...page);
+      if (page.length < end - offset + 1) break;
+    }
+    if (barRows.length === 0) {
       return jsonError(404, 'No spx_intraday_bars rows available');
     }
 

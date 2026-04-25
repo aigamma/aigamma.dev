@@ -520,17 +520,11 @@
   letter-spacing: 0.04em;
 }
 
-.seasonality-symbol {
-  font-size: 1rem;
-  color: var(--text-primary);
-  text-transform: uppercase;
-  font-weight: 700;
-}
-
 .seasonality-ticker {
-  font-size: 1rem;
+  font-size: 1.6rem;
   color: var(--accent-blue);
   font-weight: 700;
+  letter-spacing: 0.06em;
 }
 
 .seasonality-asof {
@@ -573,10 +567,11 @@
 
 .seasonality-grid thead th {
   background: rgba(255, 255, 255, 0.035);
-  color: var(--text-secondary);
+  color: var(--text-primary);
   font-size: 0.72rem;
   text-transform: uppercase;
   letter-spacing: 0.06em;
+  font-weight: 700;
   border-bottom: 1px solid var(--bg-card-border);
   position: sticky;
   top: 0;
