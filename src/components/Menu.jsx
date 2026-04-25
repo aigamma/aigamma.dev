@@ -19,7 +19,7 @@ const MENU_ITEMS = [
   { href: '/seasonality/',              label: '/seasonality/',   desc: 'SPX 30-minute intraday seasonality grid' },
   { href: '/stochastic/',               label: '/stochastic/',    desc: 'Heston, SABR, LSV, rough Bergomi' },
   { href: '/tactical/',                 label: '/tactical/',      desc: 'VRP, term structure, smile, RND, fixed-strike IV' },
-  { href: 'https://about.aigamma.com/', label: 'About This Page', desc: 'Portfolio and AI chatbot' },
+  { href: 'https://about.aigamma.com/', label: 'About This Page' },
 ];
 
 export default function Menu() {
@@ -145,7 +145,7 @@ export default function Menu() {
               onClick={() => close(false)}
             >
               <span className="menu-path">{item.label}</span>
-              <span className="menu-desc">{item.desc}</span>
+              {item.desc && <span className="menu-desc">{item.desc}</span>}
             </a>
           ))}
         </div>
