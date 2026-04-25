@@ -78,18 +78,21 @@ const DEFAULT_TAIL = 10;
 const MAX_TAIL = 60;
 
 // Per-step EMA windows for the canonical RRG formula. Day uses the
-// StockCharts daily-RRG default (63-day RS-Ratio EMA, 13-day
-// RS-Momentum EMA) so the rendered chart reads the same numbers as the
-// /i/RRG baseline.png reference. Week shrinks to 13/5 because a 2-year
-// daily backfill resamples to ~104 weekly samples and a 63-week EMA
-// would burn most of it as warm-up — 13 weeks (~quarter) for the slow
-// smoother and 5 weeks (~month) for the fast one capture the same
-// relative cycle structure on the weekly grid. Hour values are
-// placeholders; the step=hour branch returns 503 before they're
-// consulted because no intraday ETF table exists yet.
+// StockCharts daily-RRG default (63-day = 3-month RS-Ratio EMA, 13-day
+// RS-Momentum EMA) so the rendered chart reads the same numbers as
+// the /i/ daily baseline reference. Week mirrors the StockCharts
+// weekly-RRG default visible in the C:\i\weekly baseline.png settings
+// panel: Range = 1 year = 52 weekly samples for the slow smoother,
+// with a ~13-week momentum smoother on top. The 52-week ratio EMA is
+// at the edge of what 2 years of daily backfill can support — the SMA
+// seed consumes the first 52 weekly samples and the momentum EMA
+// consumes 13 more, leaving ~39 weeks of fully-warm output for the
+// visible tail. Hour values are placeholders; the step=hour branch
+// returns 503 before they're consulted because no intraday ETF table
+// exists yet.
 const STEP_CONFIG = {
   day:  { ratioWindow: 63, momentumWindow: 13, label: 'days' },
-  week: { ratioWindow: 13, momentumWindow: 5,  label: 'weeks' },
+  week: { ratioWindow: 52, momentumWindow: 13, label: 'weeks' },
   hour: { ratioWindow: 39, momentumWindow: 8,  label: 'hours' },
 };
 const DEFAULT_STEP = 'day';
@@ -163,20 +166,24 @@ export default async function handler(request) {
   };
 
   try {
-    // Pull enough trailing rows that each EMA has fully shaken off its
-    // SMA seed before the visible tail starts. EMA's seed weight decays
-    // by (1−k)^n where k = 2/(window+1); after 2*window samples the
-    // seed contributes ≈ 2.7%, which is small enough to treat the EMA
-    // as fully warm. The fast momentum EMA chains on top of the slow
-    // ratio EMA, so the effective warm-up is 2*ratioWindow +
-    // 2*momentumWindow periods, plus tail for the visible trail. Week
-    // mode multiplies that by ~5 to convert weekly periods into the
-    // calendar days that need to be present in daily_eod before
-    // resampling, plus a small slack for the resampler's last-day bias.
-    const minPeriods = 2 * stepConfig.ratioWindow + 2 * stepConfig.momentumWindow + tail + 5;
+    // Pull enough trailing rows that each EMA has at least one full
+    // window of valid samples to seed against. The SMA-seeded EMA in
+    // ema() is unbiased from its very first emitted value (the seed IS
+    // an unbiased mean estimator over `window` samples), so 1× window
+    // is the actual minimum for valid output rather than the more
+    // conservative 2× that "fully forgets the seed". The fast momentum
+    // EMA chains on top of the slow ratio EMA, so the warm-up is
+    // ratioWindow + momentumWindow periods, plus tail for the visible
+    // trail and a small buffer. Week mode multiplies that by ~7 to
+    // convert weekly periods into calendar days that need to be
+    // present in daily_eod before resampling — five trading days per
+    // week plus weekend slack — and the rowLimit caps at the size of
+    // our 2-year backfill (15 symbols × 501 days ≈ 7515 rows) so a
+    // request can't ask for more rows than the table holds.
+    const minPeriods = stepConfig.ratioWindow + stepConfig.momentumWindow + tail + 10;
     const periodToDayMultiplier = stepParam === 'week' ? 7 : 1;
     const minDays = minPeriods * periodToDayMultiplier;
-    const rowLimit = minDays * 20; // 15 symbols + headroom
+    const rowLimit = Math.min(minDays * 20, 16000); // 15 symbols + headroom, capped
 
     // Fetch all symbols' recent rows in one paged query, ordered newest-
     // first so we can slice trailing windows without sorting in JS later.
