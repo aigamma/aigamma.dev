@@ -5,21 +5,36 @@ import { useEffect, useMemo, useState } from 'react';
 // columns (10:00 through 4:00 in 30-minute steps), an averages section
 // showing rolling 5 / 10 / 20 / 30 / 40 day means at the top, and an
 // individual-days section below listing the N most recent trading
-// sessions. Each cell's background is a green / red wash whose
-// saturation scales with the absolute magnitude of the cell's value,
-// matching the visual language of the /c/i/ reference SPY grid.
+// sessions. Each cell's background is a deep, saturated dark green or
+// red whose lightness scales with the absolute magnitude of the cell's
+// value, calibrated so a single white numeric ink reads on every cell
+// with ≥6:1 contrast — passing WCAG AA across the full range.
 
-const GREEN = '#2ecc71';
-const CORAL = '#e74c3c';
-const CELL_NEUTRAL = 'rgba(255, 255, 255, 0.03)';
-// The "saturation anchor" — the value at which a cell reaches full
-// color intensity. 0.6% is typical for a well-scoped 30-min SPX move
-// on a normal trading day; anything above that caps out at full alpha.
-// This keeps the grid readable on most sessions without saturating on
-// every cell during a wide-range day.
+// The deep-color endpoints were picked for two properties simultaneously:
+// they're saturated enough to read as unambiguous "green/up" and
+// "red/down" hue cues, and dark enough that the cell never gets bright
+// enough to fight white text. Pure accent-green (#2ecc71) and
+// accent-coral (#e74c3c) sit at sRGB luminance ≈ 0.55 / 0.30, where
+// white-on-color drops to ~1.7:1 / ~3:1 — the reason the previous
+// gradient had to flip ink to dark on saturated cells. The new targets
+// land at luminance ≈ 0.118 / 0.066, giving white contrast 6.25:1 and
+// 9.05:1 respectively.
+const BG_NEUTRAL = { r: 20, g: 24, b: 32 }; // matches --bg-card #141820
+const GREEN_DEEP = { r: 15, g: 111, b: 55 }; // #0f6f37 — deep forest
+const RED_DEEP = { r: 140, g: 32, b: 48 }; //   #8c2030 — deep crimson
+
+// The "saturation anchor" — the value at which a cell reaches the
+// deepest shade. 0.6% is typical for a well-scoped 30-min SPX move on
+// a normal trading day; anything above that caps out, so wide-range
+// sessions don't paint every cell at full saturation.
 const MAG_ANCHOR_PCT = 0.6;
-const MIN_ALPHA = 0.1;
-const MAX_ALPHA = 0.7;
+// Floor and ceiling for the neutral→target interpolation factor. The
+// non-zero floor keeps even near-zero cells faintly tinted toward
+// their sign, so a glance at the grid still reads direction without
+// having to parse the number; the ceiling lands a full-magnitude cell
+// exactly on the deep target, preserving the AA contrast guarantee.
+const MIN_INTERP = 0.18;
+const MAX_INTERP = 1.0;
 
 function formatCell(pct) {
   if (pct == null || !Number.isFinite(pct)) return '—';
@@ -34,26 +49,21 @@ function formatCell(pct) {
 
 function cellStyle(pct) {
   if (pct == null || !Number.isFinite(pct)) {
-    return { background: CELL_NEUTRAL, color: 'var(--text-secondary)' };
+    // Missing-data cells: leave the card surface showing through, in
+    // muted secondary ink — matches the rest of the project's no-data
+    // treatment and signals "absent" rather than "zero".
+    return { background: 'transparent', color: 'var(--text-secondary)' };
   }
   const mag = Math.min(Math.abs(pct) / MAG_ANCHOR_PCT, 1);
-  const alpha = MIN_ALPHA + (MAX_ALPHA - MIN_ALPHA) * mag;
-  const base = pct >= 0 ? GREEN : CORAL;
+  const t = MIN_INTERP + (MAX_INTERP - MIN_INTERP) * mag;
+  const target = pct >= 0 ? GREEN_DEEP : RED_DEEP;
+  const r = Math.round(BG_NEUTRAL.r + (target.r - BG_NEUTRAL.r) * t);
+  const g = Math.round(BG_NEUTRAL.g + (target.g - BG_NEUTRAL.g) * t);
+  const b = Math.round(BG_NEUTRAL.b + (target.b - BG_NEUTRAL.b) * t);
   return {
-    background: hexToRgba(base, alpha),
-    // Keep the numeric text legible on the saturated side by flipping
-    // to a dark ink rather than leaving the default light text fighting
-    // a darker background; only flips at the top end of saturation.
-    color: alpha > 0.55 ? '#0d1016' : 'var(--text-primary)',
+    background: `rgb(${r}, ${g}, ${b})`,
+    color: '#ffffff',
   };
-}
-
-function hexToRgba(hex, alpha) {
-  const h = hex.replace('#', '');
-  const r = parseInt(h.slice(0, 2), 16);
-  const g = parseInt(h.slice(2, 4), 16);
-  const b = parseInt(h.slice(4, 6), 16);
-  return `rgba(${r}, ${g}, ${b}, ${alpha.toFixed(3)})`;
 }
 
 // M/D/YYYY rendering to match the reference grid. The row label is
