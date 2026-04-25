@@ -104,14 +104,15 @@ function buildPanelLayout(rows, panelTitle) {
 
   return plotly2DChartLayout({
     title: {
-      text: `<b>${panelTitle}</b>`,
-      // Larger and bold — the panel headers were getting lost under the
-      // sector-bars meta band; bumping to 26px bold puts them on equal
-      // footing with the .sector-bars__title at the top of the card.
+      text: panelTitle,
+      // 26px non-bold. The thin Courier-New stroke at this size reads as
+      // a clear header without the chunkier silhouette the bold variant
+      // produced — bold made the title feel heavier than the eleven
+      // sector labels under it, which fought for visual primacy.
       font: { family: PLOTLY_FONT_FAMILY, color: PLOTLY_COLORS.titleText, size: 26 },
       x: 0.5,
       xanchor: 'center',
-      y: 0.97,
+      y: 0.99,
       yanchor: 'top',
     },
     xaxis: plotlyAxis('', {
@@ -130,7 +131,7 @@ function buildPanelLayout(rows, panelTitle) {
         size: 12,
       },
     }),
-    margin: { t: 64, r: 70, b: 40, l: 170 },
+    margin: { t: 44, r: 70, b: 40, l: 170 },
     hovermode: 'closest',
     bargap: 0.25,
   });
