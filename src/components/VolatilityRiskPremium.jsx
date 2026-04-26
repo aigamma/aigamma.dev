@@ -253,7 +253,6 @@ export default function VolatilityRiskPremium({ spotPrice, capturedAt }) {
       yaxis: 'y',
       name: '<b>SPX</b>',
       hovertemplate: '%{x}<br>SPX: %{y:,.2f}<extra></extra>',
-      visible: traceVisibility.SPX ? true : 'legendonly',
     };
 
     // VRP shading is one closed-polygon trace per contiguous same-sign
@@ -279,7 +278,6 @@ export default function VolatilityRiskPremium({ spotPrice, capturedAt }) {
       yaxis: 'y2',
       name: `<span style="color: ${RV_COLOR}"><b>Realized Vol (20d YZ)</b></span>`,
       hovertemplate: '%{x}<br>RV: %{y:.2f}%<extra></extra>',
-      visible: traceVisibility.RV ? true : 'legendonly',
     };
     const ivLine = {
       x: series.map((r) => r.trading_date),
@@ -290,7 +288,6 @@ export default function VolatilityRiskPremium({ spotPrice, capturedAt }) {
       yaxis: 'y2',
       name: '<b>Implied Vol (30d CM)</b>',
       hovertemplate: '%{x}<br>IV: %{y:.2f}%<extra></extra>',
-      visible: traceVisibility.IV ? true : 'legendonly',
     };
 
     // VIX trace — Cboe-published 30d implied vol on SPX, sourced via the
@@ -310,31 +307,33 @@ export default function VolatilityRiskPremium({ spotPrice, capturedAt }) {
       yaxis: 'y2',
       name: `<span style="color: ${VIX_COLOR}"><b>VIX</b></span>`,
       hovertemplate: '%{x}<br>VIX: %{y:.2f}<extra></extra>',
-      visible: traceVisibility.VIX ? true : 'legendonly',
     };
 
     // Trace order encodes z-order in Plotly: later traces render on top of
     // earlier ones. The SPX area fill stays first so it sits behind the VRP
     // ribbon as context background, but the SPX line itself is pushed to the
     // END of the list so it renders on top of the RV/IV/VIX lines and the
-    // VRP polygons wherever their paths cross. The chart's default y-axis
-    // layout keeps SPX pinned to the upper ~15-20% of the frame (spxLo
-    // anchored at 0.95x the full-backfill min, which sits well below any
-    // recent SPX level), so collisions with the IV/RV/VIX ribbon are
-    // uncommon — but when the ribbon expands into the upper band on a
-    // high-vol session or SPX dips into the ribbon on a drawdown, the blue
-    // line stays clearly visible as the primary price reference rather than
-    // getting visually buried under the colored vol lines. VIX sits between
-    // the VRP polygons and the chain-derived IV/RV pair so the chain
-    // measurements remain on top — VIX is the reference, IV/RV is the
-    // primary content.
+    // VRP polygons wherever their paths cross. VIX sits between the VRP
+    // polygons and the chain-derived IV/RV pair so the chain measurements
+    // remain on top — VIX is the reference, IV/RV is the primary content.
+    //
+    // Each toggleable trace is included via spread+conditional so the array
+    // contains only the traces the reader has asked to see. An earlier
+    // version used Plotly's `visible: 'legendonly'` mechanism but Plotly.react
+    // wasn't reliably picking up visibility transitions when the legend
+    // itself was suppressed (showlegend: false), leaving toggled-on traces
+    // invisible after the click — readers couldn't enable VIX even though
+    // the toggle button was firing the state update. Conditional inclusion
+    // avoids the visibility-vs-legend interaction entirely. The y-axis
+    // range computation below uses ALL series (regardless of visibility) so
+    // the chart doesn't jump when a trace is added or removed.
     const traces = [
-      spxAreaTrace,
+      ...(traceVisibility.SPX ? [spxAreaTrace] : []),
       ...vrpTraces,
-      vixLine,
-      rvLine,
-      ivLine,
-      spxLineTrace,
+      ...(traceVisibility.VIX ? [vixLine] : []),
+      ...(traceVisibility.RV ? [rvLine] : []),
+      ...(traceVisibility.IV ? [ivLine] : []),
+      ...(traceVisibility.SPX ? [spxLineTrace] : []),
     ];
 
     // Vol axis is windowed to the active zoom (unlike the SPX axis, which
