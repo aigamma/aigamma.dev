@@ -104,26 +104,34 @@ export default function App() {
             Each upcoming earnings release on the next five trading
             days is plotted as a single dot. The horizontal axis is the
             calendar date the company reports; the vertical axis is the
-            options-market implied move — the magnitude of the move
-            implied by the at-the-money straddle on the soonest listed
-            expiration after the earnings date. A 5% implied move means
-            the options market is pricing a one-standard-deviation
-            absolute return of roughly ±5% by the expiration, regardless
-            of direction. Color encodes the reporting session: blue for
-            Before Market Open, coral for After Market Close, gray for
-            unconfirmed. Hover any dot for the full per-ticker profile.
+            options-market implied range as a percent of spot. The
+            implied range is the 0.85-scaled at-the-money straddle
+            midprice on the soonest expiration that captures the
+            earnings event — same-day or later for Before-Open
+            reporters, next-day or later for After-Close reporters,
+            since same-day options settle at 4 PM ET before an
+            after-close release. The 0.85 factor is the SpotGamma
+            convention; it scales raw straddle premium down to the
+            empirically-realized post-event one-standard-deviation
+            range. Color encodes the reporting session: blue for Before
+            Market Open, coral for After Market Close, gray for
+            unconfirmed. Hover any dot for the full per-ticker profile,
+            including the dollar implied range, the ATM strike, and
+            the straddle expiration.
           </p>
           <p style={{ margin: '0 0 0.7rem' }}>
-            Implied moves are computed server-side from the Massive
-            options snapshot, choosing the soonest listed expiration on
-            or after the earnings date and the strike nearest spot for
-            both the call and the put. The preferred formula is
-            (ATM call mid + ATM put mid) / spot. When stale or zero
-            quotes prevent the straddle calculation we fall back to
-            ATM IV × √(DTE / 365), the vol-scaled approximation that
-            the same options chain implies. Tickers with neither path
-            available drop to the bottom of the chart and surface only
-            in hover detail.
+            Implied range is computed server-side from the Massive
+            options snapshot. For each ticker we identify the soonest
+            listed expiration that captures the earnings event (gated
+            by reporting session as above), then pick the single strike
+            nearest spot that has both a call and a put listed at that
+            expiration, and compute 0.85 × (call mid + put mid). When
+            the ATM strike has no usable bid/ask or last-trade price on
+            either leg, the ticker drops off the chart — earnings
+            concentrate options liquidity, so a missing ATM mid is a
+            strong signal that the data is unreliable for that ticker
+            on this snapshot rather than a sign that we should fall
+            back to a less direct estimate.
           </p>
           <p style={{ margin: 0 }}>
             The four-week upcoming grid below the chart lists every

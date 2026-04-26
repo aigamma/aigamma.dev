@@ -379,7 +379,7 @@ function ScatterChart({ chartDays, containerWidth, impliedMovesLive, impliedMove
           fontSize={11}
           fill="#9aa6c2"
         >
-          Earnings implied move (%)
+          Implied range (%)
         </text>
 
         {/* X axis title */}
@@ -543,8 +543,9 @@ function ChartTooltip({ ticker: t, style }) {
         {t.company}
       </div>
       <TooltipRow label="Reports" value={formatLongDate(t.isoDate)} />
-      <TooltipRow label="Implied move" value={formatPctMove(t.impliedMove)} highlight />
-      <TooltipRow label="Method" value={t.impliedMoveMethod === 'straddle' ? 'ATM straddle / spot' : t.impliedMoveMethod === 'iv' ? 'ATM IV × √(DTE/365)' : '—'} subtle />
+      <TooltipRow label="Implied range" value={t.impliedRange != null ? `±$${Number(t.impliedRange).toFixed(2)}` : '—'} highlight />
+      <TooltipRow label="Implied move" value={formatPctMove(t.impliedMove)} subtle />
+      <TooltipRow label="ATM straddle" value={t.straddleMid != null ? `$${Number(t.straddleMid).toFixed(2)}` : '—'} subtle />
       <TooltipRow label="Spot" value={t.spot != null ? `$${Number(t.spot).toFixed(2)}` : '—'} />
       <TooltipRow label="ATM strike" value={t.straddleStrike != null ? `$${Number(t.straddleStrike).toFixed(2)}` : '—'} subtle />
       <TooltipRow label="ATM IV" value={formatPctVol(t.atmIv)} subtle />
