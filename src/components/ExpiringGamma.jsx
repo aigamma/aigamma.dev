@@ -271,7 +271,7 @@ export default function ExpiringGamma() {
           <>
             <span style={{ opacity: 0.4 }}>·</span>
             <span>
-              <span style={{ color: 'var(--text-secondary)' }}>Auto-zoomed to next AM OPEX</span>
+              <span style={{ color: 'var(--text-secondary)' }}>Auto-zoomed to next ~100 days · next AM OPEX</span>
               {' '}
               <span className="expiring-gamma-totals__value">{data.nextAmExpiration}</span>
             </span>

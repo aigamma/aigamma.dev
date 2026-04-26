@@ -315,24 +315,35 @@ export default async function handler() {
     const totalCallGamma = expirations.reduce((s, e) => s + (e.callGammaNotional || 0), 0);
     const totalPutGamma = expirations.reduce((s, e) => s + (e.putGammaNotional || 0), 0);
 
-    // Next AM-settled monthly OPEX. The chart's default visible
-    // window auto-zooms to span [tradingDate, nextAmExpiration + 7
-    // calendar days] so the largest near-term roll-off is centered
-    // in the initial view. The rangeslider underneath the chart
-    // still shows the full data range, so a reader can pan back out
-    // to LEAPS-style horizons (when the ingest pipeline eventually
-    // captures them) without losing the auto-zoom default.
+    // Default visible x-axis window: a fixed 100-calendar-day forward
+    // span starting at the trading date. The rangeslider underneath
+    // the chart still shows the full data range, so a reader can pan
+    // back out to LEAPS-style horizons (when the ingest pipeline
+    // eventually captures them) without losing the auto-zoom default.
     //
-    // The 7-calendar-day right-side cushion lands one weekly past
-    // the monthly OPEX on the chart so the OPEX bar is not jammed
-    // against the right edge of the visible window. If trading_date
-    // is null (degenerate run header that somehow passed the spot-
-    // price guard above), we omit the field and the client falls
-    // through to the natural full-data range.
+    // 100 days is wide enough to always include the next AM-settled
+    // monthly OPEX (3rd-Friday SPX, holiday-adjusted — never more
+    // than ~35 days out) while also covering the next 2-3 monthly
+    // OPEX dates and the front-month wall of weeklies, so the
+    // reader's first read of the page lands on the entire near-term
+    // roll-off cluster rather than one specific date.
+    //
+    // A fixed-width window is more robust than the prior
+    // [tradingDate, nextAmExpiration + N-day cushion] formulation,
+    // which produced a tight window in the days immediately before
+    // an OPEX (when nextAmExpiration was only 1-3 days out) and
+    // jammed the largest bar against the right edge of the visible
+    // range. nextAmExpiration is still computed and surfaced in the
+    // payload so the meta line on the client can call it out, but
+    // it no longer drives the window endpoint.
+    //
+    // If trading_date is null (degenerate run header that somehow
+    // passed the spot-price guard above), we omit defaultWindow and
+    // the client falls through to the natural full-data range.
     const tradingDate = run.trading_date || null;
     const nextAmExpiration = tradingDate ? nextAmExpirationIso(tradingDate) : null;
-    const defaultWindow = tradingDate && nextAmExpiration
-      ? { start: tradingDate, end: addCalendarDaysIso(nextAmExpiration, 7) }
+    const defaultWindow = tradingDate
+      ? { start: tradingDate, end: addCalendarDaysIso(tradingDate, 100) }
       : null;
 
     const payload = {
