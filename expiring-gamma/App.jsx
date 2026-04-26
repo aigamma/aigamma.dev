@@ -39,7 +39,7 @@ export default function App() {
             title="Expiring Gamma · per-expiration call / put dollar gamma scheduled to expire at current spot"
           >
             <span className="lab-badge__desktop-text">Expiring Gamma</span>
-            <span className="lab-badge__mobile-text">Expiring γ</span>
+            <span className="lab-badge__mobile-text">Expiring Gamma</span>
           </span>
         </div>
         <TopNav />
@@ -108,7 +108,7 @@ export default function App() {
 
       <footer className="lab-footer">
         <span className="lab-footer-line">
-          AI Gamma · Expiring Gamma · per-expiration γ scheduled to roll off · v0.1.1
+          AI Gamma · Expiring Gamma · per-expiration gamma scheduled to roll off · v0.1.2
         </span>
         <a href="/" className="lab-footer-home">Return Home</a>
       </footer>
