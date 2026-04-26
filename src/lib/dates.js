@@ -43,12 +43,37 @@ export function daysToExpiration(expirationDate, capturedAt) {
   return Math.max(0, diffDays);
 }
 
-// True when the ISO date falls on the 3rd Friday of its calendar month
-// (Friday with day-of-month 15..21), which is the settlement anchor for
-// standard AM-settled SPX monthly options. Used by expiration-picker logic
-// that needs to prefer monthlies over SPXW weeklies.
+// Months where the SPX AM-settled monthly expires on the Thursday before the
+// nominal 3rd Friday because that Friday is a US market holiday (Good
+// Friday or observed Juneteenth). Without this set, the 3rd-Friday-only
+// heuristic below would mis-classify those Thursdays as PM weeklies and
+// silently exclude them from the monthly picker — pushing the default a
+// full month past the genuine SPX AM monthly. Maintained manually rather
+// than computed from an Easter algorithm + Juneteenth observance rules
+// because the holiday-overlap pattern is sparse (~1 entry every 1-2 years)
+// and a small explicit table is easier to audit than two pages of date
+// arithmetic. Add a year as 3rd Friday holidays approach.
+const SPX_THURSDAY_MONTHLIES = new Set([
+  '2025-04-17', // Good Friday on 3rd Friday April 18, 2025
+  '2026-06-18', // Juneteenth Friday June 19, 2026
+  '2027-06-17', // Juneteenth observed Friday June 18, 2027 (June 19 falls on Saturday)
+  '2030-04-18', // Good Friday on 3rd Friday April 19, 2030
+  '2032-06-17', // Juneteenth observed Friday June 18, 2032 (June 19 falls on Saturday)
+  '2033-04-14', // Good Friday on 3rd Friday April 15, 2033
+  '2037-06-18', // Juneteenth Friday June 19, 2037
+]);
+
+// True when the ISO date is an AM-settled standard SPX monthly expiration:
+// either the 3rd Friday of its calendar month (Friday with day-of-month
+// 15..21), or — when that Friday is a US market holiday — the Thursday
+// before it (see SPX_THURSDAY_MONTHLIES above). Used by expiration-picker
+// logic that needs to prefer monthlies over SPXW weeklies. The function
+// keeps the historical name to avoid churning the 15+ call sites; the
+// name describes the *intent* (identify the 3rd-Friday SPX monthly) even
+// when the actual settlement falls on the prior Thursday.
 export function isThirdFridayMonthly(iso) {
   if (!iso) return false;
+  if (SPX_THURSDAY_MONTHLIES.has(iso)) return true;
   const d = new Date(`${iso}T12:00:00Z`);
   if (Number.isNaN(d.getTime())) return false;
   if (d.getUTCDay() !== 5) return false;
@@ -69,15 +94,19 @@ export function filterPickerExpirations(expirations, capturedAt) {
   return expirations.filter((exp) => exp !== todayIso);
 }
 
-// Choose the default expiration for the metrics panel: the 3rd-Friday
-// AM-settled SPX monthly closest to 30 DTE, preferring one that is at
-// least 21 DTE from the snapshot. Falls back to nearest monthly > 14 DTE,
-// then to the first element. 3rd-Friday monthlies are the most liquid
-// SPX expirations and the primary institutional hedging vehicles, so
+// Choose the default expiration for the metrics panel: the AM-settled
+// SPX monthly closest to 30 DTE, preferring one that is at least 21 days
+// out (rounded). Falls back to the nearest-to-30 monthly with no floor,
+// then to the first element. AM monthlies are the most liquid SPX
+// expirations and the primary institutional hedging vehicles, so
 // anchoring the default there gives stable ATM IV, Expected Move, and
-// 25Δ readings. Requiring DTE ≥ 21 keeps the default from drifting onto
-// the current monthly in its final settlement week where the term
-// structure can steepen sharply.
+// 25Δ readings. Requiring rounded DTE ≥ 21 keeps the default from
+// drifting onto the current monthly in its final settlement week where
+// the term structure can steepen sharply. The DTE is rounded before the
+// floor check so a snapshot captured a half-hour past the 16:00 ET cash
+// close on a Friday three weeks before the next monthly (DTE = 20.98
+// raw) still passes — without rounding the floor would silently kick
+// the picker out to the *next* monthly (~55 DTE) or further.
 export function pickDefaultExpiration(expirations, capturedAt) {
   if (!expirations?.length) return null;
   const capturedMs = capturedAt ? new Date(capturedAt).getTime() : NaN;
@@ -90,20 +119,24 @@ export function pickDefaultExpiration(expirations, capturedAt) {
   });
 
   const monthlies = withDte.filter((x) => isThirdFridayMonthly(x.exp));
+  if (monthlies.length === 0) return expirations[0];
 
-  const primary = monthlies.filter((x) => x.dte >= 21);
+  const primary = monthlies.filter((x) => Math.round(x.dte) >= 21);
   if (primary.length > 0) {
     primary.sort((a, b) => Math.abs(a.dte - 30) - Math.abs(b.dte - 30));
     return primary[0].exp;
   }
 
-  const fallback = monthlies.filter((x) => x.dte > 14);
-  if (fallback.length > 0) {
-    fallback.sort((a, b) => a.dte - b.dte);
-    return fallback[0].exp;
-  }
-
-  return expirations[0];
+  // No monthly is ≥ 21 DTE rounded — happens for ~1 week per cycle,
+  // between the current monthly's settlement week and the moment the
+  // next monthly clears the floor. Pick the closest AM monthly to 30
+  // DTE regardless of side, which favors the next monthly (always
+  // present in the picker, typically 25-30 DTE in this window) over
+  // the current monthly's last few days (single-digit DTE).
+  const sorted = [...monthlies].sort(
+    (a, b) => Math.abs(a.dte - 30) - Math.abs(b.dte - 30)
+  );
+  return sorted[0].exp;
 }
 
 export function formatFreshness(isoString) {
