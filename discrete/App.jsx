@@ -78,10 +78,10 @@ export default function App() {
           </a>
           <span
             className="lab-badge"
-            title="Discrete &amp; Parametric Vol Lab · binomial · trinomial · SVI raw · SVI natural · SVI-JW · SSVI"
+            title="Discrete Vol · binomial · trinomial · SVI raw · SVI natural · SVI-JW · SSVI"
           >
-            <span className="lab-badge__desktop-text">Discrete &amp; Parametric Vol Lab</span>
-            <span className="lab-badge__mobile-text">Discrete</span>
+            <span className="lab-badge__desktop-text">Discrete Vol</span>
+            <span className="lab-badge__mobile-text">Discrete Vol</span>
           </span>
         </div>
         <TopNav />

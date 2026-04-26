@@ -72,9 +72,9 @@ export default function App() {
           </a>
           <span
             className="lab-badge"
-            title="Jump Lab · Merton, Kou, Bates SVJ, Variance Gamma"
+            title="Jump Diffusion · Merton, Kou, Bates SVJ, Variance Gamma"
           >
-            <span className="lab-badge__desktop-text">Jump Lab</span>
+            <span className="lab-badge__desktop-text">Jump Diffusion</span>
             <span className="lab-badge__mobile-text">Jump</span>
           </span>
         </div>
