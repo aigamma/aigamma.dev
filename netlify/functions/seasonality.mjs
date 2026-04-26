@@ -530,31 +530,70 @@ async function handleWeekly(url, supabaseUrl, headers) {
 
 // ── helpers ─────────────────────────────────────────────────────────────
 
-// Pages through daily_volatility_stats via Range headers because
-// PostgREST caps a single response at 1000 rows. The full table is
-// ~1100 rows today and grows by one per trading day, so anything
-// covering "all available history" needs at least two pages.
+// Pages through daily_volatility_stats AND spx_intraday_bars (15:30 bar)
+// via Range headers, then unions the two close series so the most-recent
+// trading days are present even when the EOD backfill lags the intraday
+// backfill. Both tables are paged because PostgREST caps a single
+// response at 1000 rows — daily_volatility_stats is ~1100 rows today and
+// the intraday 15:30 slice is the same row count, so anything covering
+// "all available history" needs at least two pages.
+//
+// Source priority: daily_volatility_stats.spx_close is ThetaData's
+// canonical CBOE EOD close and the preferred source. spx_intraday_bars
+// at bucket_time = '15:30:00' is the 16:00:00 index tick (the close OF
+// the 15:30-16:00 bar). The two diverge by ~$5 / 0.1% on average
+// because the official close incorporates the closing-auction print
+// while the tick is the spot value at the bell — close enough for a
+// seasonality grid where the question is "did the day go up or down,
+// and how much", and worth the trade-off because the EOD backfill can
+// lag the intraday backfill by 1-3 sessions, which would otherwise
+// paint freshly-traded weekdays as 'holiday' in the DAILY view.
 async function fetchDailyClose(supabaseUrl, headers, fromIso, toIso) {
-  const params = new URLSearchParams({
-    select: 'trading_date,spx_close',
-    order: 'trading_date.asc',
-    trading_date: `gte.${fromIso}`,
-  });
-  params.append('trading_date', `lte.${toIso}`);
+  const dvsRows = await pageRange(
+    supabaseUrl, headers,
+    `daily_volatility_stats?select=trading_date,spx_close&order=trading_date.asc&trading_date=gte.${fromIso}&trading_date=lte.${toIso}`,
+    'daily_volatility_stats',
+  );
+  const sibRows = await pageRange(
+    supabaseUrl, headers,
+    `spx_intraday_bars?select=trading_date,spx_close&bucket_time=eq.15:30:00&order=trading_date.asc&trading_date=gte.${fromIso}&trading_date=lte.${toIso}`,
+    'spx_intraday_bars',
+  );
+
+  // Combine: intraday tick fills first, dvs canonical close overwrites
+  // where present. The order of the two writes matters — dvs must come
+  // second so a date present in both ends up with the official close.
+  const closeByDate = new Map();
+  for (const r of sibRows) {
+    if (r.spx_close == null) continue;
+    const v = Number(r.spx_close);
+    if (Number.isFinite(v) && v > 0) closeByDate.set(r.trading_date, v);
+  }
+  for (const r of dvsRows) {
+    if (r.spx_close == null) continue;
+    const v = Number(r.spx_close);
+    if (Number.isFinite(v) && v > 0) closeByDate.set(r.trading_date, v);
+  }
+  return [...closeByDate.entries()]
+    .sort((a, b) => a[0].localeCompare(b[0]))
+    .map(([trading_date, spx_close]) => ({ trading_date, spx_close }));
+}
+
+async function pageRange(supabaseUrl, headers, queryPath, label) {
   const out = [];
   for (let offset = 0; ; offset += PAGE_SIZE) {
     const end = offset + PAGE_SIZE - 1;
     const res = await fetchWithTimeout(
-      `${supabaseUrl}/rest/v1/daily_volatility_stats?${params}`,
+      `${supabaseUrl}/rest/v1/${queryPath}`,
       { headers: { ...headers, Range: `${offset}-${end}`, 'Range-Unit': 'items' } },
-      'daily_volatility_stats',
+      label,
     );
     if (!res.ok && res.status !== 206) {
-      throw new Error(`daily_volatility_stats query failed: ${res.status}`);
+      throw new Error(`${label} query failed: ${res.status}`);
     }
     const page = await res.json();
     if (!Array.isArray(page) || page.length === 0) break;
-    for (const r of page) if (r.spx_close != null) out.push(r);
+    out.push(...page);
     if (page.length < PAGE_SIZE) break;
   }
   return out;
