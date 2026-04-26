@@ -489,7 +489,7 @@ export default function SlotC() {
 
     const layout = plotly2DChartLayout({
       title: {
-        ...plotlyTitle('Vanna-Volga smile reconstruction · SPX'),
+        ...plotlyTitle('Vanna-Volga Smile Reconstruction'),
         y: 0.97,
         yref: 'container',
         yanchor: 'top',
