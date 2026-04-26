@@ -205,6 +205,21 @@ body {
   line-height: 1.4;
 }
 
+/* Wrapper anchor for the main dashboard's upper-left logo image. The
+   anchor links to about.aigamma.com so a desktop reader can click the
+   brand mark to reach the bio site. The display: block pulls the
+   anchor out of the inline-baseline rendering of its (single, block)
+   img child so the logo sits on the same horizontal centerline as the
+   regime badge sibling inside the brand cluster. The 768px block
+   below sets display: none on this class so the logo drops out of
+   the flex row at phone widths and the new TopNav buttons inherit
+   the freed horizontal space. The off-site About destination remains
+   reachable from mobile via the "About This Page" entry in the
+   Menu dropdown. */
+.site-logo-link {
+  display: block;
+}
+
 /* ===== TOP NAV =====
    Promoted lab buttons (Tactical Vol, Seasonality, Rotations) that
    live in every page header beside the Menu trigger. Outlined
@@ -673,6 +688,21 @@ body {
 
   .top-nav__mobile-text {
     display: inline;
+  }
+
+  /* Drop the upper-left logo on the main dashboard at phone widths
+     so the new TopNav buttons (Tactical Vol, Seasonality, Rotations)
+     inherit the freed horizontal space. The brand cluster on the
+     left collapses to just the regime indicator (the small dynamic
+     favicon rendered by .regime-badge-mobile), which is the
+     functional UI element the reader needs at-a-glance — the static
+     brand mark adds no information at mobile widths and was the
+     largest single contributor to the header crowding. The off-site
+     About link the logo wrapped is still reachable through the
+     "About This Page" entry pinned to the bottom of the Menu
+     dropdown. */
+  .site-logo-link {
+    display: none;
   }
 
   .chat-body { max-height: 60vh; }

@@ -434,7 +434,7 @@ export default function App() {
             orphaned TopNav in the middle of the row once a third
             sibling (Menu) was on the right. */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap', marginRight: 'auto' }}>
-          <a href="https://about.aigamma.com/" style={{ display: 'block' }}>
+          <a href="https://about.aigamma.com/" className="site-logo-link">
             <img
               src="/logo.webp"
               alt="aigamma.com"

@@ -317,6 +317,26 @@
     padding: 0 0.75rem;
   }
 
+  /* Drop the upper-left logo at phone widths so the new TopNav
+     buttons (Tactical Vol, Seasonality, Rotations) inherit the
+     freed horizontal space. The lab-brand cluster on the left
+     collapses to just the .lab-badge that names the lab — the
+     functional identifier the reader needs in context, while the
+     static brand mark adds no information at mobile widths and was
+     the largest single contributor to the header crowding once the
+     three top-nav buttons joined the right-side cluster. The Return
+     Home button + the bolded footer link still cover the
+     navigation-back-to-home affordance the logo previously
+     supplied. .lab-logo-link is the wrapper anchor (now used on
+     every lab entry, including the formerly inline-styled alpha /
+     beta / dev / discrete / stochastic anchors that picked up the
+     class as part of the same change); hiding the wrapper rather
+     than just the inner img drops the entire flex item out of the
+     row so no orphan gap is reserved on the left. */
+  .lab-logo-link {
+    display: none;
+  }
+
   .lab-logo {
     height: 2.8rem;
   }
