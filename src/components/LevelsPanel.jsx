@@ -159,7 +159,7 @@ function Divider() {
 
 const ROW_GRID_CLASS = 'levels-row';
 
-export default function LevelsPanel({ levels, spotPrice, prevClose, expirationMetrics, prevExpirationMetrics, expirations, selectedExpiration, onExpirationChange, capturedAt, vrpMetric, overnightAlignment, isSynthetic }) {
+export default function LevelsPanel({ levels, spotPrice, prevClose, expirationMetrics, prevExpirationMetrics, expirations, selectedExpiration, onExpirationChange, capturedAt, vrpMetric, overnightAlignment, isSynthetic, regimeIndicator }) {
   if (!levels) {
     return (
       <div className="card text-muted" style={{ marginBottom: '1rem' }}>
@@ -206,26 +206,31 @@ export default function LevelsPanel({ levels, spotPrice, prevClose, expirationMe
   return (
     <div className="card" style={{ marginBottom: '1rem' }}>
       {/* Top strip of the card: the aigamma wordmark logo on the
-          left, the "Last Updated:" freshness text centered, and an
-          empty 1fr cell on the right. The logo lives here rather than
-          in the upper-left of the page header because in the header
-          it sat inside an <a href="https://about.aigamma.com/">
-          wrapper that turned out to be an accidental clicktrap — a
-          reader scanning the chrome for page identity would click
-          the wordmark and bounce off the live dashboard onto the
-          self-promotional portfolio page. Inside this card the logo
-          is a plain <img> with no anchor, so the brand identity
-          remains visible without functioning as a navigation link.
+          left, the dealer-gamma regime indicator (favicon +
+          "Gamma" / "Near Flip" text) immediately to its right,
+          the "Last Updated:" freshness text centered, and an empty
+          1fr cell on the right. Both the logo and the regime
+          indicator used to live in the upper-left of the page
+          header — the logo wrapped in an <a href="https://about.aigamma.com/">
+          (an accidental clicktrap), the regime indicator inside an
+          identically-shaped outlined pill that visually read as a
+          sixth top-nav button but actually navigated to about.aigamma.com
+          instead of behaving like a navigation button. Both were
+          relocated here as static (non-link) elements so the brand
+          and regime signals stay visible without competing with the
+          real navigation chrome above and without functioning as
+          surprise links.
 
           The 1fr / auto / 1fr grid keeps the freshness text
           horizontally centered in the card regardless of the
-          logo's intrinsic width — the auto-sized middle column
-          locks to the freshness span, and the symmetric 1fr
-          columns on either side absorb the remainder. The strip
-          always renders so the logo is visible even before the
-          freshness data resolves; on first render (no freshness
-          yet) the middle and right cells are empty placeholders
-          but the logo's left-edge position is preserved. */}
+          logo+pill cluster's intrinsic width — the auto-sized
+          middle column locks to the freshness span, and the
+          symmetric 1fr columns on either side absorb the remainder.
+          The strip always renders so the logo is visible even
+          before the freshness data resolves; the regime indicator
+          renders only when the regime classification is available
+          (it depends on data the LevelsPanel only receives once a
+          payload has been fetched). */}
       <div
         style={{
           display: 'grid',
@@ -238,11 +243,49 @@ export default function LevelsPanel({ levels, spotPrice, prevClose, expirationMe
           color: 'var(--text-secondary)',
         }}
       >
-        <img
-          src="/logo.webp"
-          alt="aigamma.com"
-          style={{ height: '2rem', display: 'block', justifySelf: 'start' }}
-        />
+        <div
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '0.6rem',
+            justifySelf: 'start',
+          }}
+        >
+          <img
+            src="/logo.webp"
+            alt="aigamma.com"
+            style={{ height: '2rem', display: 'block' }}
+          />
+          {regimeIndicator && (
+            <span
+              title={`${regimeIndicator.label} — ${regimeIndicator.hint}`}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.45rem',
+                height: '2rem',
+                padding: '0 0.55rem',
+                boxSizing: 'border-box',
+                border: `1px solid ${regimeIndicator.color}`,
+                color: regimeIndicator.color,
+                borderRadius: '3px',
+                fontFamily: 'Courier New, monospace',
+                fontSize: '0.85rem',
+                letterSpacing: '0.08em',
+                textTransform: 'uppercase',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              <img
+                src={regimeIndicator.faviconPath}
+                alt=""
+                aria-hidden="true"
+                style={{ height: '1.3rem', width: '1.3rem', display: 'block', flexShrink: 0 }}
+              />
+              <span>{regimeIndicator.text}</span>
+            </span>
+          )}
+        </div>
         {freshness ? (
           <span
             style={{

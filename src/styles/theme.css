@@ -63,86 +63,6 @@ body {
   font-family: 'Courier New', monospace;
 }
 
-/* Dashboard upper-left regime status pill. Carries the dealer-gamma
-   regime indicator: a colored favicon (the AI Gamma monogram tinted
-   green / coral / neutral by regime tone) plus the key term "Gamma"
-   or "Near Flip" on desktop. The aigamma wordmark logo previously
-   rode in the same pill but was relocated into the LevelsPanel card
-   because its about.aigamma.com link wrapper was an accidental
-   clicktrap — see the App.jsx comment beside .site-brand for the
-   full reasoning. The smaller pill (favicon + short status word)
-   reads as a functional regime indicator rather than a brand mark,
-   so its remaining about.aigamma.com link is no longer mistaken for
-   a logo click. The border color is set inline by App.jsx from the
-   regime tone (teal #04A29F for POSITIVE GAMMA, coral for NEGATIVE
-   GAMMA, amber for NEAR FLIP) so the upper-left visually carries the
-   same regime signal as the dashboard's regime classification.
-
-   Two renderings: --desktop carries the favicon plus "GAMMA" /
-   "NEAR FLIP" text, --mobile drops the text and shows just the
-   colored favicon inside the bordered container, which is the
-   smallest possible form that still carries the regime signal.
-   App.jsx always renders both; the CSS below toggles which one is
-   visible at a given breakpoint. */
-.site-status-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.6rem;
-  height: 3.2rem;
-  padding: 0 0.85rem;
-  box-sizing: border-box;
-  border-radius: 3px;
-  font-family: 'Courier New', monospace;
-  font-size: 1.25rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  white-space: nowrap;
-  text-decoration: none;
-  outline: none;
-}
-
-.site-status-pill:focus-visible {
-  outline: 2px solid var(--accent-blue);
-  outline-offset: 2px;
-}
-
-.site-status-pill__favicon {
-  height: 2rem;
-  width: 2rem;
-  display: block;
-  flex-shrink: 0;
-}
-
-.site-status-pill__text {
-  display: inline-block;
-}
-
-.site-status-pill--desktop {
-  display: inline-flex;
-}
-
-.site-status-pill--mobile {
-  display: none;
-}
-
-@media (max-width: 768px) {
-  .site-status-pill--desktop {
-    display: none;
-  }
-
-  .site-status-pill--mobile {
-    display: inline-flex;
-    height: 2.8rem;
-    padding: 0 0.6rem;
-    gap: 0.4rem;
-  }
-
-  .site-status-pill--mobile .site-status-pill__favicon {
-    height: 1.8rem;
-    width: 1.8rem;
-  }
-}
-
 /* ===== MENU =====
    Dropdown nav exposing the bookmark-only lab directories from every
    page header. Purple accent matches the Expected Move metric in the
@@ -258,19 +178,21 @@ body {
 }
 
 /* ===== TOP NAV =====
-   Promoted lab buttons (Earnings, Tactical Vol, Seasonality,
-   Rotations) that live in every page header beside the Menu
-   trigger. Outlined buttons whose fill alternates by displayed
-   position — even indices use accent-blue, odd indices use
-   text-primary (off-white) — so the row reads as a striped
-   blue/white/blue/white cluster. Border color is bound to
-   currentColor so each variant only needs to declare `color`.
+   Promoted lab buttons (Tactical Vol, Earnings, Scan, Rotations,
+   VIX, Seasonality) that live in every page header beside the
+   Menu trigger. Outlined buttons whose fill alternates by
+   displayed position — even indices use accent-blue, odd indices
+   use text-primary (off-white) — so the row reads as a striped
+   blue/white/blue/white/blue/white cluster. Border color is bound
+   to currentColor so each variant only needs to declare `color`.
    Trigger sizing matches the 3.2rem chrome of .menu-trigger and
-   .lab-home-button--inline so all four right-side header
-   affordances sit on a single horizontal baseline at desktop
+   .lab-home-button--inline so the six buttons sit on a single
+   horizontal baseline alongside the Menu trigger at desktop
    widths. Two-span splitter (top-nav__desktop-text +
-   top-nav__mobile-text) shortens labels at ≤768px so the cluster
-   still fits without forcing a header wrap on phone widths. */
+   top-nav__mobile-text) shortens labels at ≤768px; with six
+   buttons plus the Menu trigger the cluster will flex-wrap to a
+   second line at the narrower phone widths, which is the
+   documented fallback. */
 .top-nav {
   display: inline-flex;
   align-items: center;
@@ -326,35 +248,33 @@ body {
 }
 
 /* ===== SITE HEADER =====
-   Main dashboard header chrome. Mobile-first defaults match what was
-   previously inline-styled on the <header className="site-header"> and
-   its first <div> child in src/App.jsx: a wrapping flex row whose brand
-   cluster carries margin-right: auto so the post-brand chrome (TopNav,
-   Menu) sits flush against the right edge of the row. The desktop
-   override block below cancels both the brand auto-margin and the row's
-   flex-start distribution and replaces them with space-between, and the
-   companion .top-nav { display: contents } rule dissolves the TopNav
-   wrapper so its three buttons become direct flex items of .site-header
-   alongside the brand and the Menu trigger — five children that
-   space-between distributes as a single evenly spaced row across the
-   desktop viewport. The mobile cluster is preserved because the small
-   regime favicon plus three short top-nav buttons plus the Menu trigger
-   already fit the narrow row tightly without redistribution. */
+   Main dashboard header chrome. The header has no left-side brand
+   cluster anymore — the aigamma wordmark and the dealer-gamma
+   regime indicator both moved into the LevelsPanel card directly
+   below — so the row is just the right-side nav cluster: the six
+   TopNav buttons (Tactical Vol, Earnings, Scan, Rotations, VIX,
+   Seasonality) plus the Menu trigger.
+
+   Mobile-first uses justify-content: flex-end so the cluster
+   sits flush against the right edge of the row (with no brand
+   on the left, the previous flex-start + brand auto-margin trick
+   no longer has anything to push against). At desktop widths
+   (≥769px) the layout switches to space-between and the
+   companion .top-nav { display: contents } rule dissolves the
+   TopNav wrapper so its six buttons become direct flex items of
+   .site-header alongside the Menu trigger — seven children that
+   space-between distributes as a single evenly spaced row across
+   the desktop viewport. With flex-wrap: wrap as the always-on
+   fallback, the cluster degrades to a second line at the
+   narrowest phone widths where six buttons + a Menu trigger
+   cannot share one row even with the compact mobile labels. */
 .site-header {
   display: flex;
   align-items: center;
-  justify-content: flex-start;
+  justify-content: flex-end;
   flex-wrap: wrap;
   gap: 0.75rem;
   margin-bottom: 1rem;
-}
-
-.site-brand {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  flex-wrap: wrap;
-  margin-right: auto;
 }
 
 @media (min-width: 769px) {
@@ -362,25 +282,22 @@ body {
     justify-content: space-between;
   }
 
-  .site-brand {
-    margin-right: 0;
-  }
-
-  /* display: contents lets .top-nav's three anchor children participate
+  /* display: contents lets .top-nav's anchor children participate
      in the parent flex layout (.site-header on the main page,
-     .lab-header on the lab pages) as if they were direct siblings of
-     the brand cluster, the Return Home button, and the Menu trigger.
-     Combined with justify-content: space-between on the parent, this
-     produces a single evenly-distributed row instead of the
-     left-anchored brand + tight right-cluster the auto-margin layout
-     produced. Modern browsers preserve the <nav aria-label="Featured
-     labs"> accessibility role across display: contents (Chrome 88+,
-     Firefox 50+, Safari 11.1+), so the screen-reader landmark stays
-     intact even though the box itself is removed from the visual flow.
-     Scoped to desktop because at ≤768px the parent's flex-wrap is
-     already enough to keep the cluster on one row and the original
-     inline-flex behavior with its own 0.4rem inter-button gap reads
-     better than space-between would on a viewport where everything
+     .lab-header on the lab pages) as if they were direct siblings
+     of the Menu trigger (and, on lab pages, the Return Home
+     button and lab badge). Combined with justify-content:
+     space-between on the parent, this produces a single
+     evenly-distributed row instead of a tight right-cluster.
+     Modern browsers preserve the <nav aria-label="Featured labs">
+     accessibility role across display: contents (Chrome 88+,
+     Firefox 50+, Safari 11.1+), so the screen-reader landmark
+     stays intact even though the box itself is removed from the
+     visual flow. Scoped to desktop because at ≤768px the parent's
+     flex-end + flex-wrap layout is already enough to keep the
+     cluster on the right edge and the original inline-flex
+     behavior with its own 0.4rem inter-button gap reads better
+     than space-between would on a viewport where everything
      barely fits. */
   .top-nav {
     display: contents;

@@ -25,13 +25,14 @@
    clusters tightly on the right. The desktop @media (min-width: 769px)
    block below cancels both the auto margin and lab-header's flex-start
    distribution and switches in justify-content: space-between with
-   display: contents on .top-nav, so the three TopNav buttons become
+   display: contents on .top-nav, so the six TopNav buttons become
    direct flex items of .lab-header alongside the brand, the Return
    Home button, and the Menu trigger and the whole row distributes
    evenly across the desktop viewport instead of clustering tightly
-   on the right after a single big gap. The mobile cluster behavior
-   is preserved as-is because the four-button cluster + small badge
-   already fits the narrow row tightly without space-between. */
+   on the right after a single big gap. The mobile cluster relies on
+   flex-wrap as a fallback: with six top-nav buttons plus the
+   Return Home button, the Menu trigger, and the lab badge it will
+   spill onto a second line at the narrower phone widths. */
 .lab-brand {
   display: flex;
   align-items: center;
@@ -323,10 +324,11 @@
    space-between has space to work with. The companion .top-nav
    { display: contents } rule lives in theme.css beside the rest of
    the .top-nav styles and dissolves the TopNav wrapper at desktop
-   widths so its three buttons (Tactical Vol, Seasonality, Rotations)
-   become direct flex items of .lab-header alongside the brand cluster,
-   the Return Home button, and the Menu trigger — six children that
-   space-between distributes as a single evenly-spaced row. */
+   widths so its six buttons (Tactical Vol, Earnings, Scan,
+   Rotations, VIX, Seasonality) become direct flex items of
+   .lab-header alongside the brand cluster, the Return Home button,
+   and the Menu trigger — nine children that space-between
+   distributes as a single evenly-spaced row. */
 @media (min-width: 769px) {
   .lab-header {
     justify-content: space-between;
@@ -365,16 +367,16 @@
     padding: 0 0.75rem;
   }
 
-  /* Drop the upper-left logo at phone widths so the new TopNav
-     buttons (Tactical Vol, Seasonality, Rotations) inherit the
-     freed horizontal space. The lab-brand cluster on the left
-     collapses to just the .lab-badge that names the lab — the
-     functional identifier the reader needs in context, while the
-     static brand mark adds no information at mobile widths and was
-     the largest single contributor to the header crowding once the
-     three top-nav buttons joined the right-side cluster. The Return
-     Home button + the bolded footer link still cover the
-     navigation-back-to-home affordance the logo previously
+  /* Drop the upper-left logo at phone widths so the TopNav buttons
+     (Tactical Vol, Earnings, Scan, Rotations, VIX, Seasonality)
+     inherit the freed horizontal space. The lab-brand cluster on
+     the left collapses to just the .lab-badge that names the lab —
+     the functional identifier the reader needs in context, while
+     the static brand mark adds no information at mobile widths and
+     was the largest single contributor to the header crowding
+     once the six top-nav buttons joined the right-side cluster.
+     The Return Home button + the bolded footer link still cover
+     the navigation-back-to-home affordance the logo previously
      supplied. .lab-logo-link is the wrapper anchor (now used on
      every lab entry, including the formerly inline-styled alpha /
      beta / dev / discrete / stochastic anchors that picked up the

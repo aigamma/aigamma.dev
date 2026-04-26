@@ -7,15 +7,14 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 // off-site exit (about.aigamma.com is a separate subdomain, so its
 // label drops the /slash-brackets/ format used for on-site labs).
 //
-// Three lab pages — /tactical/, /seasonality/, /rotations/ — moved
-// out of this dropdown into the TopNav component (see
-// src/components/TopNav.jsx) so they render as standalone buttons in
-// the header alongside the Menu trigger. Their entries are not
-// duplicated here; opening Menu now exposes only the labs that did
-// not get promoted to the top nav.
+// Six lab pages — /tactical/, /earnings/, /scan/, /rotations/,
+// /vix/, /seasonality/ — moved out of this dropdown into the
+// TopNav component (see src/components/TopNav.jsx) so they render
+// as standalone buttons in the header alongside the Menu trigger.
+// Their entries are not duplicated here; opening Menu now exposes
+// only the labs that did not get promoted to the top nav.
 const MENU_ITEMS = [
   { href: '/discrete/',                 label: '/discrete/',      desc: 'Binomial and trinomial trees, SVI and SSVI surfaces' },
-  { href: '/earnings/',                 label: '/earnings/',      desc: 'Earnings calendar by implied move and date' },
   { href: '/expiring-gamma/',           label: '/expiring-gamma/', desc: 'Gamma scheduled to expire per date' },
   { href: '/garch/',                    label: '/garch/',         desc: 'GARCH family and ensemble forecasts' },
   { href: '/heatmap/',                  label: '/heatmap/',       desc: 'Market-cap-weighted SPX heatmap by sector' },
@@ -25,9 +24,7 @@ const MENU_ITEMS = [
   { href: '/regime/',                   label: '/regime/',        desc: 'Mixture, Markov, Wasserstein regimes' },
   { href: '/risk/',                     label: '/risk/',          desc: 'Cross-model Greeks, Vanna-Volga, second-order' },
   { href: '/rough/',                    label: '/rough/',         desc: 'Rough Bergomi and rough vol exploration' },
-  { href: '/scan/',                     label: '/scan/',          desc: 'Call/put 25Δ skew vs ATM IV scanner' },
   { href: '/stochastic/',               label: '/stochastic/',    desc: 'Heston, SABR, LSV, rough Bergomi' },
-  { href: '/vix/',                      label: '/vix/',           desc: 'VIX term, OU mean reversion, vol-of-vol, regime, strategy' },
   { href: 'https://about.aigamma.com/', label: 'About This Page' },
 ];
 

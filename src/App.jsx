@@ -416,76 +416,26 @@ export default function App() {
   return (
     <div className="app-shell">
       <header className="site-header">
-        {/* Brand cluster — now just the regime status pill (favicon +
-            "Gamma" / "Near Flip" text on desktop, favicon-only on
-            mobile). The aigamma wordmark logo previously rode in the
-            same pill but was relocated into the LevelsPanel card
-            because the about.aigamma.com link wrapping it was an
-            accidental clicktrap: a reader scanning the upper-left
-            for page identity would click the wordmark and bounce off
-            the live dashboard onto the self-promotional portfolio
-            page. The wordmark now lives in the upper-left of the
-            metrics card as a static (non-link) image — see
-            src/components/LevelsPanel.jsx — alongside the rest of
-            the page's analytical chrome.
-
-            The pill keeps its about.aigamma.com anchor so the
-            about page remains reachable from the dashboard chrome
-            (a small favicon + short status word reads as a
-            functional regime indicator, not a brand mark, so it
-            is not mistaken for a clicktrap the way a full
-            wordmark was). At mobile widths .site-brand carries
-            margin-right: auto so the post-brand chrome (TopNav,
-            Menu) clusters tightly against the right edge of the
-            row; at desktop widths (≥769px) the auto margin is
-            cleared and space-between on .site-header pairs with
-            display: contents on .top-nav to distribute the brand,
-            the four top-nav buttons, and the Menu trigger evenly
-            across the row. The full layout rationale lives in
-            src/styles/theme.css beside the .site-header and
-            .top-nav rules. */}
-        <div className="site-brand">
-          {regime && (
-            <a
-              href="https://about.aigamma.com/"
-              className="site-status-pill site-status-pill--desktop"
-              title={`${regime.label} — ${regime.hint}`}
-              style={{
-                border: `1px solid ${REGIME_COLORS[regime.tone]}`,
-                color: REGIME_COLORS[regime.tone],
-              }}
-            >
-              <img
-                src={FAVICON_PATHS[faviconStateFromRegime(regime)][32]}
-                alt=""
-                aria-hidden="true"
-                className="site-status-pill__favicon"
-              />
-              <span className="site-status-pill__text">
-                {regime.tone === 'amber' ? 'Near Flip' : 'Gamma'}
-              </span>
-            </a>
-          )}
-          {regime && (
-            <a
-              href="https://about.aigamma.com/"
-              className="site-status-pill site-status-pill--mobile"
-              title={`${regime.label} — ${regime.hint}`}
-              style={{
-                border: `1px solid ${REGIME_COLORS[regime.tone]}`,
-              }}
-              aria-label={`aigamma.com — ${regime.label}`}
-            >
-              <img
-                src={FAVICON_PATHS[faviconStateFromRegime(regime)][32]}
-                alt=""
-                aria-hidden="true"
-                className="site-status-pill__favicon"
-              />
-            </a>
-          )}
-        </div>
-
+        {/* Header is now just the right-side nav cluster: the six
+            promoted TopNav buttons (Tactical Vol, Earnings, Scan,
+            Rotations, VIX, Seasonality) plus the Menu trigger.
+            The aigamma wordmark and the dealer-gamma regime status
+            pill that used to sit in the upper-left both moved into
+            the LevelsPanel card directly below — the wordmark
+            because its about.aigamma.com link was an accidental
+            clicktrap, and the regime pill because it visually read
+            as a sixth top-nav button (same outlined chrome) but
+            actually navigated to about.aigamma.com instead of
+            behaving like a navigation button. Both now live as
+            static (non-link) elements inside the LevelsPanel's
+            top strip — the wordmark on the left, the regime
+            indicator immediately to its right — so the brand and
+            regime signals stay visible without competing with the
+            real navigation chrome above. The full layout rationale
+            for the .site-header (mobile flex-end → desktop
+            space-between with .top-nav using display: contents) is
+            captured in src/styles/theme.css beside the .site-header
+            and .top-nav rules. */}
         <TopNav />
         <Menu />
       </header>
@@ -543,6 +493,17 @@ export default function App() {
               vrpMetric={vrpMetric}
               overnightAlignment={overnightAlignment}
               isSynthetic={isSynthetic}
+              regimeIndicator={
+                regime
+                  ? {
+                      label: regime.label,
+                      hint: regime.hint,
+                      text: regime.tone === 'amber' ? 'Near Flip' : 'Gamma',
+                      color: REGIME_COLORS[regime.tone],
+                      faviconPath: FAVICON_PATHS[faviconStateFromRegime(regime)][32],
+                    }
+                  : null
+              }
             />
           </ErrorBoundary>
 
