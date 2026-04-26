@@ -209,6 +209,28 @@
   margin-bottom: 1.25rem;
 }
 
+/* /heatmap is the only lab that wants the full viewport width and
+   height. Squarification benefits monotonically from area — every
+   extra pixel of width or height gives the 503 tiles more real
+   estate, which is the whole point of the "more legible than finviz"
+   UX direction Eric set when the page was first scoped. The shell
+   widens past the default 1100px lab cap up to ~1800px (or 96vw on
+   smaller screens), and the slot stretches to fill the viewport
+   minus the header chrome so the treemap is the dominant visual on
+   first paint. The "what this page measures" explainer card and
+   footer scroll into view below the fold. */
+.heatmap-shell {
+  max-width: min(1800px, 96vw);
+}
+
+.heatmap-slot {
+  height: calc(100vh - 140px);
+  min-height: 480px;
+  margin-bottom: 2rem;
+  display: flex;
+  flex-direction: column;
+}
+
 .lab-slot-label {
   font-family: 'Courier New', monospace;
   font-size: 0.7rem;

@@ -16,6 +16,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 const MENU_ITEMS = [
   { href: '/discrete/',                 label: '/discrete/',      desc: 'Binomial and trinomial trees, SVI and SSVI surfaces' },
   { href: '/garch/',                    label: '/garch/',         desc: 'GARCH family and ensemble forecasts' },
+  { href: '/heatmap/',                  label: '/heatmap/',       desc: 'Market-cap-weighted SPX heatmap by sector' },
   { href: '/jump/',                     label: '/jump/',          desc: 'Merton, Kou, Bates, variance gamma' },
   { href: '/local/',                    label: '/local/',         desc: 'Dupire extraction and local vol pricing' },
   { href: '/parity/',                   label: '/parity/',        desc: 'Put-call parity, box-spread rate, implied forward' },
