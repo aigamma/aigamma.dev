@@ -17,11 +17,12 @@ import {
 //   3. VIX9D — 9-day vol
 //   4. VIX3M — 3-month vol
 //   5. VIX6M — 6-month vol
-//   6. VVIX — vol of vol + 1y percentile rank
-//   7. SKEW — Cboe SKEW index, color thresholds at 130/140/150
-//   8. SDEX — Nations SkewDex
-//   9. Contango — VIX3M / VIX ratio (>1 = contango, <1 = backwardation)
-//  10. Curvature — (VIX9D + VIX3M)/2 − VIX
+//   6. VIX1Y — 1-year vol (long-end of Cboe-published curve)
+//   7. VVIX — vol of vol + 1y percentile rank
+//   8. SKEW — Cboe SKEW index, color thresholds at 130/140/150
+//   9. SDEX — Nations SkewDex
+//  10. Contango — VIX3M / VIX ratio (>1 = contango, <1 = backwardation)
+//  11. Curvature — (VIX9D + VIX3M)/2 − VIX
 
 function PillCell({ label, value, sub, tone = 'neutral', title }) {
   const toneColor = TONE[tone] || 'var(--text-primary)';
@@ -107,6 +108,7 @@ export default function VixHeaderProfile({ data }) {
       VIX9D: { value: last('VIX9D') },
       VIX3M: { value: last('VIX3M') },
       VIX6M: { value: last('VIX6M') },
+      VIX1Y: { value: last('VIX1Y') },
       VVIX: { value: last('VVIX'), rank: vvixRank },
       SKEW: { value: last('SKEW'), rank: skewRank },
       SDEX: { value: last('SDEX') },
@@ -119,7 +121,7 @@ export default function VixHeaderProfile({ data }) {
     return (
       <div className="card vix-header-card">
         <div className="vix-pill-grid">
-          {Array.from({ length: 10 }).map((_, i) => (
+          {Array.from({ length: 11 }).map((_, i) => (
             <div key={i} className="vix-pill vix-pill--skeleton" />
           ))}
         </div>
@@ -163,7 +165,12 @@ export default function VixHeaderProfile({ data }) {
         <PillCell
           label="VIX6M"
           value={fmt(cells.VIX6M.value)}
-          title="6-month constant-maturity implied vol. Long-end of the published Cboe vol term structure."
+          title="6-month constant-maturity implied vol."
+        />
+        <PillCell
+          label="VIX1Y"
+          value={fmt(cells.VIX1Y.value)}
+          title="1-year constant-maturity implied vol on SPX. Long-end of the published Cboe vol term structure."
         />
         <PillCell
           label="VVIX"

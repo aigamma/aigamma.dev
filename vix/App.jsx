@@ -120,27 +120,32 @@ export default function App() {
         <div style={{ color: 'var(--text-secondary)', lineHeight: 1.65, fontSize: '0.95rem' }}>
           <p style={{ margin: '0 0 0.7rem' }}>
             <strong style={{ color: 'var(--text-primary)' }}>Snapshot.</strong>{' '}
-            Friday-close levels for the five-point Cboe vol term structure
-            (VIX1D / VIX9D / VIX / VIX3M / VIX6M), VVIX (the option-implied
-            vol of VIX itself), the two skew constructions (Cboe SKEW and
-            Nations SkewDex), and two derived term-structure scalars
-            (contango ratio = VIX3M ÷ VIX, curvature = (VIX9D + VIX3M)/2 −
-            VIX). Each cell carries a 1-year percentile rank against its own
-            trailing 252-day distribution as the color cue, so the eye reads
-            "where in the distribution is this number" without parsing the
-            value.
+            Friday-close levels for the six-point Cboe vol term structure
+            (VIX1D / VIX9D / VIX / VIX3M / VIX6M / VIX1Y), VVIX (the
+            option-implied vol of VIX itself), the two skew constructions
+            (Cboe SKEW and Nations SkewDex), and two derived term-structure
+            scalars (contango ratio = VIX3M ÷ VIX, curvature = (VIX9D +
+            VIX3M)/2 − VIX). Each cell carries a 1-year percentile rank
+            against its own trailing 252-day distribution as the color cue,
+            so the eye reads "where in the distribution is this number"
+            without parsing the value.
           </p>
           <p style={{ margin: '0 0 0.7rem' }}>
             <strong style={{ color: 'var(--text-primary)' }}>Term Structure.</strong>{' '}
-            Five points plotted in days-to-expiration on a log scale so the
-            front of the curve (1D, 9D, 30D) spaces out. Three overlays —
-            today, one week ago, one month ago — read together as a flow
-            sequence; the dotted line is the per-tenor median across the
-            full 3-year backfill, providing a static baseline against which
-            the live shape is interpreted. An upward-sloping curve is
-            contango (the empirically-typical state in calm regimes), a
-            downward slope is backwardation (urgent near-term vol that
-            historically precedes the bulk of meaningful drawdowns).
+            Six points plotted in days-to-expiration on a log scale so the
+            front of the curve (1D, 9D, 30D) spaces out. Cboe doesn't
+            publish a 9-month constant-maturity index, so the 9-month
+            region of the curve is read by interpolation between VIX6M
+            (182d) and VIX1Y (365d) — the long-end VIX1Y point pulls the
+            visualizable horizon out to a full year so the 6M-to-1Y leg
+            is visible rather than implicit. Three overlays — today, one
+            week ago, one month ago — read together as a flow sequence;
+            the dotted line is the per-tenor median across the full 3-year
+            backfill, providing a static baseline against which the live
+            shape is interpreted. An upward-sloping curve is contango (the
+            empirically-typical state in calm regimes), a downward slope is
+            backwardation (urgent near-term vol that historically precedes
+            the bulk of meaningful drawdowns).
           </p>
           <p style={{ margin: '0 0 0.7rem' }}>
             <strong style={{ color: 'var(--text-primary)' }}>Contango History.</strong>{' '}

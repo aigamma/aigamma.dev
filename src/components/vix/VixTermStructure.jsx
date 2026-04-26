@@ -8,17 +8,23 @@ import {
   plotlyTitle,
 } from '../../lib/plotlyTheme';
 
-// Five-point VIX term structure: VIX1D / VIX9D / VIX(30d) / VIX3M / VIX6M.
-// X-axis is days-to-expiration on a log scale so the 1D / 9D / 30D points
-// space out instead of crushing against zero. The three traces are:
+// Six-point VIX term structure: VIX1D / VIX9D / VIX(30d) / VIX3M / VIX6M /
+// VIX1Y. X-axis is days-to-expiration on a log scale so the 1D / 9D / 30D
+// points space out instead of crushing against zero. The three traces are:
 //   (1) today's curve, drawn in primary blue with markers
 //   (2) one-week-ago curve, drawn dashed amber
 //   (3) one-month-ago curve, drawn dashed muted-blue
 // The 22-day and 5-day lookbacks are computed from the daily series indexed
 // by trading_date — calendar lookbacks would land on weekends and miss bars.
+//
+// Cboe doesn't publish a 9-month constant-maturity VIX, so the 9-month
+// region of the curve is read by interpolating between VIX6M (182d) and
+// VIX1Y (365d). Adding the long-end VIX1Y point pulls the visualizable
+// horizon out to a full year so the 6M-to-1Y leg is visible rather than
+// implicit.
 
-const DTE = { VIX1D: 1, VIX9D: 9, VIX: 30, VIX3M: 91, VIX6M: 182 };
-const POINTS = ['VIX1D', 'VIX9D', 'VIX', 'VIX3M', 'VIX6M'];
+const DTE = { VIX1D: 1, VIX9D: 9, VIX: 30, VIX3M: 91, VIX6M: 182, VIX1Y: 365 };
+const POINTS = ['VIX1D', 'VIX9D', 'VIX', 'VIX3M', 'VIX6M', 'VIX1Y'];
 
 function curveFor(series, latestDate, lookbackDays) {
   // Find the row `lookbackDays` trading days before latestDate per symbol.
@@ -98,8 +104,8 @@ export default function VixTermStructure({ data }) {
       title: plotlyTitle('VIX Term Structure'),
       xaxis: plotlyAxis('Days to expiration (log)', {
         type: 'log',
-        tickvals: [1, 9, 30, 91, 182],
-        ticktext: ['1D', '9D', '30D', '3M', '6M'],
+        tickvals: [1, 9, 30, 91, 182, 365],
+        ticktext: ['1D', '9D', '30D', '3M', '6M', '1Y'],
       }),
       yaxis: plotlyAxis('Implied Vol'),
       margin: { t: 50, r: 30, b: 80, l: 70 },

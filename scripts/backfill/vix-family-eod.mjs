@@ -33,8 +33,8 @@ import { resolve } from 'node:path';
 // available on Indices Starter by probing the /v3/snapshot/indices and
 // /v2/aggs/ticker endpoints on 2026-04-26.
 const DEFAULT_SYMBOLS = [
-  // Vol term structure (forward VIX expectations across 1d / 9d / 30d / 90d / 180d)
-  'VIX', 'VIX1D', 'VIX9D', 'VIX3M', 'VIX6M',
+  // Vol term structure (forward VIX expectations across 1d / 9d / 30d / 90d / 180d / 365d)
+  'VIX', 'VIX1D', 'VIX9D', 'VIX3M', 'VIX6M', 'VIX1Y',
   // Vol of vol — implied vol on VIX itself
   'VVIX',
   // Cross-asset vol indices

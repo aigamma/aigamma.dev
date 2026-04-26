@@ -30,7 +30,7 @@ const DEFAULT_FROM = '2023-03-01';
 // curve and the dropdown order in the cross-asset panel. Keep in sync with
 // scripts/backfill/vix-family-eod.mjs.
 const VIX_SYMBOLS = [
-  'VIX', 'VIX1D', 'VIX9D', 'VIX3M', 'VIX6M',
+  'VIX', 'VIX1D', 'VIX9D', 'VIX3M', 'VIX6M', 'VIX1Y',
   'VVIX',
   'VXN', 'RVX', 'OVX', 'GVZ',
   'SKEW', 'SDEX',
