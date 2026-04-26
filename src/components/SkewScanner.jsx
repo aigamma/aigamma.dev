@@ -483,11 +483,11 @@ function Quadrant({
                 onMouseLeave={() => onHover(null)}
               />
               <text
-                x={cx + r + 3}
-                y={cy + 4}
-                fill={isHovered ? '#f3f4f6' : isTopTen ? '#e1e8f4' : '#7e8aa0'}
+                x={cx + r + 4}
+                y={cy + 5}
+                fill={isHovered ? '#f3f4f6' : isTopTen ? '#e1e8f4' : '#9aa6c2'}
                 fontFamily="Courier New, monospace"
-                fontSize={isHovered ? 12 : isTopTen ? 11 : 10}
+                fontSize={isHovered ? 16 : isTopTen ? 14 : 13}
                 fontWeight={isHovered || isTopTen ? 700 : 400}
                 style={{ pointerEvents: 'none', userSelect: 'none' }}
               >
