@@ -1,33 +1,46 @@
 import { useEffect, useMemo, useState } from 'react';
 
-// SPX intraday seasonality grid. Renders the /api/seasonality payload as
-// a bordered cell grid: a row-label column on the left, 13 time-bucket
-// columns (10:00 through 4:00 in 30-minute steps), an averages section
-// showing rolling 5 / 10 / 20 / 30 / 40 day means at the top, and an
-// individual-days section below listing the N most recent trading
-// sessions. Each cell's background is a deep, saturated dark green or
-// red whose lightness scales with the absolute magnitude of the cell's
-// value, calibrated so a single white numeric ink reads on every cell
-// with ≥6:1 contrast — passing WCAG AA across the full range.
+// SPX seasonality grid. Three views, switched by the pill row at the top
+// of the card and served by the same Netlify function (/api/seasonality)
+// keyed on ?view=:
+//
+//   intraday — bordered cell grid: row-label column on the left, 13 30-min
+//     bucket columns (10:00 → 4:00), an averages section at the top showing
+//     rolling 5/10/20/30/40 day means, and the most recent N trading days
+//     listed individually below.
+//
+//   daily — rows are ISO weeks (newest first), columns are Mon-Fri. Each
+//     cell is the close-to-close % return for that day. NYSE holidays
+//     (weekdays absent from daily_volatility_stats) render as gray "—"
+//     cells so the reader can see the calendar shape of the week. Future
+//     weekdays (today is Tue → Wed/Thu/Fri haven't happened yet) render
+//     as blank "·" cells. The averages section above shows the rolling
+//     mean return for each day-of-week over the last N weeks.
+//
+//   weekly — rows are calendar years (newest first), columns are ISO weeks
+//     1..max. Each cell is the weekly return (last close in week / last
+//     close in prior week - 1) * 100. The "All Years" row above is the
+//     mean return for each week-of-year across every year present — the
+//     headline year-over-year seasonality signal.
+//
+// Color encoding is shared across all three views: deep forest for
+// positive cells, deep crimson for negative, lightness scaled with the
+// absolute magnitude relative to the view's typical-move anchor (so a
+// "big move" feels equally saturated whether it's a 0.6% half-hour, a
+// 1.2% day, or a 2.5% week). White ink on every saturated cell to keep
+// WCAG AA contrast across the full range.
 
-// The deep-color endpoints were picked for two properties simultaneously:
-// they're saturated enough to read as unambiguous "green/up" and
-// "red/down" hue cues, and dark enough that the cell never gets bright
-// enough to fight white text. Pure accent-green (#2ecc71) and
-// accent-coral (#e74c3c) sit at sRGB luminance ≈ 0.55 / 0.30, where
-// white-on-color drops to ~1.7:1 / ~3:1 — the reason the previous
-// gradient had to flip ink to dark on saturated cells. The new targets
-// land at luminance ≈ 0.118 / 0.066, giving white contrast 6.25:1 and
-// 9.05:1 respectively.
 const BG_NEUTRAL = { r: 20, g: 24, b: 32 }; // matches --bg-card #141820
 const GREEN_DEEP = { r: 15, g: 111, b: 55 }; // #0f6f37 — deep forest
 const RED_DEEP = { r: 140, g: 32, b: 48 }; //   #8c2030 — deep crimson
 
-// The "saturation anchor" — the value at which a cell reaches the
-// deepest shade. 0.6% is typical for a well-scoped 30-min SPX move on
-// a normal trading day; anything above that caps out, so wide-range
-// sessions don't paint every cell at full saturation.
-const MAG_ANCHOR_PCT = 0.6;
+// Per-view magnitude anchors. The value at which a cell reaches the
+// deepest shade. Calibrated to the typical scale of a strong move at
+// each timeframe so "saturated" reads as "big move" consistently:
+//   intraday — 0.6% is a typical well-scoped 30-min cumulative move
+//   daily   — 1.2% is a roughly one-sigma close-to-close move on SPX
+//   weekly  — 2.5% is a roughly one-sigma weekly move on SPX
+const MAG_ANCHORS = { intraday: 0.6, daily: 1.2, weekly: 2.5 };
 // Floor and ceiling for the neutral→target interpolation factor. The
 // non-zero floor keeps even near-zero cells faintly tinted toward
 // their sign, so a glance at the grid still reads direction without
@@ -36,38 +49,76 @@ const MAG_ANCHOR_PCT = 0.6;
 const MIN_INTERP = 0.18;
 const MAX_INTERP = 1.0;
 
+const VIEWS = [
+  { id: 'intraday', label: 'Intraday' },
+  { id: 'daily', label: 'Daily' },
+  { id: 'weekly', label: 'Weekly' },
+];
+
 function formatCell(pct) {
   if (pct == null || !Number.isFinite(pct)) return '—';
-  // Match the reference grid's precision: two decimal places, with a
-  // leading sign only on non-zero values. Zero renders as "0%" without
-  // a percent-point decimal to reduce visual noise on flat cells.
   const abs = Math.abs(pct);
   if (abs < 0.005) return '0%';
-  const signed = (pct >= 0 ? '' : '-') + abs.toFixed(2) + '%';
-  return signed;
+  return (pct >= 0 ? '' : '-') + abs.toFixed(2) + '%';
 }
 
-function cellStyle(pct) {
-  if (pct == null || !Number.isFinite(pct)) {
-    // Missing-data cells: leave the card surface showing through, in
-    // muted secondary ink — matches the rest of the project's no-data
-    // treatment and signals "absent" rather than "zero".
-    return { background: 'transparent', color: 'var(--text-secondary)' };
-  }
-  const mag = Math.min(Math.abs(pct) / MAG_ANCHOR_PCT, 1);
+function dataCellStyle(pct, anchor) {
+  const mag = Math.min(Math.abs(pct) / anchor, 1);
   const t = MIN_INTERP + (MAX_INTERP - MIN_INTERP) * mag;
   const target = pct >= 0 ? GREEN_DEEP : RED_DEEP;
   const r = Math.round(BG_NEUTRAL.r + (target.r - BG_NEUTRAL.r) * t);
   const g = Math.round(BG_NEUTRAL.g + (target.g - BG_NEUTRAL.g) * t);
   const b = Math.round(BG_NEUTRAL.b + (target.b - BG_NEUTRAL.b) * t);
-  return {
-    background: `rgb(${r}, ${g}, ${b})`,
-    color: '#ffffff',
-  };
+  return { background: `rgb(${r}, ${g}, ${b})`, color: '#ffffff' };
 }
 
-// M/D/YYYY rendering to match the reference grid. The row label is
-// compact on mobile and stays on a single line.
+// Renders one cell. Three kinds: numeric data, holiday (gray), and
+// future/no-data (blank). The "no_data" case is used for cells where the
+// underlying market hasn't closed yet (today is Tue → Wed/Thu/Fri have
+// no data) or where the leading edge of the data range has no prior
+// close to compute against. "holiday" is reserved for weekdays the NYSE
+// was closed (the cell exists conceptually but is intentionally blank).
+function Cell({ cell, anchor }) {
+  if (!cell) return <td className="seasonality-cell seasonality-cell--blank">·</td>;
+  if (cell.kind === 'holiday') {
+    return (
+      <td
+        className="seasonality-cell seasonality-cell--holiday"
+        title="NYSE closed (holiday)"
+      >
+        —
+      </td>
+    );
+  }
+  if (cell.kind === 'future' || cell.kind === 'no_data') {
+    return <td className="seasonality-cell seasonality-cell--blank">·</td>;
+  }
+  return (
+    <td className="seasonality-cell" style={dataCellStyle(cell.value, anchor)}>
+      {formatCell(cell.value)}
+    </td>
+  );
+}
+
+// Numeric "value" version for the legacy intraday payload (whose rows are
+// raw value arrays, not {kind, value} cell objects). Accepts a number or
+// null/undefined and renders the same chrome as Cell would for the
+// equivalent data/no_data case.
+function NumericCell({ pct, anchor }) {
+  if (pct == null || !Number.isFinite(pct)) {
+    return (
+      <td className="seasonality-cell" style={{ background: 'transparent', color: 'var(--text-secondary)' }}>
+        —
+      </td>
+    );
+  }
+  return (
+    <td className="seasonality-cell" style={dataCellStyle(pct, anchor)}>
+      {formatCell(pct)}
+    </td>
+  );
+}
+
 function formatDateLabel(iso) {
   if (!iso || typeof iso !== 'string') return iso;
   const [y, m, d] = iso.split('-').map((s) => Number(s));
@@ -75,42 +126,107 @@ function formatDateLabel(iso) {
   return `${m}/${d}/${y}`;
 }
 
-function averageLabel(window) {
-  return `${window} Day Avg`;
+function averageLabel(window, suffix) {
+  return `${window} ${suffix}`;
 }
 
 export default function SeasonalityGrid() {
-  const [payload, setPayload] = useState(null);
-  const [error, setError] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [view, setView] = useState('intraday');
+  const [payloadByView, setPayloadByView] = useState({});
+  const [errorByView, setErrorByView] = useState({});
+  const [loadingByView, setLoadingByView] = useState({ intraday: true });
 
+  // Fetch the active view on mount and whenever the user switches. Keep
+  // previously-loaded payloads in state so re-toggling is instantaneous
+  // and the user's edge-cached prior view doesn't have to round-trip.
   useEffect(() => {
+    if (payloadByView[view]) return;
     let cancelled = false;
-    async function load() {
+    setLoadingByView((s) => ({ ...s, [view]: true }));
+    (async () => {
       try {
-        const res = await fetch('/api/seasonality?days=20');
+        const params = new URLSearchParams({ view });
+        if (view === 'intraday') params.set('days', '20');
+        const res = await fetch(`/api/seasonality?${params}`);
         if (!res.ok) throw new Error(`seasonality fetch failed: ${res.status}`);
         const json = await res.json();
-        if (!cancelled) { setPayload(json); setLoading(false); }
+        if (cancelled) return;
+        setPayloadByView((s) => ({ ...s, [view]: json }));
+        setLoadingByView((s) => ({ ...s, [view]: false }));
       } catch (err) {
-        if (!cancelled) { setError(String(err?.message || err)); setLoading(false); }
+        if (cancelled) return;
+        setErrorByView((s) => ({ ...s, [view]: String(err?.message || err) }));
+        setLoadingByView((s) => ({ ...s, [view]: false }));
       }
-    }
-    load();
+    })();
     return () => { cancelled = true; };
-  }, []);
+  }, [view, payloadByView]);
 
+  const payload = payloadByView[view];
+  const error = errorByView[view];
+  const loading = loadingByView[view];
+  const anchor = MAG_ANCHORS[view];
+
+  return (
+    <div className="card seasonality-card">
+      <div className="seasonality-toolbar">
+        <div className="seasonality-meta">
+          <span className="seasonality-ticker">SPX</span>
+          {payload?.asOf && (
+            <span className="seasonality-asof">Through {formatDateLabel(payload.asOf)}</span>
+          )}
+        </div>
+        <div className="seasonality-toggle" role="tablist" aria-label="Seasonality view">
+          {VIEWS.map((v) => (
+            <button
+              key={v.id}
+              type="button"
+              role="tab"
+              aria-selected={view === v.id}
+              className={
+                view === v.id
+                  ? 'seasonality-toggle__pill seasonality-toggle__pill--active'
+                  : 'seasonality-toggle__pill'
+              }
+              onClick={() => setView(v.id)}
+            >
+              {v.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {loading && (
+        <div className="seasonality-loading">Loading SPX seasonality…</div>
+      )}
+      {!loading && (error || !payload) && (
+        <div className="seasonality-error">{error || 'No seasonality data available.'}</div>
+      )}
+      {!loading && payload && view === 'intraday' && (
+        <IntradayGrid payload={payload} anchor={anchor} />
+      )}
+      {!loading && payload && view === 'daily' && (
+        <DailyGrid payload={payload} anchor={anchor} />
+      )}
+      {!loading && payload && view === 'weekly' && (
+        <WeeklyGrid payload={payload} anchor={anchor} />
+      )}
+
+      <div className="seasonality-legend">
+        <Legend view={view} />
+      </div>
+    </div>
+  );
+}
+
+function IntradayGrid({ payload, anchor }) {
   const rows = useMemo(() => {
-    if (!payload) return [];
-    // Widest window at top — read down from the long-run baseline
-    // through progressively more recent regimes to the individual
-    // day rows below. Matches the /c/i/ reference grid's ordering.
     const avgRows = [...(payload.averages || [])]
       .sort((a, b) => b.window - a.window)
       .map((a) => ({
         kind: 'avg',
         key: `avg-${a.window}`,
-        label: averageLabel(a.window),
+        label: averageLabel(a.window, 'Day Avg'),
         values: a.values,
       }));
     const dayRows = (payload.days || []).map((d) => ({
@@ -122,84 +238,190 @@ export default function SeasonalityGrid() {
     return [...avgRows, ...dayRows];
   }, [payload]);
 
-  if (loading) {
-    return (
-      <div className="card seasonality-card">
-        <div className="seasonality-loading">Loading SPX seasonality…</div>
-      </div>
-    );
-  }
-
-  if (error || !payload) {
-    return (
-      <div className="card seasonality-card">
-        <div className="seasonality-error">
-          {error || 'No seasonality data available.'}
-        </div>
-      </div>
-    );
-  }
-
   const columns = payload.columns || [];
   const firstDayDivider = (payload.averages || []).length;
 
   return (
-    <div className="card seasonality-card">
-      <div className="seasonality-meta">
-        <span className="seasonality-ticker">SPX</span>
-        <span className="seasonality-asof">
-          Through {formatDateLabel(payload.asOf)}
-        </span>
-      </div>
-
-      <div className="seasonality-scroll">
-        <table className="seasonality-grid">
-          <thead>
-            <tr>
-              <th className="seasonality-corner">Date</th>
-              {columns.map((c) => (
-                <th key={c} className="seasonality-col-head">{c}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((row, rowIdx) => (
-              <tr
-                key={row.key}
+    <div className="seasonality-scroll">
+      <table className="seasonality-grid">
+        <thead>
+          <tr>
+            <th className="seasonality-corner">Date</th>
+            {columns.map((c) => (
+              <th key={c} className="seasonality-col-head">{c}</th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((row, rowIdx) => (
+            <tr
+              key={row.key}
+              className={
+                rowIdx === firstDayDivider
+                  ? 'seasonality-row seasonality-row--first-day'
+                  : 'seasonality-row'
+              }
+            >
+              <th
+                scope="row"
                 className={
-                  rowIdx === firstDayDivider
-                    ? 'seasonality-row seasonality-row--first-day'
-                    : 'seasonality-row'
+                  row.kind === 'avg'
+                    ? 'seasonality-row-head seasonality-row-head--avg'
+                    : 'seasonality-row-head'
                 }
               >
-                <th
-                  scope="row"
-                  className={
-                    row.kind === 'avg'
-                      ? 'seasonality-row-head seasonality-row-head--avg'
-                      : 'seasonality-row-head'
-                  }
-                >
-                  {row.label}
-                </th>
-                {row.values.map((v, i) => (
-                  <td key={i} className="seasonality-cell" style={cellStyle(v)}>
-                    {formatCell(v)}
-                  </td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      <div className="seasonality-legend">
-        <span className="seasonality-legend-note">
-          Each cell is the cumulative % change of SPX at that 30-min bar's close
-          versus the prior session's close. Averages are column-wise means over the
-          most recent N trading days.
-        </span>
-      </div>
+                {row.label}
+              </th>
+              {row.values.map((v, i) => (
+                <NumericCell key={i} pct={v} anchor={anchor} />
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
+  );
+}
+
+function DailyGrid({ payload, anchor }) {
+  const columns = payload.columns || [];
+  const weekRows = payload.weeks || [];
+  const avgRows = [...(payload.averages || [])]
+    .sort((a, b) => b.window - a.window)
+    .map((a) => ({
+      key: `avg-${a.window}`,
+      label: averageLabel(a.window, 'Wk Avg'),
+      values: a.values,
+    }));
+  const firstWeekDivider = avgRows.length;
+
+  return (
+    <div className="seasonality-scroll">
+      <table className="seasonality-grid">
+        <thead>
+          <tr>
+            <th className="seasonality-corner">Week</th>
+            {columns.map((c) => (
+              <th key={c} className="seasonality-col-head">{c}</th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {avgRows.map((row, rowIdx) => (
+            <tr
+              key={row.key}
+              className={
+                rowIdx === firstWeekDivider - 1 && weekRows.length > 0
+                  ? 'seasonality-row'
+                  : 'seasonality-row'
+              }
+            >
+              <th scope="row" className="seasonality-row-head seasonality-row-head--avg">
+                {row.label}
+              </th>
+              {row.values.map((v, i) => (
+                <NumericCell key={i} pct={v} anchor={anchor} />
+              ))}
+            </tr>
+          ))}
+          {weekRows.map((week, idx) => (
+            <tr
+              key={week.week_start}
+              className={
+                idx === 0 && firstWeekDivider > 0
+                  ? 'seasonality-row seasonality-row--first-day'
+                  : 'seasonality-row'
+              }
+            >
+              <th scope="row" className="seasonality-row-head">{week.week_label}</th>
+              {week.cells.map((c, i) => (
+                <Cell key={i} cell={c} anchor={anchor} />
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+function WeeklyGrid({ payload, anchor }) {
+  const columns = payload.columns || [];
+  const yearRows = payload.years || [];
+  const avgRows = (payload.averages || []).map((a, idx) => ({
+    key: `avg-${idx}-${a.label || a.window || 'avg'}`,
+    label: a.label || averageLabel(a.window, 'Yr Avg'),
+    values: a.values,
+  }));
+
+  return (
+    <div className="seasonality-scroll">
+      <table className="seasonality-grid seasonality-grid--weekly">
+        <thead>
+          <tr>
+            <th className="seasonality-corner">Year</th>
+            {columns.map((c) => (
+              <th key={c} className="seasonality-col-head seasonality-col-head--narrow">{c}</th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {avgRows.map((row) => (
+            <tr key={row.key} className="seasonality-row">
+              <th scope="row" className="seasonality-row-head seasonality-row-head--avg">
+                {row.label}
+              </th>
+              {row.values.map((v, i) => (
+                <NumericCell key={i} pct={v} anchor={anchor} />
+              ))}
+            </tr>
+          ))}
+          {yearRows.map((y, idx) => (
+            <tr
+              key={y.year}
+              className={
+                idx === 0 && avgRows.length > 0
+                  ? 'seasonality-row seasonality-row--first-day'
+                  : 'seasonality-row'
+              }
+            >
+              <th scope="row" className="seasonality-row-head">{y.year}</th>
+              {y.cells.map((c, i) => (
+                <Cell key={i} cell={c} anchor={anchor} />
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+function Legend({ view }) {
+  if (view === 'intraday') {
+    return (
+      <span className="seasonality-legend-note">
+        Each cell is SPX's cumulative % change at that 30-min bar's close versus
+        the prior session's close. Averages are column-wise means over the most
+        recent N trading days.
+      </span>
+    );
+  }
+  if (view === 'daily') {
+    return (
+      <span className="seasonality-legend-note">
+        Each cell is SPX's close-to-close % return for that day. Gray cells are
+        NYSE holidays. Averages are the mean return for each weekday over the
+        most recent N weeks (holidays excluded from the sample).
+      </span>
+    );
+  }
+  return (
+    <span className="seasonality-legend-note">
+      Each cell is the weekly % return (last close in the ISO week vs. last
+      close in the prior ISO week). The "All Years" row is the mean return for
+      that week-of-year across every available year — the year-over-year
+      seasonality signal.
+    </span>
   );
 }

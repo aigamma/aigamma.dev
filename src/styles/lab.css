@@ -586,6 +586,17 @@
   gap: 0.9rem;
 }
 
+/* The toolbar holds the SPX ticker + as-of stamp on the left and the
+   Intraday / Daily / Weekly view toggle on the right. On narrow viewports
+   the toggle wraps below the meta row rather than crowding it. */
+.seasonality-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.9rem;
+  flex-wrap: wrap;
+}
+
 .seasonality-meta {
   display: flex;
   align-items: baseline;
@@ -606,7 +617,48 @@
   font-size: 0.75rem;
   color: var(--text-secondary);
   text-transform: uppercase;
-  margin-left: auto;
+}
+
+/* Three-pill segmented control. Sits on the right side of the toolbar
+   and switches the view (intraday / daily / weekly). The active pill
+   carries the accent-blue chrome that marks every "you are here"
+   affordance on the site; inactive pills are bordered + muted. */
+.seasonality-toggle {
+  display: inline-flex;
+  border: 1px solid var(--bg-card-border);
+  border-radius: 4px;
+  overflow: hidden;
+  background: var(--bg-card);
+}
+
+.seasonality-toggle__pill {
+  background: transparent;
+  border: none;
+  border-right: 1px solid var(--bg-card-border);
+  padding: 0.42rem 0.95rem;
+  font-family: 'Courier New', monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: background-color 120ms ease, color 120ms ease;
+}
+
+.seasonality-toggle__pill:last-child {
+  border-right: none;
+}
+
+.seasonality-toggle__pill:hover {
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.seasonality-toggle__pill--active,
+.seasonality-toggle__pill--active:hover {
+  background: rgba(74, 158, 255, 0.18);
+  color: var(--accent-blue);
+  font-weight: 700;
 }
 
 /* Horizontal scroll container. On wide viewports the table fits
@@ -712,6 +764,52 @@
   font-weight: 700;
   min-width: 62px;
   transition: background-color 150ms ease;
+}
+
+/* Holiday cell: NYSE was closed for that weekday. Renders gray-on-card
+   with a single em-dash so the calendar shape of the week remains
+   readable but the cell carries no return value. The diagonal pattern
+   on the background distinguishes "intentionally absent" from a generic
+   missing-data cell. */
+.seasonality-grid td.seasonality-cell--holiday {
+  background:
+    repeating-linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.025) 0,
+      rgba(255, 255, 255, 0.025) 4px,
+      rgba(255, 255, 255, 0.05) 4px,
+      rgba(255, 255, 255, 0.05) 8px
+    );
+  color: var(--text-secondary);
+  font-weight: 400;
+  cursor: help;
+}
+
+/* Blank cell: future weekday or pre-history "no prior close to compute
+   against" edge case. Renders as a centered low-contrast dot — visible
+   enough to confirm the cell exists without competing with the data
+   cells around it. */
+.seasonality-grid td.seasonality-cell--blank {
+  background: transparent;
+  color: rgba(255, 255, 255, 0.18);
+  font-weight: 400;
+}
+
+/* Weekly view crams 52+ columns onto one row, so the table is scoped
+   with .seasonality-grid--weekly to override the default 62px min-width
+   on column heads and data cells. Anything wider and the row of weekly
+   returns spills past the viewport so far that horizontal scrolling
+   becomes the only way to read past W10. */
+.seasonality-grid--weekly .seasonality-col-head,
+.seasonality-grid--weekly .seasonality-col-head--narrow,
+.seasonality-grid--weekly td.seasonality-cell {
+  min-width: 38px;
+  padding-left: 0.22rem;
+  padding-right: 0.22rem;
+}
+
+.seasonality-grid--weekly {
+  font-size: 0.7rem;
 }
 
 .seasonality-legend {
