@@ -218,7 +218,7 @@ export default function LevelsPanel({ levels, spotPrice, prevClose, expirationMe
             marginBottom: '1rem',
           }}
         >
-          <span>{'>> Last Updated: '}{freshness}</span>
+          <span>{'Last Updated: '}{freshness}</span>
           {isSynthetic && (
             <span
               style={{
