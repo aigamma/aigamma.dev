@@ -813,6 +813,22 @@
   padding-right: 0.55rem;
 }
 
+/* DAILY data cells get a wider minimum on desktop. The grid only has
+   five Mon-Fri columns, so the available horizontal real estate easily
+   absorbs ~100px each — gives the colored cells more visual weight and
+   the +0.79% / [HOLIDAY] strings room to breathe instead of crowding
+   the cell borders. Mobile keeps the inherited 54/48px from the
+   .seasonality-cell base + breakpoint rules so the table still fits a
+   ~375px viewport without horizontal scrolling kicking in. */
+@media (min-width: 769px) {
+  .seasonality-grid--daily td.seasonality-cell,
+  .seasonality-grid--daily .seasonality-col-head {
+    min-width: 100px;
+    padding-left: 0.6rem;
+    padding-right: 0.6rem;
+  }
+}
+
 /* WEEKLY view (transposed): rows are ISO weeks W01..W52, columns are
    years (newest-first) plus an "Avg" summary column. The previous
    wide layout had 52 narrow columns that needed a tighter font;
