@@ -52,7 +52,15 @@ const SPX_AREA_FILL = 'rgba(74, 158, 255, 0.12)';
 const SPX_LINE      = 'rgba(74, 158, 255, 0.55)';
 const RV_COLOR      = PLOTLY_COLORS.highlight;
 const IV_COLOR      = PLOTLY_COLORS.titleText;
-const VIX_COLOR     = PLOTLY_COLORS.primarySoft;
+// VIX is rendered in accent-purple (#BF7FFF, matching the Menu trigger
+// and the /vix lab's Expected Move accent token) so its trace and toggle
+// button stand out against the chart's existing blue/amber/white palette.
+// Earlier the VIX line was drawn in primarySoft sky-blue, which read too
+// close to the SPX line color when both were rendered on the same chart.
+// Purple gives VIX an unambiguous visual identity that doesn't compete
+// with any other series and provides a clearly-bounded box border on the
+// toggle button below the chart even when the toggle is in the off state.
+const VIX_COLOR     = '#BF7FFF';
 
 // Walk the (iv, hv) series and emit a list of contiguous same-sign
 // segments, splitting at each zero crossing of (iv - hv). Each segment
@@ -511,7 +519,12 @@ export default function VolatilityRiskPremium({ spotPrice, capturedAt }) {
               aria-pressed={active}
               onClick={() => toggleTrace(key)}
               style={{
-                borderColor: active ? color : 'var(--bg-card-border)',
+                // Border ALWAYS uses the trace color so the button boundary
+                // is visible against the dark card even when the toggle is
+                // off — the inactive state used to fall back to bg-card-border
+                // (#1e2230), which read as dark-gray-on-darker-gray and made
+                // the off-state buttons look like missing UI.
+                borderColor: color,
                 color: active ? color : 'var(--text-secondary)',
               }}
             >
