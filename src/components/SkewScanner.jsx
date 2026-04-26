@@ -59,6 +59,21 @@ const TABS = {
   },
 };
 
+// Outside-label layout. The Quadrant container expands by
+// HORIZONTAL_GUTTER on each side and VERTICAL_GUTTER on top/bottom
+// so the four axis labels (High IV, Low IV, leftLabel, rightLabel)
+// can render in dedicated gutter space rather than overlaying dots
+// near the chart edges. The 160 px horizontal gutter is sized to the
+// widest side label ("High call skew" ≈ 134 px in 1rem Courier +
+// 16 px label padding + 8 px breathing gap from the chart border).
+// Outside placement only kicks in once the host container is wide
+// enough to absorb 320 px of gutter without compressing the chart
+// below ~320 px; on narrower viewports the labels fall back to the
+// original inside placement.
+const HORIZONTAL_GUTTER = 160;
+const VERTICAL_GUTTER = 36;
+const OUTSIDE_LABELS_MIN_CONTAINER = 640;
+
 function pctRank(values, valueAccessor) {
   // Returns a function symbol -> percentile in [0, 1]. Ties get the
   // average rank, so a cluster of identical values lands at the same
@@ -178,9 +193,14 @@ export default function SkewScanner() {
 
   // The plotted-points layout uses a square-ish quadrant. On wide
   // viewports we cap the side at 720 px so labels stay legible; on
-  // narrow viewports we let it shrink to fit.
+  // narrow viewports we let it shrink to fit. When outside labels
+  // are in play the available width has to also absorb the
+  // 2 × HORIZONTAL_GUTTER side-label gutter, so the chart shrinks
+  // accordingly with a hard floor of 320 px.
+  const useOutsideLabels = containerWidth >= OUTSIDE_LABELS_MIN_CONTAINER;
+  const xGutter = useOutsideLabels ? HORIZONTAL_GUTTER : 0;
   const quadrantSide = Math.min(
-    Math.max(containerWidth - 32, 320),
+    Math.max(containerWidth - 32 - 2 * xGutter, 320),
     720
   );
 
@@ -189,7 +209,6 @@ export default function SkewScanner() {
       <ScannerToolbar
         tab={tab}
         onTabChange={setTab}
-        data={data}
       />
 
       {data?.mode === 'seed' && (
@@ -247,6 +266,7 @@ export default function SkewScanner() {
           <Quadrant
             spec={spec}
             side={quadrantSide}
+            outsideLabels={useOutsideLabels}
             plotted={plotted}
             ivRank={ivRank}
             skewRank={skewRank}
@@ -257,57 +277,51 @@ export default function SkewScanner() {
         </div>
       )}
 
+      {data && (
+        <div
+          style={{
+            textAlign: 'center',
+            color: 'var(--text-secondary)',
+            fontFamily: 'Courier New, monospace',
+            fontSize: '0.78rem',
+            letterSpacing: '0.04em',
+          }}
+        >
+          {`${data.pricedCount}/${data.universeSize} priced · ~${data.target?.dteTarget ?? 30}D · ${formatDate(data.sessionDate ?? data.asOf)}`}
+        </div>
+      )}
+
       {data && <ScannerLegend />}
     </div>
   );
 }
 
-function ScannerToolbar({ tab, onTabChange, data }) {
+function ScannerToolbar({ tab, onTabChange }) {
   return (
     <div
+      role="tablist"
+      aria-label="Skew side"
       style={{
         display: 'flex',
-        flexWrap: 'wrap',
-        alignItems: 'center',
-        gap: '1rem',
-        justifyContent: 'space-between',
+        gap: '0.6rem',
+        justifyContent: 'center',
+        fontFamily: 'Courier New, monospace',
       }}
     >
-      <div
-        role="tablist"
-        aria-label="Skew side"
-        style={{
-          display: 'flex',
-          gap: '0.6rem',
-          fontFamily: 'Courier New, monospace',
-        }}
+      <TabButton
+        active={tab === 'put'}
+        onClick={() => onTabChange('put')}
+        tone="coral"
       >
-        <TabButton
-          active={tab === 'put'}
-          onClick={() => onTabChange('put')}
-          tone="coral"
-        >
-          Put skew
-        </TabButton>
-        <TabButton
-          active={tab === 'call'}
-          onClick={() => onTabChange('call')}
-          tone="green"
-        >
-          Call skew
-        </TabButton>
-      </div>
-
-      <div
-        style={{
-          color: 'var(--text-secondary)',
-          fontFamily: 'Courier New, monospace',
-          fontSize: '0.78rem',
-          letterSpacing: '0.04em',
-        }}
+        Put skew
+      </TabButton>
+      <TabButton
+        active={tab === 'call'}
+        onClick={() => onTabChange('call')}
+        tone="green"
       >
-        {data && `${data.pricedCount}/${data.universeSize} priced · ~${data.target?.dteTarget ?? 30}D · ${formatDate(data.sessionDate ?? data.asOf)}`}
-      </div>
+        Call skew
+      </TabButton>
     </div>
   );
 }
@@ -326,7 +340,7 @@ function TabButton({ active, onClick, children, tone }) {
         letterSpacing: '0.05em',
         background: 'transparent',
         color: color,
-        border: active ? `2px solid ${color}` : '2px solid transparent',
+        border: `2px solid ${color}`,
         borderRadius: '4px',
         cursor: 'pointer',
         opacity: active ? 1 : 0.55,
@@ -338,12 +352,29 @@ function TabButton({ active, onClick, children, tone }) {
 }
 
 function Quadrant({
-  spec, side, plotted, ivRank, skewRank,
+  spec, side, outsideLabels, plotted, ivRank, skewRank,
   topTenSymbols, hoveredSymbol, onHover,
 }) {
   const PADDING = 8;
   const PLOT_SIZE = side - PADDING * 2;
   const HALF = PLOT_SIZE / 2;
+
+  // Outside-label gutter. When the host viewport is wide enough, the
+  // Quadrant container expands by HORIZONTAL_GUTTER × VERTICAL_GUTTER
+  // so the four axis labels render in dedicated space outside the
+  // chart's plotted area rather than overlaying dots near the chart
+  // edges. On narrow viewports the gutters collapse to zero and the
+  // container, the chart, and the inner plot rectangle all stack at
+  // the original side × side / PLOT_SIZE × PLOT_SIZE geometry, with
+  // labels falling back to the original inside placement.
+  const xGutter = outsideLabels ? HORIZONTAL_GUTTER : 0;
+  const yGutter = outsideLabels ? VERTICAL_GUTTER : 0;
+  const totalWidth = side + 2 * xGutter;
+  const totalHeight = side + 2 * yGutter;
+  const chartLeft = xGutter;
+  const chartTop = yGutter;
+  const plotLeft = chartLeft + PADDING;
+  const plotTop = chartTop + PADDING;
 
   // Background gradient palette per tab. See quadrantBackgrounds for
   // the column/row encoding rules.
@@ -353,8 +384,8 @@ function Quadrant({
     <div
       style={{
         position: 'relative',
-        width: side,
-        height: side,
+        width: totalWidth,
+        height: totalHeight,
         flexShrink: 0,
       }}
     >
@@ -362,7 +393,10 @@ function Quadrant({
           mosaic. Drawn first so the SVG scatter sits on top. */}
       <div style={{
         position: 'absolute',
-        inset: PADDING,
+        left: plotLeft,
+        top: plotTop,
+        width: PLOT_SIZE,
+        height: PLOT_SIZE,
         display: 'grid',
         gridTemplateColumns: '1fr 1fr',
         gridTemplateRows: '1fr 1fr',
@@ -381,8 +415,8 @@ function Quadrant({
           center of the inner plot rectangle. */}
       <div style={{
         position: 'absolute',
-        left: PADDING,
-        top: PADDING + HALF,
+        left: plotLeft,
+        top: plotTop + HALF,
         width: PLOT_SIZE,
         height: 0,
         borderTop: '1px dashed rgba(160, 172, 200, 0.3)',
@@ -390,8 +424,8 @@ function Quadrant({
       }} />
       <div style={{
         position: 'absolute',
-        left: PADDING + HALF,
-        top: PADDING,
+        left: plotLeft + HALF,
+        top: plotTop,
         width: 0,
         height: PLOT_SIZE,
         borderLeft: '1px dashed rgba(160, 172, 200, 0.3)',
@@ -400,14 +434,20 @@ function Quadrant({
 
       {/* Edge-anchored axis annotations. Always rendered. Each label
           appears once and hugs an edge of the quadrant. Top/bottom
-          name the IV pole; left/right name the skew pole.
-            Top edge:    "High IV"   (right-of-center)
-            Bottom edge: "Low IV"    (right-of-center)
-            Left edge:   "High [side] skew"  (mid-Y)
-            Right edge:  "Low [side] skew"   (mid-Y) */}
+          name the IV pole; left/right name the skew pole. When
+          outsideLabels is true the labels render in the gutter
+          beyond the chart border; otherwise they render inside the
+          plot area near each edge.
+            Top edge:    "High IV"  (centered above)
+            Bottom edge: "Low IV"   (centered below)
+            Left edge:   "High [side] skew"  (mid-Y, just left of chart)
+            Right edge:  "Low [side] skew"   (mid-Y, just right of chart) */}
       <EdgeLabel
         edge="top"
-        offsetPx={PADDING + 12}
+        outside={outsideLabels}
+        chartLeft={chartLeft}
+        chartTop={chartTop}
+        chartSize={side}
         plotPadding={PADDING}
         plotSize={PLOT_SIZE}
         text="High IV"
@@ -415,15 +455,21 @@ function Quadrant({
       />
       <EdgeLabel
         edge="bottom"
-        offsetPx={PADDING + 12}
+        outside={outsideLabels}
+        chartLeft={chartLeft}
+        chartTop={chartTop}
+        chartSize={side}
         plotPadding={PADDING}
         plotSize={PLOT_SIZE}
         text="Low IV"
-        color="#9aa6c2"
+        color="#2cd5cf"
       />
       <EdgeLabel
         edge="left"
-        offsetPx={PADDING + 12}
+        outside={outsideLabels}
+        chartLeft={chartLeft}
+        chartTop={chartTop}
+        chartSize={side}
         plotPadding={PADDING}
         plotSize={PLOT_SIZE}
         text={spec.leftLabel}
@@ -431,11 +477,14 @@ function Quadrant({
       />
       <EdgeLabel
         edge="right"
-        offsetPx={PADDING + 12}
+        outside={outsideLabels}
+        chartLeft={chartLeft}
+        chartTop={chartTop}
+        chartSize={side}
         plotPadding={PADDING}
         plotSize={PLOT_SIZE}
         text={spec.rightLabel}
-        color="#9aa6c2"
+        color="#e8edf6"
       />
 
       {/* SVG scatter overlay. Positioned absolutely on top of the
@@ -446,8 +495,8 @@ function Quadrant({
         height={PLOT_SIZE}
         style={{
           position: 'absolute',
-          left: PADDING,
-          top: PADDING,
+          left: plotLeft,
+          top: plotTop,
           pointerEvents: 'none',
         }}
         aria-label={`Scatter: ATM IV vs ${spec.label}`}
@@ -552,14 +601,14 @@ function Quadrant({
           boxShadow: '0 2px 12px rgba(0, 0, 0, 0.6)',
         };
         if (openLeft) {
-          style.right = (PLOT_SIZE - cx + offset) + PADDING;
+          style.right = (PLOT_SIZE - cx + offset) + plotLeft;
         } else {
-          style.left = cx + offset + PADDING;
+          style.left = cx + offset + plotLeft;
         }
         if (openDown) {
-          style.top = cy + offset + PADDING;
+          style.top = cy + offset + plotTop;
         } else {
-          style.bottom = (PLOT_SIZE - cy + offset) + PADDING;
+          style.bottom = (PLOT_SIZE - cy + offset) + plotTop;
         }
         return <Tooltip ticker={t} style={style} />;
       })()}
@@ -651,21 +700,25 @@ function pctChangeColor(p) {
   return 'var(--text-secondary)';
 }
 
-function EdgeLabel({ edge, offsetPx, plotPadding, plotSize, text, color }) {
+function EdgeLabel({ edge, outside, chartLeft, chartTop, chartSize, plotPadding, plotSize, text, color }) {
   // Edge-anchored axis label. All four labels are centered on the
   // median split line of their respective axis: top/bottom on the
   // vertical X=50% center, left/right on the horizontal Y=50% center.
   // The black-box backing gives each label legible contrast against
-  // the gradient quadrant fill underneath, regardless of whether the
-  // label happens to land on the deeper-tinted half or the muted half.
+  // the gradient quadrant fill underneath (inside placement) or the
+  // page background (outside placement), regardless of which side
+  // the label lands on.
   //
-  // Stock SVG text wins on collision: the SVG element renders AFTER
-  // these EdgeLabel divs in the Quadrant component's DOM order, so
-  // SVG text natively stacks on top per the standard CSS painting
-  // order (later-in-DOM = drawn-later = on-top within the same
-  // stacking context). A stock label that lands on top of an axis
-  // label simply punches through visually — the user sees the ticker
-  // and infers the axis label from position context.
+  // OUTSIDE placement (wide viewports): labels live in the gutter
+  // beyond the chart border, with an 8 px breathing gap. The chart
+  // dots no longer collide with axis labels because the labels never
+  // overlap the plotted area.
+  //
+  // INSIDE placement (narrow viewports): the original v0.3 layout —
+  // labels live inside the plot area near each edge. Stock SVG text
+  // wins on collision because the SVG element renders AFTER these
+  // EdgeLabel divs in DOM order; a stock label that lands on top of
+  // an axis label simply punches through visually.
   const baseStyle = {
     position: 'absolute',
     pointerEvents: 'none',
@@ -681,12 +734,76 @@ function EdgeLabel({ edge, offsetPx, plotPadding, plotSize, text, color }) {
     whiteSpace: 'nowrap',
   };
 
+  if (outside) {
+    const GAP = 8;
+    const HALF = chartSize / 2;
+    if (edge === 'top') {
+      return (
+        <div
+          style={{
+            ...baseStyle,
+            left: chartLeft + HALF,
+            top: chartTop - GAP,
+            transform: 'translate(-50%, -100%)',
+          }}
+        >
+          {text}
+        </div>
+      );
+    }
+    if (edge === 'bottom') {
+      return (
+        <div
+          style={{
+            ...baseStyle,
+            left: chartLeft + HALF,
+            top: chartTop + chartSize + GAP,
+            transform: 'translateX(-50%)',
+          }}
+        >
+          {text}
+        </div>
+      );
+    }
+    if (edge === 'left') {
+      return (
+        <div
+          style={{
+            ...baseStyle,
+            left: chartLeft - GAP,
+            top: chartTop + HALF,
+            transform: 'translate(-100%, -50%)',
+          }}
+        >
+          {text}
+        </div>
+      );
+    }
+    return (
+      <div
+        style={{
+          ...baseStyle,
+          left: chartLeft + chartSize + GAP,
+          top: chartTop + HALF,
+          transform: 'translateY(-50%)',
+        }}
+      >
+        {text}
+      </div>
+    );
+  }
+
+  // Inside placement — narrow viewports. chartLeft / chartTop are
+  // both 0 in this branch (the container is the chart itself), so
+  // positioning is relative to the container directly.
+  const offsetPx = plotPadding + 12;
+  const insideHalf = plotSize / 2;
   if (edge === 'top') {
     return (
       <div
         style={{
           ...baseStyle,
-          left: plotPadding + plotSize * 0.50,
+          left: plotPadding + insideHalf,
           top: offsetPx,
           transform: 'translateX(-50%)',
         }}
@@ -700,7 +817,7 @@ function EdgeLabel({ edge, offsetPx, plotPadding, plotSize, text, color }) {
       <div
         style={{
           ...baseStyle,
-          left: plotPadding + plotSize * 0.50,
+          left: plotPadding + insideHalf,
           bottom: offsetPx,
           transform: 'translateX(-50%)',
         }}
@@ -715,7 +832,7 @@ function EdgeLabel({ edge, offsetPx, plotPadding, plotSize, text, color }) {
         style={{
           ...baseStyle,
           left: offsetPx,
-          top: plotPadding + plotSize * 0.50,
+          top: plotPadding + insideHalf,
           transform: 'translateY(-50%)',
         }}
       >
@@ -723,13 +840,12 @@ function EdgeLabel({ edge, offsetPx, plotPadding, plotSize, text, color }) {
       </div>
     );
   }
-  // edge === 'right'
   return (
     <div
       style={{
         ...baseStyle,
         right: offsetPx,
-        top: plotPadding + plotSize * 0.50,
+        top: plotPadding + insideHalf,
         transform: 'translateY(-50%)',
       }}
     >
