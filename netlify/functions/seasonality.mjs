@@ -509,10 +509,27 @@ async function handleWeekly(url, supabaseUrl, headers) {
     else averageValues.push(samples.reduce((a, b) => a + b, 0) / samples.length);
   }
 
+  // Each week column carries both the ISO week label (W01, W02, ...)
+  // and the Mon-Fri date range that week occupies in the CURRENT
+  // calendar year. Sourcing the range from the current year is a
+  // reader-affordance choice — the actual ISO calendar dates for the
+  // same week number drift by ±2 days year-to-year, so showing one
+  // canonical "this is roughly when in the year week 17 falls" range
+  // is more useful than picking an arbitrary historical year.
+  const currentIsoYear = Number(etTodayIso().slice(0, 4));
+  const weekColumns = Array.from({ length: maxWeek }, (_, i) => {
+    const weekNum = i + 1;
+    const monday = isoWeekToMonday(currentIsoYear, weekNum);
+    return {
+      week: `W${String(weekNum).padStart(2, '0')}`,
+      range: weekLabel(monday),
+    };
+  });
+
   const payload = {
     symbol: 'SPX',
     view: 'weekly',
-    columns: Array.from({ length: maxWeek }, (_, i) => `W${String(i + 1).padStart(2, '0')}`),
+    columns: weekColumns,
     averages: [{ label: 'All Years', values: averageValues }],
     years: yearRows,
     asOf: dailyRows[dailyRows.length - 1].trading_date,
@@ -633,6 +650,23 @@ function mondayOfWeek(isoDate) {
   const isoDay = date.getUTCDay() === 0 ? 7 : date.getUTCDay();
   date.setUTCDate(date.getUTCDate() - (isoDay - 1));
   return date.toISOString().slice(0, 10);
+}
+
+// Returns the Monday (ISO date) of ISO week N of the given ISO year.
+// Week 1 contains Jan 4 (the standard ISO anchor); the Monday of week 1
+// is found by walking back to Monday from Jan 4, then each subsequent
+// week's Monday is +7 days from there. Years where ISO week 53 doesn't
+// exist still return a valid Monday — it just happens to fall in the
+// next calendar year's W01 territory, which the WEEKLY view never
+// surfaces because maxWeek is derived from the actual data.
+function isoWeekToMonday(isoYear, isoWeek) {
+  const jan4 = new Date(Date.UTC(isoYear, 0, 4));
+  const jan4Day = jan4.getUTCDay() === 0 ? 7 : jan4.getUTCDay();
+  const week1Monday = new Date(jan4);
+  week1Monday.setUTCDate(jan4.getUTCDate() - (jan4Day - 1));
+  const weekNMonday = new Date(week1Monday);
+  weekNMonday.setUTCDate(week1Monday.getUTCDate() + (isoWeek - 1) * 7);
+  return weekNMonday.toISOString().slice(0, 10);
 }
 
 // Friendly label for a week starting on the given Monday ISO date:

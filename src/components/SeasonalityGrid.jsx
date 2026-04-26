@@ -349,7 +349,15 @@ function DailyGrid({ payload, anchor }) {
 // vertically through the calendar instead of horizontally — which on a
 // 27" desktop is the right axis for 52 entries.
 function WeeklyGrid({ payload, anchor }) {
-  const weekLabels = payload.columns || [];   // ['W01', 'W02', ..., 'Wmax']
+  // Server emits payload.columns as an array of {week, range} objects:
+  // week is the ISO week label ("W01"), range is the Mon-Fri date span
+  // for that week in the current calendar year ("Dec 29 – Jan 2"). The
+  // string-format fallback below preserves rendering during a partial
+  // server/client deploy split where one side ships a moment before
+  // the other.
+  const weekColumns = (payload.columns || []).map((c) =>
+    typeof c === 'string' ? { week: c, range: '' } : c
+  );
   const yearRows = payload.years || [];       // [{year, cells: [...for each week]}]
   const avgValues = (payload.averages?.[0]?.values) || [];  // 1 entry per week
   // Years displayed left-to-right newest-first. The server already sorts
@@ -369,12 +377,14 @@ function WeeklyGrid({ payload, anchor }) {
           </tr>
         </thead>
         <tbody>
-          {weekLabels.map((weekLabelText, weekIdx) => (
-            <tr key={weekLabelText} className="seasonality-row">
-              <th scope="row" className="seasonality-row-head">{weekLabelText}</th>
+          {weekColumns.map((col, weekIdx) => (
+            <tr key={col.week} className="seasonality-row">
+              <th scope="row" className="seasonality-row-head">
+                {col.range ? `${col.week} · ${col.range}` : col.week}
+              </th>
               <NumericCell pct={avgValues[weekIdx]} anchor={anchor} />
-              {yearCols.map((col) => (
-                <Cell key={col.year} cell={col.cells[weekIdx]} anchor={anchor} />
+              {yearCols.map((yc) => (
+                <Cell key={yc.year} cell={yc.cells[weekIdx]} anchor={anchor} />
               ))}
             </tr>
           ))}
