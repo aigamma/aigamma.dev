@@ -55,7 +55,7 @@ export default function App() {
             className="lab-badge"
             title="VIX — full profile catalog of VIX models"
           >
-            <span className="lab-badge__desktop-text">VIX Catalog</span>
+            <span className="lab-badge__desktop-text">VIX</span>
             <span className="lab-badge__mobile-text">VIX</span>
           </span>
         </div>
