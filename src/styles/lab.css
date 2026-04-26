@@ -810,22 +810,38 @@
 .seasonality-grid--daily .seasonality-corner,
 .seasonality-grid--daily .seasonality-row-head {
   min-width: 0;
-  padding-right: 0.55rem;
+  padding-left: 0.4rem !important;   /* override .seasonality-row-head 0.85rem !important */
+  padding-right: 0.3rem;
+  text-align: right !important;      /* override .seasonality-row-head text-align:left !important */
 }
 
-/* DAILY data cells get a wider minimum on desktop. The grid only has
-   five Mon-Fri columns, so the available horizontal real estate easily
-   absorbs ~100px each — gives the colored cells more visual weight and
-   the +0.79% / [HOLIDAY] strings room to breathe instead of crowding
-   the cell borders. Mobile keeps the inherited 54/48px from the
-   .seasonality-cell base + breakpoint rules so the table still fits a
-   ~375px viewport without horizontal scrolling kicking in. */
+/* DAILY data cells: left-align the value so it sits flush against the
+   row label (whose text is now right-aligned and ends at a consistent
+   X position regardless of label length — so "5 Wk Avg" and
+   "Mar 30 – Apr 3" both land at the right edge of the date column,
+   immediately followed by the Mon cell's value). The previous
+   center-aligned cells floated the value ~25px inside a 100px column,
+   leaving a visible 30+px gap between "Apr 3" and "+0.79%" that
+   forced the eye to track horizontally to associate label with row. */
+.seasonality-grid--daily td.seasonality-cell,
+.seasonality-grid--daily .seasonality-col-head {
+  text-align: left;
+}
+
+/* Wider Mon-Fri data columns at desktop widths. The grid only has five
+   columns, so the available horizontal real estate easily absorbs
+   ~100px each — gives the colored cells more visual weight and room
+   to breathe. Padding-left is small (0.4rem) so the left-aligned text
+   sits close to the cell border, completing the "label → value with
+   minimal gap" continuity. Mobile keeps the inherited 54/48px from
+   the .seasonality-cell base + breakpoint rules so the table still
+   fits a ~375px viewport without horizontal scrolling kicking in. */
 @media (min-width: 769px) {
   .seasonality-grid--daily td.seasonality-cell,
   .seasonality-grid--daily .seasonality-col-head {
     min-width: 100px;
-    padding-left: 0.6rem;
-    padding-right: 0.6rem;
+    padding-left: 0.4rem;
+    padding-right: 0.5rem;
   }
 }
 
