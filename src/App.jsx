@@ -32,12 +32,7 @@ const Chat = lazy(() => import('./components/Chat'));
 import useOptionsData from './hooks/useOptionsData';
 import { useVrpHistory } from './hooks/useHistoricalData';
 import { computeGammaProfile, findFlipFromProfile } from './lib/gammaProfile';
-import {
-  filterPickerExpirations,
-  formatFreshness,
-  isMarketClosed,
-  pickDefaultExpiration,
-} from './lib/dates';
+import { filterPickerExpirations, pickDefaultExpiration } from './lib/dates';
 
 // Regime is determined by spot's side of the volatility flip — the price at
 // which the dealer gamma profile crosses zero. When spot is above the flip,
@@ -399,10 +394,8 @@ export default function App() {
     return { score, counted, dirs };
   }, [correctedLevels, prevCorrectedLevels]);
 
-  const freshness = data ? formatFreshness(data.capturedAt) : null;
   const isSynthetic = data && data.source === 'synthetic';
   const regime = data ? classifyGammaRegime(correctedLevels, data.spotPrice) : null;
-  const marketClosed = isMarketClosed(new Date());
 
   // Dynamic favicon: sync the tab icon with the same regime classification
   // that drives the on-page regime badge, so the tab chrome always agrees
@@ -534,35 +527,6 @@ export default function App() {
 
       {data && (
         <>
-          {freshness && (
-            <div
-              className="site-timestamp"
-              style={{
-                fontFamily: 'Courier New, monospace',
-                fontSize: '0.8rem',
-                color: 'var(--text-secondary)',
-                justifyContent: 'center',
-                alignItems: 'center',
-                gap: '0.5rem',
-                marginBottom: '0.5rem',
-              }}
-            >
-              <span>{marketClosed ? 'Final:' : 'Last updated:'} {freshness}</span>
-              {isSynthetic && (
-                <span
-                  style={{
-                    padding: '0.1rem 0.4rem',
-                    border: '1px solid var(--accent-amber)',
-                    color: 'var(--accent-amber)',
-                    borderRadius: '3px',
-                  }}
-                >
-                  SYNTHETIC
-                </span>
-              )}
-            </div>
-          )}
-
           <ErrorBoundary>
             <LevelsPanel
               levels={correctedLevels}
@@ -576,6 +540,7 @@ export default function App() {
               capturedAt={data.capturedAt}
               vrpMetric={vrpMetric}
               overnightAlignment={overnightAlignment}
+              isSynthetic={isSynthetic}
             />
           </ErrorBoundary>
 

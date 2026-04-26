@@ -205,16 +205,6 @@ body {
   line-height: 1.4;
 }
 
-/* The freshness line sits on its own row, centered horizontally above
-   the LevelsPanel card rather than in the upper-right of the header,
-   so the right edge of the header is free for new top-nav buttons.
-   display: flex lets the inline gap between the "Last updated: …"
-   span and the optional SYNTHETIC pill take effect; alignment and
-   centering are set inline alongside the typographic styles in App.jsx. */
-.site-timestamp {
-  display: flex;
-}
-
 .app-shell {
   max-width: 1100px;
   margin: 0 auto;

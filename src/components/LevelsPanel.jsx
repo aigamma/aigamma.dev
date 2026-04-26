@@ -1,5 +1,5 @@
 import { formatGamma, formatInteger, formatPercent, formatRatio } from '../lib/format';
-import { daysToExpiration, isThirdFridayMonthly } from '../lib/dates';
+import { daysToExpiration, formatFreshness, isThirdFridayMonthly } from '../lib/dates';
 
 // Treat the 3rd Friday of the month (Friday whose calendar day is 15-21) as
 // an AM-settled standard SPX monthly; everything else is a PM-settled SPXW
@@ -159,7 +159,7 @@ function Divider() {
 
 const ROW_GRID_CLASS = 'levels-row';
 
-export default function LevelsPanel({ levels, spotPrice, prevClose, expirationMetrics, prevExpirationMetrics, expirations, selectedExpiration, onExpirationChange, capturedAt, vrpMetric, overnightAlignment }) {
+export default function LevelsPanel({ levels, spotPrice, prevClose, expirationMetrics, prevExpirationMetrics, expirations, selectedExpiration, onExpirationChange, capturedAt, vrpMetric, overnightAlignment, isSynthetic }) {
   if (!levels) {
     return (
       <div className="card text-muted" style={{ marginBottom: '1rem' }}>
@@ -167,6 +167,8 @@ export default function LevelsPanel({ levels, spotPrice, prevClose, expirationMe
       </div>
     );
   }
+
+  const freshness = capturedAt ? formatFreshness(capturedAt) : null;
 
   const callWallSub = distanceSub(levels.call_wall, spotPrice);
   const putWallSub = distanceSub(levels.put_wall, spotPrice);
@@ -203,6 +205,34 @@ export default function LevelsPanel({ levels, spotPrice, prevClose, expirationMe
 
   return (
     <div className="card" style={{ marginBottom: '1rem' }}>
+      {freshness && (
+        <div
+          style={{
+            fontFamily: 'Courier New, monospace',
+            fontSize: '0.8rem',
+            color: 'var(--text-secondary)',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            gap: '0.5rem',
+            marginBottom: '1rem',
+          }}
+        >
+          <span>{'>> Last Updated: '}{freshness}</span>
+          {isSynthetic && (
+            <span
+              style={{
+                padding: '0.1rem 0.4rem',
+                border: '1px solid var(--accent-amber)',
+                color: 'var(--accent-amber)',
+                borderRadius: '3px',
+              }}
+            >
+              SYNTHETIC
+            </span>
+          )}
+        </div>
+      )}
       <div className={ROW_GRID_CLASS}>
         <Stat
           label="Overnight Alignment"
