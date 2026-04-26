@@ -169,6 +169,7 @@ export default defineConfig({
         scan: fileURLToPath(new URL('./scan/index.html', import.meta.url)),
         earnings: fileURLToPath(new URL('./earnings/index.html', import.meta.url)),
         'expiring-gamma': fileURLToPath(new URL('./expiring-gamma/index.html', import.meta.url)),
+        vix: fileURLToPath(new URL('./vix/index.html', import.meta.url)),
       },
     },
   },

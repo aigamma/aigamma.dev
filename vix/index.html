@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex,nofollow,noarchive" />
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <link rel="preload" as="script" href="/vendor/plotly-cartesian-2.35.2.min.js" />
+    <title>AI Gamma · VIX Catalog · term / VRP / OU / vol-of-vol / cross-asset / skew / regime</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script>
+      // Boot script — fires the /api/vix-data fetch before the React bundle
+      // parses so the network request and the JS download race in parallel
+      // rather than waiting for the React mount to dispatch the fetch.
+      // Mirrors the /tactical/ pattern: useVixData drains window.__vixBoot
+      // when present and falls back to a fresh fetch otherwise.
+      (function () {
+        var p = fetch('/api/vix-data').then(function (r) {
+          if (!r.ok) {
+            return r.text().then(function (t) {
+              throw new Error('vix-data ' + r.status + ': ' + t.slice(0, 200));
+            });
+          }
+          return r.json();
+        });
+        p.catch(function () {});
+        window.__vixBoot = p;
+      })();
+    </script>
+    <script type="module" src="./main.jsx"></script>
+  </body>
+</html>

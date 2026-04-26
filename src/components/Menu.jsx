@@ -27,6 +27,7 @@ const MENU_ITEMS = [
   { href: '/rough/',                    label: '/rough/',         desc: 'Rough Bergomi and rough vol exploration' },
   { href: '/scan/',                     label: '/scan/',          desc: 'Call/put 25Δ skew vs ATM IV scanner' },
   { href: '/stochastic/',               label: '/stochastic/',    desc: 'Heston, SABR, LSV, rough Bergomi' },
+  { href: '/vix/',                      label: '/vix/',           desc: 'VIX term, OU mean reversion, vol-of-vol, regime, strategy' },
   { href: 'https://about.aigamma.com/', label: 'About This Page' },
 ];
 
