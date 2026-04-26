@@ -297,7 +297,7 @@ function DailyGrid({ payload, anchor }) {
 
   return (
     <div className="seasonality-scroll">
-      <table className="seasonality-grid">
+      <table className="seasonality-grid seasonality-grid--daily">
         <thead>
           <tr>
             <th className="seasonality-corner">Week</th>
@@ -307,15 +307,8 @@ function DailyGrid({ payload, anchor }) {
           </tr>
         </thead>
         <tbody>
-          {avgRows.map((row, rowIdx) => (
-            <tr
-              key={row.key}
-              className={
-                rowIdx === firstWeekDivider - 1 && weekRows.length > 0
-                  ? 'seasonality-row'
-                  : 'seasonality-row'
-              }
-            >
+          {avgRows.map((row) => (
+            <tr key={row.key} className="seasonality-row">
               <th scope="row" className="seasonality-row-head seasonality-row-head--avg">
                 {row.label}
               </th>
@@ -345,49 +338,43 @@ function DailyGrid({ payload, anchor }) {
   );
 }
 
+// WEEKLY view, transposed: rows are ISO weeks W01..Wmax, columns are
+// the calendar years present in the data (newest year on the left,
+// immediately after the "Avg" summary column so the current year and the
+// year-over-year baseline are both visible without scrolling). Reading
+// across one row gives "what did week N return in each year, and what's
+// the typical?". Reading down one column gives "what did 2024 do
+// week-by-week, including the weeks where current year hasn't traded
+// yet". Both are useful and the transpose lets the reader scroll
+// vertically through the calendar instead of horizontally — which on a
+// 27" desktop is the right axis for 52 entries.
 function WeeklyGrid({ payload, anchor }) {
-  const columns = payload.columns || [];
-  const yearRows = payload.years || [];
-  const avgRows = (payload.averages || []).map((a, idx) => ({
-    key: `avg-${idx}-${a.label || a.window || 'avg'}`,
-    label: a.label || averageLabel(a.window, 'Yr Avg'),
-    values: a.values,
-  }));
+  const weekLabels = payload.columns || [];   // ['W01', 'W02', ..., 'Wmax']
+  const yearRows = payload.years || [];       // [{year, cells: [...for each week]}]
+  const avgValues = (payload.averages?.[0]?.values) || [];  // 1 entry per week
+  // Years displayed left-to-right newest-first. The server already sorts
+  // years descending so the order is preserved as-is.
+  const yearCols = yearRows.map((y) => ({ year: y.year, cells: y.cells }));
 
   return (
     <div className="seasonality-scroll">
       <table className="seasonality-grid seasonality-grid--weekly">
         <thead>
           <tr>
-            <th className="seasonality-corner">Year</th>
-            {columns.map((c) => (
-              <th key={c} className="seasonality-col-head seasonality-col-head--narrow">{c}</th>
+            <th className="seasonality-corner">Week</th>
+            <th className="seasonality-col-head seasonality-col-head--avg">Avg</th>
+            {yearCols.map((col) => (
+              <th key={col.year} className="seasonality-col-head">{col.year}</th>
             ))}
           </tr>
         </thead>
         <tbody>
-          {avgRows.map((row) => (
-            <tr key={row.key} className="seasonality-row">
-              <th scope="row" className="seasonality-row-head seasonality-row-head--avg">
-                {row.label}
-              </th>
-              {row.values.map((v, i) => (
-                <NumericCell key={i} pct={v} anchor={anchor} />
-              ))}
-            </tr>
-          ))}
-          {yearRows.map((y, idx) => (
-            <tr
-              key={y.year}
-              className={
-                idx === 0 && avgRows.length > 0
-                  ? 'seasonality-row seasonality-row--first-day'
-                  : 'seasonality-row'
-              }
-            >
-              <th scope="row" className="seasonality-row-head">{y.year}</th>
-              {y.cells.map((c, i) => (
-                <Cell key={i} cell={c} anchor={anchor} />
+          {weekLabels.map((weekLabelText, weekIdx) => (
+            <tr key={weekLabelText} className="seasonality-row">
+              <th scope="row" className="seasonality-row-head">{weekLabelText}</th>
+              <NumericCell pct={avgValues[weekIdx]} anchor={anchor} />
+              {yearCols.map((col) => (
+                <Cell key={col.year} cell={col.cells[weekIdx]} anchor={anchor} />
               ))}
             </tr>
           ))}

@@ -795,21 +795,33 @@
   font-weight: 400;
 }
 
-/* Weekly view crams 52+ columns onto one row, so the table is scoped
-   with .seasonality-grid--weekly to override the default 62px min-width
-   on column heads and data cells. Anything wider and the row of weekly
-   returns spills past the viewport so far that horizontal scrolling
-   becomes the only way to read past W10. */
-.seasonality-grid--weekly .seasonality-col-head,
-.seasonality-grid--weekly .seasonality-col-head--narrow,
-.seasonality-grid--weekly td.seasonality-cell {
-  min-width: 38px;
-  padding-left: 0.22rem;
-  padding-right: 0.22rem;
+/* DAILY view drops the table to width: auto so the (week × Mon-Fri)
+   grid hugs its content instead of spreading the columns across the
+   full card width. The widest week label is "Mar 30 – Apr 3" (14
+   chars in monospace ~= 105px); without width:auto the table-layout
+   spreads the slack across all six columns, leaving a visible gap
+   between the date column and the data. Tightening the row-head
+   right-padding and dropping the min-width floor lets the date
+   column hug its longest label. */
+.seasonality-grid--daily {
+  width: auto;
 }
 
-.seasonality-grid--weekly {
-  font-size: 0.7rem;
+.seasonality-grid--daily .seasonality-corner,
+.seasonality-grid--daily .seasonality-row-head {
+  min-width: 0;
+  padding-right: 0.55rem;
+}
+
+/* WEEKLY view (transposed): rows are ISO weeks W01..W52, columns are
+   years (newest-first) plus an "Avg" summary column. The previous
+   wide layout had 52 narrow columns that needed a tighter font;
+   transposed, the column count drops to ~7 (5 years + Avg + Week
+   label) and the row count rises to 52, so the default cell sizing
+   reads cleanly. The "Avg" column header carries the amber accent
+   used for averages everywhere else on the site. */
+.seasonality-col-head--avg {
+  color: var(--accent-amber);
 }
 
 .seasonality-legend {
