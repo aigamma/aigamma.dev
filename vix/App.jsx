@@ -56,7 +56,7 @@ export default function App() {
             <span className="lab-badge__mobile-text">VIX</span>
           </span>
         </div>
-        <TopNav />
+        <TopNav current="vix" />
         <a
           href="/"
           className="lab-home-button lab-home-button--inline lab-home-button--split"
