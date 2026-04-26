@@ -435,9 +435,20 @@ async function pmap(items, concurrency, mapper) {
 async function fetchTickerSnapshot(ticker, earningsIso, releaseTime) {
   if (!MASSIVE_API_KEY) return { ok: false, reason: 'no-key' };
   const minExpIso = releaseTime === 1 ? earningsIso : addDaysIso(earningsIso, 1);
+  // 30-day upper bound captures both (a) liquid names with weekly /
+  // daily expirations close to the earnings date and (b) mid-caps that
+  // only list third-Friday monthly expirations, where the next listed
+  // exp can be 15-25 days past an earnings date that lands mid-month.
+  // The 0.85 straddle factor was calibrated by SpotGamma against the
+  // soonest expiration after the event, so for monthly-only names the
+  // chart value will be slightly biased high (extra DTE bakes in
+  // non-earnings vol), but covering them is still a more informative
+  // signal than dropping them entirely. The deriveImpliedMove() loop
+  // picks the soonest listed exp from the returned set, so liquid
+  // names with daily expirations still pin to DTE=0/1.
   const params = new URLSearchParams({
     'expiration_date.gte': minExpIso,
-    'expiration_date.lte': addDaysIso(earningsIso, 14),
+    'expiration_date.lte': addDaysIso(earningsIso, 30),
     limit: '250',
   });
   let res;
@@ -455,6 +466,32 @@ async function fetchTickerSnapshot(ticker, earningsIso, releaseTime) {
   return { ok: true, contracts: Array.isArray(body?.results) ? body.results : [] };
 }
 
+// Resolve a single contract's mid by trying every price field
+// Massive's snapshot endpoint exposes, in order of preference. Each
+// field is a real traded or modeled price; this is NOT a vol-time
+// approximation (no IV-scaled fallback — that path was removed
+// deliberately per Eric's directive). The order traverses from "live
+// at this moment" to "session anchored" so a live session uses the
+// freshest NBBO mid while an off-hours request still gets a real
+// straddle price for every contract Massive lists.
+//
+//   1. last_quote NBBO mid — real-time best bid/ask average. Goes
+//      null off-hours when there's no streaming book to aggregate.
+//   2. last_trade.price — most recent actual trade. Persists from
+//      the prior session into off-hours, but can be missing for
+//      contracts that didn't trade on the session.
+//   3. fmv — Polygon's continuously-computed Fair Market Value (the
+//      model used to feed the dashboard NBBO indicator). Populated
+//      even off-hours and across the full strike grid because it's
+//      synthesized from neighboring quotes + IV surface, not a raw
+//      market quote. This is a price, not a vol estimate, so it
+//      stays inside the "real ATM straddle" convention.
+//   4. day.close — current session's official closing price for the
+//      contract. Empty during a live session before the close,
+//      populated after.
+//   5. day.previous_close — prior session's closing price. Always
+//      populated by the start of the next session. Final fallback;
+//      furthest back in time but still a real traded price.
 function midPrice(c) {
   const bid = Number(c?.last_quote?.bid);
   const ask = Number(c?.last_quote?.ask);
@@ -463,6 +500,12 @@ function midPrice(c) {
   }
   const last = Number(c?.last_trade?.price);
   if (Number.isFinite(last) && last > 0) return last;
+  const fmv = Number(c?.fmv);
+  if (Number.isFinite(fmv) && fmv > 0) return fmv;
+  const dayClose = Number(c?.day?.close);
+  if (Number.isFinite(dayClose) && dayClose > 0) return dayClose;
+  const prevClose = Number(c?.day?.previous_close);
+  if (Number.isFinite(prevClose) && prevClose > 0) return prevClose;
   return null;
 }
 
