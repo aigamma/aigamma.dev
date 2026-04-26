@@ -23,6 +23,7 @@ const MENU_ITEMS = [
   { href: '/regime/',                   label: '/regime/',        desc: 'Mixture, Markov, Wasserstein regimes' },
   { href: '/risk/',                     label: '/risk/',          desc: 'Cross-model Greeks, Vanna-Volga, second-order' },
   { href: '/rough/',                    label: '/rough/',         desc: 'Rough Bergomi and rough vol exploration' },
+  { href: '/scan/',                     label: '/scan/',          desc: 'Call/put 25Δ skew vs ATM IV scanner' },
   { href: '/stochastic/',               label: '/stochastic/',    desc: 'Heston, SABR, LSV, rough Bergomi' },
   { href: 'https://about.aigamma.com/', label: 'About This Page' },
 ];

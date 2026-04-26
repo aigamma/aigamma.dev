@@ -22,6 +22,15 @@
 [functions.heatmap]
   included_files = ["src/data/options-volume-roster.json"]
 
+# /api/scan reads the same options-volume roster JSON at runtime to
+# select its top-N universe (40 by default; query-string overridable
+# up to 100). Same readFileSync pattern as heatmap.mjs above, so the
+# same explicit included_files entry is required to ship the JSON
+# inside the deployed function bundle. See netlify/functions/scan.mjs
+# for the per-ticker Massive snapshot fan-out and skew derivation.
+[functions.scan]
+  included_files = ["src/data/options-volume-roster.json"]
+
 # Specific /api/snapshot.json redirect MUST come before the /api/* wildcard —
 # otherwise the wildcard expands :splat to `snapshot.json` and Netlify looks
 # for a function literally named `snapshot.json` (which doesn't exist). The
