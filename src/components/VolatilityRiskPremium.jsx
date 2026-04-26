@@ -26,25 +26,33 @@ function msToIso(ms) {
 //   drawn first so it sits behind everything else as context.
 // - Realized vol (Yang-Zhang 20d) and implied vol (30d constant-maturity)
 //   as two contrasting lines on the right y-axis, expressed as annualized %.
-// - Conditional fill between the two vol lines: green where IV > RV
-//   (positive VRP, the normal state where options price more vol than has
-//   been realized), red where RV > IV (negative VRP, the rare stressed
-//   state where realized has exceeded option-implied expectation). These
-//   shaded bands are visually self-explanatory (green = IV above RV,
-//   red = RV above IV) and carry no legend entries — the legend would
-//   just restate what the colors already make obvious.
-// - Legend contains only the three line series (SPX, RV, IV) and sits
-//   as a horizontal row in the top margin band below the chart title, so
-//   it never overlaps the data area. Legend entries and the two y-axis
-//   titles are rendered bold at a larger font size than Plotly's defaults
-//   so the chart stays legible when the card is screenshotted and shared
-//   at reduced resolution (Discord, Twitter, etc).
+// - VIX (Cboe-published 30-day implied vol on SPX, sourced from Massive
+//   Indices Starter via vix_family_eod and merged in by vrp-history.mjs)
+//   as a third line on the same right y-axis, drawn in primary-soft blue
+//   so the eye reads it as the "official" Cboe-disseminated implied vol
+//   alongside the chain-derived 30d CM IV. The two implied measures
+//   should track each other closely — when they diverge the gap is
+//   informative about chain pricing vs Cboe's smoothing methodology.
+// - Conditional fill between the chain-derived vol lines (IV vs RV): green
+//   where IV > RV (positive VRP, the normal state where options price more
+//   vol than has been realized), red where RV > IV (negative VRP, the rare
+//   stressed state where realized has exceeded option-implied expectation).
+//   These shaded bands are visually self-explanatory (green = IV above RV,
+//   red = RV above IV) and carry no legend entries — the legend would just
+//   restate what the colors already make obvious.
+// - Legend contains the four line series (SPX, RV, IV, VIX) and sits as a
+//   horizontal row in the top margin band below the chart title, so it
+//   never overlaps the data area. Legend entries and the two y-axis titles
+//   are rendered bold at a larger font size than Plotly's defaults so the
+//   chart stays legible when the card is screenshotted and shared at
+//   reduced resolution (Discord, Twitter, etc).
 const POS_VRP_FILL  = 'rgba(46, 204, 113, 0.22)';
 const NEG_VRP_FILL  = 'rgba(231, 76, 60, 0.38)';
 const SPX_AREA_FILL = 'rgba(74, 158, 255, 0.12)';
 const SPX_LINE      = 'rgba(74, 158, 255, 0.55)';
 const RV_COLOR      = PLOTLY_COLORS.highlight;
 const IV_COLOR      = PLOTLY_COLORS.titleText;
+const VIX_COLOR     = PLOTLY_COLORS.primarySoft;
 
 // Walk the (iv, hv) series and emit a list of contiguous same-sign
 // segments, splitting at each zero crossing of (iv - hv). Each segment
@@ -142,6 +150,12 @@ export default function VolatilityRiskPremium({ spotPrice, capturedAt }) {
         spx_close: r.spx_close,
         iv: r.iv_30d_cm * 100,
         hv: r.hv_20d_yz * 100,
+        // VIX comes back as the raw Cboe value (e.g. 18.71), already in
+        // percent units. Pre-2023-03 rows have null because the Massive
+        // Indices Starter backfill window starts there; the trace is built
+        // null-tolerantly so the line just begins at the first available
+        // VIX date rather than dragging the whole series down to zero.
+        vix: r.vix != null ? Number(r.vix) : null,
       }));
   }, [data]);
 
@@ -256,21 +270,44 @@ export default function VolatilityRiskPremium({ spotPrice, capturedAt }) {
       hovertemplate: '%{x}<br>IV: %{y:.2f}%<extra></extra>',
     };
 
+    // VIX trace — Cboe-published 30d implied vol on SPX, sourced via the
+    // Massive Indices Starter backfill in vix_family_eod and merged into
+    // the vrp-history payload by date. Filtered to rows where vix is
+    // non-null so the line starts at the Massive backfill floor (2023-03)
+    // and doesn't drag through pre-2023 dates as a flat line at zero.
+    // Drawn at width 1.5 to sit slightly behind the bolder IV/RV pair —
+    // VIX is an additional reference, not a primary measurement.
+    const vixSeries = series.filter((r) => r.vix != null);
+    const vixLine = {
+      x: vixSeries.map((r) => r.trading_date),
+      y: vixSeries.map((r) => r.vix),
+      mode: 'lines',
+      type: 'scatter',
+      line: { color: VIX_COLOR, width: 1.5 },
+      yaxis: 'y2',
+      name: `<span style="color: ${VIX_COLOR}"><b>VIX</b></span>`,
+      hovertemplate: '%{x}<br>VIX: %{y:.2f}<extra></extra>',
+    };
+
     // Trace order encodes z-order in Plotly: later traces render on top of
     // earlier ones. The SPX area fill stays first so it sits behind the VRP
     // ribbon as context background, but the SPX line itself is pushed to the
-    // END of the list so it renders on top of the RV/IV lines and the VRP
-    // polygons wherever their paths cross. The chart's default y-axis layout
-    // keeps SPX pinned to the upper ~15-20% of the frame (spxLo anchored at
-    // 0.95x the full-backfill min, which sits well below any recent SPX
-    // level), so collisions with the IV/RV ribbon are uncommon — but when
-    // the ribbon expands into the upper band on a high-vol session or SPX
-    // dips into the ribbon on a drawdown, the blue line stays clearly
-    // visible as the primary price reference rather than getting visually
-    // buried under the colored vol lines.
+    // END of the list so it renders on top of the RV/IV/VIX lines and the
+    // VRP polygons wherever their paths cross. The chart's default y-axis
+    // layout keeps SPX pinned to the upper ~15-20% of the frame (spxLo
+    // anchored at 0.95x the full-backfill min, which sits well below any
+    // recent SPX level), so collisions with the IV/RV/VIX ribbon are
+    // uncommon — but when the ribbon expands into the upper band on a
+    // high-vol session or SPX dips into the ribbon on a drawdown, the blue
+    // line stays clearly visible as the primary price reference rather than
+    // getting visually buried under the colored vol lines. VIX sits between
+    // the VRP polygons and the chain-derived IV/RV pair so the chain
+    // measurements remain on top — VIX is the reference, IV/RV is the
+    // primary content.
     const traces = [
       spxAreaTrace,
       ...vrpTraces,
+      vixLine,
       rvLine,
       ivLine,
       spxLineTrace,
@@ -288,7 +325,16 @@ export default function VolatilityRiskPremium({ spotPrice, capturedAt }) {
       (r) => r.trading_date >= windowStart && r.trading_date <= windowEnd,
     );
     const volSource = windowedSeries.length > 0 ? windowedSeries : series;
-    const volValues = volSource.flatMap((r) => [r.iv, r.hv]);
+    // Include VIX in the y-axis range so the new line never clips outside
+    // the visible vol band. VIX often spikes further than the chain-derived
+    // IV (it's a wider-strike calculation that reaches further into the
+    // OTM-put wings), so omitting it from the range computation would
+    // truncate the top of any vol-spike day.
+    const volValues = volSource.flatMap((r) => [
+      r.iv,
+      r.hv,
+      ...(r.vix != null ? [r.vix] : []),
+    ]);
     const volMin = Math.min(...volValues);
     const volMax = Math.max(...volValues);
     const volLo = Math.max(0, volMin * 0.85);
