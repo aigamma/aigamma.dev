@@ -282,17 +282,19 @@ body {
 }
 
 /* ===== TOP NAV =====
-   Promoted lab buttons (Tactical Vol, Seasonality, Rotations) that
-   live in every page header beside the Menu trigger. Outlined
-   accent-blue rather than the Menu's purple so a reader's eye
-   parses the three buttons as their own group of direct links
-   distinct from the Menu dropdown. Trigger sizing matches the
-   3.2rem chrome of .menu-trigger and .lab-home-button--inline so
-   all four right-side header affordances sit on a single
-   horizontal baseline at desktop widths. Two-span splitter
-   (top-nav__desktop-text + top-nav__mobile-text) shortens labels
-   at ≤768px so the cluster still fits without forcing a header
-   wrap on phone widths. */
+   Promoted lab buttons (Earnings, Tactical Vol, Seasonality,
+   Rotations) that live in every page header beside the Menu
+   trigger. Outlined buttons whose fill alternates by displayed
+   position — even indices use accent-blue, odd indices use
+   text-primary (off-white) — so the row reads as a striped
+   blue/white/blue/white cluster. Border color is bound to
+   currentColor so each variant only needs to declare `color`.
+   Trigger sizing matches the 3.2rem chrome of .menu-trigger and
+   .lab-home-button--inline so all four right-side header
+   affordances sit on a single horizontal baseline at desktop
+   widths. Two-span splitter (top-nav__desktop-text +
+   top-nav__mobile-text) shortens labels at ≤768px so the cluster
+   still fits without forcing a header wrap on phone widths. */
 .top-nav {
   display: inline-flex;
   align-items: center;
@@ -312,17 +314,30 @@ body {
   letter-spacing: 0.08em;
   text-transform: uppercase;
   text-decoration: none;
-  color: var(--accent-blue);
   background: transparent;
-  border: 1px solid var(--accent-blue);
+  border: 1px solid currentColor;
   border-radius: 3px;
   white-space: nowrap;
   transition: background-color 0.2s ease, color 0.2s ease;
 }
 
-.top-nav__item:hover,
-.top-nav__item:focus-visible {
+.top-nav__item--blue {
+  color: var(--accent-blue);
+}
+
+.top-nav__item--white {
+  color: var(--text-primary);
+}
+
+.top-nav__item--blue:hover,
+.top-nav__item--blue:focus-visible {
   background-color: rgba(74, 158, 255, 0.12);
+  outline: none;
+}
+
+.top-nav__item--white:hover,
+.top-nav__item--white:focus-visible {
+  background-color: rgba(224, 224, 224, 0.10);
   outline: none;
 }
 
