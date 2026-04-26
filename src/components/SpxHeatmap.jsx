@@ -1,11 +1,32 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 
-// SPX market-cap-weighted heatmap. Each tile is one S&P 500
-// constituent; tile area is proportional to the name's float-adjusted
-// SPY weight (which IS its SP500 market-cap weight by SPY's index
-// methodology). Tiles are grouped into eleven GICS sector regions so a
-// reader can read sector composition at a glance and compare relative
-// sector size and intra-day breadth side by side.
+// Options-active heatmap. Renders the top ~250 single-name stocks by
+// US options volume as equal-size tiles arranged into eleven GICS
+// sector bands, colored by the most-recent-session percent change vs
+// the previous close.
+//
+// Why equal-size and not market-cap-weighted: the project tried a
+// market-cap-weighted SP500 treemap first (the conventional finviz /
+// Webull / TradingView / thinkorswim layout) but the MAG7 dominance
+// problem hijacked the visual — NVDA + AAPL + MSFT + AMZN + AVGO +
+// GOOGL/GOOG + META command roughly a third of the index by weight,
+// so seven tiles ate a third of the canvas while the other ~496
+// names competed for the remaining two-thirds. The equal-size design
+// removes the market-cap hierarchy entirely and lets every name in
+// the universe command equal visual attention. The trade-off is the
+// universe shrinks from ~503 SP500 members to the top ~250 single
+// names by options volume — names a vol trader actually trades —
+// which is the right narrowing for this project's audience.
+//
+// Layout: each sector becomes a horizontal band with a thin header
+// strip (sector name + ticker count) followed by a CSS grid of
+// equal-size tiles. The grid column count is chosen at the page
+// level based on viewport width so all sectors share the same tile
+// width. Sector bands stack vertically, naturally producing a
+// scroll-when-needed page that the user can size to taste — at a
+// 1700×900 viewport with column width ~110px (15 columns), the page
+// is roughly 1300px tall total, comfortable to scroll within the
+// browser viewport.
 //
 // Color encoding is the day's percent change from previous close:
 //   strong red    < -2%
@@ -13,31 +34,8 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 //   neutral       -0.25% .. +0.25%
 //   light green   +0.25% .. +2%
 //   strong green  > +2%
-// The neutral band is wider than ±0.05% so the bulk of names that move
-// only a few basis points read as "no real change today" rather than
-// painting the entire grid in faint pastels.
-//
-// Layout is a nested squarified treemap (Bruls, Huijsing, Van Wijk
-// 2000): one outer pass that lays the eleven sectors in the page
-// rectangle sized by sector total weight, then one inner pass per
-// sector that lays its constituents in the sector rectangle sized by
-// individual weight. Squarification minimises the worst aspect ratio
-// of any tile, which in practice keeps tiles closer to square than
-// strip / slice-and-dice algorithms — the right choice when the goal
-// is text legibility on every tile rather than fast linear scanning.
-//
-// Tile typography:
-//   ticker  bold, large, always shown
-//   pct     smaller, shown only when the tile is wide enough to fit
-//   name    full company name shown only on hover via title= tooltip
-// The min-width gate on pct is set so small tiles read as "ticker
-// only" rather than truncated-mid-string ugliness.
-//
-// Container sizing: the heatmap consumes the full viewport height
-// minus the lab header chrome via 100vh - header math, then ResizeObserver
-// tracks the actual rendered box and re-runs squarification on resize
-// so a window-resize re-laps the tiles cleanly without holding stale
-// dimensions from the initial measure.
+// Same encoding the prior market-cap version used; the move is well-
+// calibrated for the typical day-to-day range of single-name moves.
 
 const NEUTRAL_BAND_PCT = 0.25;
 const STRONG_PCT = 2.0;
@@ -57,33 +55,29 @@ const SECTOR_ORDER = [
   'Other',
 ];
 
-// Header strip background per sector — a desaturated version of the
-// page accent palette, chosen so adjacent sector strips read as
-// distinct without competing with the red/green tile fills inside.
 const SECTOR_HEADER_BG = '#1c2129';
 const SECTOR_HEADER_FG = '#a8b0c0';
+
+// Target tile width range. The grid picks a column count that keeps
+// each tile somewhere in this range — wider on big monitors, denser
+// on smaller viewports. Tile height is fixed so the grid stays
+// scannable without text reflow.
+const MIN_TILE_WIDTH = 96;
+const TARGET_TILE_WIDTH = 118;
+const TILE_HEIGHT = 52;
+const TILE_GAP = 2;
+const SECTOR_HEADER_HEIGHT = 22;
+const SECTOR_GAP = 6;
 
 function pctToColor(pct) {
   if (pct == null || !Number.isFinite(pct)) return '#202531';
   const clipped = Math.max(-STRONG_PCT, Math.min(STRONG_PCT, pct));
   if (Math.abs(clipped) <= NEUTRAL_BAND_PCT) return '#262b35';
   const intensity = (Math.abs(clipped) - NEUTRAL_BAND_PCT) / (STRONG_PCT - NEUTRAL_BAND_PCT);
-  // Two-stop ramp anchored at the dark neutral above the band edge
-  // (#2a3038 / #382828) and the saturated accent at the strong edge.
-  // The neutral end is darker than the bg-card so a positive- or
-  // negative-tinted tile sits visually distinct from the surrounding
-  // sector header strip without becoming a harsh color block at small
-  // moves.
-  if (clipped > 0) {
-    return mixHex('#2a3038', '#1f8d4f', intensity);
-  }
+  if (clipped > 0) return mixHex('#2a3038', '#1f8d4f', intensity);
   return mixHex('#382828', '#a23a25', intensity);
 }
 
-// Brighter foreground for high-saturation tiles, dimmer for tiles
-// near the neutral band. Keeps text legible without painting it as
-// pure white on dark gray (washed out) or stark white on saturated red
-// (visual fatigue across 500 tiles).
 function pctToTextColor(pct) {
   if (pct == null || !Number.isFinite(pct)) return '#6e7686';
   const abs = Math.abs(pct);
@@ -92,8 +86,6 @@ function pctToTextColor(pct) {
   return '#d8dbe2';
 }
 
-// Linear hex-channel mixer. Both endpoints are 6-digit #rrggbb. t
-// clamps to [0,1].
 function mixHex(a, b, t) {
   const c = Math.max(0, Math.min(1, t));
   const ar = parseInt(a.slice(1, 3), 16);
@@ -108,119 +100,6 @@ function mixHex(a, b, t) {
   return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${bl.toString(16).padStart(2, '0')}`;
 }
 
-// Squarified treemap layout (Bruls, Huijsing, Van Wijk 2000).
-// Returns one rect per item: { x, y, w, h, item }. Items must be
-// pre-sorted descending by `value`. Container is the rect to fill.
-//
-// The algorithm grows a "row" of items along the shorter side of the
-// remaining container; each new item is added to the row only if doing
-// so improves (lowers) the worst aspect ratio of any tile in the row.
-// When the new item would make the row's worst ratio worse, the row
-// is finalised and laid out; the new item starts a fresh row in the
-// remaining sub-container.
-function squarify(items, container) {
-  if (!items || items.length === 0) return [];
-  const total = items.reduce((s, it) => s + Math.max(0, it.value), 0);
-  if (total <= 0 || container.w <= 0 || container.h <= 0) return [];
-
-  const out = [];
-  let remaining = { ...container, valueLeft: total };
-  let queue = items.filter((it) => it.value > 0);
-
-  while (queue.length > 0) {
-    const row = [];
-    let rowSum = 0;
-    const shortSide = Math.min(remaining.w, remaining.h);
-    while (queue.length > 0) {
-      const next = queue[0];
-      const trial = [...row, next];
-      const trialSum = rowSum + next.value;
-      const worstAfter = worstAspect(trial, trialSum, shortSide, remaining);
-      if (row.length > 0 && worstAfter > worstAspect(row, rowSum, shortSide, remaining)) {
-        break;
-      }
-      row.push(next);
-      rowSum = trialSum;
-      queue.shift();
-    }
-    layoutRow(row, rowSum, remaining, out);
-    remaining = trimContainer(remaining, rowSum);
-  }
-  return out;
-}
-
-// Worst aspect ratio of any tile if the given row is laid out in the
-// remaining container's short side. Uses the standard squarified
-// formulation: for row-area A laid along short side s with total
-// remaining value V_r and remaining area A_r, each tile's two sides
-// are A_r * v/V_r / s and s, so aspect = max(s² * v / A, A / (s² * v)).
-function worstAspect(row, rowSum, shortSide, remaining) {
-  const remArea = remaining.w * remaining.h * (rowSum / remaining.valueLeft);
-  if (remArea <= 0 || shortSide <= 0) return Infinity;
-  let worst = 0;
-  for (const item of row) {
-    if (item.value <= 0) continue;
-    const tileArea = remArea * (item.value / rowSum);
-    const longSide = tileArea / shortSide;
-    const r = Math.max(shortSide / longSide, longSide / shortSide);
-    if (r > worst) worst = r;
-  }
-  return worst || Infinity;
-}
-
-function layoutRow(row, rowSum, remaining, out) {
-  if (row.length === 0 || rowSum <= 0) return;
-  const portion = rowSum / remaining.valueLeft;
-  const rowArea = remaining.w * remaining.h * portion;
-
-  // The row is laid along the short side; the perpendicular dimension
-  // is rowArea / shortSide. Each tile then takes its share of the
-  // short-side length.
-  const horizontalRow = remaining.w <= remaining.h;
-  if (horizontalRow) {
-    const rowH = rowArea / remaining.w;
-    let cursor = remaining.x;
-    for (const item of row) {
-      const w = remaining.w * (item.value / rowSum);
-      out.push({ x: cursor, y: remaining.y, w, h: rowH, item });
-      cursor += w;
-    }
-  } else {
-    const rowW = rowArea / remaining.h;
-    let cursor = remaining.y;
-    for (const item of row) {
-      const h = remaining.h * (item.value / rowSum);
-      out.push({ x: remaining.x, y: cursor, w: rowW, h, item });
-      cursor += h;
-    }
-  }
-}
-
-function trimContainer(remaining, rowSum) {
-  const portion = rowSum / remaining.valueLeft;
-  const rowArea = remaining.w * remaining.h * portion;
-  const horizontalRow = remaining.w <= remaining.h;
-  if (horizontalRow) {
-    const rowH = rowArea / remaining.w;
-    return {
-      x: remaining.x,
-      y: remaining.y + rowH,
-      w: remaining.w,
-      h: remaining.h - rowH,
-      valueLeft: remaining.valueLeft - rowSum,
-    };
-  }
-  const rowW = rowArea / remaining.h;
-  return {
-    x: remaining.x + rowW,
-    y: remaining.y,
-    w: remaining.w - rowW,
-    h: remaining.h,
-    valueLeft: remaining.valueLeft - rowSum,
-  };
-}
-
-// Format helpers
 function formatPct(pct) {
   if (pct == null || !Number.isFinite(pct)) return '—';
   const sign = pct > 0 ? '+' : '';
@@ -234,10 +113,17 @@ function formatPrice(p) {
   return p.toFixed(2);
 }
 
+function formatVolume(v) {
+  if (v == null || !Number.isFinite(v) || v <= 0) return '';
+  if (v >= 1_000_000) return `${(v / 1_000_000).toFixed(2)}M`;
+  if (v >= 1_000) return `${(v / 1_000).toFixed(1)}K`;
+  return String(v);
+}
+
 export default function SpxHeatmap() {
   const [data, setData] = useState(null);
   const [error, setError] = useState(null);
-  const [size, setSize] = useState({ w: 0, h: 0 });
+  const [containerWidth, setContainerWidth] = useState(0);
   const wrapRef = useRef(null);
 
   useEffect(() => {
@@ -256,90 +142,64 @@ export default function SpxHeatmap() {
     return () => { cancelled = true; };
   }, []);
 
-  // Track the container's rendered box. ResizeObserver fires once on
-  // mount with the initial layout, then again on any window-resize or
-  // parent layout shift, so the treemap stays sharp across viewport
-  // changes without manually tracking window resize events.
+  // Track container width only — height is determined by sector
+  // band stacking and the page scrolls naturally if it overflows
+  // the viewport. ResizeObserver keeps column count responsive on
+  // window resize without manual window-resize listeners.
   useEffect(() => {
     if (!wrapRef.current || typeof ResizeObserver === 'undefined') return;
     const ro = new ResizeObserver((entries) => {
       for (const entry of entries) {
         const cr = entry.contentRect;
-        setSize({ w: Math.max(0, Math.floor(cr.width)), h: Math.max(0, Math.floor(cr.height)) });
+        setContainerWidth(Math.max(0, Math.floor(cr.width)));
       }
     });
     ro.observe(wrapRef.current);
     return () => ro.disconnect();
   }, []);
 
-  const layout = useMemo(() => {
-    if (!data || !data.tiles || size.w < 50 || size.h < 50) return null;
+  // Compute column count from container width. Picks the number of
+  // columns that yields a tile width closest to TARGET_TILE_WIDTH
+  // while staying above MIN_TILE_WIDTH. Floor at 6 columns so very
+  // narrow viewports still produce a recognizable grid rather than
+  // collapsing to a single tall column.
+  const cols = useMemo(() => {
+    if (containerWidth < 50) return 0;
+    const usableWidth = containerWidth - TILE_GAP; // account for outer padding
+    let best = Math.max(6, Math.round(usableWidth / TARGET_TILE_WIDTH));
+    while (best > 6 && (usableWidth - (best - 1) * TILE_GAP) / best < MIN_TILE_WIDTH) {
+      best -= 1;
+    }
+    return best;
+  }, [containerWidth]);
 
-    // Group tiles by sector and sort sectors in the canonical reading
-    // order (mega-sectors first, then mid, then small). Within each
-    // sector, sort tickers by weight descending so squarify gets its
-    // expected input order.
+  const tileWidth = useMemo(() => {
+    if (!cols || containerWidth < 50) return 0;
+    return Math.floor((containerWidth - (cols - 1) * TILE_GAP) / cols);
+  }, [cols, containerWidth]);
+
+  // Group tiles by sector in canonical order, with an implicit
+  // 'Other' bucket for any tile whose sector doesn't match the
+  // canonical eleven (shouldn't happen with the current roster
+  // generator but the fallback keeps the layout robust).
+  const sectorBands = useMemo(() => {
+    if (!data?.tiles) return [];
     const bySector = new Map();
     for (const t of data.tiles) {
       const key = SECTOR_ORDER.includes(t.sector) ? t.sector : 'Other';
       if (!bySector.has(key)) bySector.set(key, []);
       bySector.get(key).push(t);
     }
+    // Within each sector, sort by options volume descending so the
+    // most-traded names sit in the top-left of each band — same
+    // reading order as the underlying roster.
     for (const [, list] of bySector) {
-      list.sort((a, b) => b.weight - a.weight);
+      list.sort((a, b) => (b.optionsVolume || 0) - (a.optionsVolume || 0));
     }
-
-    const sectors = SECTOR_ORDER
+    return SECTOR_ORDER
       .filter((s) => bySector.has(s))
-      .map((s) => {
-        const tickers = bySector.get(s);
-        const totalWeight = tickers.reduce((sum, t) => sum + t.weight, 0);
-        return { sector: s, tickers, totalWeight, value: totalWeight };
-      });
-
-    // Outer treemap: lay out sectors in the full container.
-    const sectorRects = squarify(sectors, { x: 0, y: 0, w: size.w, h: size.h });
-
-    // Inner treemap: each sector rect gets a header strip (sector
-    // label + total weight + count) and a body region for its tickers.
-    const HEADER_H = 22;
-    const PAD = 1;
-    const renderTiles = [];
-    const sectorOverlays = [];
-    for (const rect of sectorRects) {
-      const { item, x, y, w, h } = rect;
-      const headerH = h > HEADER_H * 2.4 ? HEADER_H : 0;
-      sectorOverlays.push({
-        sector: item.sector,
-        totalWeight: item.totalWeight,
-        tickerCount: item.tickers.length,
-        x: x + PAD,
-        y: y + PAD,
-        w: Math.max(0, w - PAD * 2),
-        h: headerH,
-      });
-      const innerRect = {
-        x: x + PAD,
-        y: y + PAD + headerH,
-        w: Math.max(0, w - PAD * 2),
-        h: Math.max(0, h - PAD * 2 - headerH),
-      };
-      const inner = squarify(
-        item.tickers.map((t) => ({ ...t, value: t.weight })),
-        innerRect,
-      );
-      for (const tile of inner) {
-        renderTiles.push({
-          x: tile.x,
-          y: tile.y,
-          w: tile.w,
-          h: tile.h,
-          item: tile.item,
-        });
-      }
-    }
-    return { renderTiles, sectorOverlays };
-  }, [data, size]);
+      .map((s) => ({ sector: s, tiles: bySector.get(s) }));
+  }, [data]);
 
   return (
     <div
@@ -347,7 +207,6 @@ export default function SpxHeatmap() {
         display: 'flex',
         flexDirection: 'column',
         gap: '0.5rem',
-        height: '100%',
       }}
     >
       <div
@@ -366,13 +225,13 @@ export default function SpxHeatmap() {
       >
         <span>
           {data
-            ? `S&P 500 · ${data.pricedCount}/${data.count} priced · ${data.mode === 'sector-etf-fallback' ? 'sector ETFs (fallback)' : 'live'}`
+            ? `${data.pricedCount}/${data.count} priced · ${data.mode === 'sector-etf-fallback' ? 'sector ETFs (fallback)' : 'top by options volume'}`
             : 'Loading…'}
         </span>
         <span style={{ color: 'var(--text-secondary)' }}>
-          {data?.sourceUpdated
-            ? `As of ${new Date(data.sourceUpdated).toLocaleString('en-US', { timeZone: 'America/New_York', timeZoneName: 'short' })}`
-            : data?.asOf || ''}
+          {data?.asOf
+            ? `Session ${data.asOf}${data.prevSessionDate ? ` vs ${data.prevSessionDate}` : ''}`
+            : ''}
         </span>
       </div>
 
@@ -388,10 +247,9 @@ export default function SpxHeatmap() {
             borderRadius: '3px',
           }}
         >
-          Live constituent prices unavailable from Massive (
+          Live single-name prices unavailable from Massive (
           {data.massiveFailure || 'no detail'}). Showing eleven sector ETFs
-          from ThetaData EOD as a fallback view. Each tile sums its sector's
-          true SP500 market-cap weight.
+          from ThetaData EOD as a fallback view.
         </div>
       )}
 
@@ -410,146 +268,16 @@ export default function SpxHeatmap() {
       <div
         ref={wrapRef}
         style={{
-          position: 'relative',
-          flex: '1 1 auto',
-          minHeight: '60vh',
           background: 'var(--bg-primary)',
           borderRadius: '3px',
-          overflow: 'hidden',
+          padding: '0',
         }}
       >
-        {layout?.sectorOverlays.map((s) => (
-          <div
-            key={`hdr-${s.sector}`}
-            style={{
-              position: 'absolute',
-              left: s.x,
-              top: s.y,
-              width: s.w,
-              height: s.h,
-              background: SECTOR_HEADER_BG,
-              color: SECTOR_HEADER_FG,
-              fontFamily: 'Courier New, monospace',
-              fontSize: '0.68rem',
-              letterSpacing: '0.08em',
-              textTransform: 'uppercase',
-              display: s.h > 0 ? 'flex' : 'none',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              padding: '0 0.45rem',
-              boxSizing: 'border-box',
-              pointerEvents: 'none',
-            }}
-          >
-            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-              {s.sector}
-            </span>
-            <span style={{ color: '#6c7384', flexShrink: 0, marginLeft: '0.5rem' }}>
-              {s.totalWeight.toFixed(1)}%
-            </span>
-          </div>
-        ))}
-
-        {layout?.renderTiles.map((tile) => {
-          const t = tile.item;
-          const bg = pctToColor(t.pctChange);
-          const fg = pctToTextColor(t.pctChange);
-          const showPct = tile.w > 44 && tile.h > 30;
-          const showName = tile.w > 110 && tile.h > 56;
-          const ticker = t.symbol;
-          return (
-            <div
-              key={t.symbol}
-              title={`${t.symbol} · ${t.name}\n${t.sector}\nWeight ${t.weight.toFixed(3)}%\n${formatPct(t.pctChange)} · last ${formatPrice(t.last)} · prev ${formatPrice(t.prev)}`}
-              style={{
-                position: 'absolute',
-                left: tile.x + 1,
-                top: tile.y + 1,
-                width: Math.max(0, tile.w - 2),
-                height: Math.max(0, tile.h - 2),
-                background: bg,
-                color: fg,
-                fontFamily: 'Courier New, monospace',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'center',
-                alignItems: 'center',
-                overflow: 'hidden',
-                cursor: 'default',
-                boxSizing: 'border-box',
-                padding: '2px',
-              }}
-            >
-              <span
-                style={{
-                  fontWeight: 700,
-                  fontSize: Math.max(8, Math.min(20, Math.sqrt(tile.w * tile.h) / 5.5)) + 'px',
-                  lineHeight: 1.05,
-                  textAlign: 'center',
-                  whiteSpace: 'nowrap',
-                  maxWidth: '100%',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                }}
-              >
-                {ticker}
-              </span>
-              {showPct && (
-                <span
-                  style={{
-                    fontSize: Math.max(7, Math.min(13, Math.sqrt(tile.w * tile.h) / 8)) + 'px',
-                    opacity: 0.92,
-                    marginTop: '1px',
-                    whiteSpace: 'nowrap',
-                  }}
-                >
-                  {formatPct(t.pctChange)}
-                </span>
-              )}
-              {showName && (
-                <span
-                  style={{
-                    fontSize: Math.max(6, Math.min(10, Math.sqrt(tile.w * tile.h) / 11)) + 'px',
-                    opacity: 0.66,
-                    marginTop: '1px',
-                    maxWidth: '95%',
-                    whiteSpace: 'nowrap',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                  }}
-                >
-                  {t.name}
-                </span>
-              )}
-            </div>
-          );
-        })}
-
-        {data && !layout && (
-          <div
-            style={{
-              position: 'absolute',
-              inset: 0,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: 'var(--text-secondary)',
-              fontFamily: 'Courier New, monospace',
-              fontSize: '0.85rem',
-            }}
-          >
-            Sizing canvas…
-          </div>
-        )}
-
         {!data && !error && (
           <div
             style={{
-              position: 'absolute',
-              inset: 0,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
+              padding: '4rem 1rem',
+              textAlign: 'center',
               color: 'var(--text-secondary)',
               fontFamily: 'Courier New, monospace',
               fontSize: '0.85rem',
@@ -558,6 +286,103 @@ export default function SpxHeatmap() {
             Loading constituents…
           </div>
         )}
+
+        {data && cols > 0 && tileWidth > 0 && sectorBands.map((band, idx) => {
+          const rowCount = Math.ceil(band.tiles.length / cols);
+          return (
+            <div
+              key={band.sector}
+              style={{
+                marginBottom: idx === sectorBands.length - 1 ? 0 : SECTOR_GAP + 'px',
+              }}
+            >
+              <div
+                style={{
+                  height: SECTOR_HEADER_HEIGHT,
+                  background: SECTOR_HEADER_BG,
+                  color: SECTOR_HEADER_FG,
+                  fontFamily: 'Courier New, monospace',
+                  fontSize: '0.7rem',
+                  letterSpacing: '0.1em',
+                  textTransform: 'uppercase',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: '0 0.5rem',
+                }}
+              >
+                <span>{band.sector}</span>
+                <span style={{ color: '#6c7384' }}>{band.tiles.length}</span>
+              </div>
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: `repeat(${cols}, ${tileWidth}px)`,
+                  gridAutoRows: `${TILE_HEIGHT}px`,
+                  gap: `${TILE_GAP}px`,
+                  marginTop: `${TILE_GAP}px`,
+                }}
+              >
+                {band.tiles.map((t) => {
+                  const bg = pctToColor(t.pctChange);
+                  const fg = pctToTextColor(t.pctChange);
+                  const volStr = formatVolume(t.optionsVolume);
+                  return (
+                    <div
+                      key={t.symbol}
+                      title={`${t.symbol} · ${t.name}\n${t.sector}\n${formatPct(t.pctChange)} · last ${formatPrice(t.last)} · prev ${formatPrice(t.prev)}${volStr ? `\nOpt vol ${volStr}` : ''}`}
+                      style={{
+                        background: bg,
+                        color: fg,
+                        fontFamily: 'Courier New, monospace',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        overflow: 'hidden',
+                        cursor: 'default',
+                        padding: '2px',
+                        boxSizing: 'border-box',
+                      }}
+                    >
+                      <span
+                        style={{
+                          fontWeight: 700,
+                          fontSize: '0.95rem',
+                          lineHeight: 1.05,
+                          letterSpacing: '0.02em',
+                          whiteSpace: 'nowrap',
+                          maxWidth: '100%',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                        }}
+                      >
+                        {t.symbol}
+                      </span>
+                      <span
+                        style={{
+                          fontSize: '0.78rem',
+                          opacity: 0.92,
+                          marginTop: '1px',
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
+                        {formatPct(t.pctChange)}
+                      </span>
+                    </div>
+                  );
+                })}
+                {/* Pad the trailing row so the grid doesn't end with a
+                    half-empty row of awkward white space; use empty
+                    sentinel cells styled as transparent so the grid's
+                    explicit row count matches its rendered footprint. */}
+                {Array.from({ length: rowCount * cols - band.tiles.length }).map((_, i) => (
+                  <div key={`pad-${i}`} style={{ background: 'transparent' }} />
+                ))}
+              </div>
+            </div>
+          );
+        })}
       </div>
     </div>
   );

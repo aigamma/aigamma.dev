@@ -1,0 +1,461 @@
+#!/usr/bin/env node
+// options-volume-roster.mjs — generate src/data/options-volume-roster.json
+// from a Barchart "stocks screener" CSV exported and dropped into
+// C:\sheets\.
+//
+// The /heatmap surface tracks the top ~250 single-name stocks by US
+// options volume, equal-sized within sector groups. The universe is
+// intentionally not the SP500 (the project's vol-trader audience cares
+// about the names they actually trade — NVDA, TSLA, MSTR, PLTR, IREN,
+// MARA, HIMS, etc. — many of which are not SP500 members) and is
+// not market-cap-weighted (the MAG7 dominate weight-by-market-cap so
+// thoroughly that 5-7 tiles command a third of the visual; equal-
+// size tiles within sector bands let every name in the universe
+// command attention).
+//
+// Workflow:
+//   1. Eric drops a fresh CSV from Barchart's stocks screener at
+//      C:\sheets\stocks-screener-<date>.csv (filename pattern matches
+//      what Barchart's export produces). CSV columns: Symbol, Name,
+//      Exchange, Options Vol.
+//   2. Run this script: node scripts/backfill/options-volume-roster.mjs
+//      (auto-discovers the most recent matching file in C:\sheets\)
+//   3. Script joins each ticker with a GICS sector. SP500 names get
+//      their sector from the community-maintained GitHub
+//      datasets/s-and-p-500-companies CSV (same source the SP500
+//      roster generator uses). Non-SP500 names — recent IPOs, ADRs,
+//      meme stocks, small-cap miners — fall through to a manually-
+//      maintained MANUAL_SECTORS map keyed at the bottom of this
+//      file. Anything still unmatched lands in sector "Other" with
+//      an explicit log line so the gap is visible at refresh time
+//      and the override map can be extended on the next run.
+//   4. Output: src/data/options-volume-roster.json with shape
+//      { generatedAt, sourceCsv, count, sectors, holdings: [...] }
+//      where each holding carries {symbol, name, sector,
+//      optionsVolume}.
+//
+// Manual map maintenance: when a new top-250 list adds a name not in
+// the SP500 CSV and not in MANUAL_SECTORS, the script logs it to
+// stderr and exits 1 (refusing to silently classify into "Other"
+// would just push the problem downstream — better to catch it at
+// roster generation than render the heatmap with a giant "Other"
+// region). The override entry is two lines: a comment explaining
+// the company and the GICS sector. Most non-SP500 options-active
+// names are stable categorically (MSTR is always Information
+// Technology, MARA is always Financials by GICS, IREN / RIOT are
+// Information Technology). Drift in the membership is faster than
+// drift in classification — most names that appear here once will
+// appear again on every refresh.
+
+import { readFileSync, writeFileSync, mkdirSync, readdirSync, statSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import process from 'node:process';
+
+const DEFAULT_SHEETS_DIR = 'C:\\sheets';
+const SHEETS_FILE_PATTERN = /^stocks-screener.*\.csv$/i;
+const SECTORS_CSV_URL = 'https://raw.githubusercontent.com/datasets/s-and-p-500-companies/main/data/constituents.csv';
+const DEFAULT_OUT = 'src/data/options-volume-roster.json';
+
+const log = (event, data = {}) =>
+  console.log(JSON.stringify({ ts: new Date().toISOString(), event, ...data }));
+
+function parseArgs(argv) {
+  const out = { csvPath: null, sheetsDir: DEFAULT_SHEETS_DIR, outPath: DEFAULT_OUT };
+  for (let i = 0; i < argv.length; i++) {
+    const a = argv[i];
+    if (a === '--csv') out.csvPath = argv[++i];
+    else if (a === '--sheets-dir') out.sheetsDir = argv[++i];
+    else if (a === '--out') out.outPath = argv[++i];
+  }
+  return out;
+}
+
+function findLatestCsv(dir) {
+  const entries = readdirSync(dir);
+  const matches = entries
+    .filter((name) => SHEETS_FILE_PATTERN.test(name))
+    .map((name) => {
+      const full = join(dir, name);
+      const st = statSync(full);
+      return { full, name, mtime: st.mtimeMs };
+    })
+    .sort((a, b) => b.mtime - a.mtime);
+  return matches[0]?.full ?? null;
+}
+
+function parseCsv(text) {
+  const lines = text.split(/\r?\n/).filter((l) => l.length > 0);
+  if (lines.length === 0) return { header: [], rows: [] };
+  const splitLine = (line) => {
+    const out = [];
+    let field = '';
+    let inQ = false;
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i];
+      if (inQ) {
+        if (ch === '"') { inQ = false; continue; }
+        field += ch;
+      } else {
+        if (ch === '"') { inQ = true; continue; }
+        if (ch === ',') { out.push(field); field = ''; continue; }
+        field += ch;
+      }
+    }
+    out.push(field);
+    return out;
+  };
+  const header = splitLine(lines[0]);
+  const rows = lines.slice(1).map((l) => {
+    const cells = splitLine(l);
+    const row = {};
+    for (let i = 0; i < header.length; i++) row[header[i]] = (cells[i] ?? '').trim();
+    return row;
+  });
+  return { header, rows };
+}
+
+async function fetchSp500SectorMap() {
+  const res = await fetch(SECTORS_CSV_URL, {
+    signal: AbortSignal.timeout(15000),
+    headers: { 'User-Agent': 'aigamma-options-roster/1.0' },
+  });
+  if (!res.ok) throw new Error(`sectors CSV HTTP ${res.status}`);
+  const text = await res.text();
+  const { rows } = parseCsv(text);
+  const map = new Map();
+  for (const r of rows) {
+    const sym = String(r['Symbol'] ?? '').trim().toUpperCase();
+    const sector = String(r['GICS Sector'] ?? '').trim();
+    if (sym && sector) map.set(sym, sector);
+  }
+  return map;
+}
+
+async function main() {
+  const args = parseArgs(process.argv.slice(2));
+  const csvPath = args.csvPath || findLatestCsv(args.sheetsDir);
+  if (!csvPath) {
+    log('roster.no_csv', { sheetsDir: args.sheetsDir });
+    process.exit(1);
+  }
+  log('roster.start', { csv: csvPath, out: args.outPath });
+
+  const csvText = readFileSync(csvPath, 'utf8');
+  const { rows } = parseCsv(csvText);
+  if (rows.length === 0) {
+    log('roster.csv_empty');
+    process.exit(1);
+  }
+  log('roster.csv_parsed', { rows: rows.length });
+
+  let sp500Sectors;
+  try {
+    sp500Sectors = await fetchSp500SectorMap();
+    log('roster.sectors_fetched', { count: sp500Sectors.size });
+  } catch (err) {
+    log('roster.sectors_failed', { error: String(err) });
+    process.exit(1);
+  }
+
+  const holdings = [];
+  const unclassified = [];
+  for (const r of rows) {
+    const symbol = String(r['Symbol'] ?? '').trim().toUpperCase();
+    if (!symbol) continue;
+    const name = String(r['Name'] ?? '').trim();
+    const optionsVolume = Number(String(r['Options Vol'] ?? '').replace(/,/g, '')) || 0;
+    const sector = sp500Sectors.get(symbol)
+      || MANUAL_SECTORS[symbol]
+      || null;
+    if (!sector) {
+      unclassified.push({ symbol, name });
+      continue;
+    }
+    holdings.push({ symbol, name, sector, optionsVolume });
+  }
+
+  if (unclassified.length > 0) {
+    log('roster.unclassified', {
+      count: unclassified.length,
+      names: unclassified.map((u) => `${u.symbol} (${u.name})`),
+    });
+    log('roster.next_step',
+      'Add the unclassified tickers to MANUAL_SECTORS at the bottom of this script and re-run. ' +
+      'Use the eleven canonical GICS sector names: Information Technology, Health Care, Financials, ' +
+      'Communication Services, Consumer Discretionary, Consumer Staples, Industrials, Energy, ' +
+      'Utilities, Real Estate, Materials.');
+    process.exit(1);
+  }
+
+  // Sort holdings by options volume descending so the JSON is stable
+  // and the function can rely on roster order matching the CSV's rank.
+  holdings.sort((a, b) => b.optionsVolume - a.optionsVolume);
+
+  const sectorCounts = {};
+  for (const h of holdings) sectorCounts[h.sector] = (sectorCounts[h.sector] || 0) + 1;
+
+  const payload = {
+    generatedAt: new Date().toISOString(),
+    sourceCsv: csvPath,
+    count: holdings.length,
+    sectors: sectorCounts,
+    holdings,
+  };
+
+  mkdirSync(dirname(args.outPath), { recursive: true });
+  writeFileSync(args.outPath, JSON.stringify(payload, null, 2) + '\n', 'utf8');
+  log('roster.done', {
+    out: args.outPath,
+    count: holdings.length,
+    sectorCounts,
+    top5: holdings.slice(0, 5).map((h) => `${h.symbol}=${h.optionsVolume}`),
+  });
+}
+
+// MANUAL_SECTORS — GICS sector classification for tickers that appear
+// in the Barchart top-N options-volume list but are not SP500 members
+// and therefore not in the GitHub datasets/s-and-p-500-companies CSV.
+// Most of these are recent IPOs, ADRs, meme-stock-class single names,
+// crypto / mining single names, and Chinese/foreign-listed shares
+// that retail vol traders are actively trading. Classification is
+// the canonical GICS sector for the company's primary line of business
+// (not the SIC-code mapping, which doesn't align with GICS — Bitcoin
+// miners are GICS Information Technology even though their SIC code
+// puts them under Mining).
+//
+// When the script logs roster.unclassified at the end of a refresh,
+// add the new tickers here with the GICS sector that fits the
+// company's primary business. Eleven valid sector names listed in
+// the roster.next_step log line.
+const MANUAL_SECTORS = {
+  // Bitcoin / crypto-treasury and mining single names.
+  MSTR: 'Information Technology',  // Strategy Inc (fka MicroStrategy) — software + bitcoin treasury
+  MARA: 'Information Technology',  // Mara Holdings — bitcoin mining
+  RIOT: 'Information Technology',  // Riot Platforms — bitcoin mining
+  IREN: 'Information Technology',  // Iren Limited — bitcoin mining
+  CLSK: 'Information Technology',  // CleanSpark — bitcoin mining
+  COIN: 'Financials',              // Coinbase — crypto exchange (now SP500 but covering for prior CSV state)
+  HOOD: 'Financials',              // Robinhood Markets — brokerage
+  SOFI: 'Financials',              // SoFi Technologies — fintech / lending
+
+  // Recent IPOs / non-SP500 tech & AI-adjacent.
+  CRWV: 'Information Technology',  // CoreWeave — AI-cloud GPU compute
+  RBLX: 'Communication Services',  // Roblox — interactive media
+  RDDT: 'Communication Services',  // Reddit — interactive media
+  PINS: 'Communication Services',  // Pinterest — interactive media
+  SNAP: 'Communication Services',  // Snap — interactive media
+  SPOT: 'Communication Services',  // Spotify — interactive media
+  U:    'Communication Services',  // Unity Software — interactive media tools
+
+  // Health care / consumer health.
+  HIMS: 'Health Care',             // Hims & Hers Health
+  TDOC: 'Health Care',             // Teladoc
+  NVAX: 'Health Care',             // Novavax
+  GH:   'Health Care',             // Guardant Health
+  EXEL: 'Health Care',             // Exelixis
+  RXRX: 'Health Care',             // Recursion Pharmaceuticals
+
+  // EV / autonomous / battery.
+  RIVN: 'Consumer Discretionary',  // Rivian
+  LCID: 'Consumer Discretionary',  // Lucid Group
+  NIO:  'Consumer Discretionary',  // NIO ADR
+  XPEV: 'Consumer Discretionary',  // XPeng ADR
+  LI:   'Consumer Discretionary',  // Li Auto ADR
+  CHPT: 'Industrials',             // ChargePoint — EV charging infrastructure
+  PLUG: 'Industrials',             // Plug Power — fuel cells
+
+  // Chinese ADRs.
+  BABA: 'Consumer Discretionary',  // Alibaba ADR
+  JD:   'Consumer Discretionary',  // JD.com ADR
+  PDD:  'Consumer Discretionary',  // PDD Holdings (Pinduoduo / Temu) ADR
+  BIDU: 'Communication Services',  // Baidu ADR
+  TCEH: 'Communication Services',  // Tencent Holdings ADR (sometimes appears as TCEHY)
+  IQ:   'Communication Services',  // iQIYI ADR
+  TME:  'Communication Services',  // Tencent Music ADR
+
+  // Mining / commodities single names not in SP500.
+  CDE:  'Materials',               // Coeur Mining
+  HL:   'Materials',               // Hecla Mining
+  AG:   'Materials',               // First Majestic Silver
+  PAAS: 'Materials',               // Pan American Silver
+  WPM:  'Materials',               // Wheaton Precious Metals
+  KGC:  'Materials',               // Kinross Gold
+  GOLD: 'Materials',               // Barrick Gold
+  AEM:  'Materials',               // Agnico Eagle Mines
+
+  // Energy single names not in SP500.
+  RIG:  'Energy',                  // Transocean — offshore drilling
+  TELL: 'Energy',                  // Tellurian — LNG
+  USAR: 'Energy',                  // unknown small-cap energy (placeholder if needed)
+
+  // Cannabis / consumer-discretionary single names.
+  CGC:  'Health Care',             // Canopy Growth — cannabis (GICS classifies cannabis under Health Care)
+  TLRY: 'Health Care',             // Tilray Brands — cannabis
+  ACB:  'Health Care',             // Aurora Cannabis
+
+  // Meme / retail-active single names.
+  GME:  'Consumer Discretionary',  // GameStop
+  AMC:  'Communication Services',  // AMC Entertainment — movies
+  CLOV: 'Health Care',             // Clover Health
+  BBBY: 'Consumer Discretionary',  // Bed Bath & Beyond (delisted but appears historically)
+  WISH: 'Consumer Discretionary',  // ContextLogic / Wish
+
+  // Airline / travel / transport single names not in SP500.
+  CCL:  'Consumer Discretionary',  // Carnival
+  RCL:  'Consumer Discretionary',  // Royal Caribbean (now SP500 but covering for prior CSV state)
+  NCLH: 'Consumer Discretionary',  // Norwegian Cruise (now SP500 but covering for prior CSV state)
+  AAL:  'Industrials',             // American Airlines
+  JBLU: 'Industrials',             // JetBlue
+  ALK:  'Industrials',             // Alaska Air
+
+  // Other miscellaneous high-options-volume single names.
+  QXO:  'Industrials',             // QXO Inc — building products distribution roll-up
+  PSKY: 'Communication Services',  // Paramount Skydance — media (post-merger ticker)
+  WBD:  'Communication Services',  // Warner Bros Discovery
+  SIRI: 'Communication Services',  // Sirius XM (now SP500 but covering for prior CSV state)
+  VFS:  'Consumer Discretionary',  // VinFast Auto ADR
+  MTCH: 'Communication Services',  // Match Group
+  ROKU: 'Communication Services',  // Roku
+  PYPL: 'Financials',              // PayPal (in SP500 but listed defensively)
+  SQ:   'Financials',              // Block (Square) (now SP500, defensive coverage)
+  ARM:  'Information Technology',  // Arm Holdings ADR
+  TSM:  'Information Technology',  // Taiwan Semi ADR
+  ASML: 'Information Technology',  // ASML ADR
+  SE:   'Communication Services',  // Sea Limited ADR
+  GRAB: 'Industrials',             // Grab Holdings ADR
+
+  // Semiconductors & semis-adjacent (most fall under Information Technology).
+  MRVL: 'Information Technology',  // Marvell Technology
+  POET: 'Information Technology',  // POET Technologies — photonic chips
+  NVTS: 'Information Technology',  // Navitas Semiconductor
+  AAOI: 'Information Technology',  // Applied Optoelectronics
+  ALAB: 'Information Technology',  // Astera Labs
+  WOLF: 'Information Technology',  // Wolfspeed
+  AXTI: 'Information Technology',  // AXT Inc — compound semi substrates
+  CRDO: 'Information Technology',  // Credo Technology
+  ENPH: 'Information Technology',  // Enphase Energy — power-conversion semis
+  MBLY: 'Information Technology',  // Mobileye — autonomous-driving silicon
+
+  // Software / SaaS / cybersecurity / data infrastructure.
+  SNOW: 'Information Technology',  // Snowflake
+  MDB:  'Information Technology',  // MongoDB
+  PATH: 'Information Technology',  // UiPath — RPA software
+  AI:   'Information Technology',  // C3.ai — enterprise AI
+  BBAI: 'Information Technology',  // BigBear.AI
+  ZS:   'Information Technology',  // Zscaler — cybersecurity
+  FSLY: 'Information Technology',  // Fastly — edge compute / CDN
+  ZM:   'Information Technology',  // Zoom Communications
+  FIG:  'Information Technology',  // Figma
+  BB:   'Information Technology',  // BlackBerry — cybersecurity software
+  SHOP: 'Information Technology',  // Shopify — e-commerce platform / software
+
+  // AI / ML / voice / quantum.
+  SOUN: 'Information Technology',  // SoundHound AI
+  IONQ: 'Information Technology',  // IonQ — quantum
+  RGTI: 'Information Technology',  // Rigetti Computing — quantum
+  QBTS: 'Information Technology',  // D-Wave Quantum
+  QUBT: 'Information Technology',  // Quantum Computing Inc
+
+  // Cloud / data-center / AI-infrastructure single names.
+  NBIS: 'Information Technology',  // Nebius Group — AI cloud
+  APLD: 'Information Technology',  // Applied Digital — HPC datacenter
+
+  // Bitcoin miners — GICS classifies under Information Technology.
+  BMNR: 'Information Technology',  // Bitmine Immersion
+  CIFR: 'Information Technology',  // Cipher Mining
+  WULF: 'Information Technology',  // TeraWulf
+  CORZ: 'Information Technology',  // Core Scientific
+  BTDR: 'Information Technology',  // Bitdeer Technologies
+
+  // Telecom equipment / carriers.
+  NOK:  'Information Technology',  // Nokia ADR — networking equipment
+  LUMN: 'Communication Services',  // Lumen Technologies — telecom
+
+  // Aerospace / space / drones — Industrials by GICS.
+  RKLB: 'Industrials',             // Rocket Lab
+  LUNR: 'Industrials',             // Intuitive Machines
+  RDW:  'Industrials',             // Redwire
+  PL:   'Industrials',             // Planet Labs — earth observation
+  RCAT: 'Industrials',             // Red Cat Holdings — drones
+  ASTS: 'Communication Services',  // AST SpaceMobile — satellite cellular service
+
+  // eVTOL / autonomous flight.
+  ACHR: 'Industrials',             // Archer Aviation
+  JOBY: 'Industrials',             // Joby Aviation
+  EH:   'Industrials',             // EHang Holdings ADR — autonomous aerial vehicles
+
+  // Industrial drones / connected-systems infrastructure.
+  ONDS: 'Information Technology',  // Ondas Holdings — industrial drone & wireless networks
+
+  // Battery / energy-storage tech.
+  QS:   'Industrials',             // QuantumScape — solid-state batteries
+  AMPX: 'Industrials',             // Amprius Technologies — silicon-anode batteries
+  EOSE: 'Industrials',             // Eos Energy Enterprises — grid-scale storage
+  BE:   'Industrials',             // Bloom Energy — fuel-cell systems
+
+  // Nuclear / advanced-power utilities.
+  OKLO: 'Utilities',               // Oklo — small-modular reactor
+  SMR:  'Utilities',               // NuScale Power — small-modular reactor
+  FRMI: 'Utilities',               // Fermi Inc — nuclear power
+
+  // Mining / materials single names not in SP500.
+  CLF:  'Materials',               // Cleveland-Cliffs — steel
+  MP:   'Materials',               // MP Materials — rare earths
+  CRML: 'Materials',               // Critical Metals — rare earths
+  LGO:  'Materials',               // Largo — vanadium
+  B:    'Materials',               // Barrick Mining (rebrand of GOLD)
+
+  // Energy / fuel single names not in SP500.
+  PBR:  'Energy',                  // Petrobras ADR
+  ET:   'Energy',                  // Energy Transfer LP — midstream pipelines
+  VG:   'Energy',                  // Venture Global — LNG
+  CCJ:  'Energy',                  // Cameco — uranium (Energy under GICS Coal & Consumable Fuels)
+
+  // Healthcare single names not in SP500.
+  NVO:  'Health Care',             // Novo Nordisk ADR
+  OGN:  'Health Care',             // Organon
+  IBRX: 'Health Care',             // ImmunityBio
+  SLS:  'Health Care',             // Sellas Life Sciences
+  OSCR: 'Health Care',             // Oscar Health
+  TEM:  'Health Care',             // Tempus AI — precision medicine
+
+  // Mortgage REITs and real estate single names.
+  AGNC: 'Real Estate',             // AGNC Investment — mortgage REIT
+  NLY:  'Real Estate',             // Annaly Capital — mortgage REIT
+  OPEN: 'Real Estate',             // Opendoor — residential RE platform
+
+  // Financials single names not in SP500.
+  BULL: 'Financials',              // Webull — brokerage
+  CRCL: 'Financials',              // Circle Internet Group — stablecoin issuer
+  GLXY: 'Financials',              // Galaxy Digital — crypto financial services
+  OWL:  'Financials',              // Blue Owl Capital — asset management
+  RKT:  'Financials',              // Rocket Companies — mortgages
+  NU:   'Financials',              // Nu Holdings — digital bank
+  WU:   'Financials',              // Western Union — payments
+  JEF:  'Financials',              // Jefferies — investment bank
+  UPST: 'Financials',              // Upstart — consumer lending
+  FLG:  'Financials',              // Flagstar Bank
+
+  // Consumer Discretionary single names not in SP500.
+  PTON: 'Consumer Discretionary',  // Peloton
+  DKNG: 'Consumer Discretionary',  // DraftKings — gaming / sports betting
+  SBET: 'Consumer Discretionary',  // SharpLink Gaming
+  CPNG: 'Consumer Discretionary',  // Coupang ADR — e-commerce
+
+  // Consumer Staples single names.
+  CELH: 'Consumer Staples',        // Celsius Holdings — beverages
+  BYND: 'Consumer Staples',        // Beyond Meat — packaged foods
+
+  // Industrials (transportation, services).
+  CAR:  'Industrials',             // Avis Budget — car rental
+  HTZ:  'Industrials',             // Hertz Global Holdings
+  LYFT: 'Industrials',             // Lyft — rideshare
+
+  // Communication Services single names.
+  DJT:  'Communication Services',  // Trump Media & Technology Group
+};
+
+main().catch((err) => {
+  log('roster.fatal', { error: String(err), stack: err?.stack });
+  process.exit(1);
+});

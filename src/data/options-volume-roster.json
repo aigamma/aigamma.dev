@@ -1,0 +1,1520 @@
+{
+  "generatedAt": "2026-04-26T05:38:27.796Z",
+  "sourceCsv": "C:\\sheets\\stocks-screener-04-26-2026 (top 250 option liquid stocks on the SPX).csv",
+  "count": 250,
+  "sectors": {
+    "Information Technology": 81,
+    "Consumer Discretionary": 29,
+    "Communication Services": 23,
+    "Health Care": 18,
+    "Financials": 24,
+    "Industrials": 29,
+    "Consumer Staples": 11,
+    "Real Estate": 3,
+    "Utilities": 7,
+    "Materials": 11,
+    "Energy": 14
+  },
+  "holdings": [
+    {
+      "symbol": "NVDA",
+      "name": "Nvidia Corp",
+      "sector": "Information Technology",
+      "optionsVolume": 6755450
+    },
+    {
+      "symbol": "TSLA",
+      "name": "Tesla Inc",
+      "sector": "Consumer Discretionary",
+      "optionsVolume": 3679546
+    },
+    {
+      "symbol": "INTC",
+      "name": "Intel Corp",
+      "sector": "Information Technology",
+      "optionsVolume": 2443898
+    },
+    {
+      "symbol": "AMD",
+      "name": "Adv Micro Devices",
+      "sector": "Information Technology",
+      "optionsVolume": 1798889
+    },
+    {
+      "symbol": "AMZN",
+      "name": "Amazon.com Inc",
+      "sector": "Consumer Discretionary",
+      "optionsVolume": 1312103
+    },
+    {
+      "symbol": "AAPL",
+      "name": "Apple Inc",
+      "sector": "Information Technology",
+      "optionsVolume": 1166736
+    },
+    {
+      "symbol": "MU",
+      "name": "Micron Technology",
+      "sector": "Information Technology",
+      "optionsVolume": 866208
+    },
+    {
+      "symbol": "MSFT",
+      "name": "Microsoft Corp",
+      "sector": "Information Technology",
+      "optionsVolume": 761907
+    },
+    {
+      "symbol": "MSTR",
+      "name": "Strategy Inc",
+      "sector": "Information Technology",
+      "optionsVolume": 744442
+    },
+    {
+      "symbol": "META",
+      "name": "Meta Platforms Inc",
+      "sector": "Communication Services",
+      "optionsVolume": 671538
+    },
+    {
+      "symbol": "PLTR",
+      "name": "Palantir Technologies Inc Cl A",
+      "sector": "Information Technology",
+      "optionsVolume": 613101
+    },
+    {
+      "symbol": "GOOGL",
+      "name": "Alphabet Cl A",
+      "sector": "Communication Services",
+      "optionsVolume": 564505
+    },
+    {
+      "symbol": "ORCL",
+      "name": "Oracle Corp",
+      "sector": "Information Technology",
+      "optionsVolume": 431954
+    },
+    {
+      "symbol": "NFLX",
+      "name": "Netflix Inc",
+      "sector": "Communication Services",
+      "optionsVolume": 409393
+    },
+    {
+      "symbol": "CRWV",
+      "name": "Coreweave Inc Cl A",
+      "sector": "Information Technology",
+      "optionsVolume": 389626
+    },
+    {
+      "symbol": "SMCI",
+      "name": "Super Micro Computer",
+      "sector": "Information Technology",
+      "optionsVolume": 373694
+    },
+    {
+      "symbol": "IREN",
+      "name": "Iren Limited",
+      "sector": "Information Technology",
+      "optionsVolume": 369061
+    },
+    {
+      "symbol": "MARA",
+      "name": "Mara Holdings Inc",
+      "sector": "Information Technology",
+      "optionsVolume": 359167
+    },
+    {
+      "symbol": "HIMS",
+      "name": "Hims & Hers Health Inc",
+      "sector": "Health Care",
+      "optionsVolume": 358776
+    },
+    {
+      "symbol": "POET",
+      "name": "Poet Technologies Inc",
+      "sector": "Information Technology",
+      "optionsVolume": 334670
+    },
+    {
+      "symbol": "AVGO",
+      "name": "Broadcom Ltd",
+      "sector": "Information Technology",
+      "optionsVolume": 324776
+    },
+    {
+      "symbol": "TSM",
+      "name": "Taiwan Semiconductor ADR",
+      "sector": "Information Technology",
+      "optionsVolume": 318361
+    },
+    {
+      "symbol": "SNDK",
+      "name": "Sandisk Corp",
+      "sector": "Information Technology",
+      "optionsVolume": 272097
+    },
+    {
+      "symbol": "QCOM",
+      "name": "Qualcomm Inc",
+      "sector": "Information Technology",
+      "optionsVolume": 267684
+    },
+    {
+      "symbol": "MRVL",
+      "name": "Marvell Technology Inc",
+      "sector": "Information Technology",
+      "optionsVolume": 261445
+    },
+    {
+      "symbol": "HOOD",
+      "name": "Robinhood Markets Inc Cl A",
+      "sector": "Financials",
+      "optionsVolume": 260382
+    },
+    {
+      "symbol": "GOOG",
+      "name": "Alphabet Cl C",
+      "sector": "Communication Services",
+      "optionsVolume": 249490
+    },
+    {
+      "symbol": "SOFI",
+      "name": "Sofi Technologies Inc",
+      "sector": "Financials",
+      "optionsVolume": 243427
+    },
+    {
+      "symbol": "CAR",
+      "name": "Avis Budget Group",
+      "sector": "Industrials",
+      "optionsVolume": 241316
+    },
+    {
+      "symbol": "GME",
+      "name": "Gamestop Corp",
+      "sector": "Consumer Discretionary",
+      "optionsVolume": 231306
+    },
+    {
+      "symbol": "NOW",
+      "name": "Servicenow Inc",
+      "sector": "Information Technology",
+      "optionsVolume": 230110
+    },
+    {
+      "symbol": "ARM",
+      "name": "Arm Holdings Plc ADR",
+      "sector": "Information Technology",
+      "optionsVolume": 210602
+    },
+    {
+      "symbol": "ONDS",
+      "name": "Ondas Inc",
+      "sector": "Information Technology",
+      "optionsVolume": 203226
+    },
+    {
+      "symbol": "BYND",
+      "name": "Beyond Meat Inc",
+      "sector": "Consumer Staples",
+      "optionsVolume": 201262
+    },
+    {
+      "symbol": "NOK",
+      "name": "Nokia Corp ADR",
+      "sector": "Information Technology",
+      "optionsVolume": 198337
+    },
+    {
+      "symbol": "COIN",
+      "name": "Coinbase Global Inc Cl A",
+      "sector": "Financials",
+      "optionsVolume": 189803
+    },
+    {
+      "symbol": "OPEN",
+      "name": "Opendoor Technologies Inc",
+      "sector": "Real Estate",
+      "optionsVolume": 186772
+    },
+    {
+      "symbol": "EOSE",
+      "name": "Eos Energy Enterprises Inc",
+      "sector": "Industrials",
+      "optionsVolume": 186692
+    },
+    {
+      "symbol": "BMNR",
+      "name": "Bitmine Immersion Technologies",
+      "sector": "Information Technology",
+      "optionsVolume": 179678
+    },
+    {
+      "symbol": "NBIS",
+      "name": "Nebius Group N.V. Cl A",
+      "sector": "Information Technology",
+      "optionsVolume": 171987
+    },
+    {
+      "symbol": "APLD",
+      "name": "Applied Digital Corp",
+      "sector": "Information Technology",
+      "optionsVolume": 165662
+    },
+    {
+      "symbol": "OKLO",
+      "name": "Oklo Inc",
+      "sector": "Utilities",
+      "optionsVolume": 163085
+    },
+    {
+      "symbol": "PFE",
+      "name": "Pfizer Inc",
+      "sector": "Health Care",
+      "optionsVolume": 161774
+    },
+    {
+      "symbol": "ASTS",
+      "name": "Ast Spacemobile Inc",
+      "sector": "Communication Services",
+      "optionsVolume": 152563
+    },
+    {
+      "symbol": "CIFR",
+      "name": "Cipher Digital Inc",
+      "sector": "Information Technology",
+      "optionsVolume": 152188
+    },
+    {
+      "symbol": "BABA",
+      "name": "Alibaba Group Holding ADR",
+      "sector": "Consumer Discretionary",
+      "optionsVolume": 149266
+    },
+    {
+      "symbol": "WULF",
+      "name": "Terawulf Inc",
+      "sector": "Information Technology",
+      "optionsVolume": 145421
+    },
+    {
+      "symbol": "QS",
+      "name": "Quantumscape Corp",
+      "sector": "Industrials",
+      "optionsVolume": 144709
+    },
+    {
+      "symbol": "CLSK",
+      "name": "Cleanspark Inc",
+      "sector": "Information Technology",
+      "optionsVolume": 140962
+    },
+    {
+      "symbol": "SOUN",
+      "name": "Soundhound AI Inc Cl A",
+      "sector": "Information Technology",
+      "optionsVolume": 138078
+    },
+    {
+      "symbol": "RIOT",
+      "name": "Riot Platforms Inc",
+      "sector": "Information Technology",
+      "optionsVolume": 135369
+    },
+    {
+      "symbol": "BAC",
+      "name": "Bank of America Corp",
+      "sector": "Financials",
+      "optionsVolume": 132611
+    },
+    {
+      "symbol": "RIVN",
+      "name": "Rivian Automotive Inc Cl A",
+      "sector": "Consumer Discretionary",
+      "optionsVolume": 131556
+    },
+    {
+      "symbol": "RKLB",
+      "name": "Rocket Lab Corporation",
+      "sector": "Industrials",
+      "optionsVolume": 131448
+    },
+    {
+      "symbol": "VZ",
+      "name": "Verizon Communications Inc",
+      "sector": "Communication Services",
+      "optionsVolume": 130644
+    },
+    {
+      "symbol": "NVO",
+      "name": "Novo Nordisk A/S ADR",
+      "sector": "Health Care",
+      "optionsVolume": 127563
+    },
+    {
+      "symbol": "IONQ",
+      "name": "Ionq Inc",
+      "sector": "Information Technology",
+      "optionsVolume": 124045
+    },
+    {
+      "symbol": "UNH",
+      "name": "Unitedhealth Group Inc",
+      "sector": "Health Care",
+      "optionsVolume": 114784
+    },
+    {
+      "symbol": "AAL",
+      "name": "American Airlines Gp",
+      "sector": "Industrials",
+      "optionsVolume": 114085
+    },
+    {
+      "symbol": "NVTS",
+      "name": "Navitas Semiconductor Corp",
+      "sector": "Information Technology",
+      "optionsVolume": 113577
+    },
+    {
+      "symbol": "LRCX",
+      "name": "Lam Research Corp",
+      "sector": "Information Technology",
+      "optionsVolume": 109556
+    },
+    {
+      "symbol": "WMT",
+      "name": "Walmart Inc",
+      "sector": "Consumer Staples",
+      "optionsVolume": 108895
+    },
+    {
+      "symbol": "CLF",
+      "name": "Cleveland-Cliffs Inc",
+      "sector": "Materials",
+      "optionsVolume": 104672
+    },
+    {
+      "symbol": "NKE",
+      "name": "Nike Inc",
+      "sector": "Consumer Discretionary",
+      "optionsVolume": 104589
+    },
+    {
+      "symbol": "CMCSA",
+      "name": "Comcast Corp A",
+      "sector": "Communication Services",
+      "optionsVolume": 102156
+    },
+    {
+      "symbol": "MRNA",
+      "name": "Moderna Inc",
+      "sector": "Health Care",
+      "optionsVolume": 101624
+    },
+    {
+      "symbol": "BULL",
+      "name": "Webull Corp Cl A",
+      "sector": "Financials",
+      "optionsVolume": 98466
+    },
+    {
+      "symbol": "AAOI",
+      "name": "Applied Optoelect",
+      "sector": "Information Technology",
+      "optionsVolume": 98090
+    },
+    {
+      "symbol": "FCX",
+      "name": "Freeport-Mcmoran Inc",
+      "sector": "Materials",
+      "optionsVolume": 95996
+    },
+    {
+      "symbol": "TTD",
+      "name": "Trade Desk Inc",
+      "sector": "Communication Services",
+      "optionsVolume": 91747
+    },
+    {
+      "symbol": "SNAP",
+      "name": "Snap Inc",
+      "sector": "Communication Services",
+      "optionsVolume": 91316
+    },
+    {
+      "symbol": "LCID",
+      "name": "Lucid Group Inc",
+      "sector": "Consumer Discretionary",
+      "optionsVolume": 90174
+    },
+    {
+      "symbol": "IBM",
+      "name": "Intl Business Machines",
+      "sector": "Information Technology",
+      "optionsVolume": 87890
+    },
+    {
+      "symbol": "OXY",
+      "name": "Occidental Petroleum Corp",
+      "sector": "Energy",
+      "optionsVolume": 86546
+    },
+    {
+      "symbol": "RGTI",
+      "name": "Rigetti Computing Inc",
+      "sector": "Information Technology",
+      "optionsVolume": 85872
+    },
+    {
+      "symbol": "OGN",
+      "name": "Organon & Co.",
+      "sector": "Health Care",
+      "optionsVolume": 85864
+    },
+    {
+      "symbol": "KO",
+      "name": "Coca-Cola Company",
+      "sector": "Consumer Staples",
+      "optionsVolume": 84909
+    },
+    {
+      "symbol": "CRCL",
+      "name": "Circle Internet Group Inc Cl A",
+      "sector": "Financials",
+      "optionsVolume": 82155
+    },
+    {
+      "symbol": "CSCO",
+      "name": "Cisco Systems Inc",
+      "sector": "Information Technology",
+      "optionsVolume": 80025
+    },
+    {
+      "symbol": "BA",
+      "name": "Boeing Company",
+      "sector": "Industrials",
+      "optionsVolume": 78062
+    },
+    {
+      "symbol": "FRMI",
+      "name": "Fermi Inc",
+      "sector": "Utilities",
+      "optionsVolume": 77061
+    },
+    {
+      "symbol": "PLUG",
+      "name": "Plug Power Inc",
+      "sector": "Industrials",
+      "optionsVolume": 76584
+    },
+    {
+      "symbol": "SNOW",
+      "name": "Snowflake Inc Cl A",
+      "sector": "Information Technology",
+      "optionsVolume": 75527
+    },
+    {
+      "symbol": "PYPL",
+      "name": "Paypal Holdings",
+      "sector": "Financials",
+      "optionsVolume": 75226
+    },
+    {
+      "symbol": "SMR",
+      "name": "Nuscale Power Corp",
+      "sector": "Utilities",
+      "optionsVolume": 74723
+    },
+    {
+      "symbol": "SLB",
+      "name": "Slb Limited",
+      "sector": "Energy",
+      "optionsVolume": 73359
+    },
+    {
+      "symbol": "PG",
+      "name": "Procter & Gamble Company",
+      "sector": "Consumer Staples",
+      "optionsVolume": 72837
+    },
+    {
+      "symbol": "GLW",
+      "name": "Corning Inc",
+      "sector": "Information Technology",
+      "optionsVolume": 72715
+    },
+    {
+      "symbol": "XOM",
+      "name": "Exxon Mobil Corp",
+      "sector": "Energy",
+      "optionsVolume": 72267
+    },
+    {
+      "symbol": "CRM",
+      "name": "Salesforce Inc",
+      "sector": "Information Technology",
+      "optionsVolume": 71854
+    },
+    {
+      "symbol": "PBR",
+      "name": "Petroleo Brasileiro S.A. Petrobras ADR",
+      "sector": "Energy",
+      "optionsVolume": 71588
+    },
+    {
+      "symbol": "F",
+      "name": "Ford Motor Company",
+      "sector": "Consumer Discretionary",
+      "optionsVolume": 71312
+    },
+    {
+      "symbol": "UBER",
+      "name": "Uber Technologies Inc",
+      "sector": "Industrials",
+      "optionsVolume": 70267
+    },
+    {
+      "symbol": "NIO",
+      "name": "Nio Inc ADR",
+      "sector": "Consumer Discretionary",
+      "optionsVolume": 69026
+    },
+    {
+      "symbol": "AMC",
+      "name": "AMC Entertainment Holdings",
+      "sector": "Communication Services",
+      "optionsVolume": 67968
+    },
+    {
+      "symbol": "BE",
+      "name": "Bloom Energy Corp Cl A",
+      "sector": "Industrials",
+      "optionsVolume": 64508
+    },
+    {
+      "symbol": "QBTS",
+      "name": "D-Wave Quantum Inc",
+      "sector": "Information Technology",
+      "optionsVolume": 63159
+    },
+    {
+      "symbol": "CCL",
+      "name": "Carnival Corp",
+      "sector": "Consumer Discretionary",
+      "optionsVolume": 61833
+    },
+    {
+      "symbol": "HPE",
+      "name": "Hewlett Packard Enterprise Comp",
+      "sector": "Information Technology",
+      "optionsVolume": 61758
+    },
+    {
+      "symbol": "C",
+      "name": "Citigroup Inc",
+      "sector": "Financials",
+      "optionsVolume": 59572
+    },
+    {
+      "symbol": "LLY",
+      "name": "Eli Lilly and Company",
+      "sector": "Health Care",
+      "optionsVolume": 58682
+    },
+    {
+      "symbol": "FIG",
+      "name": "Figma Inc Cl A",
+      "sector": "Information Technology",
+      "optionsVolume": 58139
+    },
+    {
+      "symbol": "CRML",
+      "name": "Critical Metals Corp",
+      "sector": "Materials",
+      "optionsVolume": 56852
+    },
+    {
+      "symbol": "PATH",
+      "name": "Uipath Inc Cl A",
+      "sector": "Information Technology",
+      "optionsVolume": 54816
+    },
+    {
+      "symbol": "AMAT",
+      "name": "Applied Materials",
+      "sector": "Information Technology",
+      "optionsVolume": 54142
+    },
+    {
+      "symbol": "CORZ",
+      "name": "Core Scientific Inc",
+      "sector": "Information Technology",
+      "optionsVolume": 53835
+    },
+    {
+      "symbol": "JPM",
+      "name": "JP Morgan Chase & Company",
+      "sector": "Financials",
+      "optionsVolume": 52298
+    },
+    {
+      "symbol": "BB",
+      "name": "Blackberry Ltd",
+      "sector": "Information Technology",
+      "optionsVolume": 51866
+    },
+    {
+      "symbol": "TXN",
+      "name": "Texas Instruments",
+      "sector": "Information Technology",
+      "optionsVolume": 51342
+    },
+    {
+      "symbol": "CVX",
+      "name": "Chevron Corp",
+      "sector": "Energy",
+      "optionsVolume": 50623
+    },
+    {
+      "symbol": "NEM",
+      "name": "Newmont Mining Corp",
+      "sector": "Materials",
+      "optionsVolume": 50048
+    },
+    {
+      "symbol": "USAR",
+      "name": "USA Rare Earth Inc",
+      "sector": "Energy",
+      "optionsVolume": 49653
+    },
+    {
+      "symbol": "GE",
+      "name": "GE Aerospace",
+      "sector": "Industrials",
+      "optionsVolume": 49608
+    },
+    {
+      "symbol": "XYZ",
+      "name": "Block Inc",
+      "sector": "Financials",
+      "optionsVolume": 48893
+    },
+    {
+      "symbol": "VRT",
+      "name": "Vertiv Holdings Llc.",
+      "sector": "Industrials",
+      "optionsVolume": 47956
+    },
+    {
+      "symbol": "ADBE",
+      "name": "Adobe Systems Inc",
+      "sector": "Information Technology",
+      "optionsVolume": 47863
+    },
+    {
+      "symbol": "CDNS",
+      "name": "Cadence Design Sys",
+      "sector": "Information Technology",
+      "optionsVolume": 47443
+    },
+    {
+      "symbol": "SBET",
+      "name": "Sharplink Inc",
+      "sector": "Consumer Discretionary",
+      "optionsVolume": 46648
+    },
+    {
+      "symbol": "BRK.B",
+      "name": "Berkshire Hathaway Cl B",
+      "sector": "Financials",
+      "optionsVolume": 46095
+    },
+    {
+      "symbol": "RBLX",
+      "name": "Roblox Corp Cl A",
+      "sector": "Communication Services",
+      "optionsVolume": 45868
+    },
+    {
+      "symbol": "AI",
+      "name": "C3.Ai Inc Cl A",
+      "sector": "Information Technology",
+      "optionsVolume": 45790
+    },
+    {
+      "symbol": "CRWD",
+      "name": "Crowdstrike Holdings Inc",
+      "sector": "Information Technology",
+      "optionsVolume": 44146
+    },
+    {
+      "symbol": "LULU",
+      "name": "Lululemon Athletica",
+      "sector": "Consumer Discretionary",
+      "optionsVolume": 43740
+    },
+    {
+      "symbol": "UAL",
+      "name": "United Airlines Holdings Inc",
+      "sector": "Industrials",
+      "optionsVolume": 42898
+    },
+    {
+      "symbol": "APP",
+      "name": "Applovin Corp Cl A",
+      "sector": "Information Technology",
+      "optionsVolume": 42761
+    },
+    {
+      "symbol": "GLXY",
+      "name": "Galaxy Digital Holdings",
+      "sector": "Financials",
+      "optionsVolume": 42747
+    },
+    {
+      "symbol": "LUNR",
+      "name": "Intuitive Machines Inc",
+      "sector": "Industrials",
+      "optionsVolume": 42554
+    },
+    {
+      "symbol": "AG",
+      "name": "First Majestic Silver",
+      "sector": "Materials",
+      "optionsVolume": 42543
+    },
+    {
+      "symbol": "GM",
+      "name": "General Motors Company",
+      "sector": "Consumer Discretionary",
+      "optionsVolume": 42111
+    },
+    {
+      "symbol": "ALAB",
+      "name": "Astera Labs Inc",
+      "sector": "Information Technology",
+      "optionsVolume": 42076
+    },
+    {
+      "symbol": "WOLF",
+      "name": "Wolfspeed Inc",
+      "sector": "Information Technology",
+      "optionsVolume": 41742
+    },
+    {
+      "symbol": "DELL",
+      "name": "Dell Technologies Inc",
+      "sector": "Information Technology",
+      "optionsVolume": 41622
+    },
+    {
+      "symbol": "RDW",
+      "name": "Redwire Corp",
+      "sector": "Industrials",
+      "optionsVolume": 41170
+    },
+    {
+      "symbol": "MBLY",
+      "name": "Mobileye Global Inc Cl A",
+      "sector": "Information Technology",
+      "optionsVolume": 40849
+    },
+    {
+      "symbol": "WFC",
+      "name": "Wells Fargo & Company",
+      "sector": "Financials",
+      "optionsVolume": 40735
+    },
+    {
+      "symbol": "PANW",
+      "name": "Palo Alto Networks Inc",
+      "sector": "Information Technology",
+      "optionsVolume": 40624
+    },
+    {
+      "symbol": "PTON",
+      "name": "Peloton Interactive Inc",
+      "sector": "Consumer Discretionary",
+      "optionsVolume": 40181
+    },
+    {
+      "symbol": "T",
+      "name": "AT&T Inc",
+      "sector": "Communication Services",
+      "optionsVolume": 40180
+    },
+    {
+      "symbol": "SCHW",
+      "name": "The Charles Schwab Corp",
+      "sector": "Financials",
+      "optionsVolume": 40015
+    },
+    {
+      "symbol": "WDC",
+      "name": "Western Digital Corp",
+      "sector": "Information Technology",
+      "optionsVolume": 39958
+    },
+    {
+      "symbol": "DAL",
+      "name": "Delta Air Lines Inc",
+      "sector": "Industrials",
+      "optionsVolume": 39698
+    },
+    {
+      "symbol": "OWL",
+      "name": "Blue Owl Capital Inc",
+      "sector": "Financials",
+      "optionsVolume": 39332
+    },
+    {
+      "symbol": "CHTR",
+      "name": "Charter Communications Inc",
+      "sector": "Communication Services",
+      "optionsVolume": 39191
+    },
+    {
+      "symbol": "WBD",
+      "name": "Discovery Inc Series A",
+      "sector": "Communication Services",
+      "optionsVolume": 39082
+    },
+    {
+      "symbol": "LITE",
+      "name": "Lumentum Holdings",
+      "sector": "Information Technology",
+      "optionsVolume": 38664
+    },
+    {
+      "symbol": "PDD",
+      "name": "Pdd Holdings Inc",
+      "sector": "Consumer Discretionary",
+      "optionsVolume": 37778
+    },
+    {
+      "symbol": "DOW",
+      "name": "Dow Inc",
+      "sector": "Materials",
+      "optionsVolume": 37726
+    },
+    {
+      "symbol": "SIRI",
+      "name": "Siriusxm Holdings Inc",
+      "sector": "Communication Services",
+      "optionsVolume": 37626
+    },
+    {
+      "symbol": "RKT",
+      "name": "Rocket Companies Inc Cl A",
+      "sector": "Financials",
+      "optionsVolume": 37080
+    },
+    {
+      "symbol": "SHOP",
+      "name": "Shopify Inc",
+      "sector": "Information Technology",
+      "optionsVolume": 36999
+    },
+    {
+      "symbol": "XPEV",
+      "name": "Xpeng Inc ADR",
+      "sector": "Consumer Discretionary",
+      "optionsVolume": 36616
+    },
+    {
+      "symbol": "DKNG",
+      "name": "Draftkings Inc",
+      "sector": "Consumer Discretionary",
+      "optionsVolume": 36427
+    },
+    {
+      "symbol": "U",
+      "name": "Unity Software Inc",
+      "sector": "Communication Services",
+      "optionsVolume": 36055
+    },
+    {
+      "symbol": "ANET",
+      "name": "Arista Networks Inc",
+      "sector": "Information Technology",
+      "optionsVolume": 35977
+    },
+    {
+      "symbol": "ON",
+      "name": "On Semiconductor",
+      "sector": "Information Technology",
+      "optionsVolume": 35752
+    },
+    {
+      "symbol": "BTDR",
+      "name": "Bitdeer Technologies Group",
+      "sector": "Information Technology",
+      "optionsVolume": 35228
+    },
+    {
+      "symbol": "LYFT",
+      "name": "Lyft Inc Cl A",
+      "sector": "Industrials",
+      "optionsVolume": 35204
+    },
+    {
+      "symbol": "IBRX",
+      "name": "Immunitybio Inc",
+      "sector": "Health Care",
+      "optionsVolume": 35191
+    },
+    {
+      "symbol": "CCJ",
+      "name": "Cameco Corp",
+      "sector": "Energy",
+      "optionsVolume": 35130
+    },
+    {
+      "symbol": "NU",
+      "name": "Nu Holdings Ltd Cl A",
+      "sector": "Financials",
+      "optionsVolume": 34778
+    },
+    {
+      "symbol": "AXTI",
+      "name": "Axt Inc",
+      "sector": "Information Technology",
+      "optionsVolume": 34730
+    },
+    {
+      "symbol": "CMG",
+      "name": "Chipotle Mexican Grill",
+      "sector": "Consumer Discretionary",
+      "optionsVolume": 34651
+    },
+    {
+      "symbol": "TLRY",
+      "name": "Tilray Brands Inc",
+      "sector": "Health Care",
+      "optionsVolume": 34443
+    },
+    {
+      "symbol": "MDB",
+      "name": "Mongodb Inc Cl A",
+      "sector": "Information Technology",
+      "optionsVolume": 34371
+    },
+    {
+      "symbol": "VST",
+      "name": "Vistra Energy Corp",
+      "sector": "Utilities",
+      "optionsVolume": 33974
+    },
+    {
+      "symbol": "BBAI",
+      "name": "Bigbear.Ai Holdings Inc",
+      "sector": "Information Technology",
+      "optionsVolume": 33949
+    },
+    {
+      "symbol": "GS",
+      "name": "Goldman Sachs Group",
+      "sector": "Financials",
+      "optionsVolume": 33494
+    },
+    {
+      "symbol": "VG",
+      "name": "Venture Global Inc Cl A",
+      "sector": "Energy",
+      "optionsVolume": 33187
+    },
+    {
+      "symbol": "COST",
+      "name": "Costco Wholesale",
+      "sector": "Consumer Staples",
+      "optionsVolume": 32842
+    },
+    {
+      "symbol": "CVNA",
+      "name": "Carvana Company Cl A",
+      "sector": "Consumer Discretionary",
+      "optionsVolume": 32796
+    },
+    {
+      "symbol": "RTX",
+      "name": "Rtx Corp",
+      "sector": "Industrials",
+      "optionsVolume": 32250
+    },
+    {
+      "symbol": "ACHR",
+      "name": "Archer Aviation Inc",
+      "sector": "Industrials",
+      "optionsVolume": 32159
+    },
+    {
+      "symbol": "AGNC",
+      "name": "Agnc Investment Corp",
+      "sector": "Real Estate",
+      "optionsVolume": 31941
+    },
+    {
+      "symbol": "DIS",
+      "name": "Walt Disney Company",
+      "sector": "Communication Services",
+      "optionsVolume": 31764
+    },
+    {
+      "symbol": "GEV",
+      "name": "GE Vernova Inc",
+      "sector": "Industrials",
+      "optionsVolume": 30915
+    },
+    {
+      "symbol": "FTNT",
+      "name": "Fortinet Inc",
+      "sector": "Information Technology",
+      "optionsVolume": 30807
+    },
+    {
+      "symbol": "HAL",
+      "name": "Halliburton Company",
+      "sector": "Energy",
+      "optionsVolume": 30609
+    },
+    {
+      "symbol": "WU",
+      "name": "Western Union Company",
+      "sector": "Financials",
+      "optionsVolume": 30491
+    },
+    {
+      "symbol": "MP",
+      "name": "MP Materials Corp",
+      "sector": "Materials",
+      "optionsVolume": 29783
+    },
+    {
+      "symbol": "JOBY",
+      "name": "Joby Aviation Inc",
+      "sector": "Industrials",
+      "optionsVolume": 28933
+    },
+    {
+      "symbol": "EQT",
+      "name": "Eqt Corp",
+      "sector": "Energy",
+      "optionsVolume": 28889
+    },
+    {
+      "symbol": "BIDU",
+      "name": "Baidu Inc ADR",
+      "sector": "Communication Services",
+      "optionsVolume": 28302
+    },
+    {
+      "symbol": "ZM",
+      "name": "Zoom Communications Inc",
+      "sector": "Information Technology",
+      "optionsVolume": 28121
+    },
+    {
+      "symbol": "MCHP",
+      "name": "Microchip Technology",
+      "sector": "Information Technology",
+      "optionsVolume": 27787
+    },
+    {
+      "symbol": "JEF",
+      "name": "Jefferies Financial Group Inc",
+      "sector": "Financials",
+      "optionsVolume": 27681
+    },
+    {
+      "symbol": "V",
+      "name": "Visa Inc",
+      "sector": "Financials",
+      "optionsVolume": 27505
+    },
+    {
+      "symbol": "GRAB",
+      "name": "Grab Holdings Ltd Cl A",
+      "sector": "Industrials",
+      "optionsVolume": 27262
+    },
+    {
+      "symbol": "HTZ",
+      "name": "Hertz Global Holdings Inc",
+      "sector": "Industrials",
+      "optionsVolume": 27179
+    },
+    {
+      "symbol": "QUBT",
+      "name": "Quantum Computing Inc",
+      "sector": "Information Technology",
+      "optionsVolume": 26994
+    },
+    {
+      "symbol": "EBAY",
+      "name": "Ebay Inc",
+      "sector": "Consumer Discretionary",
+      "optionsVolume": 26914
+    },
+    {
+      "symbol": "NCLH",
+      "name": "Norwegian Cruise Ord",
+      "sector": "Consumer Discretionary",
+      "optionsVolume": 26747
+    },
+    {
+      "symbol": "PL",
+      "name": "Planet Labs Pbc",
+      "sector": "Industrials",
+      "optionsVolume": 26355
+    },
+    {
+      "symbol": "PSKY",
+      "name": "Paramount Skydance Corporation Cl B",
+      "sector": "Communication Services",
+      "optionsVolume": 26332
+    },
+    {
+      "symbol": "RCAT",
+      "name": "Red Cat Holdings Inc",
+      "sector": "Industrials",
+      "optionsVolume": 25697
+    },
+    {
+      "symbol": "AXP",
+      "name": "American Express Company",
+      "sector": "Financials",
+      "optionsVolume": 25557
+    },
+    {
+      "symbol": "RDDT",
+      "name": "Reddit Inc Cl A",
+      "sector": "Communication Services",
+      "optionsVolume": 25503
+    },
+    {
+      "symbol": "MRK",
+      "name": "Merck & Company",
+      "sector": "Health Care",
+      "optionsVolume": 25445
+    },
+    {
+      "symbol": "NLY",
+      "name": "Annaly Capital Management Inc",
+      "sector": "Real Estate",
+      "optionsVolume": 25445
+    },
+    {
+      "symbol": "CELH",
+      "name": "Celsius Holdings Inc",
+      "sector": "Consumer Staples",
+      "optionsVolume": 25049
+    },
+    {
+      "symbol": "CAT",
+      "name": "Caterpillar Inc",
+      "sector": "Industrials",
+      "optionsVolume": 25000
+    },
+    {
+      "symbol": "HL",
+      "name": "Hecla Mining Company",
+      "sector": "Materials",
+      "optionsVolume": 24696
+    },
+    {
+      "symbol": "CRDO",
+      "name": "Credo Technology Group Holding Ltd",
+      "sector": "Information Technology",
+      "optionsVolume": 24543
+    },
+    {
+      "symbol": "SLS",
+      "name": "Sellas Life Sciences Group Inc",
+      "sector": "Health Care",
+      "optionsVolume": 24518
+    },
+    {
+      "symbol": "ACN",
+      "name": "Accenture Plc",
+      "sector": "Information Technology",
+      "optionsVolume": 23690
+    },
+    {
+      "symbol": "ASML",
+      "name": "Asml Holdings NY Reg ADR",
+      "sector": "Information Technology",
+      "optionsVolume": 23653
+    },
+    {
+      "symbol": "BMY",
+      "name": "Bristol-Myers Squibb Company",
+      "sector": "Health Care",
+      "optionsVolume": 23477
+    },
+    {
+      "symbol": "PCG",
+      "name": "Pacific Gas & Electric Company",
+      "sector": "Utilities",
+      "optionsVolume": 23331
+    },
+    {
+      "symbol": "LMT",
+      "name": "Lockheed Martin Corp",
+      "sector": "Industrials",
+      "optionsVolume": 23182
+    },
+    {
+      "symbol": "ET",
+      "name": "Energy Transfer LP",
+      "sector": "Energy",
+      "optionsVolume": 23179
+    },
+    {
+      "symbol": "ENPH",
+      "name": "Enphase Energy Inc",
+      "sector": "Information Technology",
+      "optionsVolume": 23005
+    },
+    {
+      "symbol": "CEG",
+      "name": "Constellation Energy Corp",
+      "sector": "Utilities",
+      "optionsVolume": 22948
+    },
+    {
+      "symbol": "AMPX",
+      "name": "Amprius Technologies Inc",
+      "sector": "Industrials",
+      "optionsVolume": 22414
+    },
+    {
+      "symbol": "OSCR",
+      "name": "Oscar Health Inc Cl A",
+      "sector": "Health Care",
+      "optionsVolume": 22280
+    },
+    {
+      "symbol": "BSX",
+      "name": "Boston Scientific Corp",
+      "sector": "Health Care",
+      "optionsVolume": 22020
+    },
+    {
+      "symbol": "KR",
+      "name": "Kroger Company",
+      "sector": "Consumer Staples",
+      "optionsVolume": 22011
+    },
+    {
+      "symbol": "UPST",
+      "name": "Upstart Holdings Inc",
+      "sector": "Financials",
+      "optionsVolume": 21841
+    },
+    {
+      "symbol": "TGT",
+      "name": "Target Corp",
+      "sector": "Consumer Staples",
+      "optionsVolume": 21778
+    },
+    {
+      "symbol": "COHR",
+      "name": "Coherent Corp",
+      "sector": "Information Technology",
+      "optionsVolume": 21616
+    },
+    {
+      "symbol": "DJT",
+      "name": "Trump Media & Technology Group Corp",
+      "sector": "Communication Services",
+      "optionsVolume": 21571
+    },
+    {
+      "symbol": "KDP",
+      "name": "Keurig Dr Pepper Inc",
+      "sector": "Consumer Staples",
+      "optionsVolume": 21056
+    },
+    {
+      "symbol": "FSLY",
+      "name": "Fastly Inc",
+      "sector": "Information Technology",
+      "optionsVolume": 20973
+    },
+    {
+      "symbol": "CPNG",
+      "name": "Coupang Inc Cl A",
+      "sector": "Consumer Discretionary",
+      "optionsVolume": 20826
+    },
+    {
+      "symbol": "NEE",
+      "name": "Nextera Energy",
+      "sector": "Utilities",
+      "optionsVolume": 20741
+    },
+    {
+      "symbol": "SATS",
+      "name": "Echostar Corp",
+      "sector": "Communication Services",
+      "optionsVolume": 20570
+    },
+    {
+      "symbol": "LGO",
+      "name": "Largo Inc",
+      "sector": "Materials",
+      "optionsVolume": 20323
+    },
+    {
+      "symbol": "LUMN",
+      "name": "Lumen Technologies Inc",
+      "sector": "Communication Services",
+      "optionsVolume": 20307
+    },
+    {
+      "symbol": "SBUX",
+      "name": "Starbucks Corp",
+      "sector": "Consumer Discretionary",
+      "optionsVolume": 20272
+    },
+    {
+      "symbol": "TEM",
+      "name": "Tempus AI Cl A",
+      "sector": "Health Care",
+      "optionsVolume": 20248
+    },
+    {
+      "symbol": "LEN",
+      "name": "Lennar Corp",
+      "sector": "Consumer Discretionary",
+      "optionsVolume": 20081
+    },
+    {
+      "symbol": "B",
+      "name": "Barrick Mining Corp",
+      "sector": "Materials",
+      "optionsVolume": 19861
+    },
+    {
+      "symbol": "HPQ",
+      "name": "HP Inc",
+      "sector": "Information Technology",
+      "optionsVolume": 19828
+    },
+    {
+      "symbol": "EH",
+      "name": "Ehang Holdings Ltd ADR",
+      "sector": "Industrials",
+      "optionsVolume": 19731
+    },
+    {
+      "symbol": "COP",
+      "name": "Conocophillips",
+      "sector": "Energy",
+      "optionsVolume": 19699
+    },
+    {
+      "symbol": "TSCO",
+      "name": "Tractor Supply Company",
+      "sector": "Consumer Discretionary",
+      "optionsVolume": 19633
+    },
+    {
+      "symbol": "MO",
+      "name": "Altria Group",
+      "sector": "Consumer Staples",
+      "optionsVolume": 19450
+    },
+    {
+      "symbol": "RCL",
+      "name": "Royal Caribbean Cruises Ltd",
+      "sector": "Consumer Discretionary",
+      "optionsVolume": 19435
+    },
+    {
+      "symbol": "ZS",
+      "name": "Zscaler Inc",
+      "sector": "Information Technology",
+      "optionsVolume": 19007
+    },
+    {
+      "symbol": "ABNB",
+      "name": "Airbnb Inc Cl A",
+      "sector": "Consumer Discretionary",
+      "optionsVolume": 18812
+    },
+    {
+      "symbol": "CIEN",
+      "name": "Ciena Corp",
+      "sector": "Information Technology",
+      "optionsVolume": 18803
+    },
+    {
+      "symbol": "FLG",
+      "name": "Flagstar Bank National Association",
+      "sector": "Financials",
+      "optionsVolume": 18784
+    },
+    {
+      "symbol": "MCD",
+      "name": "McDonald's Corp",
+      "sector": "Consumer Discretionary",
+      "optionsVolume": 18749
+    },
+    {
+      "symbol": "CDE",
+      "name": "Coeur Mining Inc",
+      "sector": "Materials",
+      "optionsVolume": 18657
+    },
+    {
+      "symbol": "QXO",
+      "name": "Qxo Inc",
+      "sector": "Industrials",
+      "optionsVolume": 18615
+    },
+    {
+      "symbol": "CGC",
+      "name": "Canopy Growth Corp",
+      "sector": "Health Care",
+      "optionsVolume": 18580
+    },
+    {
+      "symbol": "BKR",
+      "name": "Baker Hughes Company",
+      "sector": "Energy",
+      "optionsVolume": 18172
+    },
+    {
+      "symbol": "CLOV",
+      "name": "Clover Health Investments Corp",
+      "sector": "Health Care",
+      "optionsVolume": 18143
+    },
+    {
+      "symbol": "ABBV",
+      "name": "Abbvie Inc",
+      "sector": "Health Care",
+      "optionsVolume": 17820
+    },
+    {
+      "symbol": "RIG",
+      "name": "Transocean Inc",
+      "sector": "Energy",
+      "optionsVolume": 17762
+    },
+    {
+      "symbol": "JD",
+      "name": "Jd.com Inc ADR",
+      "sector": "Consumer Discretionary",
+      "optionsVolume": 17753
+    },
+    {
+      "symbol": "KHC",
+      "name": "Kraft Heinz Company",
+      "sector": "Consumer Staples",
+      "optionsVolume": 17524
+    }
+  ]
+}
