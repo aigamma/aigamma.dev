@@ -416,27 +416,36 @@ export default function App() {
   return (
     <div className="app-shell">
       <header className="site-header">
-        {/* Brand cluster. The logo and the gamma regime status pill share
-            a single bordered container in the upper-left so the page
-            identity and the current regime status read as one coherent
-            element rather than two adjacent items competing for header
-            real estate. Collapsing the two into one container also frees
-            roughly 60-80 px of horizontal space at desktop widths,
-            which is what allows the four-button TopNav (Earnings,
-            Tactical Vol, Seasonality, Rotations) to fit on a single
-            row alongside the Menu trigger without wrapping.
+        {/* Brand cluster — now just the regime status pill (favicon +
+            "Gamma" / "Near Flip" text on desktop, favicon-only on
+            mobile). The aigamma wordmark logo previously rode in the
+            same pill but was relocated into the LevelsPanel card
+            because the about.aigamma.com link wrapping it was an
+            accidental clicktrap: a reader scanning the upper-left
+            for page identity would click the wordmark and bounce off
+            the live dashboard onto the self-promotional portfolio
+            page. The wordmark now lives in the upper-left of the
+            metrics card as a static (non-link) image — see
+            src/components/LevelsPanel.jsx — alongside the rest of
+            the page's analytical chrome.
 
-            At mobile widths .site-brand carries margin-right: auto so
-            the post-brand chrome (TopNav, Menu) clusters tightly against
-            the right edge of the row; at desktop widths (≥769px) the
-            auto margin is cleared and space-between on .site-header
-            pairs with display: contents on .top-nav to distribute the
-            brand, the four top-nav buttons, and the Menu trigger evenly
+            The pill keeps its about.aigamma.com anchor so the
+            about page remains reachable from the dashboard chrome
+            (a small favicon + short status word reads as a
+            functional regime indicator, not a brand mark, so it
+            is not mistaken for a clicktrap the way a full
+            wordmark was). At mobile widths .site-brand carries
+            margin-right: auto so the post-brand chrome (TopNav,
+            Menu) clusters tightly against the right edge of the
+            row; at desktop widths (≥769px) the auto margin is
+            cleared and space-between on .site-header pairs with
+            display: contents on .top-nav to distribute the brand,
+            the four top-nav buttons, and the Menu trigger evenly
             across the row. The full layout rationale lives in
-            src/styles/theme.css beside the .site-header and .top-nav
-            rules. */}
+            src/styles/theme.css beside the .site-header and
+            .top-nav rules. */}
         <div className="site-brand">
-          {regime ? (
+          {regime && (
             <a
               href="https://about.aigamma.com/"
               className="site-status-pill site-status-pill--desktop"
@@ -447,11 +456,6 @@ export default function App() {
               }}
             >
               <img
-                src="/logo.webp"
-                alt="aigamma.com"
-                className="site-status-pill__logo"
-              />
-              <img
                 src={FAVICON_PATHS[faviconStateFromRegime(regime)][32]}
                 alt=""
                 aria-hidden="true"
@@ -460,14 +464,6 @@ export default function App() {
               <span className="site-status-pill__text">
                 {regime.tone === 'amber' ? 'Near Flip' : 'Gamma'}
               </span>
-            </a>
-          ) : (
-            <a href="https://about.aigamma.com/" className="site-logo-link">
-              <img
-                src="/logo.webp"
-                alt="aigamma.com"
-                style={{ height: '3.2rem', display: 'block' }}
-              />
             </a>
           )}
           {regime && (
@@ -480,11 +476,6 @@ export default function App() {
               }}
               aria-label={`aigamma.com — ${regime.label}`}
             >
-              <img
-                src="/logo.webp"
-                alt="aigamma.com"
-                className="site-status-pill__logo"
-              />
               <img
                 src={FAVICON_PATHS[faviconStateFromRegime(regime)][32]}
                 alt=""

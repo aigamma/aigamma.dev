@@ -205,34 +205,72 @@ export default function LevelsPanel({ levels, spotPrice, prevClose, expirationMe
 
   return (
     <div className="card" style={{ marginBottom: '1rem' }}>
-      {freshness && (
-        <div
-          style={{
-            fontFamily: 'Courier New, monospace',
-            fontSize: '0.8rem',
-            color: 'var(--text-secondary)',
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            gap: '0.5rem',
-            marginBottom: '1rem',
-          }}
-        >
-          <span>{'Last Updated: '}{freshness}</span>
-          {isSynthetic && (
-            <span
-              style={{
-                padding: '0.1rem 0.4rem',
-                border: '1px solid var(--accent-amber)',
-                color: 'var(--accent-amber)',
-                borderRadius: '3px',
-              }}
-            >
-              SYNTHETIC
-            </span>
-          )}
-        </div>
-      )}
+      {/* Top strip of the card: the aigamma wordmark logo on the
+          left, the "Last Updated:" freshness text centered, and an
+          empty 1fr cell on the right. The logo lives here rather than
+          in the upper-left of the page header because in the header
+          it sat inside an <a href="https://about.aigamma.com/">
+          wrapper that turned out to be an accidental clicktrap — a
+          reader scanning the chrome for page identity would click
+          the wordmark and bounce off the live dashboard onto the
+          self-promotional portfolio page. Inside this card the logo
+          is a plain <img> with no anchor, so the brand identity
+          remains visible without functioning as a navigation link.
+
+          The 1fr / auto / 1fr grid keeps the freshness text
+          horizontally centered in the card regardless of the
+          logo's intrinsic width — the auto-sized middle column
+          locks to the freshness span, and the symmetric 1fr
+          columns on either side absorb the remainder. The strip
+          always renders so the logo is visible even before the
+          freshness data resolves; on first render (no freshness
+          yet) the middle and right cells are empty placeholders
+          but the logo's left-edge position is preserved. */}
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: '1fr auto 1fr',
+          alignItems: 'center',
+          gap: '0.5rem',
+          marginBottom: '1rem',
+          fontFamily: 'Courier New, monospace',
+          fontSize: '0.8rem',
+          color: 'var(--text-secondary)',
+        }}
+      >
+        <img
+          src="/logo.webp"
+          alt="aigamma.com"
+          style={{ height: '2rem', display: 'block', justifySelf: 'start' }}
+        />
+        {freshness ? (
+          <span
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              justifySelf: 'center',
+            }}
+          >
+            <span>{'Last Updated: '}{freshness}</span>
+            {isSynthetic && (
+              <span
+                style={{
+                  padding: '0.1rem 0.4rem',
+                  border: '1px solid var(--accent-amber)',
+                  color: 'var(--accent-amber)',
+                  borderRadius: '3px',
+                }}
+              >
+                SYNTHETIC
+              </span>
+            )}
+          </span>
+        ) : (
+          <span />
+        )}
+        <span />
+      </div>
       <div className={ROW_GRID_CLASS}>
         <Stat
           label="Overnight Alignment"

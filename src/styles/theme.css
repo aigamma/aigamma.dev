@@ -63,25 +63,27 @@ body {
   font-family: 'Courier New', monospace;
 }
 
-/* Dashboard upper-left "key term" container. The page identity (logo)
-   and the dealer-gamma regime status (favicon + key term — "Gamma" or
-   "Near Flip") share a single bordered pill so the brand mark and the
-   live regime indicator read as one coherent element rather than two
-   adjacent items. Collapsing the pair into one container also frees
-   ~60-80 px of horizontal space in the .site-header row, which is what
-   allows the four-button TopNav (Earnings, Tactical Vol, Seasonality,
-   Rotations) to fit alongside the Menu trigger on a single desktop row
-   without forcing a flex-wrap. The border color is set inline by App.jsx
-   from the regime tone (teal #04A29F for POSITIVE GAMMA, coral for
-   NEGATIVE GAMMA, amber for NEAR FLIP) so the upper-left visually carries
-   the same regime signal as the dashboard's regime classification.
+/* Dashboard upper-left regime status pill. Carries the dealer-gamma
+   regime indicator: a colored favicon (the AI Gamma monogram tinted
+   green / coral / neutral by regime tone) plus the key term "Gamma"
+   or "Near Flip" on desktop. The aigamma wordmark logo previously
+   rode in the same pill but was relocated into the LevelsPanel card
+   because its about.aigamma.com link wrapper was an accidental
+   clicktrap — see the App.jsx comment beside .site-brand for the
+   full reasoning. The smaller pill (favicon + short status word)
+   reads as a functional regime indicator rather than a brand mark,
+   so its remaining about.aigamma.com link is no longer mistaken for
+   a logo click. The border color is set inline by App.jsx from the
+   regime tone (teal #04A29F for POSITIVE GAMMA, coral for NEGATIVE
+   GAMMA, amber for NEAR FLIP) so the upper-left visually carries the
+   same regime signal as the dashboard's regime classification.
 
-   Two renderings: --desktop carries the full "GAMMA" / "NEAR FLIP" text
-   alongside the logo and the favicon, --mobile drops the text and shows
-   just [logo | favicon] inside the bordered container, which is the
-   smallest possible form that still carries both the brand mark and the
-   regime signal. App.jsx always renders both; the CSS below toggles
-   which one is visible at a given breakpoint. */
+   Two renderings: --desktop carries the favicon plus "GAMMA" /
+   "NEAR FLIP" text, --mobile drops the text and shows just the
+   colored favicon inside the bordered container, which is the
+   smallest possible form that still carries the regime signal.
+   App.jsx always renders both; the CSS below toggles which one is
+   visible at a given breakpoint. */
 .site-status-pill {
   display: inline-flex;
   align-items: center;
@@ -102,13 +104,6 @@ body {
 .site-status-pill:focus-visible {
   outline: 2px solid var(--accent-blue);
   outline-offset: 2px;
-}
-
-.site-status-pill__logo {
-  height: 2.4rem;
-  width: auto;
-  display: block;
-  flex-shrink: 0;
 }
 
 .site-status-pill__favicon {
@@ -140,10 +135,6 @@ body {
     height: 2.8rem;
     padding: 0 0.6rem;
     gap: 0.4rem;
-  }
-
-  .site-status-pill--mobile .site-status-pill__logo {
-    height: 2.1rem;
   }
 
   .site-status-pill--mobile .site-status-pill__favicon {
@@ -264,21 +255,6 @@ body {
   font-size: 0.72rem;
   text-align: right;
   line-height: 1.4;
-}
-
-/* Wrapper anchor for the main dashboard's upper-left logo image. The
-   anchor links to about.aigamma.com so a desktop reader can click the
-   brand mark to reach the bio site. The display: block pulls the
-   anchor out of the inline-baseline rendering of its (single, block)
-   img child so the logo sits on the same horizontal centerline as the
-   regime badge sibling inside the brand cluster. The 768px block
-   below sets display: none on this class so the logo drops out of
-   the flex row at phone widths and the new TopNav buttons inherit
-   the freed horizontal space. The off-site About destination remains
-   reachable from mobile via the "About This Page" entry in the
-   Menu dropdown. */
-.site-logo-link {
-  display: block;
 }
 
 /* ===== TOP NAV =====
@@ -885,21 +861,6 @@ body {
 
   .top-nav__mobile-text {
     display: inline;
-  }
-
-  /* Drop the upper-left logo on the main dashboard at phone widths
-     so the new TopNav buttons (Tactical Vol, Seasonality, Rotations)
-     inherit the freed horizontal space. The brand cluster on the
-     left collapses to just the regime indicator (the small dynamic
-     favicon rendered by .regime-badge-mobile), which is the
-     functional UI element the reader needs at-a-glance — the static
-     brand mark adds no information at mobile widths and was the
-     largest single contributor to the header crowding. The off-site
-     About link the logo wrapped is still reachable through the
-     "About This Page" entry pinned to the bottom of the Menu
-     dropdown. */
-  .site-logo-link {
-    display: none;
   }
 
   .chat-body { max-height: 60vh; }
