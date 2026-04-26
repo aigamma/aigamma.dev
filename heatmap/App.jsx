@@ -43,9 +43,9 @@ export default function App() {
         <div className="lab-brand">
           <span
             className="lab-badge"
-            title="SPX Heatmap · top by options volume, equal size, % change"
+            title="Heatmap · top by options volume, equal size, % change"
           >
-            <span className="lab-badge__desktop-text">SPX Heatmap</span>
+            <span className="lab-badge__desktop-text">Heatmap</span>
             <span className="lab-badge__mobile-text">Heatmap</span>
           </span>
         </div>
