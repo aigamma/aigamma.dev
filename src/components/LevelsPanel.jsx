@@ -230,7 +230,24 @@ export default function LevelsPanel({ levels, spotPrice, prevClose, expirationMe
           before the freshness data resolves; the regime indicator
           renders only when the regime classification is available
           (it depends on data the LevelsPanel only receives once a
-          payload has been fetched). */}
+          payload has been fetched).
+
+          Pill icon sources: the positive (teal +) and negative
+          (red −) glyphs are rendered as inline SVG with viewBox
+          0 0 32 32 so they stay vector-crisp at any pill height.
+          The geometry mirrors the original icon32.png artwork — a
+          black 32×32 ground with a teal plus (vertical 8×28 + horizontal
+          28×8 centered) for positive, and a red minus (26×8 centered)
+          for negative — so the visual identity is preserved. The
+          neutral state reads the existing 128×128 favicon PNG which
+          carries higher-resolution AiGamma artwork and downscales
+          cleanly at the new icon size; the prior 32×32 source upscaled
+          to the new 2.4rem icon size visibly blurred on retina. The
+          pill height itself was bumped from 2rem to 3.2rem to match
+          the adjacent logo, with proportional bumps to icon size
+          (1.3rem → 2.4rem), text size (0.85rem → 1.05rem), and
+          horizontal padding so the new chrome reads at the same
+          visual register as the wordmark next to it. */}
       <div
         style={{
           display: 'grid',
@@ -262,26 +279,53 @@ export default function LevelsPanel({ levels, spotPrice, prevClose, expirationMe
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
-                gap: '0.45rem',
-                height: '2rem',
-                padding: '0 0.55rem',
+                gap: '0.6rem',
+                height: '3.2rem',
+                padding: '0 0.85rem',
                 boxSizing: 'border-box',
                 border: `1px solid ${regimeIndicator.color}`,
                 color: regimeIndicator.color,
-                borderRadius: '3px',
+                borderRadius: '4px',
                 fontFamily: 'Courier New, monospace',
-                fontSize: '0.85rem',
+                fontSize: '1.05rem',
                 letterSpacing: '0.08em',
                 textTransform: 'uppercase',
                 whiteSpace: 'nowrap',
               }}
             >
-              <img
-                src={regimeIndicator.faviconPath}
-                alt=""
-                aria-hidden="true"
-                style={{ height: '1.3rem', width: '1.3rem', display: 'block', flexShrink: 0 }}
-              />
+              {regimeIndicator.state === 'positive' && (
+                <svg
+                  viewBox="0 0 32 32"
+                  width="2.4rem"
+                  height="2.4rem"
+                  aria-hidden="true"
+                  style={{ display: 'block', flexShrink: 0 }}
+                >
+                  <rect width="32" height="32" fill="#000000" />
+                  <rect x="12" y="2" width="8" height="28" fill="#04a29f" />
+                  <rect x="2" y="12" width="28" height="8" fill="#04a29f" />
+                </svg>
+              )}
+              {regimeIndicator.state === 'negative' && (
+                <svg
+                  viewBox="0 0 32 32"
+                  width="2.4rem"
+                  height="2.4rem"
+                  aria-hidden="true"
+                  style={{ display: 'block', flexShrink: 0 }}
+                >
+                  <rect width="32" height="32" fill="#000000" />
+                  <rect x="3" y="12" width="26" height="8" fill="#ef4444" />
+                </svg>
+              )}
+              {regimeIndicator.state === 'neutral' && (
+                <img
+                  src="/favicons/neutral/icon128.png?v=2"
+                  alt=""
+                  aria-hidden="true"
+                  style={{ height: '2.4rem', width: '2.4rem', display: 'block', flexShrink: 0 }}
+                />
+              )}
               <span>{regimeIndicator.text}</span>
             </span>
           )}

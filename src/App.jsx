@@ -500,7 +500,16 @@ export default function App() {
                       hint: regime.hint,
                       text: regime.tone === 'amber' ? 'Near Flip' : 'Gamma',
                       color: REGIME_COLORS[regime.tone],
-                      faviconPath: FAVICON_PATHS[faviconStateFromRegime(regime)][32],
+                      // Pass the regime classification ('positive'/'negative'/
+                      // 'neutral') rather than a single 32px PNG path. The
+                      // pill now renders vector-crisp inline SVG for the
+                      // positive/negative plus/minus glyphs and reads the
+                      // 128px source for the neutral wordmark, so the
+                      // sizing-driven blur from the prior icon32.png-only
+                      // path is gone. The browser-tab favicon useEffect
+                      // above continues to read FAVICON_PATHS directly and
+                      // is unaffected by this change.
+                      state: faviconStateFromRegime(regime),
                     }
                   : null
               }
