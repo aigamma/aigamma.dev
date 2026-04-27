@@ -82,10 +82,11 @@ function formatLongDate(iso) {
 }
 
 // Mirrors DEFAULT_CHART_FILTER_ID in netlify/functions/earnings.mjs.
-// Eric's directive: $2B revenue is the default visible floor for
-// /earnings; the lower-rev pills ($1B / $500M) stay as relaxing
-// toggles for slow earnings periods.
-const DEFAULT_FILTER_MODE = 'rev-2B';
+// Default is the Top 100 names by US options volume; the rev-floor
+// pills (Rev ≥ $5B / $2B / $1B / $500M) and the wider Top 250 OV
+// pill stay as toggles a reader switches to when the Top 100 OV
+// slice is too thin or too wide for the day's earnings density.
+const DEFAULT_FILTER_MODE = 'topN-100';
 
 // Text size multipliers — applied to chart SVG text, tooltip,
 // header summary, calendar grid, and toggle pills so a user who
@@ -336,9 +337,6 @@ function CalendarHeader({
 // Segmented-pill toggle row. Each button is mutex-active with the
 // others (radio behavior) and styled like the existing site chrome:
 // monospace caps, accent-blue active state, dim border, dim hover.
-// The "Market Cap" placeholder pill is intentionally disabled because
-// market-cap data is not yet ingested (see the
-// docs/earnings-data-roadmap.md plan written alongside this UI).
 function FilterToggleRow({ modes, active, onChange, loading, scale, label = 'Filter' }) {
   return (
     <div style={{
@@ -383,24 +381,6 @@ function FilterToggleRow({ modes, active, onChange, loading, scale, label = 'Fil
           </button>
         );
       })}
-      <button
-        type="button"
-        disabled
-        title="Market cap data is not yet ingested. See docs/earnings-data-roadmap.md for the plan."
-        style={{
-          fontFamily: 'Courier New, monospace',
-          fontSize: `${0.92 * scale}rem`,
-          padding: '0.36rem 0.78rem',
-          borderRadius: '3px',
-          border: '1px dashed #2e3540',
-          background: 'transparent',
-          color: '#5a6478',
-          cursor: 'not-allowed',
-          letterSpacing: '0.04em',
-        }}
-      >
-        Market Cap (soon)
-      </button>
       {loading && (
         <span style={{
           color: 'var(--text-secondary)',

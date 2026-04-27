@@ -35,8 +35,8 @@
 //      {TICKER}) — per-ticker contract chain, same MASSIVE_API_KEY
 //      and same call signature already proven by /scan. We hit it
 //      only for the chart-window tickers (next ~5 trading days,
-//      ~30-60 names after the default $2B revenue filter), with an
-//      expiration_date filter narrowed to [earningsDate,
+//      ~30-60 names after the default Top 100 OV intersection), with
+//      an expiration_date filter narrowed to [earningsDate,
 //      earningsDate+14] so the response payload stays tight.
 //
 // Implied move formula:
@@ -54,25 +54,22 @@
 //
 // Universe filter:
 //
-//   Default visible floor: $2,000,000,000 (two billion USD), exposed
-//   as the 'rev-2B' chart-filter mode and selected by
-//   DEFAULT_CHART_FILTER_ID below. The user-facing toggle pills above
-//   the chart let a reader relax this floor down to $1B or $500M for
-//   slow earnings periods, or tighten to a top-N options-volume slice
-//   ('topN-100' / 'topN-250') when ranking by liquidity matters more
-//   than ranking by company size. Master ingestion floor stays at
-//   $500M (the most-permissive toggle) so the relaxing toggles have a
-//   universe to filter from. Revenue is sourced primarily from
-//   q1RevEst; falls back to qSales * 1e6 (prior-quarter actual sales,
-//   in millions) when q1RevEst is null. The $2B default is the single
-//   most opinionated knob on the page — it intentionally truncates
-//   the EW universe (typically 200-300 names per peak earnings day)
-//   to the 30-60 names where options-driven implied moves are
-//   actually liquid and the day's institutional positioning matters.
-//   Below the floor lives a long tail of microcaps, regional banks,
-//   small-cap biotech, and illiquid REITs whose earnings are real
-//   news to their employees but not load-bearing for SPX vol regime
-//   reading.
+//   Default visible slice: 'topN-100' — the top 100 US tickers by
+//   options volume, the same anchor list the rest of the dashboard
+//   reads off of. The user-facing toggle pills above the chart let a
+//   reader relax to a wider revenue-floor universe (Rev ≥ $5B,
+//   Rev ≥ $2B, Rev ≥ $1B, Rev ≥ $500M) for slow earnings periods or
+//   broader scans, or tighten to the Top 250 OV slice when the
+//   default 100 is still too narrow. Master ingestion floor stays at
+//   $500M (the most-permissive toggle) so the relaxing toggles have
+//   a universe to filter from. Revenue is sourced primarily from
+//   q1RevEst; falls back to qSales * 1e6 (prior-quarter actual
+//   sales, in millions) when q1RevEst is null. Below the master
+//   floor lives a long tail of microcaps, regional banks, small-cap
+//   biotech, and illiquid REITs whose earnings are real news to
+//   their employees but not load-bearing for SPX vol regime
+//   reading — those names never make it into the response payload
+//   regardless of toggle.
 //
 // Cache profile: 30 min during market hours, 4 h off-hours. Earnings
 //   schedules update through the day as companies confirm release
@@ -129,13 +126,16 @@ const CHART_FILTER_MODES = [
   { id: 'rev-500M', label: 'Rev ≥ $500M',
     predicate: (t) => Number.isFinite(t.revenueEst) && t.revenueEst >= 500_000_000 },
 ];
-// Default landed at 'rev-2B' on Eric's directive that anything below
-// a $2B revenue estimate is too junky/unknown to be load-bearing for
-// SPX vol regime reading by default — the existing 'rev-1B' and
-// 'rev-500M' toggles stay as relaxing options the reader can switch
-// to during a slower earnings period when the visible universe needs
-// to expand to fill the page.
-const DEFAULT_CHART_FILTER_ID = 'rev-2B';
+// Default lands on 'topN-100' — the top 100 names by US options
+// volume — because for the typical earnings week that slice contains
+// the reporters whose implied moves the rest of the dashboard is
+// also pricing off of, so the page opens on the universe that
+// matches the rest of the site's anchor list. The 'rev-2B' /
+// 'rev-1B' / 'rev-500M' pills are the relaxing toggles a reader
+// switches to during a slower earnings period when the top-100-by-OV
+// slice is too thin to fill the chart, or when they want to scan
+// the broader revenue-floor universe instead of the OV anchor set.
+const DEFAULT_CHART_FILTER_ID = 'topN-100';
 
 function resolveChartFilter(modeId) {
   return CHART_FILTER_MODES.find((m) => m.id === modeId)

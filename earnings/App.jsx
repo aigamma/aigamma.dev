@@ -98,20 +98,19 @@ export default function App() {
         <div style={{ color: 'var(--text-secondary)', lineHeight: 1.7, fontSize: '1.1rem' }}>
           <p style={{ margin: '0 0 0.7rem' }}>
             Upcoming earnings releases on the next five trading days
-            are plotted as single dots, filtered by default to
-            companies with a revenue estimate of at least $2B so the
-            scatter shows the reporters whose implied ranges are
-            load-bearing for SPX vol regime reading and drops the long
-            tail of low-revenue mid-caps where the chart signal is
-            mostly junky / unknown names rather than the day's
-            actually-market-moving reports. The toggle pills above the
-            chart relax the floor (Rev ≥ $1B, Rev ≥ $500M) for slow
-            earnings periods when the visible universe needs to expand
-            to fill the page, or tighten to a top-N options-volume
-            slice (Top 100 OV, Top 250 OV) when ranking by liquidity
-            matters more than ranking by company size — the same
-            toggle drives the calendar grid below the chart so both
-            views always show the same universe.
+            are plotted as single dots, filtered by default to the
+            top 100 names by US options volume so the scatter opens
+            on the same anchor universe the rest of the dashboard is
+            pricing off of and drops the long tail of low-options-
+            volume mid-caps where the chart signal is too thin to be
+            useful. The toggle pills above the chart let a reader
+            relax to a wider revenue-floor universe (Rev ≥ $5B,
+            Rev ≥ $2B, Rev ≥ $1B, Rev ≥ $500M) for slower earnings
+            periods when the Top 100 OV slice is too narrow to fill
+            the page, or widen to Top 250 OV when the default 100 is
+            still leaving market-moving names out — the same toggle
+            drives the calendar grid below the chart so both views
+            always show the same universe.
             The horizontal axis is the calendar date the company
             reports; the vertical axis is the options-market implied
             range as a percent of spot. The implied range is the
@@ -149,8 +148,8 @@ export default function App() {
           </p>
           <p style={{ margin: 0 }}>
             The four-week upcoming grid below the chart shares the
-            chart's filter, so by default it lists every release with
-            a revenue estimate of at least $2B, sorted within each{' '}
+            chart's filter, so by default it lists every release on
+            the Top 100 OV roster, sorted within each{' '}
             <span style={BMO_INK}>Before-Open</span> /{' '}
             <span style={AMC_INK}>After-Close</span> cell by revenue
             estimate descending. EarningsWhispers is the universe
