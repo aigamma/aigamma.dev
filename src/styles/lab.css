@@ -705,7 +705,7 @@
 .seasonality-grid td {
   border-right: 1px solid var(--bg-card-border);
   border-bottom: 1px solid var(--bg-card-border);
-  padding: 0.5rem 0.35rem;
+  padding: 0.55rem 0.6rem;
   text-align: center;
   font-weight: 400;
   letter-spacing: 0.02em;
@@ -738,28 +738,28 @@
 .seasonality-corner {
   background: rgba(255, 255, 255, 0.05);
   text-align: left !important;
-  padding-left: 0.85rem !important;
-  min-width: 120px;
+  padding-left: 0.95rem !important;
+  min-width: 140px;
   position: sticky;
   left: 0;
   z-index: 3;
 }
 
 .seasonality-col-head {
-  min-width: 62px;
+  min-width: 92px;
 }
 
 .seasonality-row-head {
   background: rgba(255, 255, 255, 0.04);
   text-align: left !important;
-  padding-left: 0.85rem !important;
+  padding-left: 0.95rem !important;
   color: var(--text-primary);
   font-family: 'Courier New', monospace;
   font-size: 0.78rem;
   position: sticky;
   left: 0;
   z-index: 1;
-  min-width: 120px;
+  min-width: 140px;
 }
 
 .seasonality-row-head--avg {
@@ -782,7 +782,7 @@
 .seasonality-grid td.seasonality-cell {
   font-variant-numeric: tabular-nums;
   font-weight: 700;
-  min-width: 62px;
+  min-width: 92px;
   transition: background-color 150ms ease;
 }
 
@@ -885,8 +885,8 @@
 
 /* Wider Mon-Fri data columns at desktop widths. The grid only has five
    columns, so the available horizontal real estate easily absorbs
-   ~100px each — gives the colored cells more visual weight and room
-   to breathe. Padding-left is small (0.4rem) so the left-aligned text
+   ~130px each — gives the colored cells more visual weight and room
+   to breathe. Padding-left is small (0.5rem) so the left-aligned text
    sits close to the cell border, completing the "label → value with
    minimal gap" continuity. Mobile keeps the inherited 54/48px from
    the .seasonality-cell base + breakpoint rules so the table still
@@ -894,9 +894,9 @@
 @media (min-width: 769px) {
   .seasonality-grid--daily td.seasonality-cell,
   .seasonality-grid--daily .seasonality-col-head {
-    min-width: 100px;
-    padding-left: 0.4rem;
-    padding-right: 0.5rem;
+    min-width: 130px;
+    padding-left: 0.5rem;
+    padding-right: 0.6rem;
   }
 }
 
