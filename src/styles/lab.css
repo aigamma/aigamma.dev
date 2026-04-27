@@ -438,13 +438,25 @@
     letter-spacing: 0.12em;
   }
 
-  /* Shorten "Return Home" to "HOME" on mobile to reclaim header
-     width. font-size: 0 zeroes the DOM text node visually while the
-     ::before pseudo-element injects the compact label. The anchor's
-     accessible name ("Return Home") stays intact for screen readers
-     because pseudo-element content is typically ignored by AT and the
-     real text node still sits in the DOM. */
+  /* The inline Return Home button is replaced on phone-class viewports
+     by the green HOME pill that lives inside the new .mobile-nav
+     cluster (see src/components/MobileNav.jsx). Hiding the inline
+     button here means lab pages render exactly one HOME affordance on
+     mobile — the leftmost of the three .mobile-nav pills — instead of
+     duplicating it as both a free-standing inline button and a
+     dropdown-cluster pill. The footer-bottom .lab-footer-home link is
+     left visible at every width because it serves the secondary
+     "after-scroll egress" affordance separate from the header
+     navigation cluster.
+
+     Several legacy rules below this block (font-size: 0 + ::before
+     "HOME" pseudo, --split variant, 480px height/padding scaling)
+     remain in source for the .lab-home-button--inline class because
+     the desktop variant (≥769px) still uses them; setting display:none
+     here does not affect the desktop render but prevents the button
+     from occupying header real estate on mobile. */
   .lab-home-button--inline {
+    display: none;
     height: 2.8rem;
     padding: 0 0.75rem;
     font-size: 0;

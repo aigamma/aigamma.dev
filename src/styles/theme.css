@@ -255,6 +255,182 @@ body {
   outline: none;
 }
 
+/* ===== MOBILE NAV =====
+   Mobile-only replacement for the desktop right-cluster (TopNav six
+   buttons + inline Return Home + MENU dropdown trigger). Renders three
+   pills laid out left-to-right in a single right-aligned row at ≤768px:
+
+     [HOME (green)] [TOOLS (blue) ▾] [RESEARCH (purple) ▾]
+
+   HOME is suppressed on the home page itself (where it would link to
+   the page the reader is already on). TOOLS and RESEARCH open mutually-
+   exclusive dropdown panels; both panels anchor to right: 0 of the
+   .mobile-nav container so the wider RESEARCH panel still fits inside
+   the viewport on phones — anchoring per-trigger would push the
+   RESEARCH panel off the right edge because the trigger is the
+   second-from-right pill.
+
+   Hidden by default (display: none); the @media (max-width: 768px)
+   block at the bottom of this file flips it to display: inline-flex
+   and simultaneously hides the desktop .top-nav, .menu, and
+   .lab-home-button--inline so the three desktop-chrome blocks dissolve
+   in favor of this single cluster. The component itself lives in
+   src/components/MobileNav.jsx and is mounted automatically as a
+   sibling of the desktop .menu inside src/components/Menu.jsx, so
+   every page header that already renders <Menu /> picks up the mobile
+   design without per-app edits to the 22 App.jsx files. */
+.mobile-nav {
+  position: relative;
+  display: none;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: nowrap;
+  justify-content: flex-end;
+}
+
+.mobile-nav__pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  height: 2.8rem;
+  padding: 0 0.85rem;
+  box-sizing: border-box;
+  font-family: 'Courier New', monospace;
+  font-size: 0.95rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-decoration: none;
+  background: transparent;
+  border: 1px solid currentColor;
+  border-radius: 3px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 0.2s ease;
+}
+
+.mobile-nav__pill--home {
+  color: var(--accent-green);
+}
+
+.mobile-nav__pill--home:hover,
+.mobile-nav__pill--home:focus-visible {
+  background-color: rgba(46, 204, 113, 0.12);
+  outline: none;
+}
+
+.mobile-nav__pill--tools {
+  color: var(--accent-blue);
+}
+
+.mobile-nav__pill--tools:hover,
+.mobile-nav__pill--tools:focus-visible,
+.mobile-nav__pill--tools[aria-expanded='true'] {
+  background-color: rgba(74, 158, 255, 0.12);
+  outline: none;
+}
+
+.mobile-nav__pill--research {
+  color: var(--accent-purple);
+}
+
+.mobile-nav__pill--research:hover,
+.mobile-nav__pill--research:focus-visible,
+.mobile-nav__pill--research[aria-expanded='true'] {
+  background-color: rgba(191, 127, 255, 0.12);
+  outline: none;
+}
+
+.mobile-nav__caret {
+  display: inline-block;
+  font-size: 0.75em;
+  line-height: 1;
+  transition: transform 0.2s ease;
+}
+
+.mobile-nav__caret.is-open {
+  transform: rotate(180deg);
+}
+
+.mobile-nav__dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  min-width: 280px;
+  max-width: calc(100vw - 1.5rem);
+  background: #1a1e2a;
+  border: 1px solid var(--bg-card-border);
+  border-radius: 6px;
+  padding: 0.4rem 0;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+  z-index: 40;
+}
+
+.mobile-nav__item {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.15rem;
+  padding: 0.6rem 0.9rem;
+  font-family: 'Courier New', monospace;
+  text-decoration: none;
+  border-left: 2px solid transparent;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+  outline: none;
+}
+
+.mobile-nav__item--tools {
+  color: var(--accent-blue);
+}
+
+.mobile-nav__item--tools:hover,
+.mobile-nav__item--tools:focus-visible {
+  background-color: rgba(74, 158, 255, 0.10);
+  border-left-color: var(--accent-blue);
+}
+
+.mobile-nav__item--research {
+  color: var(--accent-purple);
+}
+
+.mobile-nav__item--research:hover,
+.mobile-nav__item--research:focus-visible {
+  background-color: rgba(191, 127, 255, 0.10);
+  border-left-color: var(--accent-purple);
+}
+
+.mobile-nav__item--about {
+  color: var(--text-primary);
+}
+
+.mobile-nav__item--about:hover,
+.mobile-nav__item--about:focus-visible {
+  background-color: rgba(224, 224, 224, 0.08);
+  border-left-color: var(--text-primary);
+}
+
+.mobile-nav__item-path {
+  font-size: 0.92rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.mobile-nav__item-desc {
+  font-size: 0.7rem;
+  line-height: 1.45;
+  letter-spacing: 0.02em;
+  opacity: 0.75;
+  white-space: normal;
+}
+
+.mobile-nav__divider {
+  height: 1px;
+  background: var(--bg-card-border);
+  margin: 0.4rem 0;
+  border: 0;
+}
+
 /* ===== SITE HEADER =====
    Main dashboard header chrome. The header has no left-side brand
    cluster anymore — the aigamma wordmark and the dealer-gamma
@@ -759,6 +935,25 @@ body {
     gap: 0.75rem;
   }
 
+  /* Mobile-nav swap. The desktop right-cluster (six TopNav buttons +
+     inline Return Home + MENU dropdown trigger) collapses into the
+     three-pill MobileNav at ≤768px. Hiding .top-nav, .menu, and
+     .lab-home-button--inline (the last lives in lab.css and gets its
+     own display: none rule there) lets the .mobile-nav cluster
+     render as the sole navigation chrome on the right side of the
+     header on phone-class viewports. */
+  .top-nav {
+    display: none;
+  }
+
+  .menu {
+    display: none;
+  }
+
+  .mobile-nav {
+    display: inline-flex;
+  }
+
   .menu-trigger {
     font-size: 0.95rem;
     height: 2.8rem;
@@ -783,4 +978,45 @@ body {
   .chat-body { max-height: 60vh; }
   .chat-tab { padding: 0.75rem 0.75rem; font-size: 0.62rem; }
   .chat-input-row { padding: 0.75rem 1rem; }
+}
+
+/* Phone-class second-step scaling for the mobile-nav pills so the
+   right cluster (HOME + TOOLS + RESEARCH) shares a single header row
+   with the lab-badge at the narrowest 480px-class viewports without
+   wrapping. The 768px sizing above (height 2.8rem, font-size 0.95rem,
+   padding 0.85rem horizontal) overflowed alongside the 2.4rem
+   lab-badge on a typical iPhone-class width once a 12-character lab
+   label like "TACTICAL VOL" was on the page; dropping pill height to
+   2.4rem and font-size to 0.82rem matches the chrome the lab-badge,
+   lab-logo, and menu-trigger drop to inside lab.css's own 480px
+   block, so the whole header reads at a single uniform stripe height
+   on phones. The dropdown panel itself stays the same — only the
+   triggers shrink. */
+@media (max-width: 480px) {
+  .mobile-nav {
+    gap: 0.3rem;
+  }
+
+  .mobile-nav__pill {
+    height: 2.4rem;
+    font-size: 0.82rem;
+    padding: 0 0.6rem;
+    letter-spacing: 0.06em;
+  }
+
+  .mobile-nav__dropdown {
+    min-width: 260px;
+  }
+
+  .mobile-nav__item {
+    padding: 0.55rem 0.8rem;
+  }
+
+  .mobile-nav__item-path {
+    font-size: 0.86rem;
+  }
+
+  .mobile-nav__item-desc {
+    font-size: 0.66rem;
+  }
 }

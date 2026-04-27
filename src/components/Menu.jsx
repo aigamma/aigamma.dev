@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import MobileNav from './MobileNav';
 
 // Shared menu dropdown. Rendered in the main dashboard header and in
 // every lab header so the bookmark-only labs are reachable from any
@@ -7,6 +8,19 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 // surfaces and diagnostics), Research (model-family zoos), About
 // (off-site exit to about.aigamma.com). Research stays alphabetized
 // by path so a reader who knows the URL can find it in linear time.
+//
+// Renders TWO navigation surfaces side-by-side as a fragment so a
+// single <Menu /> mount in any page header carries both the desktop
+// MENU pill (this component) and the mobile HOME/TOOLS/RESEARCH pill
+// cluster (the imported MobileNav). CSS in src/styles/theme.css
+// swaps which one is visible at the 768px breakpoint — at desktop
+// widths the MobileNav is display:none and the desktop chrome (this
+// MENU pill plus the sibling TopNav and lab-home-button) renders as
+// before; at mobile widths the desktop chrome is hidden and only the
+// MobileNav cluster shows. Wiring the swap inside Menu rather than
+// adding <MobileNav /> to all 22 App.jsx page-header blocks keeps the
+// per-app footprint at one shared trigger; the visibility decision
+// lives entirely in CSS.
 // Tools is curated by importance rather than alphabetized: /stocks/
 // (top option-liquid single names) leads, followed by /heatmap/
 // (sector-weighted overview), /expiring-gamma/ (dated catalyst), and
@@ -151,6 +165,7 @@ export default function Menu() {
   };
 
   return (
+    <>
     <div className="menu">
       <button
         ref={triggerRef}
@@ -229,5 +244,7 @@ export default function Menu() {
         </div>
       )}
     </div>
+    <MobileNav />
+    </>
   );
 }
