@@ -882,7 +882,7 @@ export default function SlotA() {
             </strong>{' '}
             Live readings show median r ≈ −222% (nearest ≈ −87%) where a
             clean read should sit near the risk-free rate. Treat this
-            chart as a chain-integrity diagnostic — not a trading signal —
+            chart as a chain-integrity diagnostic, not a trading signal,
             until the calibration lands. Five root-cause candidates are
             open: box-leg construction at tight ATM brackets, mark quality
             on deep-ITM legs, sign / unit / compounding conventions in the
@@ -933,7 +933,7 @@ export default function SlotA() {
               dashed reference
             </strong>{' '}
             is SPX spot S₀ at the snapshot. The gap between them is the
-            cash-and-carry term — box r net of dividends, in dollars. When
+            cash-and-carry term, box r net of dividends, in dollars. When
             F(T) tracks S₀·exp(box r · T) the chain is internally
             consistent; when it sags below, the shortfall is the
             market-implied dividend drag.
@@ -988,7 +988,7 @@ export default function SlotA() {
           should climb smoothly above S₀ at a pace that matches box r minus
           the ~1.3% SPX dividend yield. A bent, wavy, or locally-inverted
           F(T) at a specific DTE is the price-domain view of the same leg
-          mispricing the amber line flags overhead — the signals rhyme at
+          mispricing the amber line flags overhead. The signals rhyme at
           the same expiration, and a clean edge is one where both agree
           about which strike is stale.
         </p>

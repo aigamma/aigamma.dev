@@ -361,7 +361,7 @@ export default function SlotA() {
         <div className="lab-placeholder-hint">
           GARCH(1,1), GJR-GARCH, and EGARCH(1,1) by Gaussian MLE on{' '}
           {returnsWithDate.length.toLocaleString()} daily returns. Nelder-Mead
-          in-browser, no worker — a few hundred milliseconds on a modern laptop.
+          in-browser, no worker (a few hundred milliseconds on a modern laptop).
         </div>
       </div>
     );

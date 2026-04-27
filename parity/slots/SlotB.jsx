@@ -480,7 +480,7 @@ export default function SlotB() {
             </strong>{' '}
             Live readings show median r ≈ −222% (nearest ≈ −87%) where a
             clean read should sit near the risk-free rate. Treat this
-            chart as a chain-integrity diagnostic — not a trading signal —
+            chart as a chain-integrity diagnostic, not a trading signal,
             until the calibration lands. The same five root-cause
             candidates as on the v4 composite slot are in play.
           </p>

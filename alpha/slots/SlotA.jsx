@@ -765,7 +765,7 @@ export default function SlotA() {
               dashed reference
             </strong>{' '}
             is SPX spot S₀ at the snapshot. The gap between them is the
-            cash-and-carry term — box r net of dividends, in dollars. When
+            cash-and-carry term, box r net of dividends, in dollars. When
             F(T) tracks S₀·exp(box r · T) the chain is internally
             consistent; when it sags below, the shortfall is the
             market-implied dividend drag.
@@ -933,7 +933,7 @@ export default function SlotA() {
           should climb smoothly above S₀ at a pace that matches box r minus
           the ~1.3% SPX dividend yield. A bent, wavy, or locally-inverted
           F(T) at a specific DTE is the price-domain view of the same leg
-          mispricing the amber line flags overhead — the signals rhyme at
+          mispricing the amber line flags overhead. The signals rhyme at
           the same expiration, and a clean edge is one where both agree
           about which strike is stale.
         </p>

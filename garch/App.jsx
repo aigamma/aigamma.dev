@@ -64,7 +64,7 @@ export default function App() {
             quick:
               'Ask about the GARCH family, the seventeen specifications, or the equal-weight ensemble above.',
             deep:
-              'Deep Analysis mode — longer and more structurally detailed responses on GARCH theory, the specific specifications on this page, and the philosophy of fitting a family rather than a single model.',
+              'Deep Analysis mode: longer and more structurally detailed responses on GARCH theory, the specific specifications on this page, and the philosophy of fitting a family rather than a single model.',
           }}
         />
       </ErrorBoundary>

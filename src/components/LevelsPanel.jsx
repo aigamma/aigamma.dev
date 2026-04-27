@@ -275,7 +275,7 @@ export default function LevelsPanel({ levels, spotPrice, prevClose, expirationMe
           />
           {regimeIndicator && (
             <span
-              title={`${regimeIndicator.label} — ${regimeIndicator.hint}`}
+              title={`${regimeIndicator.label}: ${regimeIndicator.hint}`}
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',

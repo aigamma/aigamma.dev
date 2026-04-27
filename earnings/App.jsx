@@ -108,14 +108,14 @@ export default function App() {
             Rev ≥ $2B, Rev ≥ $1B, Rev ≥ $500M) for slower earnings
             periods when the Top 100 OV slice is too narrow to fill
             the page, or widen to Top 250 OV when the default 100 is
-            still leaving market-moving names out — the same toggle
+            still leaving market-moving names out. The same toggle
             drives the calendar grid below the chart so both views
             always show the same universe.
             The horizontal axis is the calendar date the company
             reports; the vertical axis is the options-market implied
             range as a percent of spot. The implied range is the
             0.85-scaled at-the-money straddle midprice on the soonest
-            expiration that captures the earnings event — same-day or
+            expiration that captures the earnings event: same-day or
             later for <span style={BMO_INK}>Before-Open reporters</span>,
             next-day or later for <span style={AMC_INK}>After-Close reporters</span>,
             since same-day options settle at 4 PM ET before an{' '}
@@ -140,7 +140,7 @@ export default function App() {
             nearest spot that has both a call and a put listed at that
             expiration, and compute 0.85 × (call mid + put mid). When
             the ATM strike has no usable bid/ask or last-trade price on
-            either leg, the ticker drops off the chart — earnings
+            either leg, the ticker drops off the chart. Earnings
             concentrate options liquidity, so a missing ATM mid is a
             strong signal that the data is unreliable for that ticker
             on this snapshot rather than a sign that we should fall
@@ -155,7 +155,7 @@ export default function App() {
             estimate descending. EarningsWhispers is the universe
             source; their API orders rows by the site's own
             sentiment-vote total, which conflates reader interest with
-            company size — sorting by revenue instead surfaces the
+            company size. Sorting by revenue instead surfaces the
             day's most market-moving reporters first. The revenue
             estimate is q1RevEst from EW, with prior-quarter actual
             sales as a fallback when the estimate is null.

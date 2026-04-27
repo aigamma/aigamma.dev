@@ -103,7 +103,7 @@ export default function App() {
             quick:
               'Ask about put-call parity, the v4 composite (box r, direct PCP r at q=0, box−PCP ≈ implied q, PCP-recovered SPX forward) and the v1 baseline box-spread rate, or about why the current readings are mis-calibrated and which of the five root-cause candidates is in play. Chat stays on volatility, options, and quantitative finance.',
             deep:
-              'Deep Analysis mode — longer and more structurally detailed responses on the no-arbitrage parity identity, four-leg box construction vs direct PCP at q=0, the options-implied dividend yield in the box-minus-PCP gap, the PCP-recovered forward F(T) and the cash-and-carry term, and the van Binsbergen-Diamond-Grotteria box-spread risk-free-rate literature.',
+              'Deep Analysis mode: longer and more structurally detailed responses on the no-arbitrage parity identity, four-leg box construction vs direct PCP at q=0, the options-implied dividend yield in the box-minus-PCP gap, the PCP-recovered forward F(T) and the cash-and-carry term, and the van Binsbergen-Diamond-Grotteria box-spread risk-free-rate literature.',
           }}
         />
       </ErrorBoundary>

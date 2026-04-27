@@ -148,7 +148,7 @@ export default function App() {
             ratio expressed as a percentage of its own slow EMA (Roy
             Mansfield's 1979 normalization) and momentum is the same
             percentage operation applied to the ratio with a faster
-            smoother — the asymmetric slow/fast pair is what produces
+            smoother. The asymmetric slow/fast pair is what produces
             the clockwise spiral motion that characterises a rotation
             chart. Values above 100 on the x-axis mean the stock is
             leading SPY on price relative to its slow average; above
@@ -159,7 +159,7 @@ export default function App() {
             EMA, Week resamples to ISO-week-end closes and uses a
             3-week smoother + 26-week slow + 5-week fast); the 5 · 10
             toggle chooses the trail length. Twenty was picked as the
-            density ceiling for this plane — past that the crisscrossing
+            density ceiling for this plane; past that the crisscrossing
             trails get hard to read; the per-symbol toggle row above
             the chart lets you hide individual tickers on demand to
             declutter further.
@@ -188,7 +188,7 @@ export default function App() {
             that also pass the "structurally always near the top" test
             (see docs/options-volume-roster.md for the editorial
             criteria). SPY remains the benchmark all relative-strength
-            math is computed against — for single-name stocks SPY is
+            math is computed against. For single-name stocks SPY is
             still the right basis, the same reference point a vol
             trader uses to read whether a name is leading or lagging
             the broad market.

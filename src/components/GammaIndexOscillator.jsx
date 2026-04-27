@@ -687,7 +687,7 @@ export default function GammaIndexOscillator() {
   if (plotlyError) {
     return (
       <div className="card" style={{ padding: '1rem', color: 'var(--accent-coral)' }}>
-        Chart unavailable — Plotly failed to load ({plotlyError}).
+        Chart unavailable: Plotly failed to load ({plotlyError}).
       </div>
     );
   }
@@ -704,7 +704,7 @@ export default function GammaIndexOscillator() {
   if (!data || series.length === 0) {
     return (
       <div className="card text-muted">
-        No Gamma Index samples available yet — daily_gex_stats has not produced
+        No Gamma Index samples available yet. daily_gex_stats has not produced
         any rows with usable atm_call_gex / atm_put_gex readings.
       </div>
     );

@@ -674,7 +674,7 @@ export default function VolatilitySmile({
   if (plotlyError) {
     return (
       <div className="card" style={{ padding: '1.5rem', color: 'var(--accent-coral)' }}>
-        Volatility smile unavailable — Plotly failed to load ({plotlyError}).
+        Volatility smile unavailable: Plotly failed to load ({plotlyError}).
       </div>
     );
   }

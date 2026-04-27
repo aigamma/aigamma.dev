@@ -251,7 +251,7 @@ export default function GexProfile({ contracts, spotPrice, levels, prevContracts
         className="card"
         style={{ padding: '1rem', marginBottom: '1rem', color: 'var(--accent-coral)' }}
       >
-        Gamma exposure profile unavailable — Plotly failed to load ({plotlyError}).
+        Gamma exposure profile unavailable: Plotly failed to load ({plotlyError}).
       </div>
     );
   }

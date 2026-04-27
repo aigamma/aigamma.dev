@@ -29,7 +29,7 @@ export default function App() {
         <div className="lab-brand">
           <span
             className="lab-badge"
-            title="Dev — peer scratch pad to /alpha, same pre-β release stage"
+            title="Dev: peer scratch pad to /alpha, same pre-β release stage"
           >
             DEV LAB
           </span>

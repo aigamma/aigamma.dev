@@ -93,7 +93,7 @@ export default function VixVolOfVol({ data }) {
     ];
 
     const layout = plotly2DChartLayout({
-      title: plotlyTitle('Vol of Vol — VVIX vs Realized VIX Vol'),
+      title: plotlyTitle('Vol of Vol: VVIX vs Realized VIX Vol'),
       xaxis: plotlyAxis(''),
       yaxis: plotlyAxis('Vol level', { side: 'left', domain: [0.30, 1] }),
       yaxis2: plotlyAxis('VVIX − Realized', {

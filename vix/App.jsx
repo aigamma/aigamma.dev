@@ -50,7 +50,7 @@ export default function App() {
         <div className="lab-brand">
           <span
             className="lab-badge"
-            title="VIX — full profile catalog of VIX models"
+            title="VIX: full profile catalog of VIX models"
           >
             <span className="lab-badge__desktop-text">VIX</span>
             <span className="lab-badge__mobile-text">VIX</span>
@@ -137,10 +137,10 @@ export default function App() {
             front of the curve (1D, 9D, 30D) spaces out. Cboe doesn't
             publish a 9-month constant-maturity index, so the 9-month
             region of the curve is read by interpolation between VIX6M
-            (182d) and VIX1Y (365d) — the long-end VIX1Y point pulls the
+            (182d) and VIX1Y (365d). The long-end VIX1Y point pulls the
             visualizable horizon out to a full year so the 6M-to-1Y leg
-            is visible rather than implicit. Three overlays — today, one
-            week ago, one month ago — read together as a flow sequence;
+            is visible rather than implicit. Three overlays (today, one
+            week ago, one month ago) read together as a flow sequence;
             the dotted line is the per-tenor median across the full 3-year
             backfill, providing a static baseline against which the live
             shape is interpreted. An upward-sloping curve is contango (the
@@ -175,7 +175,7 @@ export default function App() {
             calibration of κ (mean-reversion speed), θ (long-term mean in VIX
             level units), σ (vol of log-VIX), and the implied half-life
             ln(2)/κ. The dashed forward line projects the OU expectation 60
-            trading days ahead of the latest spot — E[log VIX_T | log VIX_0]
+            trading days ahead of the latest spot. E[log VIX_T | log VIX_0]
             = θ + (log VIX_0 − θ) · exp(−κ T). Readers can see how quickly
             current levels are expected to drift back to θ under the model.
           </p>
@@ -195,14 +195,14 @@ export default function App() {
             Five Cboe-published implied vol indices on shared axes, indexed
             to 100 at the start of the backfill so the reader sees relative
             regime motion rather than absolute level. The 1-year percentile
-            rank table below surfaces divergences — equity vol low while
+            rank table below surfaces divergences: equity vol low while
             crude vol elevated would imply a single-asset stress, not a
             broad risk-on / risk-off shift.
           </p>
           <p style={{ margin: '0 0 0.7rem' }}>
             <strong style={{ color: 'var(--text-primary)' }}>Skew Indices.</strong>{' '}
             Two distinct constructions of the same underlying tail-pricing
-            asymmetry — Cboe SKEW from the cumulants of the SPX option-
+            asymmetry: Cboe SKEW from the cumulants of the SPX option-
             implied risk-neutral density, Nations SkewDex from a different
             cumulant decomposition. Plotted on dual axes, divergence between
             the two methodologies is informative about which estimator is
@@ -210,7 +210,7 @@ export default function App() {
           </p>
           <p style={{ margin: '0 0 0.7rem' }}>
             <strong style={{ color: 'var(--text-primary)' }}>Regime Matrix.</strong>{' '}
-            Discrete VIX regime classifier with thresholds at 12 / 18 / 30 —
+            Discrete VIX regime classifier with thresholds at 12 / 18 / 30,
             roughly the 30 / 60 / 90th percentiles of the 1990-onward daily
             VIX distribution and the convention used in Cboe's own regime
             research. Four states (calm / normal / elevated / stressed); the
@@ -240,7 +240,7 @@ export default function App() {
             quick:
               'Ask about the VIX term structure, the OU mean-reversion model, vol-of-vol, the SKEW / SDEX skew constructions, the regime classification thresholds, or how the Cboe strategy benchmark indices monetize vol.',
             deep:
-              'Deep Analysis mode — longer responses on Ornstein-Uhlenbeck calibration math, the vol-of-vol risk premium decomposition, Cboe SKEW vs Nations SDEX construction differences, and the strategy index recipe definitions.',
+              'Deep Analysis mode: longer responses on Ornstein-Uhlenbeck calibration math, the vol-of-vol risk premium decomposition, Cboe SKEW vs Nations SDEX construction differences, and the strategy index recipe definitions.',
           }}
         />
       </ErrorBoundary>

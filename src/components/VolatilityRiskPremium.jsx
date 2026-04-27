@@ -459,7 +459,7 @@ export default function VolatilityRiskPremium({ spotPrice, capturedAt }) {
   if (plotlyError) {
     return (
       <div className="card" style={{ padding: '1rem', marginBottom: '1rem', color: 'var(--accent-coral)' }}>
-        Volatility risk premium unavailable — Plotly failed to load ({plotlyError}).
+        Volatility risk premium unavailable: Plotly failed to load ({plotlyError}).
       </div>
     );
   }
@@ -476,7 +476,7 @@ export default function VolatilityRiskPremium({ spotPrice, capturedAt }) {
   if (!data || series.length === 0) {
     return (
       <div className="card text-muted" style={{ marginBottom: '1rem' }}>
-        No VRP history available yet — the volatility stats backfill has not populated daily_volatility_stats.
+        No VRP history available yet. The volatility stats backfill has not populated daily_volatility_stats.
       </div>
     );
   }

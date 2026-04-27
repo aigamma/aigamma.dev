@@ -97,7 +97,7 @@ export default function App() {
             GOOGL/GOOG + META account for ~32% of SP500 weight), the
             other ~480 names compete for the remaining two-thirds and
             most of them are illegible. Equal-size tiles give every
-            name in the universe equal visual attention — the right
+            name in the universe equal visual attention. The right
             call for an audience that cares about the names they
             actually trade, not the names that happen to be the
             largest by float-adjusted market cap. The universe
@@ -112,8 +112,8 @@ export default function App() {
             list with GICS sector classifications (the GitHub
             datasets/s-and-p-500-companies CSV for SP500 names; a
             manually-maintained override map for the ~90 non-SP500
-            names — recent IPOs, ADRs, BTC miners, space / quantum /
-            AI single names — that the options-active board surfaces
+            names (recent IPOs, ADRs, BTC miners, space / quantum /
+            AI single names) that the options-active board surfaces
             beyond the SP500). Live prices come from Massive's
             grouped daily bars endpoint, two HTTP calls per page
             load (most-recent trading day + the day before), edge-

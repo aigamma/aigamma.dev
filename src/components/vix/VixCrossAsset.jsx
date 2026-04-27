@@ -66,7 +66,7 @@ export default function VixCrossAsset({ data }) {
     if (!plotly || !ref.current || !traces || traces.length === 0) return;
 
     const layout = plotly2DChartLayout({
-      title: plotlyTitle('Cross-Asset Vol — indexed to 100 at backfill start'),
+      title: plotlyTitle('Cross-Asset Vol: indexed to 100 at backfill start'),
       xaxis: plotlyAxis(''),
       yaxis: plotlyAxis('Index level (base 100)'),
       margin: { t: 50, r: 30, b: 80, l: 70 },

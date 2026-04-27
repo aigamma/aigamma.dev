@@ -67,7 +67,7 @@ export default function App() {
             at that expiration; the depth below the zero line is the
             same sum across puts, rendered downward so calls and puts
             on the same date read as a mirrored pair. Both are quoted
-            in dollars per 1% move at the current spot price — the
+            in dollars per 1% move at the current spot price, the
             standard SpotGamma-style dealer-hedging unit.
           </p>
           <p>
@@ -82,7 +82,7 @@ export default function App() {
             magnitude", not "forecast hedging flow".
           </p>
           <p>
-            The data scope follows the live ingest pipeline — the
+            The data scope follows the live ingest pipeline: the
             next nine monthly OPEX dates plus every weekly within
             thirty calendar days of today. Far-dated LEAPS contracts
             are not in the pipeline and therefore not in the chart;

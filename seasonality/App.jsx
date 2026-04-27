@@ -82,7 +82,7 @@ export default function App() {
             The top rows aggregate across trading days rather than
             showing a single day. A <strong style={{ color: 'var(--text-primary)' }}>40 Day Avg</strong>{' '}
             cell at 11:30, for example, is the arithmetic mean of the
-            last 40 sessions' cumulative change at 11:30 — read
+            last 40 sessions' cumulative change at 11:30. Read
             column-by-column, it traces the average intraday
             trajectory. Shorter windows (5, 10, 20, 30) show whether
             the recent regime has diverged from the longer baseline.

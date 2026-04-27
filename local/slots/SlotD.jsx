@@ -515,7 +515,7 @@ export default function SlotD() {
           kept, and the surviving paths are continued τ more days so the
           emerging conditional smile at maturity T* + τ can be inverted
           from MC call prices. Pure local vol systematically flattens
-          the forward smile as T* grows — this is the textbook Gyöngy-
+          the forward smile as T* grows. This is the textbook Gyöngy-
           projection artifact that makes pure LV unsuitable for
           forward-starting products, cliquets, and VIX-derivatives, and
           the direct motivation for augmenting LV with a stochastic
@@ -524,12 +524,12 @@ export default function SlotD() {
         <strong style={{ color: 'var(--text-primary)' }}>Reading.</strong>{' '}
         At T* ≈ 7 days the two smiles should nearly coincide (the MC is
         essentially evaluating today&apos;s smile, up to MC noise). Drag
-        T* to the right and watch the coral line flatten — the skew
+        T* to the right and watch the coral line flatten. The skew
         ratio stat is the numerical measure of the flattening, values
         much below 1.0 are the pathology. Caveats: this measures only
         one slice of the forward smile (fixed τ, conditioned on the
         spot-band), and MC variance on the conditioning step with a
-        tight band and finite paths is material — the reshuffle seed
+        tight band and finite paths is material. The reshuffle seed
         button is the cheapest way to gauge whether a 0.05 skew-ratio
         move as T* changes is signal or MC noise. For deep T* moves
         the conditioning band drops a larger fraction of paths, so the

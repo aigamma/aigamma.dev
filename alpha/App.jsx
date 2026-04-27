@@ -63,7 +63,7 @@ export default function App() {
             quick:
               'Ask about whichever prototype is currently in SlotA and SlotB, the iteration path between them, or the math and quant-finance motivation behind the model under test.',
             deep:
-              'Deep Analysis mode — longer and more structurally detailed responses on the model currently scaffolded in the two slots, the engineering decisions behind the iteration, and the broader quantitative-finance context this prototype sits inside.',
+              'Deep Analysis mode: longer and more structurally detailed responses on the model currently scaffolded in the two slots, the engineering decisions behind the iteration, and the broader quantitative-finance context this prototype sits inside.',
           }}
         />
       </ErrorBoundary>

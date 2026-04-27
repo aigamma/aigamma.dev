@@ -50,7 +50,7 @@ const DEFAULT_GLOW_RGB = {
 const DEFAULT_WELCOME = {
   quick: 'What about this site would you like to explore?',
   deep:
-    'Deep Analysis mode — responses are longer and explore the dashboard with greater structural depth and connective range across the underlying theory.',
+    'Deep Analysis mode: responses are longer and explore the dashboard with greater structural depth and connective range across the underlying theory.',
 };
 
 // Infer the context slug from the URL when the host page does not pass

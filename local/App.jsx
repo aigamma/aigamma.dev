@@ -75,7 +75,7 @@ export default function App() {
         <div className="lab-brand">
           <span
             className="lab-badge"
-            title="Local Vol — Dupire pricing, viewer, forward-smile"
+            title="Local Vol: Dupire pricing, viewer, forward-smile"
           >
             <span className="lab-badge__desktop-text">Local Vol</span>
             <span className="lab-badge__mobile-text">Local Vol</span>
@@ -112,7 +112,7 @@ export default function App() {
             quick:
               'Ask about Dupire local volatility, the three slots above, or how pure LV relates to stochastic vol, LSV, rough vol, and the rest of the model lineage. Chat stays on volatility, options, and quantitative finance.',
             deep:
-              'Deep Analysis mode — longer and more structurally detailed responses on Dupire\'s formula, Gyöngy\'s mimicking theorem, the forward-smile flattening pathology, and the philosophy of a deterministic-diffusion coefficient calibrated to today\'s smile.',
+              'Deep Analysis mode: longer and more structurally detailed responses on Dupire\'s formula, Gyöngy\'s mimicking theorem, the forward-smile flattening pathology, and the philosophy of a deterministic-diffusion coefficient calibrated to today\'s smile.',
           }}
         />
       </ErrorBoundary>

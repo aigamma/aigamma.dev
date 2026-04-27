@@ -94,7 +94,7 @@ export default function App() {
             put skew (left wing richer than ATM, since downside protection
             commands a vol premium) and roughly flat or slightly negative
             call skew. Names that drift above the median on the call-skew
-            tab are exhibiting unusual right-wing demand — frequently a
+            tab are exhibiting unusual right-wing demand, frequently a
             signal of buyout speculation, earnings call positioning, or
             covered-call selling pressure pulling ATM down rather than
             wings up. Names that drift above the median on the put-skew

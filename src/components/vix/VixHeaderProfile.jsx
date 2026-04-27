@@ -187,20 +187,20 @@ export default function VixHeaderProfile({ data }) {
           value={fmt(cells.VVIX.value, 1)}
           sub={fmtRank(cells.VVIX.rank)}
           tone={pctTone(cells.VVIX.rank)}
-          title="Vol-of-vol — implied vol on the VIX itself. Elevated VVIX with suppressed VIX is the textbook complacency-before-expansion tell."
+          title="Vol-of-vol: implied vol on the VIX itself. Elevated VVIX with suppressed VIX is the textbook complacency-before-expansion tell."
         />
         <PillCell
           label="SKEW"
           value={fmt(cells.SKEW.value, 1)}
           sub={fmtRank(cells.SKEW.rank)}
           tone={skewTone(cells.SKEW.value)}
-          title="Cboe SKEW Index — fat-tail premium from out-of-the-money SPX puts. >150 = crash-pricing, >140 = elevated tail premium, ~120 = normal."
+          title="Cboe SKEW Index: fat-tail premium from out-of-the-money SPX puts. >150 = crash-pricing, >140 = elevated tail premium, ~120 = normal."
         />
         <PillCell
           label="SDEX"
           value={fmt(cells.SDEX.value, 1)}
           tone="neutral"
-          title="Nations SkewDex — alternative skewness construction. Cross-validates the Cboe SKEW reading via a different methodology."
+          title="Nations SkewDex: alternative skewness construction. Cross-validates the Cboe SKEW reading via a different methodology."
         />
         <PillCell
           label="Term Slope"

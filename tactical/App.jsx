@@ -196,9 +196,9 @@ export default function App() {
           </p>
           <p style={{ margin: '0 0 0.7rem' }}>
             <strong style={{ color: 'var(--text-primary)' }}>Volatility Smile.</strong>{' '}
-            One expiration slice fit by three concurrent models — Heston
+            One expiration slice fit by three concurrent models (Heston
             stochastic variance, Merton diffusion-plus-jumps, and the SVI raw
-            parameterization — overlaid on the observed OTM-preferred IV
+            parameterization) overlaid on the observed OTM-preferred IV
             points. Disagreement between the three fits at the wings is the
             interesting reading: where they agree, the smile is well-described
             by any of them; where they diverge, the choice of model carries
@@ -235,7 +235,7 @@ export default function App() {
             quick:
               'Ask about VRP, the term structure, the smile model overlays, the Breeden-Litzenberger density, or how to read day-over-day moves on the fixed-strike matrix.',
             deep:
-              'Deep Analysis mode — longer and more structurally detailed responses on Heston / Merton / SVI smile fitting, Gatheral parameterizations, the analytical Breeden-Litzenberger derivation, and how the IV surface decomposes into tenor and strike effects.',
+              'Deep Analysis mode: longer and more structurally detailed responses on Heston / Merton / SVI smile fitting, Gatheral parameterizations, the analytical Breeden-Litzenberger derivation, and how the IV surface decomposes into tenor and strike effects.',
           }}
         />
       </ErrorBoundary>

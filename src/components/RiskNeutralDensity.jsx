@@ -284,7 +284,7 @@ export default function RiskNeutralDensity({ fits, spotPrice, capturedAt, loadin
         className="card"
         style={{ padding: '1rem', marginBottom: '1rem', color: 'var(--accent-coral)' }}
       >
-        Risk-neutral density unavailable — Plotly failed to load ({plotlyError}).
+        Risk-neutral density unavailable: Plotly failed to load ({plotlyError}).
       </div>
     );
   }
@@ -309,7 +309,7 @@ export default function RiskNeutralDensity({ fits, spotPrice, capturedAt, loadin
     }
     return (
       <div className="card text-muted" style={{ padding: '1rem', marginBottom: '1rem' }}>
-        Risk-neutral density unavailable — SVI fits required.
+        Risk-neutral density unavailable: SVI fits required.
       </div>
     );
   }

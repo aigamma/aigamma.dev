@@ -428,7 +428,7 @@ export default function FixedStrikeIvMatrix({ contracts, spotPrice, expirations 
         className="card"
         style={{ padding: '1rem', marginBottom: '1rem', color: 'var(--accent-coral)' }}
       >
-        Fixed-strike IV matrix unavailable — Plotly failed to load ({plotlyError}).
+        Fixed-strike IV matrix unavailable: Plotly failed to load ({plotlyError}).
       </div>
     );
   }

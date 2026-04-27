@@ -53,7 +53,7 @@ export default function VixSkewIndices({ data }) {
     ];
 
     const layout = plotly2DChartLayout({
-      title: plotlyTitle('Skew Indices — Cboe SKEW vs Nations SkewDex'),
+      title: plotlyTitle('Skew Indices: Cboe SKEW vs Nations SkewDex'),
       xaxis: plotlyAxis(''),
       yaxis: plotlyAxis('Cboe SKEW', { side: 'left' }),
       yaxis2: plotlyAxis('SDEX', {

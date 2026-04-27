@@ -308,7 +308,7 @@ export default function GammaInflectionChart({ spotPrice, levels }) {
         className="card"
         style={{ padding: '1rem', marginBottom: '1rem', color: 'var(--accent-coral)' }}
       >
-        Gamma inflection chart unavailable — Plotly failed to load ({plotlyError}).
+        Gamma inflection chart unavailable: Plotly failed to load ({plotlyError}).
       </div>
     );
   }
@@ -316,7 +316,7 @@ export default function GammaInflectionChart({ spotPrice, levels }) {
   if (!hasProfile) {
     return (
       <div className="card text-muted" style={{ marginBottom: '1rem' }}>
-        Gamma inflection curve unavailable for this run — the profile is computed
+        Gamma inflection curve unavailable for this run. The profile is computed
         at ingest time and older runs predate that pass.
       </div>
     );

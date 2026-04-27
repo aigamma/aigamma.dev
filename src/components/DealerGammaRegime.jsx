@@ -260,7 +260,7 @@ export default function DealerGammaRegime() {
   if (plotlyError) {
     return (
       <div className="card" style={{ padding: '1rem', marginBottom: '1rem', color: 'var(--accent-coral)' }}>
-        Dealer gamma regime unavailable — Plotly failed to load ({plotlyError}).
+        Dealer gamma regime unavailable: Plotly failed to load ({plotlyError}).
       </div>
     );
   }
@@ -277,7 +277,7 @@ export default function DealerGammaRegime() {
   if (!data || allDates.length === 0) {
     return (
       <div className="card text-muted" style={{ marginBottom: '1rem' }}>
-        No GEX history available yet — the daily_gex_stats backfill has not been run.
+        No GEX history available yet. The daily_gex_stats backfill has not been run.
       </div>
     );
   }

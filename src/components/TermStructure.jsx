@@ -252,7 +252,7 @@ export default function TermStructure({ expirationMetrics, capturedAt, cloudBand
         className="card"
         style={{ padding: '1rem', marginBottom: '1rem', color: 'var(--accent-coral)' }}
       >
-        Term structure unavailable — Plotly failed to load ({plotlyError}).
+        Term structure unavailable: Plotly failed to load ({plotlyError}).
       </div>
     );
   }

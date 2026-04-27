@@ -525,7 +525,7 @@ export default function ExpiringGamma() {
   if (plotlyError) {
     return (
       <div className="card" style={{ padding: '1rem', color: 'var(--accent-coral)' }}>
-        Expiration concentration chart unavailable — Plotly failed to load ({plotlyError}).
+        Expiration concentration chart unavailable: Plotly failed to load ({plotlyError}).
       </div>
     );
   }
@@ -574,7 +574,7 @@ export default function ExpiringGamma() {
                   }
                   aria-pressed={active}
                   title={mode.id === 'perDay'
-                    ? 'Divide each bar by the days since the prior expiration — surfaces the front-week tail'
+                    ? 'Divide each bar by the days since the prior expiration. Surfaces the front-week tail'
                     : 'Raw $ gamma per expiration'}
                   onClick={() => setScaleMode(mode.id)}
                 >

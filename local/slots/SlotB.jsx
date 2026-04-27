@@ -510,13 +510,13 @@ export default function SlotB() {
         </p>
         <strong style={{ color: 'var(--text-primary)' }}>Reading.</strong>{' '}
         A tight overlay across all four tenors confirms that the Dupire
-        extraction is internally consistent — no information was
+        extraction is internally consistent. No information was
         lost between the SVI surface and the local-vol PDE / SDE
         representation. An IV RMSE in the single-digit bps range is what
         this should produce on a well-fit chain with {N_PATHS.toLocaleString()}{' '}
         antithetic-paired paths. Systematic deviations (MC vols sitting
         above or below market for a whole tenor) are the fingerprint of
-        Euler-Maruyama bias on rough surfaces — local vols that jump
+        Euler-Maruyama bias on rough surfaces: local vols that jump
         sharply between cells let discrete-time paths accumulate variance
         the continuous process would smooth, which biases short-dated
         wings high. The reshuffle seed button resamples the antithetic

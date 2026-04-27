@@ -468,7 +468,7 @@ export default function SpxVolFlip() {
   if (plotlyError) {
     return (
       <div className="card" style={{ padding: '1rem', color: 'var(--accent-coral)' }}>
-        Chart unavailable — Plotly failed to load ({plotlyError}).
+        Chart unavailable: Plotly failed to load ({plotlyError}).
       </div>
     );
   }

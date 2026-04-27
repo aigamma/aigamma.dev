@@ -781,7 +781,7 @@ function ScatterChart({ chartDays, containerWidth, impliedMovesLive, impliedMove
           borderRadius: '3px',
         }}>
           Implied moves: {impliedMovesLive ? 'partial coverage' : 'unavailable'}
-          {impliedMoveDegrade ? ` — ${impliedMoveDegrade}` : ''}
+          {impliedMoveDegrade ? `, ${impliedMoveDegrade}` : ''}
           . Tickers without an implied move drop off the chart but remain in the
           calendar grid below.
         </div>
@@ -916,7 +916,7 @@ function UpcomingGrid({ calendarDays, scale = 1 }) {
         color: 'var(--text-secondary)',
         marginBottom: '1rem',
       }}>
-        upcoming earnings — next 4 weeks · sorted by revenue desc · filter applies
+        upcoming earnings · next 4 weeks · sorted by revenue desc · filter applies
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
         {weeks.map((week, wi) => (

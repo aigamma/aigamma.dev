@@ -25,7 +25,7 @@ export default function App() {
     <div className="app-shell lab-shell">
       <header className="lab-header">
         <div className="lab-brand">
-          <span className="lab-badge" title="Beta Lab — experimental">
+          <span className="lab-badge" title="Beta Lab: experimental">
             BETA LAB
           </span>
         </div>

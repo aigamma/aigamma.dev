@@ -388,7 +388,7 @@ export default function SlotC() {
         </p>
         <strong style={{ color: 'var(--text-primary)' }}>Reading.</strong>{' '}
         At short T the smile slice (left) shows σ_LV rising steeply into
-        the left wing — the signature of short-dated put premium turned
+        the left wing, the signature of short-dated put premium turned
         into a deterministic diffusion coefficient. At long T the same
         slice flattens toward a nearly-constant floor near the implied
         vol term median. The term structure slice (right) at y = 0 is
@@ -398,7 +398,7 @@ export default function SlotC() {
         form) and pulling y* positive shows the much quieter upside
         local vol, whose term structure is shallow by contrast. A
         meaningful gap between the local-vol line and the market line
-        on either slice is not a model miss — it is the reminder that
+        on either slice is not a model miss. It is the reminder that
         local vol is a(K, T) → (S, t) re-indexing, not the same
         function: σ_LV(y, T) is the diffusion coefficient at spot
         ~S = Fe^y at time T, while market σ(y, T) is the implied vol

@@ -102,7 +102,7 @@ export default function App() {
             quick:
               'Ask about rough volatility, the three methods above, or how the empirical Hurst signature, the rBergomi simulator, and the three-estimator triangulation corroborate or challenge each other. Chat stays on volatility, options, and rough-path modeling.',
             deep:
-              'Deep Analysis mode — longer and more structurally detailed responses on fractional Brownian motion, Volterra volatility processes, short-end skew asymptotics, and the philosophy of measuring a single Hurst exponent three different ways.',
+              'Deep Analysis mode: longer and more structurally detailed responses on fractional Brownian motion, Volterra volatility processes, short-end skew asymptotics, and the philosophy of measuring a single Hurst exponent three different ways.',
           }}
         />
       </ErrorBoundary>

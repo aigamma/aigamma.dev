@@ -310,7 +310,7 @@ export default function SkewScanner() {
             borderRadius: '3px',
           }}
         >
-          Showing illustrative seed data — Massive options snapshot unavailable
+          Showing illustrative seed data. Massive options snapshot unavailable
           ({data.degradeReason || 'no detail'}). Layout and axes are accurate;
           numeric values are deterministic placeholders.
         </div>
