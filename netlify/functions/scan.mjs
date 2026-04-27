@@ -778,6 +778,24 @@ export default async function handler(request) {
   const tickers = [];
   for (const r of rows) {
     const earnings = earningsFor(r.holding.symbol);
+    // Roster-derived enrichment from the SP500 merge in
+    // options-volume-roster.mjs (commit 4ce8a6b). Five new per-ticker
+    // fields land on every payload row independent of the snapshot
+    // fetch outcome — both the live-data and skipReason branches
+    // get them — so the frontend's filter toggles (Anchor only,
+    // Hide hype > N) work uniformly across "data fetched cleanly"
+    // and "data fetch failed for this ticker." Anchor is a boolean
+    // computed from the OV-∩-SP500 joint-rank harmonic mean (top
+    // 50 names by that score). Hype is ovRank − mcRank, negative
+    // values mean the ticker is options-heavy for its market-cap
+    // (DJT-class hype names sit at extreme negative hype).
+    // Weight / mcRank / ovRank are the underlying axes; surfaced
+    // for tooltip use so a hover reveals the joint-rank story.
+    const anchor = r.holding.anchor === true;
+    const hype = r.holding.hype ?? null;
+    const weight = r.holding.weight ?? null;
+    const mcRank = r.holding.mcRank ?? null;
+    const ovRank = r.holding.ovRank ?? null;
     if (!r.ok) {
       tickers.push({
         symbol: r.holding.symbol,
@@ -788,6 +806,11 @@ export default async function handler(request) {
         earningsDate: earnings?.date ?? null,
         earningsSession: earnings?.sessionLabel ?? null,
         daysToEarnings: earnings?.daysToEarnings ?? null,
+        anchor,
+        hype,
+        weight,
+        mcRank,
+        ovRank,
       });
       continue;
     }
@@ -818,6 +841,11 @@ export default async function handler(request) {
       earningsDate: earnings?.date ?? null,
       earningsSession: earnings?.sessionLabel ?? null,
       daysToEarnings: earnings?.daysToEarnings ?? null,
+      anchor,
+      hype,
+      weight,
+      mcRank,
+      ovRank,
     });
   }
 
@@ -835,6 +863,12 @@ export default async function handler(request) {
     target: { dteMin: SKEW_DTE_MIN, dteMax: SKEW_DTE_MAX, dteTarget: SKEW_DTE_TARGET },
     earningsLookaheadDays: EARNINGS_LOOKAHEAD_DAYS,
     earningsCount: tickers.filter((t) => t.earningsDate != null).length,
+    // Anchor universe summary for the toolbar UI. anchorCount is the
+    // number of tickers in the current TOP-N universe that carry
+    // anchor=true (subset of the project's global Anchor 50 — when
+    // top=40 most of the global anchors land in the universe; when
+    // top is smaller fewer do).
+    anchorCount: tickers.filter((t) => t.anchor).length,
     generatedAt: roster.generatedAt,
     tickers,
   };

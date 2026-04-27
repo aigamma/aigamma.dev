@@ -151,6 +151,19 @@ export default function SkewScanner() {
   // days); the response payload exposes earningsLookaheadDays so the
   // toggle copy stays consistent with the data window.
   const [earningsFilter, setEarningsFilter] = useState('all');
+  // Anchor filter mode. Two values:
+  //   'all'    → no anchor filter applied (default).
+  //   'only'   → keep only tickers tagged anchor=true in the roster
+  //              (top-50 OV ∩ SP500 names by joint-rank harmonic
+  //              mean — see scripts/backfill/options-volume-roster.mjs).
+  // The roster currently sizes the global anchor list at 50 names; the
+  // /scan universe is top-N by options volume (default 40), so the
+  // intersection between "in the universe" and "anchor=true" is at
+  // most ~20-30 tickers in a typical render. The toggle disables
+  // itself when the response payload reports anchorCount === 0
+  // (graceful degradation for the unlikely case where SP500
+  // enrichment is missing on the server side).
+  const [anchorFilter, setAnchorFilter] = useState('all');
   const [hoveredSymbol, setHoveredSymbol] = useState(null);
   const [containerWidth, setContainerWidth] = useState(0);
   const wrapRef = useRef(null);
@@ -194,13 +207,20 @@ export default function SkewScanner() {
   // the chart entirely on either tab regardless of the filter).
   const plotted = useMemo(() => {
     if (!data?.tickers) return [];
-    const finite = data.tickers.filter(
+    let working = data.tickers.filter(
       (t) => Number.isFinite(t.atmIv) && Number.isFinite(t[spec.metricKey])
     );
-    if (earningsFilter === 'all') return finite;
-    if (earningsFilter === 'hide') return finite.filter((t) => !t.earningsDate);
-    return finite.filter((t) => !!t.earningsDate);
-  }, [data, spec.metricKey, earningsFilter]);
+    // Apply earnings filter first (since it's the longer-standing
+    // toggle a returning reader is most likely to have set), then
+    // anchor filter. Order doesn't change the result — both are
+    // conjunctive predicates — but it keeps the working-set size
+    // monotonically shrinking through the chain which is easier to
+    // reason about during debugging.
+    if (earningsFilter === 'hide') working = working.filter((t) => !t.earningsDate);
+    else if (earningsFilter === 'only') working = working.filter((t) => !!t.earningsDate);
+    if (anchorFilter === 'only') working = working.filter((t) => t.anchor === true);
+    return working;
+  }, [data, spec.metricKey, earningsFilter, anchorFilter]);
 
   // Count of plotted tickers that carry an upcoming earnings warning,
   // used to drive the meta-line summary line below the quadrant.
@@ -271,6 +291,9 @@ export default function SkewScanner() {
         onTabChange={setTab}
         earningsFilter={earningsFilter}
         onEarningsFilterChange={setEarningsFilter}
+        anchorFilter={anchorFilter}
+        onAnchorFilterChange={setAnchorFilter}
+        anchorCount={data?.anchorCount ?? 0}
         lookaheadDays={data?.earningsLookaheadDays ?? 14}
         earningsAvailable={(data?.earningsCount ?? 0) > 0}
       />
@@ -382,6 +405,7 @@ export default function SkewScanner() {
 function ScannerToolbar({
   tab, onTabChange, earningsFilter, onEarningsFilterChange,
   lookaheadDays, earningsAvailable,
+  anchorFilter, onAnchorFilterChange, anchorCount,
 }) {
   // Two-row layout: the call/put skew tab toggle stays the visual
   // anchor on top, and the earnings-filter row sits below it as a
@@ -437,6 +461,95 @@ function ScannerToolbar({
         lookaheadDays={lookaheadDays}
         disabled={!earningsAvailable}
       />
+
+      <AnchorFilterToggle
+        mode={anchorFilter}
+        onChange={onAnchorFilterChange}
+        anchorCount={anchorCount}
+        disabled={anchorCount === 0}
+      />
+    </div>
+  );
+}
+
+// Two-position pill toggle for the Anchor 50 filter. Mirrors the
+// EarningsFilterToggle chrome (segmented buttons in a single bordered
+// container, active state reverses to filled-background dark-text)
+// but uses an accent-blue tonal anchor instead of amber so the two
+// toggles read as distinct controls at a glance. "All" shows every
+// priced ticker in the universe; "Anchor only" filters to the top-50
+// OV ∩ SP500 names tagged anchor=true by the roster generator.
+// Empty-anchorCount disables the toggle (graceful degradation if the
+// SP500 enrichment is missing server-side); the count of in-universe
+// anchors renders inline as a hint so the reader knows what fraction
+// of the chart "Anchor only" mode would surface.
+function AnchorFilterToggle({ mode, onChange, anchorCount, disabled }) {
+  const options = [
+    { id: 'all',  label: 'All' },
+    { id: 'only', label: 'Anchor only' },
+  ];
+  return (
+    <div
+      role="group"
+      aria-label="Anchor 50 filter"
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: '0.55rem',
+        opacity: disabled ? 0.55 : 1,
+      }}
+    >
+      <span
+        style={{
+          fontFamily: 'Courier New, monospace',
+          fontSize: '0.78rem',
+          letterSpacing: '0.04em',
+          color: 'var(--text-secondary)',
+        }}
+      >
+        Universe ({anchorCount} anchored):
+      </span>
+      <div
+        style={{
+          display: 'inline-flex',
+          alignItems: 'stretch',
+          border: '1px solid var(--accent-blue, #4a9eff)',
+          borderRadius: '3px',
+          overflow: 'hidden',
+          fontFamily: 'Courier New, monospace',
+          fontSize: '0.75rem',
+          letterSpacing: '0.06em',
+        }}
+      >
+        {options.map((opt, i) => {
+          const active = mode === opt.id;
+          return (
+            <button
+              key={opt.id}
+              type="button"
+              onClick={() => !disabled && onChange(opt.id)}
+              disabled={disabled}
+              aria-pressed={active}
+              style={{
+                appearance: 'none',
+                background: active ? 'var(--accent-blue, #4a9eff)' : 'transparent',
+                color: active ? '#0d1016' : 'var(--accent-blue, #4a9eff)',
+                border: 'none',
+                borderRight: i < options.length - 1 ? '1px solid rgba(74, 158, 255, 0.4)' : 'none',
+                padding: '0.32rem 0.7rem',
+                cursor: disabled ? 'not-allowed' : 'pointer',
+                textTransform: 'uppercase',
+                fontWeight: active ? 700 : 400,
+                fontFamily: 'inherit',
+                fontSize: 'inherit',
+                letterSpacing: 'inherit',
+              }}
+            >
+              {opt.label}
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }
@@ -1001,6 +1114,33 @@ function Tooltip({ ticker: t, style }) {
       )}
       <TooltipRow label="Tenor" value={`${t.dte}D · ${t.expiration}`} subtle />
       <TooltipRow label="Options vol" value={volumeRankLabel} subtle />
+      {/* Anchor / hype rows. Three branches based on what the
+          roster generator could compute for this ticker. Anchor
+          names get the joint-rank tuple in accent-blue (matches
+          the AnchorFilterToggle chrome); SP500-but-not-anchor names
+          get the hype divergence in muted text so a reader can see
+          why they were excluded; non-SP500 names are left silent —
+          their absence of any SP500 row IS the explanation, and a
+          tooltip line reading "non-SP500" doesn't add information
+          beyond what the reader can already see from the empty
+          weight column elsewhere. */}
+      {t.anchor && (
+        <TooltipRow
+          label="Anchor 50"
+          value={
+            <span style={{ color: 'var(--accent-blue, #4a9eff)', fontWeight: 700 }}>
+              {`ov${t.ovRank}/mc${t.mcRank} · ${t.weight}%`}
+            </span>
+          }
+        />
+      )}
+      {!t.anchor && t.weight != null && (
+        <TooltipRow
+          label="SP500"
+          value={`${t.weight}% · ov${t.ovRank}/mc${t.mcRank}${t.hype != null ? ` · hype ${t.hype}` : ''}`}
+          subtle
+        />
+      )}
     </div>
   );
 }
