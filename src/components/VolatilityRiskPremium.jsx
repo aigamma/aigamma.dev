@@ -566,9 +566,9 @@ export default function VolatilityRiskPremium({ spotPrice, capturedAt }) {
   // signal that, leading readers to miss the interaction.
   const toggles = [
     { key: 'SPX', label: 'SPX',                         color: SPX_LINE   },
+    { key: 'VIX', label: 'VIX',                         color: VIX_COLOR  },
     { key: 'RV',  label: 'Realized Vol (20d YZ)',       color: RV_COLOR   },
     { key: 'IV',  label: 'Implied Vol (30d CM)',        color: IV_COLOR   },
-    { key: 'VIX', label: 'VIX',                         color: VIX_COLOR  },
   ];
 
   return (
