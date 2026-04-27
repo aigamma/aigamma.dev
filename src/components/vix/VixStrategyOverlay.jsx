@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef } from 'react';
 import usePlotly from '../../hooks/usePlotly';
+import useIsMobile from '../../hooks/useIsMobile';
 import {
   PLOTLY_COLORS,
   plotly2DChartLayout,
@@ -47,6 +48,7 @@ function gatherSeries(data, sym, source) {
 export default function VixStrategyOverlay({ data }) {
   const { plotly, error: plotlyError } = usePlotly();
   const ref = useRef(null);
+  const isMobile = useIsMobile();
 
   const enriched = useMemo(() => {
     if (!data) return null;
@@ -74,10 +76,14 @@ export default function VixStrategyOverlay({ data }) {
       }));
 
     const layout = plotly2DChartLayout({
-      title: plotlyTitle('Cboe Strategy Benchmark Indices vs SPX (growth of 1)'),
+      title: plotlyTitle(
+        isMobile
+          ? 'Cboe Strategy Benchmark Indices<br>vs SPX (growth of 1)'
+          : 'Cboe Strategy Benchmark Indices vs SPX (growth of 1)'
+      ),
       xaxis: plotlyAxis(''),
       yaxis: plotlyAxis('Growth of $1'),
-      margin: { t: 50, r: 30, b: 80, l: 70 },
+      margin: { t: isMobile ? 75 : 50, r: 30, b: 80, l: 70 },
       height: 420,
       showlegend: true,
       legend: { orientation: 'h', y: -0.18, x: 0.5, xanchor: 'center' },
@@ -94,7 +100,7 @@ export default function VixStrategyOverlay({ data }) {
       window.removeEventListener('resize', onResize);
       if (ref.current) plotly.purge(ref.current);
     };
-  }, [plotly, enriched]);
+  }, [plotly, enriched, isMobile]);
 
   return (
     <div className="card">

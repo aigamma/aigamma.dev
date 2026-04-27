@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef } from 'react';
 import usePlotly from '../../hooks/usePlotly';
+import useIsMobile from '../../hooks/useIsMobile';
 import {
   PLOTLY_COLORS,
   plotly2DChartLayout,
@@ -20,6 +21,7 @@ import { termStructureRatioHistory } from '../../lib/vix-models';
 export default function VixContangoHistory({ data }) {
   const { plotly, error: plotlyError } = usePlotly();
   const ref = useRef(null);
+  const isMobile = useIsMobile();
 
   const series = useMemo(() => {
     if (!data) return null;
@@ -95,10 +97,14 @@ export default function VixContangoHistory({ data }) {
     ];
 
     const layout = plotly2DChartLayout({
-      title: plotlyTitle('Term Structure Contango / Backwardation'),
+      title: plotlyTitle(
+        isMobile
+          ? 'Term Structure<br>Contango / Backwardation'
+          : 'Term Structure Contango / Backwardation'
+      ),
       xaxis: plotlyAxis(''),
       yaxis: plotlyAxis('VIX3M / VIX'),
-      margin: { t: 50, r: 30, b: 50, l: 70 },
+      margin: { t: isMobile ? 75 : 50, r: 30, b: 50, l: 70 },
       height: 320,
       showlegend: false,
       annotations: [
@@ -128,7 +134,7 @@ export default function VixContangoHistory({ data }) {
       window.removeEventListener('resize', onResize);
       if (ref.current) plotly.purge(ref.current);
     };
-  }, [plotly, series]);
+  }, [plotly, series, isMobile]);
 
   return (
     <div className="card">

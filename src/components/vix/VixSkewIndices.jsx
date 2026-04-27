@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef } from 'react';
 import usePlotly from '../../hooks/usePlotly';
+import useIsMobile from '../../hooks/useIsMobile';
 import {
   PLOTLY_COLORS,
   plotly2DChartLayout,
@@ -19,6 +20,7 @@ import {
 export default function VixSkewIndices({ data }) {
   const { plotly, error: plotlyError } = usePlotly();
   const ref = useRef(null);
+  const isMobile = useIsMobile();
 
   const series = useMemo(() => {
     if (!data) return null;
@@ -53,7 +55,11 @@ export default function VixSkewIndices({ data }) {
     ];
 
     const layout = plotly2DChartLayout({
-      title: plotlyTitle('Skew Indices: Cboe SKEW vs Nations SkewDex'),
+      title: plotlyTitle(
+        isMobile
+          ? 'Skew Indices:<br>Cboe SKEW vs Nations SkewDex'
+          : 'Skew Indices: Cboe SKEW vs Nations SkewDex'
+      ),
       xaxis: plotlyAxis(''),
       yaxis: plotlyAxis('Cboe SKEW', { side: 'left' }),
       yaxis2: plotlyAxis('SDEX', {
@@ -62,7 +68,7 @@ export default function VixSkewIndices({ data }) {
         showgrid: false,
         tickfont: { color: PLOTLY_COLORS.highlight, family: 'Courier New, monospace', size: 12 },
       }),
-      margin: { t: 50, r: 70, b: 80, l: 70 },
+      margin: { t: isMobile ? 75 : 50, r: 70, b: 80, l: 70 },
       height: 380,
       showlegend: true,
       legend: { orientation: 'h', y: -0.18, x: 0.5, xanchor: 'center' },
@@ -107,7 +113,7 @@ export default function VixSkewIndices({ data }) {
       window.removeEventListener('resize', onResize);
       if (ref.current) plotly.purge(ref.current);
     };
-  }, [plotly, series]);
+  }, [plotly, series, isMobile]);
 
   return (
     <div className="card">

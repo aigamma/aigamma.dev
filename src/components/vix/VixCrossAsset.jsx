@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef } from 'react';
 import usePlotly from '../../hooks/usePlotly';
+import useIsMobile from '../../hooks/useIsMobile';
 import {
   PLOTLY_COLORS,
   plotly2DChartLayout,
@@ -27,6 +28,7 @@ const SYMBOLS = [
 export default function VixCrossAsset({ data }) {
   const { plotly, error: plotlyError } = usePlotly();
   const ref = useRef(null);
+  const isMobile = useIsMobile();
 
   const traces = useMemo(() => {
     if (!data) return null;
@@ -66,10 +68,14 @@ export default function VixCrossAsset({ data }) {
     if (!plotly || !ref.current || !traces || traces.length === 0) return;
 
     const layout = plotly2DChartLayout({
-      title: plotlyTitle('Cross-Asset Vol: indexed to 100 at backfill start'),
+      title: plotlyTitle(
+        isMobile
+          ? 'Cross-Asset Vol:<br>indexed to 100 at backfill start'
+          : 'Cross-Asset Vol: indexed to 100 at backfill start'
+      ),
       xaxis: plotlyAxis(''),
       yaxis: plotlyAxis('Index level (base 100)'),
-      margin: { t: 50, r: 30, b: 80, l: 70 },
+      margin: { t: isMobile ? 75 : 50, r: 30, b: 80, l: 70 },
       height: 380,
       showlegend: true,
       legend: { orientation: 'h', y: -0.18, x: 0.5, xanchor: 'center' },
@@ -86,7 +92,7 @@ export default function VixCrossAsset({ data }) {
       window.removeEventListener('resize', onResize);
       if (ref.current) plotly.purge(ref.current);
     };
-  }, [plotly, traces]);
+  }, [plotly, traces, isMobile]);
 
   return (
     <div className="card">

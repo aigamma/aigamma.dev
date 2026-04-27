@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef } from 'react';
 import usePlotly from '../../hooks/usePlotly';
+import useIsMobile from '../../hooks/useIsMobile';
 import {
   PLOTLY_COLORS,
   plotly2DChartLayout,
@@ -24,6 +25,7 @@ const RV_WINDOW = 30;
 export default function VixVolOfVol({ data }) {
   const { plotly, error: plotlyError } = usePlotly();
   const ref = useRef(null);
+  const isMobile = useIsMobile();
 
   const series = useMemo(() => {
     if (!data) return null;
@@ -93,7 +95,11 @@ export default function VixVolOfVol({ data }) {
     ];
 
     const layout = plotly2DChartLayout({
-      title: plotlyTitle('Vol of Vol: VVIX vs Realized VIX Vol'),
+      title: plotlyTitle(
+        isMobile
+          ? 'Vol of Vol:<br>VVIX vs Realized VIX Vol'
+          : 'Vol of Vol: VVIX vs Realized VIX Vol'
+      ),
       xaxis: plotlyAxis(''),
       yaxis: plotlyAxis('Vol level', { side: 'left', domain: [0.30, 1] }),
       yaxis2: plotlyAxis('VVIX − Realized', {
@@ -103,7 +109,7 @@ export default function VixVolOfVol({ data }) {
         zerolinecolor: PLOTLY_COLORS.zeroLine,
       }),
       grid: { rows: 2, columns: 1, pattern: 'independent' },
-      margin: { t: 50, r: 30, b: 80, l: 70 },
+      margin: { t: isMobile ? 75 : 50, r: 30, b: 80, l: 70 },
       height: 460,
       showlegend: true,
       legend: { orientation: 'h', y: -0.18, x: 0.5, xanchor: 'center' },
@@ -120,7 +126,7 @@ export default function VixVolOfVol({ data }) {
       window.removeEventListener('resize', onResize);
       if (ref.current) plotly.purge(ref.current);
     };
-  }, [plotly, series]);
+  }, [plotly, series, isMobile]);
 
   return (
     <div className="card">

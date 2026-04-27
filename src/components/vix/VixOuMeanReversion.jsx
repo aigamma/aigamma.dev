@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef } from 'react';
 import usePlotly from '../../hooks/usePlotly';
+import useIsMobile from '../../hooks/useIsMobile';
 import {
   PLOTLY_COLORS,
   plotly2DChartLayout,
@@ -43,6 +44,7 @@ function StatRow({ label, value, sub, tone = 'neutral' }) {
 export default function VixOuMeanReversion({ data }) {
   const { plotly, error: plotlyError } = usePlotly();
   const ref = useRef(null);
+  const isMobile = useIsMobile();
 
   const result = useMemo(() => {
     if (!data) return null;
@@ -114,10 +116,14 @@ export default function VixOuMeanReversion({ data }) {
     ];
 
     const layout = plotly2DChartLayout({
-      title: plotlyTitle('Ornstein-Uhlenbeck Mean Reversion'),
+      title: plotlyTitle(
+        isMobile
+          ? 'Ornstein-Uhlenbeck<br>Mean Reversion'
+          : 'Ornstein-Uhlenbeck Mean Reversion'
+      ),
       xaxis: plotlyAxis(''),
       yaxis: plotlyAxis('VIX'),
-      margin: { t: 50, r: 30, b: 80, l: 70 },
+      margin: { t: isMobile ? 75 : 50, r: 30, b: 80, l: 70 },
       height: 380,
       showlegend: true,
     });
@@ -133,7 +139,7 @@ export default function VixOuMeanReversion({ data }) {
       window.removeEventListener('resize', onResize);
       if (ref.current) plotly.purge(ref.current);
     };
-  }, [plotly, result, data]);
+  }, [plotly, result, data, isMobile]);
 
   if (!result || !result.valid) {
     return (

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef } from 'react';
 import usePlotly from '../../hooks/usePlotly';
+import useIsMobile from '../../hooks/useIsMobile';
 import {
   PLOTLY_COLORS,
   plotly2DChartLayout,
@@ -20,6 +21,7 @@ import {
 export default function VixVrp({ data }) {
   const { plotly, error: plotlyError } = usePlotly();
   const ref = useRef(null);
+  const isMobile = useIsMobile();
 
   const series = useMemo(() => {
     if (!data) return null;
@@ -133,7 +135,11 @@ export default function VixVrp({ data }) {
     ];
 
     const layout = plotly2DChartLayout({
-      title: plotlyTitle('VIX vs SPX 20-day Realized Vol'),
+      title: plotlyTitle(
+        isMobile
+          ? 'VIX vs SPX<br>20-day Realized Vol'
+          : 'VIX vs SPX 20-day Realized Vol'
+      ),
       xaxis: plotlyAxis(''),
       yaxis: plotlyAxis('Vol (annualized %)', { side: 'left' }),
       yaxis2: plotlyAxis('SPX', {
@@ -142,7 +148,7 @@ export default function VixVrp({ data }) {
         showgrid: false,
         tickfont: { color: PLOTLY_COLORS.primary, family: 'Courier New, monospace', size: 12 },
       }),
-      margin: { t: 50, r: 70, b: 80, l: 70 },
+      margin: { t: isMobile ? 75 : 50, r: 70, b: 80, l: 70 },
       height: 460,
       showlegend: true,
       legend: {
@@ -164,7 +170,7 @@ export default function VixVrp({ data }) {
       window.removeEventListener('resize', onResize);
       if (ref.current) plotly.purge(ref.current);
     };
-  }, [plotly, series]);
+  }, [plotly, series, isMobile]);
 
   return (
     <div className="card">
