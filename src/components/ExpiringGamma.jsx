@@ -148,9 +148,51 @@ function classifyFreshness(asOfIso, now = new Date()) {
   return { label: 'STALE', tone: 'stale' };
 }
 
+// Per-day scale support — divide each expiration's $ gamma by the
+// number of calendar days between this expiration and the prior one
+// to convert "$ rolling off this date" into "$/day rate of rolloff
+// from the prior expiration through this one." This rebalances the
+// chart's visual emphasis: the front-week stack of weeklies (each
+// 1-3 days from the prior expiration) gets pulled UP relative to
+// the back-month monoliths (each 27-30 days from the prior monthly
+// OPEX), surfacing the long tail of weeklies that the linear view
+// flattens against the 5/15 + 6/18 monoliths.
+//
+// The first expiration in the list uses (this - tradingDate) as the
+// span so the 0DTE / front-week bar gets a meaningful divisor (1 day
+// for 0DTE) rather than divide-by-zero. Subsequent expirations use
+// the gap to the immediately prior expiration.
+//
+// SCALE_MODES is the source of truth for the toggle button labels +
+// y-axis title suffix; adding a third mode here automatically extends
+// both the toggle UI and the axis title without further coordination.
+const SCALE_MODES = [
+  {
+    id: 'linear',
+    label: 'Linear',
+    axisFormat: '$.2s',
+    titleSuffix: '$ per 1% move',
+    hoverSuffix: '',
+  },
+  {
+    id: 'perDay',
+    label: 'Per-day',
+    axisFormat: '$.2s',
+    titleSuffix: '$/day rate (per 1% move)',
+    hoverSuffix: ' /day',
+  },
+];
+
+function daysBetweenIso(aIso, bIso) {
+  const a = new Date(`${aIso}T12:00:00Z`).getTime();
+  const b = new Date(`${bIso}T12:00:00Z`).getTime();
+  return Math.max(1, Math.round((a - b) / 86400000));
+}
+
 export default function ExpiringGamma() {
   const [data, setData] = useState(null);
   const [error, setError] = useState(null);
+  const [scaleMode, setScaleMode] = useState('linear');
   // Tick once a minute so the "X min ago" relative-time pill stays
   // accurate without forcing a full re-fetch. 60s is the right cadence
   // for minute-resolution labels — anything finer is wasted re-renders
@@ -183,8 +225,28 @@ export default function ExpiringGamma() {
   const traces = useMemo(() => {
     if (!data?.expirations || data.expirations.length === 0) return null;
     const xs = data.expirations.map((e) => e.expiration_date);
-    const callY = data.expirations.map((e) => e.callGammaNotional || 0);
-    const putY  = data.expirations.map((e) => -(e.putGammaNotional || 0));
+    // Compute per-expiration day-spans for the per-day scale mode. The
+    // first expiration's span is to the trading_date (so 0DTE → 1 day);
+    // each subsequent expiration's span is to the immediately prior
+    // expiration in the sorted list. The dataPerDay variant divides
+    // each $ gamma value by its span; the linear variant ignores spans
+    // and uses raw $ gamma. Pre-computing both arrays makes the
+    // useMemo invalidation cheap on toggle (no per-row arithmetic on
+    // every re-render).
+    const tradingDate = data.tradingDate || data.expirations[0]?.expiration_date;
+    const spans = data.expirations.map((e, i) => {
+      const prior = i === 0 ? tradingDate : data.expirations[i - 1].expiration_date;
+      return daysBetweenIso(e.expiration_date, prior);
+    });
+    const perDay = scaleMode === 'perDay';
+    const callY = data.expirations.map((e, i) => {
+      const v = e.callGammaNotional || 0;
+      return perDay ? v / spans[i] : v;
+    });
+    const putY = data.expirations.map((e, i) => {
+      const v = e.putGammaNotional || 0;
+      return perDay ? -(v / spans[i]) : -v;
+    });
     const cumCallY = data.expirations.map((e) => e.cumulativeCallPct);
     const cumPutY  = data.expirations.map((e) => e.cumulativePutPct);
     // Pre-format the dollar magnitudes server-side rather than relying
@@ -195,16 +257,23 @@ export default function ExpiringGamma() {
     // Pre-formatting in JS gives the tooltip the same "$945B" /
     // "$432M" voice the rest of the page uses without needing a
     // custom Plotly format locale.
-    const customdata = data.expirations.map((e) => [
-      formatDollar(e.callGammaNotional || 0),
-      formatDollar(e.putGammaNotional || 0),
+    //
+    // In per-day mode the formatted values get a "/day" suffix and
+    // are pre-divided by the span so the tooltip reads "$5B /day"
+    // instead of "$5B" — matches the y-axis labels in the same mode.
+    const hoverSuffix = perDay ? ' /day' : '';
+    const customdata = data.expirations.map((e, i) => [
+      formatDollar(perDay ? (e.callGammaNotional || 0) / spans[i] : (e.callGammaNotional || 0)) + hoverSuffix,
+      formatDollar(perDay ? (e.putGammaNotional || 0) / spans[i] : (e.putGammaNotional || 0)) + hoverSuffix,
       e.callContractCount || 0,
       e.putContractCount || 0,
       e.cumulativeCallPct == null ? '—' : `${e.cumulativeCallPct.toFixed(0)}%`,
       e.cumulativePutPct == null ? '—' : `${e.cumulativePutPct.toFixed(0)}%`,
+      spans[i],
     ]);
     const hovertemplate =
       '<b>%{x|%b %-d, %Y}</b>' +
+      (perDay ? '<br><i>%{customdata[6]} day span</i>' : '') +
       '<br>Call γ: %{customdata[0]}  (%{customdata[2]} contracts)' +
       '<br>Put γ:  %{customdata[1]}  (%{customdata[3]} contracts)' +
       '<br>Cumulative C/P: %{customdata[4]} / %{customdata[5]}' +
@@ -279,21 +348,26 @@ export default function ExpiringGamma() {
   // reader cares about (front 0DTE wall + every monthly OPEX +
   // every quarterly OPEX).
   //
-  // Anchored to the bar's date on x and the call γ value on y (since
-  // calls render upward), with yshift to lift the tag above the bar
-  // top by a fixed pixel offset that doesn't depend on the y-axis
-  // scale. This keeps the tag floating ~14px above the bar regardless
-  // of whether a Linear / Log / Per-day mode rescales the y-axis in
-  // a future iteration.
+  // Anchored to the bar's date on x and the bar's call γ value on y
+  // (since calls render upward), with yshift to lift the tag above
+  // the bar top by a fixed pixel offset that doesn't depend on the
+  // y-axis scale. The bar value uses the same per-day vs linear
+  // transform the traces use so the tag stays anchored to the bar
+  // top in either scale mode.
   const expirationTypeAnnotations = useMemo(() => {
     if (!data?.expirations) return [];
+    const tradingDate = data.tradingDate || data.expirations[0]?.expiration_date;
     return data.expirations
-      .map((e) => {
+      .map((e, i) => {
         const tag = EXPIRATION_TYPE_TAGS[e.expirationType];
         if (!tag) return null;
+        const prior = i === 0 ? tradingDate : data.expirations[i - 1].expiration_date;
+        const span = daysBetweenIso(e.expiration_date, prior);
+        const rawCall = e.callGammaNotional || 0;
+        const yVal = scaleMode === 'perDay' ? rawCall / span : rawCall;
         return {
           x: e.expiration_date,
-          y: e.callGammaNotional || 0,
+          y: yVal,
           xref: 'x',
           yref: 'y',
           text: tag.label,
@@ -311,7 +385,7 @@ export default function ExpiringGamma() {
         };
       })
       .filter(Boolean);
-  }, [data]);
+  }, [data, scaleMode]);
 
   useEffect(() => {
     if (!Plotly || !chartRef.current || !traces) return;
@@ -373,16 +447,23 @@ export default function ExpiringGamma() {
         tickformat: '%Y-%m-%d',
         tickangle: 0,
       }),
-      yaxis: plotlyAxis(mobile ? '' : 'Gamma Notional ($ per 1% move)', {
-        zeroline: true,
-        zerolinewidth: 1.5,
-        zerolinecolor: PLOTLY_COLORS.zeroLine,
-        tickformat: '$.2s',
-        ticks: 'outside',
-        ticklen: 6,
-        tickcolor: 'transparent',
-        showgrid: false,
-      }),
+      yaxis: plotlyAxis(
+        mobile
+          ? ''
+          : scaleMode === 'perDay'
+            ? 'Gamma Notional ($/day rate, per 1% move)'
+            : 'Gamma Notional ($ per 1% move)',
+        {
+          zeroline: true,
+          zerolinewidth: 1.5,
+          zerolinecolor: PLOTLY_COLORS.zeroLine,
+          tickformat: '$.2s',
+          ticks: 'outside',
+          ticklen: 6,
+          tickcolor: 'transparent',
+          showgrid: false,
+        }
+      ),
       // Secondary y-axis for the cumulative-rolloff lines. Fixed
       // domain [0, 100] so the percent reading is always anchored —
       // no autorange wobble between snapshots. side: 'right' puts
@@ -423,7 +504,7 @@ export default function ExpiringGamma() {
       responsive: true,
       displayModeBar: false,
     });
-  }, [Plotly, traces, expirationTypeAnnotations, mobile, data]);
+  }, [Plotly, traces, expirationTypeAnnotations, mobile, data, scaleMode]);
 
   if (plotlyError) {
     return (
@@ -457,6 +538,35 @@ export default function ExpiringGamma() {
           <span className="expiring-gamma-meta-line">
             {data.expirationCount} expirations · spot ${data.spotPrice.toFixed(2)}
           </span>
+          {/* Scale mode toggle. Two-position rather than three because
+              a log y-axis breaks the diverging-bar metaphor — bars are
+              anchored at y=0 and a log axis can't position them
+              meaningfully without inventing a synthetic floor. The
+              per-day mode achieves the same long-tail-surfacing goal
+              that log would have served and stays compatible with the
+              call-up / put-down geometry. */}
+          <div className="expiring-gamma-scale-toggle" role="group" aria-label="Y-axis scale">
+            {SCALE_MODES.map((mode) => {
+              const active = mode.id === scaleMode;
+              return (
+                <button
+                  key={mode.id}
+                  type="button"
+                  className={
+                    'expiring-gamma-scale-toggle__btn' +
+                    (active ? ' expiring-gamma-scale-toggle__btn--active' : '')
+                  }
+                  aria-pressed={active}
+                  title={mode.id === 'perDay'
+                    ? 'Divide each bar by the days since the prior expiration — surfaces the front-week tail'
+                    : 'Raw $ gamma per expiration'}
+                  onClick={() => setScaleMode(mode.id)}
+                >
+                  {mode.label}
+                </button>
+              );
+            })}
+          </div>
         </div>
         <div className="expiring-gamma-meta__right">
           <span style={{ color: COLOR_CALL, fontWeight: 700 }}>Call γ</span>

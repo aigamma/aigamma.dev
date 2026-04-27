@@ -1405,6 +1405,58 @@
   margin-left: 0.4rem;
 }
 
+/* Scale-mode toggle in the meta band. Two-position segmented control
+   that mirrors the .rotation-step-toggle pattern from /rotations —
+   accent-blue outline + filled-active state, Courier 0.7rem so the
+   chrome reads as a peer to the surrounding .expiring-gamma-meta-line
+   metadata rather than a primary control. The first toggle on the
+   page so it sits inline with the SPX ticker and contract-count
+   meta line; the active state visually pins the user's current
+   scale choice without needing a separate "you are here" indicator. */
+.expiring-gamma-scale-toggle {
+  display: inline-flex;
+  align-items: stretch;
+  border: 1px solid var(--accent-blue);
+  border-radius: 3px;
+  overflow: hidden;
+  font-family: 'Courier New', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+  margin-left: 0.6rem;
+}
+
+.expiring-gamma-scale-toggle__btn {
+  appearance: none;
+  background: transparent;
+  color: var(--accent-blue);
+  border: none;
+  border-right: 1px solid rgba(74, 158, 255, 0.4);
+  padding: 0.3rem 0.55rem;
+  font: inherit;
+  cursor: pointer;
+  text-transform: uppercase;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.expiring-gamma-scale-toggle__btn:last-child {
+  border-right: none;
+}
+
+.expiring-gamma-scale-toggle__btn:hover:not(.expiring-gamma-scale-toggle__btn--active) {
+  background: rgba(74, 158, 255, 0.15);
+}
+
+.expiring-gamma-scale-toggle__btn--active {
+  background: var(--accent-blue);
+  color: #0d1016;
+  font-weight: 700;
+}
+
+.expiring-gamma-scale-toggle__btn:focus-visible {
+  outline: 2px solid var(--accent-green);
+  outline-offset: 2px;
+}
+
 /* Freshness pill — three states (live / stale / closed) keyed off the
    server's asOf timestamp vs. the client's wall clock. The pill is
    small (0.65rem) so it sits as visual chrome next to the Call γ /
