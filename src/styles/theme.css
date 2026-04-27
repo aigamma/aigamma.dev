@@ -308,12 +308,12 @@ body {
    below). margin-right: auto absorbs the empty horizontal space and
    pushes the .mobile-nav__pill children — RESEARCH and TOOLS, plus
    HOME on lab pages — flush against the right edge of the row, so
-   the layout reads as [logo][Γ] ─── [RESEARCH][TOOLS] without needing
-   space-between (which would gap the two pills apart). */
+   the layout reads as [logo][icon][Γ] ─── [RESEARCH][TOOLS] without
+   needing space-between (which would gap the two pills apart). */
 .mobile-nav__brand {
   display: inline-flex;
   align-items: center;
-  gap: 0.45rem;
+  gap: 0.55rem;
   margin-right: auto;
 }
 
@@ -323,19 +323,39 @@ body {
   display: block;
 }
 
+/* Status sub-cluster: the dynamic +/- icon on a black ground (or the
+   neutral AiGamma favicon) sits flush against the bolded capital Γ
+   so the icon-letter pair reads as a single "AI Gamma" badge that
+   carries the regime state at a glance. The icon's color is the
+   regime classifier (green plus = POSITIVE GAMMA, red minus =
+   NEGATIVE GAMMA, AiGamma logo = NEAR FLIP) and the Γ tints to the
+   same family color, so the regime read is doubly encoded — the
+   glyph in the icon ("+" vs "−" vs neutral logo) AND the color of
+   both the icon and the letter. The 0.25rem gap between icon and Γ
+   is tight so the pair reads as a unified badge rather than two
+   adjacent independent elements. */
+.mobile-nav__status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.mobile-nav__status-icon {
+  height: 1.9rem;
+  width: 1.9rem;
+  display: block;
+  flex-shrink: 0;
+}
+
 /* Bolded capital Greek gamma. The single character carries the
-   dealer-gamma regime read at a fraction of the horizontal footprint
-   the desktop icon-plus-text pill takes, which is what lets the four
-   primary mobile-header elements (logo, Γ, RESEARCH pill, TOOLS pill)
-   share a single row inside an iPhone-class viewport. Color is set
-   inline from the regimeIndicator prop and walks through green
-   (POSITIVE GAMMA) / coral (NEGATIVE GAMMA) / amber (NEAR FLIP); the
-   pre-data fallback is the muted secondary text color so the brand
-   cluster doesn't render as an attention-grabbing colored letter
-   before the classifier resolves. */
+   dealer-gamma regime read with the same color the icon to its left
+   uses; together they form an "AI Gamma" status badge. Pre-data
+   fallback is the muted secondary text color so the brand cluster
+   doesn't render as an attention-grabbing colored letter before the
+   classifier resolves. */
 .mobile-nav__gamma {
   font-family: 'Courier New', monospace;
-  font-size: 1.7rem;
+  font-size: 1.9rem;
   font-weight: 900;
   line-height: 1;
   letter-spacing: 0;
@@ -1138,21 +1158,27 @@ body {
 
   /* Match the brand cluster height to the shrunken pill height so the
      header row reads at a single uniform stripe. The wordmark height
-     drops from 2.8rem to 2.4rem; the bolded Γ drops a corresponding
-     step so the letter and the wordmark scale in tandem and the brand
-     cluster's intrinsic width ends up around 6.5rem on the left edge
-     — leaving ~12rem of room for the two right-cluster pills inside a
+     drops from 2.8rem to 2.4rem; the status icon and bolded Γ drop a
+     corresponding step so the icon-Γ pair stays vertically centered
+     against the wordmark and the right-cluster pills, and the brand
+     cluster's intrinsic width ends up around 9rem on the left edge —
+     leaving ~12rem of room for the two right-cluster pills inside a
      360px-class viewport's content area. */
   .mobile-nav__logo {
     height: 2.4rem;
   }
 
   .mobile-nav__brand {
-    gap: 0.35rem;
+    gap: 0.45rem;
+  }
+
+  .mobile-nav__status-icon {
+    height: 1.7rem;
+    width: 1.7rem;
   }
 
   .mobile-nav__gamma {
-    font-size: 1.5rem;
+    font-size: 1.7rem;
   }
 
   .mobile-nav__dropdown {

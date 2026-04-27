@@ -200,12 +200,45 @@ export default function MobileNav({ regimeIndicator } = {}) {
             className="mobile-nav__logo"
           />
           <span
-            className="mobile-nav__gamma"
+            className="mobile-nav__status"
             title={gammaTitle}
-            style={{ color: gammaColor }}
             aria-label={regimeIndicator?.label || 'Dealer gamma regime'}
           >
-            Γ
+            {regimeIndicator?.state === 'positive' && (
+              <svg
+                viewBox="0 0 32 32"
+                className="mobile-nav__status-icon"
+                aria-hidden="true"
+              >
+                <rect width="32" height="32" fill="#000000" />
+                <rect x="12" y="2" width="8" height="28" fill="#04a29f" />
+                <rect x="2" y="12" width="28" height="8" fill="#04a29f" />
+              </svg>
+            )}
+            {regimeIndicator?.state === 'negative' && (
+              <svg
+                viewBox="0 0 32 32"
+                className="mobile-nav__status-icon"
+                aria-hidden="true"
+              >
+                <rect width="32" height="32" fill="#000000" />
+                <rect x="3" y="12" width="26" height="8" fill="#ef4444" />
+              </svg>
+            )}
+            {regimeIndicator?.state === 'neutral' && (
+              <img
+                src="/favicons/neutral/icon128.png?v=2"
+                alt=""
+                aria-hidden="true"
+                className="mobile-nav__status-icon"
+              />
+            )}
+            <span
+              className="mobile-nav__gamma"
+              style={{ color: gammaColor }}
+            >
+              Γ
+            </span>
           </span>
         </div>
       )}
