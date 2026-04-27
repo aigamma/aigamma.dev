@@ -27,14 +27,16 @@
 // so when one button is hidden (because it represents the current
 // page), the surviving buttons still alternate cleanly from blue
 // at the leftmost slot. VIX is the one exception: its tile carries
-// an explicit `variant: 'purple'` field and renders in
-// var(--accent-purple) (#BF7FFF) to match the Menu trigger and
-// VIX's documented purple identity throughout the codebase
-// (see VolatilityRiskPremium.jsx, VixHeaderProfile.jsx,
-// LevelsPanel.jsx). This pulls VIX out of the blue/white
-// alternation but does not disturb the parity of its neighbors —
-// adjacent buttons keep whatever color their visible index gave
-// them.
+// an explicit `variant: 'blue'` field, pinning it to accent-blue
+// regardless of its visible index. Without the pin, VIX would
+// flip to white whenever any of the first four buttons was
+// suppressed by the `current` filter (the renumber would push VIX
+// to an odd render index). The pin keeps VIX consistently blue
+// across every page context. Earlier revisions of this file pinned
+// VIX to var(--accent-purple) for cross-component continuity with
+// VixHeaderProfile / LevelsPanel; that purple identity was rolled
+// back in the top nav per Eric's directive while the in-page VIX
+// chrome retains its purple accents.
 //
 // Mobile uses the same full labels as desktop. An earlier version
 // of this component carried a paired desktop/mobile span splitter
@@ -59,7 +61,7 @@ const TOP_NAV_ITEMS = [
   { key: 'earnings',    href: '/earnings/',    label: 'Earnings'     },
   { key: 'scan',        href: '/scan/',        label: 'Scan'         },
   { key: 'rotations',   href: '/rotations/',   label: 'Rotations'    },
-  { key: 'vix',         href: '/vix/',         label: 'VIX',          variant: 'purple' },
+  { key: 'vix',         href: '/vix/',         label: 'VIX',          variant: 'blue' },
   { key: 'seasonality', href: '/seasonality/', label: 'Seasonality'  },
 ];
 
@@ -68,8 +70,8 @@ export default function TopNav({ current } = {}) {
   return (
     <nav className="top-nav" aria-label="Featured labs">
       {items.map((item, index) => {
-        const variant = item.variant === 'purple'
-          ? 'top-nav__item--purple'
+        const variant = item.variant
+          ? `top-nav__item--${item.variant}`
           : (index % 2 === 0 ? 'top-nav__item--blue' : 'top-nav__item--white');
         return (
           <a key={item.href} href={item.href} className={`top-nav__item ${variant}`}>
