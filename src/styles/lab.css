@@ -230,8 +230,8 @@
 
 .lab-slot-label {
   font-family: 'Courier New', monospace;
-  font-size: 0.7rem;
-  letter-spacing: 0.14em;
+  font-size: 0.9rem;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--accent-amber);
   opacity: 0.75;
