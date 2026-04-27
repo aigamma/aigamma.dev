@@ -2,10 +2,10 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 // Mobile-only navigation block. Replaces the desktop right-cluster (TopNav's
 // six promoted-lab buttons + the inline Return Home button + the MENU
-// dropdown trigger) with three larger-tap-target pills laid out right-to-
-// left in a single row at ≤768px:
+// dropdown trigger) with three larger-tap-target pills laid out left-to-
+// right in a single right-aligned row at ≤768px:
 //
-//   [HOME] [TOOLS ▾] [RESEARCH ▾]
+//   [HOME (green)] [RESEARCH (blue) ▾] [TOOLS (purple) ▾]
 //
 // HOME is suppressed on the home page itself (where it would be a no-op
 // link to the page the reader is already on). The two dropdown pills open
@@ -14,7 +14,18 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 // right edge of the .mobile-nav container so their full content shows
 // inside the viewport regardless of where the trigger pill itself ended
 // up after flex layout — anchoring per-pill would push the RESEARCH panel
-// off the right edge on narrow phones.
+// off the right edge on narrow phones (RESEARCH sits second-from-right,
+// so its panel anchored to its own trigger would clip the right edge).
+//
+// Color order — green / blue / purple — runs cool from left to right so
+// the eye reads the cluster as a continuous spectrum rather than three
+// independently colored chips. TOOLS lands in purple (the same accent
+// the desktop MENU trigger has used since the lab-rollup-pill rename)
+// because TOOLS is conceptually the descendant of the desktop Menu's
+// Tools section plus the TopNav buttons; RESEARCH lands in blue (the
+// platform's primary "you are here" / "active state" accent) because
+// the research dropdown is the gateway to the eight calibrated-model
+// research zoos that are the platform's main quantitative surface.
 //
 // The TOOLS dropdown contains the ten operational lab pages — the six
 // previously-promoted TopNav destinations (/tactical/, /earnings/, /scan/,
@@ -140,23 +151,6 @@ export default function MobileNav() {
         </a>
       )}
       <button
-        ref={toolsTriggerRef}
-        type="button"
-        className="mobile-nav__pill mobile-nav__pill--tools"
-        onClick={() => togglePanel('tools')}
-        aria-expanded={openPanel === 'tools'}
-        aria-haspopup="menu"
-        aria-label="Tools menu"
-      >
-        <span>TOOLS</span>
-        <span
-          className={`mobile-nav__caret${openPanel === 'tools' ? ' is-open' : ''}`}
-          aria-hidden="true"
-        >
-          &#x25BE;
-        </span>
-      </button>
-      <button
         ref={researchTriggerRef}
         type="button"
         className="mobile-nav__pill mobile-nav__pill--research"
@@ -173,27 +167,23 @@ export default function MobileNav() {
           &#x25BE;
         </span>
       </button>
-
-      {openPanel === 'tools' && (
-        <div
-          className="mobile-nav__dropdown mobile-nav__dropdown--tools"
-          role="menu"
-          aria-label="Tools"
+      <button
+        ref={toolsTriggerRef}
+        type="button"
+        className="mobile-nav__pill mobile-nav__pill--tools"
+        onClick={() => togglePanel('tools')}
+        aria-expanded={openPanel === 'tools'}
+        aria-haspopup="menu"
+        aria-label="Tools menu"
+      >
+        <span>TOOLS</span>
+        <span
+          className={`mobile-nav__caret${openPanel === 'tools' ? ' is-open' : ''}`}
+          aria-hidden="true"
         >
-          {TOOLS_ITEMS.map((item) => (
-            <a
-              key={item.href}
-              href={item.href}
-              className="mobile-nav__item mobile-nav__item--tools"
-              role="menuitem"
-              onClick={() => setOpenPanel(null)}
-            >
-              <span className="mobile-nav__item-path">{item.label}</span>
-              <span className="mobile-nav__item-desc">{item.desc}</span>
-            </a>
-          ))}
-        </div>
-      )}
+          &#x25BE;
+        </span>
+      </button>
 
       {openPanel === 'research' && (
         <div
@@ -223,6 +213,27 @@ export default function MobileNav() {
             <span className="mobile-nav__item-path">{ABOUT_ITEM.label}</span>
             <span className="mobile-nav__item-desc">{ABOUT_ITEM.desc}</span>
           </a>
+        </div>
+      )}
+
+      {openPanel === 'tools' && (
+        <div
+          className="mobile-nav__dropdown mobile-nav__dropdown--tools"
+          role="menu"
+          aria-label="Tools"
+        >
+          {TOOLS_ITEMS.map((item) => (
+            <a
+              key={item.href}
+              href={item.href}
+              className="mobile-nav__item mobile-nav__item--tools"
+              role="menuitem"
+              onClick={() => setOpenPanel(null)}
+            >
+              <span className="mobile-nav__item-path">{item.label}</span>
+              <span className="mobile-nav__item-desc">{item.desc}</span>
+            </a>
+          ))}
         </div>
       )}
     </div>

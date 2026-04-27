@@ -260,14 +260,14 @@ body {
    buttons + inline Return Home + MENU dropdown trigger). Renders three
    pills laid out left-to-right in a single right-aligned row at ≤768px:
 
-     [HOME (green)] [TOOLS (blue) ▾] [RESEARCH (purple) ▾]
+     [HOME (green)] [RESEARCH (blue) ▾] [TOOLS (purple) ▾]
 
    HOME is suppressed on the home page itself (where it would link to
-   the page the reader is already on). TOOLS and RESEARCH open mutually-
+   the page the reader is already on). RESEARCH and TOOLS open mutually-
    exclusive dropdown panels; both panels anchor to right: 0 of the
    .mobile-nav container so the wider RESEARCH panel still fits inside
    the viewport on phones — anchoring per-trigger would push the
-   RESEARCH panel off the right edge because the trigger is the
+   RESEARCH panel off the right edge because RESEARCH is the
    second-from-right pill.
 
    Hidden by default (display: none); the @media (max-width: 768px)
@@ -319,24 +319,24 @@ body {
   outline: none;
 }
 
-.mobile-nav__pill--tools {
-  color: var(--accent-blue);
-}
-
-.mobile-nav__pill--tools:hover,
-.mobile-nav__pill--tools:focus-visible,
-.mobile-nav__pill--tools[aria-expanded='true'] {
-  background-color: rgba(74, 158, 255, 0.12);
-  outline: none;
-}
-
 .mobile-nav__pill--research {
-  color: var(--accent-purple);
+  color: var(--accent-blue);
 }
 
 .mobile-nav__pill--research:hover,
 .mobile-nav__pill--research:focus-visible,
 .mobile-nav__pill--research[aria-expanded='true'] {
+  background-color: rgba(74, 158, 255, 0.12);
+  outline: none;
+}
+
+.mobile-nav__pill--tools {
+  color: var(--accent-purple);
+}
+
+.mobile-nav__pill--tools:hover,
+.mobile-nav__pill--tools:focus-visible,
+.mobile-nav__pill--tools[aria-expanded='true'] {
   background-color: rgba(191, 127, 255, 0.12);
   outline: none;
 }
@@ -379,22 +379,22 @@ body {
   outline: none;
 }
 
-.mobile-nav__item--tools {
-  color: var(--accent-blue);
-}
-
-.mobile-nav__item--tools:hover,
-.mobile-nav__item--tools:focus-visible {
-  background-color: rgba(74, 158, 255, 0.10);
-  border-left-color: var(--accent-blue);
-}
-
 .mobile-nav__item--research {
-  color: var(--accent-purple);
+  color: var(--accent-blue);
 }
 
 .mobile-nav__item--research:hover,
 .mobile-nav__item--research:focus-visible {
+  background-color: rgba(74, 158, 255, 0.10);
+  border-left-color: var(--accent-blue);
+}
+
+.mobile-nav__item--tools {
+  color: var(--accent-purple);
+}
+
+.mobile-nav__item--tools:hover,
+.mobile-nav__item--tools:focus-visible {
   background-color: rgba(191, 127, 255, 0.10);
   border-left-color: var(--accent-purple);
 }
