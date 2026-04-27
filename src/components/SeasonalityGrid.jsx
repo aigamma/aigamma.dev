@@ -177,7 +177,7 @@ export default function SeasonalityGrid() {
     <div className="card seasonality-card">
       <div className="seasonality-toolbar">
         <div className="seasonality-meta">
-          <span className="seasonality-ticker">SPX</span>
+          <span className="seasonality-ticker">Intraday Seasonality on SPX</span>
           {payload?.asOf && (
             <span className="seasonality-asof">Through {formatDateLabel(payload.asOf)}</span>
           )}
