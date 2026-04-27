@@ -504,19 +504,19 @@ export default function SpxVolFlip() {
         }}
       >
         <ToggleButton
-          active={showCallWall}
-          onClick={() => setShowCallWall((v) => !v)}
-          label="Call Wall"
-          activeBg="rgba(46,204,113,0.22)"
-          activeBorder="rgba(46,204,113,0.85)"
-          mobile={mobile}
-        />
-        <ToggleButton
           active={showPutWall}
           onClick={() => setShowPutWall((v) => !v)}
           label="Put Wall"
           activeBg="rgba(231,76,60,0.22)"
           activeBorder="rgba(231,76,60,0.85)"
+          mobile={mobile}
+        />
+        <ToggleButton
+          active={showCallWall}
+          onClick={() => setShowCallWall((v) => !v)}
+          label="Call Wall"
+          activeBg="rgba(46,204,113,0.22)"
+          activeBorder="rgba(46,204,113,0.85)"
           mobile={mobile}
         />
         <ResetButton visible={timeRange != null} onClick={() => setTimeRange(null)} inline />
