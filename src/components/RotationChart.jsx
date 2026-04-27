@@ -211,7 +211,26 @@ function RotationSymbolToggle({ components, hiddenSymbols, onToggle, disabled })
   );
 }
 
-function RotationChart() {
+// The chart accepts an optional symbols prop (an array of ticker
+// strings) that gets joined with commas and passed through to the
+// /api/rotations endpoint as ?symbols=AAA,BBB,... so the same chart
+// component can render either the 14 sector + theme ETFs (default,
+// /rotations page) or any other curated universe of names already
+// present in public.daily_eod (e.g. the eleven hand-picked top
+// option-volume single-name stocks on /stocks). The endpoint already
+// supports symbol filtering — see netlify/functions/rotations.mjs's
+// `symbolsFilter` block — so this is a pure pass-through.
+//
+// title overrides the section name displayed in the meta band ("Relative
+// Sector Rotations" by default; "Relative Stock Rotations" on the
+// /stocks page) so a reader doesn't see the wrong label when this
+// chart is mounted outside the sector-ETF universe. Both props default
+// to the original /rotations behavior so no caller change is needed
+// on that page.
+function RotationChart({
+  symbols = null,
+  title = 'Relative Sector Rotations',
+} = {}) {
   const chartRef = useRef(null);
   const { plotly: Plotly, error: plotlyError } = usePlotly();
   // Defaults: week step + 5-period tail. The weekly view shows the
@@ -241,13 +260,27 @@ function RotationChart() {
     });
   };
 
+  // Memoize the symbols query-string fragment so the useEffect dep
+  // array can compare a stable string instead of the array identity
+  // (a fresh [...] literal passed by the parent on every render would
+  // refetch on every parent re-render even when the symbol set is
+  // unchanged). Joined with commas to match the endpoint's `symbols`
+  // query-param format.
+  const symbolsParam = useMemo(
+    () => (symbols && symbols.length > 0 ? symbols.join(',') : ''),
+    [symbols],
+  );
+
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
     setFetchError(null);
     async function load() {
       try {
-        const res = await fetch(`/api/rotations?tail=${tail}&step=${step}`);
+        const qs = symbolsParam
+          ? `tail=${tail}&step=${step}&symbols=${encodeURIComponent(symbolsParam)}`
+          : `tail=${tail}&step=${step}`;
+        const res = await fetch(`/api/rotations?${qs}`);
         if (!res.ok) {
           // The 503 path for hour mode returns a JSON {error: '...'}
           // payload that's much more useful than a generic status code,
@@ -275,7 +308,7 @@ function RotationChart() {
     }
     load();
     return () => { cancelled = true; };
-  }, [step, tail]);
+  }, [step, tail, symbolsParam]);
 
   // Pre-compute axis ranges and trace data once payload is in hand.
   // The axis is symmetric around 100 with at least ±1.5 of half-extent
@@ -526,8 +559,9 @@ function RotationChart() {
   // below the meta band swaps between loading / error / chart depending
   // on the fetch state for the current step.
   //
-  // The .rotation-ticker title displays the section name "Relative
-  // Sector Rotations" rather than the benchmark symbol. Earlier the
+  // The .rotation-ticker title comes from the title prop (defaults to
+  // "Relative Sector Rotations"; the /stocks page passes "Relative
+  // Stock Rotations") rather than the benchmark symbol. Earlier the
   // title rendered payload.benchmark.symbol (typically "SPY"), but on
   // /rotations the SPY benchmark is implicit in the entire chart's
   // construction (every component is plotted relative to SPY) — naming
@@ -545,7 +579,7 @@ function RotationChart() {
   return (
     <div className="card rotation-card">
       <div className="rotation-meta">
-        <span className="rotation-ticker">Relative Sector Rotations</span>
+        <span className="rotation-ticker">{title}</span>
         <RotationStepToggle step={step} onChange={setStep} disabled={loading} />
         <RotationTailToggle tail={tail} onChange={setTail} disabled={loading} />
         {payload && !errorMessage && (

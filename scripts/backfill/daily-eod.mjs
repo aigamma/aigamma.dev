@@ -42,34 +42,69 @@ import process from 'node:process';
 const DEFAULT_THETA = 'http://127.0.0.1:25503';
 const DEFAULT_LOOKBACK_CALENDAR_DAYS = 730; // ~2 years
 
-// Reference universe from C:\i\ — the SPDR sector ETF family (XLB, XLC,
-// XLE, XLF, XLI, XLK, XLP, XLRE, XLU, XLV, XLY) plus three additional
-// theme ETFs that appear on the same chart (XBI biotech, XME metals
-// & mining, KWEB China internet). SPY is the benchmark.
+// Reference universe combines two sets:
+//
+//   /rotations consumers (15 symbols): SPY benchmark plus the eleven
+//   SPDR sector ETFs (XLB, XLC, XLE, XLF, XLI, XLK, XLP, XLRE, XLU,
+//   XLV, XLY) and three additional theme ETFs that appear on the
+//   reference chart at C:\i\ (XBI biotech, XME metals & mining, KWEB
+//   China internet).
+//
+//   /stocks consumers (20 symbols): the twenty top option-volume
+//   single-name stocks curated for the Stock Performance bar trio
+//   (eleven names: NVDA, TSLA, INTC, AMD, AMZN, AAPL, MU, MSFT, MSTR,
+//   META, PLTR) and the Relative Stock Rotations scatter (those eleven
+//   plus GOOGL, ORCL, NFLX, AVGO, TSM, QCOM, MRVL, HOOD, COIN). Both
+//   surfaces share the same SPY benchmark above so a reader can
+//   compare single-name relative strength against sector relative
+//   strength on the same axis convention.
 //
 // Each symbol's `kind` decides which ThetaData endpoint the fetcher
-// hits — sector ETFs are stocks, not indices, even though the chart
-// reads as a "sector rotation" view. ThetaData's index/list/symbols
-// endpoint includes a few sector-flavored entries (SP500-10 through
-// SP500-60, the GICS-coded S&P 500 sector indices) but those returned
-// no current data in probe runs and were excluded earlier; the actual
-// ETFs at /v3/stock/history/eod do have current 2026-04-24 coverage.
+// hits — sector ETFs and single-name stocks both go through
+// /v3/stock/history/eod (Stock Value tier on this account as of
+// 2026-04-25). ThetaData's index/list/symbols endpoint includes a
+// few sector-flavored entries (SP500-10 through SP500-60, the GICS-
+// coded S&P 500 sector indices) but those returned no current data
+// in probe runs and were excluded earlier; the actual ETFs at
+// /v3/stock/history/eod do have current 2026-04-24 coverage.
 const DEFAULT_SYMBOLS = [
-  { symbol: 'SPY',  kind: 'stock' },
-  { symbol: 'XBI',  kind: 'stock' },
-  { symbol: 'XLB',  kind: 'stock' },
-  { symbol: 'XLC',  kind: 'stock' },
-  { symbol: 'XLE',  kind: 'stock' },
-  { symbol: 'XLF',  kind: 'stock' },
-  { symbol: 'XLI',  kind: 'stock' },
-  { symbol: 'XLK',  kind: 'stock' },
-  { symbol: 'XLP',  kind: 'stock' },
-  { symbol: 'XLRE', kind: 'stock' },
-  { symbol: 'XLU',  kind: 'stock' },
-  { symbol: 'XLV',  kind: 'stock' },
-  { symbol: 'XLY',  kind: 'stock' },
-  { symbol: 'XME',  kind: 'stock' },
-  { symbol: 'KWEB', kind: 'stock' },
+  { symbol: 'SPY',   kind: 'stock' },
+  // Sector rotation universe (/rotations).
+  { symbol: 'XBI',   kind: 'stock' },
+  { symbol: 'XLB',   kind: 'stock' },
+  { symbol: 'XLC',   kind: 'stock' },
+  { symbol: 'XLE',   kind: 'stock' },
+  { symbol: 'XLF',   kind: 'stock' },
+  { symbol: 'XLI',   kind: 'stock' },
+  { symbol: 'XLK',   kind: 'stock' },
+  { symbol: 'XLP',   kind: 'stock' },
+  { symbol: 'XLRE',  kind: 'stock' },
+  { symbol: 'XLU',   kind: 'stock' },
+  { symbol: 'XLV',   kind: 'stock' },
+  { symbol: 'XLY',   kind: 'stock' },
+  { symbol: 'XME',   kind: 'stock' },
+  { symbol: 'KWEB',  kind: 'stock' },
+  // Single-name stock universe (/stocks).
+  { symbol: 'NVDA',  kind: 'stock' },
+  { symbol: 'TSLA',  kind: 'stock' },
+  { symbol: 'INTC',  kind: 'stock' },
+  { symbol: 'AMD',   kind: 'stock' },
+  { symbol: 'AMZN',  kind: 'stock' },
+  { symbol: 'AAPL',  kind: 'stock' },
+  { symbol: 'MU',    kind: 'stock' },
+  { symbol: 'MSFT',  kind: 'stock' },
+  { symbol: 'MSTR',  kind: 'stock' },
+  { symbol: 'META',  kind: 'stock' },
+  { symbol: 'PLTR',  kind: 'stock' },
+  { symbol: 'GOOGL', kind: 'stock' },
+  { symbol: 'ORCL',  kind: 'stock' },
+  { symbol: 'NFLX',  kind: 'stock' },
+  { symbol: 'AVGO',  kind: 'stock' },
+  { symbol: 'TSM',   kind: 'stock' },
+  { symbol: 'QCOM',  kind: 'stock' },
+  { symbol: 'MRVL',  kind: 'stock' },
+  { symbol: 'HOOD',  kind: 'stock' },
+  { symbol: 'COIN',  kind: 'stock' },
 ];
 
 function parseArgs(argv) {

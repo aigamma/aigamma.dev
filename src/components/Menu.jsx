@@ -25,6 +25,7 @@ const MENU_ITEMS = [
   { href: '/risk/',                     label: '/risk/',          desc: 'Cross-model Greeks, Vanna-Volga, second-order' },
   { href: '/rough/',                    label: '/rough/',         desc: 'Rough Bergomi and rough vol exploration' },
   { href: '/stochastic/',               label: '/stochastic/',    desc: 'Heston, SABR, LSV, rough Bergomi' },
+  { href: '/stocks/',                   label: '/stocks/',        desc: 'Top option-liquid single names, performance + rotation' },
   { href: 'https://about.aigamma.com/', label: 'About This Page' },
 ];
 

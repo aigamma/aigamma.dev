@@ -208,7 +208,27 @@ function PerformancePanel({ rows, title }) {
   );
 }
 
-export default function SectorPerformanceBars() {
+// The endpoint and title are configurable so this same component can
+// render either the eleven SPDR sector ETFs (the original use case on
+// /rotations -> /api/sector-performance) or any other 1D/1W/1M
+// horizontal-bar trio that returns the same payload shape (panels with
+// {symbol, name, value} rows). The /stocks page passes endpoint=
+// '/api/stock-performance' and title='Stock Performance' to render
+// the same chart trio for the eleven hand-curated top option-volume
+// single-name stocks. Defaults preserve the original /rotations
+// behavior so no caller change is required there.
+//
+// noun is the short label used in the loading and error placeholders
+// ("Loading sector performance…" vs "Loading stock performance…") so
+// the placeholder copy stays accurate to whatever the page is
+// rendering. Defaulting to 'sector performance' keeps the original
+// /rotations placeholder text identical to its pre-generalization
+// behavior.
+export default function SectorPerformanceBars({
+  endpoint = '/api/sector-performance',
+  title = 'Sector Performance',
+  noun = 'sector performance',
+} = {}) {
   const [payload, setPayload] = useState(null);
   const [fetchError, setFetchError] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -218,8 +238,8 @@ export default function SectorPerformanceBars() {
 
     async function load() {
       try {
-        const res = await fetch('/api/sector-performance');
-        if (!res.ok) throw new Error(`sector-performance fetch failed: ${res.status}`);
+        const res = await fetch(endpoint);
+        if (!res.ok) throw new Error(`${endpoint} fetch failed: ${res.status}`);
         const json = await res.json();
         if (!cancelled) {
           setPayload(json);
@@ -240,14 +260,14 @@ export default function SectorPerformanceBars() {
       cancelled = true;
       clearInterval(id);
     };
-  }, []);
+  }, [endpoint]);
 
   const panels = useMemo(() => payload?.panels ?? null, [payload]);
 
   if (loading) {
     return (
       <div className="card sector-bars-card">
-        <div className="sector-bars__status">Loading sector performance…</div>
+        <div className="sector-bars__status">Loading {noun}…</div>
       </div>
     );
   }
@@ -256,7 +276,7 @@ export default function SectorPerformanceBars() {
     return (
       <div className="card sector-bars-card">
         <div className="sector-bars__status sector-bars__status--error">
-          {fetchError || 'No sector performance data available.'}
+          {fetchError || `No ${noun} data available.`}
         </div>
       </div>
     );
@@ -265,7 +285,7 @@ export default function SectorPerformanceBars() {
   return (
     <div className="card sector-bars-card">
       <div className="sector-bars__meta">
-        <span className="sector-bars__title">Sector Performance</span>
+        <span className="sector-bars__title">{title}</span>
         <span className="sector-bars__asof">
           Through {formatDateLabel(payload.asOf)}
         </span>
