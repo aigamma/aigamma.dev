@@ -112,6 +112,17 @@ function flipDistAccent(dist) {
   return 'var(--accent-coral)';
 }
 
+// Term Slope (VIX3M / VIX) cell on the row-3 mobile-only slot. Above 1.0
+// is contango (longer-tenor implied vol higher than 30-day, the calm-
+// regime default), below 1.0 is backwardation (urgent near-term vol pricing
+// past the 3-month tenor). Same green/coral binary split as Dist from
+// Risk Off — the sign IS the regime.
+function termSlopeAccent(ratio) {
+  if (ratio == null) return undefined;
+  if (ratio >= 1) return '#02A29F';
+  return 'var(--accent-coral)';
+}
+
 function Stat({ label, value, accent, sub, bold, className }) {
   return (
     <div className={className} style={{ minWidth: 0 }}>
@@ -159,7 +170,7 @@ function Divider() {
 
 const ROW_GRID_CLASS = 'levels-row';
 
-export default function LevelsPanel({ levels, spotPrice, prevClose, expirationMetrics, prevExpirationMetrics, expirations, selectedExpiration, onExpirationChange, capturedAt, vrpMetric, overnightAlignment, isSynthetic, regimeIndicator }) {
+export default function LevelsPanel({ levels, spotPrice, prevClose, expirationMetrics, prevExpirationMetrics, expirations, selectedExpiration, onExpirationChange, capturedAt, vrpMetric, overnightAlignment, isSynthetic, regimeIndicator, termStructure }) {
   if (!levels) {
     return (
       <div className="card text-muted" style={{ marginBottom: '1rem' }}>
@@ -513,6 +524,17 @@ export default function LevelsPanel({ levels, spotPrice, prevClose, expirationMe
               label="25Δ Call IV"
               value={formatPercent(relevantMetric.call_25d_iv)}
               sub={ivDeltaSub(relevantMetric.call_25d_iv, prevMetric?.call_25d_iv)}
+            />
+            <Stat
+              label="Term Slope"
+              value={termStructure?.ratio != null
+                ? (termStructure.ratio >= 1 ? 'Contango' : 'Backwardation')
+                : '—'}
+              accent={termSlopeAccent(termStructure?.ratio)}
+              sub={termStructure?.ratio != null
+                ? `${Math.round(Math.abs(termStructure.ratio - 1) * 100)}% · ${termStructure.asOf}`
+                : null}
+              className="levels-term-slope--mobile"
             />
           </div>
         </>

@@ -602,6 +602,18 @@ body {
   display: none;
 }
 
+/* Term Slope (Contango / Backwardation) cell — fills the row-3 mobile gap
+   to the right of "25Δ Call IV" that the 5-into-2-column collapse used to
+   leave empty. Default-hidden at desktop widths because row 3 already has
+   exactly five children that fill the desktop 5-column grid; the mobile
+   media-query block below flips it to display: block so the row-3 mobile
+   grid becomes 6 cells in 3 even pairs (Expiration / Expected Move,
+   25Δ Put IV / ATM IV, 25Δ Call IV / Term Slope). Same default-hidden +
+   media-query-shown pattern as .levels-pc-volume--mobile. */
+.levels-term-slope--mobile {
+  display: none;
+}
+
 /* Outlined toggle row used by VolatilityRiskPremium to drive series
    visibility. Replaces the native Plotly legend on that chart so the
    toggle affordance reads at a glance — Plotly's default legend entries
@@ -1039,6 +1051,16 @@ body {
   }
 
   .levels-pc-volume--mobile {
+    display: block;
+  }
+
+  /* Mobile-only row-3 Term Slope cell. Pairs with the default-hidden
+     .levels-term-slope--mobile rule above to fill the empty cell that
+     the 5-into-2-column collapse leaves to the right of "25Δ Call IV"
+     on phone-class viewports. The Stat carries a Contango / Backwardation
+     regime word in green / coral plus the percent magnitude and as-of
+     date underneath. */
+  .levels-term-slope--mobile {
     display: block;
   }
 

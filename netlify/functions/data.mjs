@@ -239,7 +239,24 @@ export default async function handler(request) {
           'daily_gex_stats_latest'
         );
 
-    const [levelsRes, expMetricsRes, prevCloseRes, cloudBandsDateResolved, dailyGexResolved] = await Promise.all([
+    // Latest VIX and VIX3M EOD closes for the LevelsPanel Term Slope
+    // (Contango / Backwardation) cell that fills the row-3 mobile gap to the
+    // right of "25Δ Call IV". vix_family_eod is the same Massive-sourced
+    // table /api/vix-data reads from; here we only need the two most recent
+    // closes for VIX and VIX3M, ordered desc with limit 4 so a one-day-stale
+    // row on either symbol still resolves to a valid pair after the JS
+    // dedup. Skipped on prev_day fetches — the term-slope cell paints from
+    // today's payload only, and EOD readings don't change intraday so a
+    // historical-mode page never needs a different value than today's.
+    const vixTermRes = wantPrevDay
+      ? Promise.resolve(null)
+      : fetchWithTimeout(
+          `${supabaseUrl}/rest/v1/vix_family_eod?symbol=in.(VIX,VIX3M)&select=symbol,trading_date,close&order=trading_date.desc&limit=4`,
+          { headers },
+          'vix_term_structure'
+        );
+
+    const [levelsRes, expMetricsRes, prevCloseRes, cloudBandsDateResolved, dailyGexResolved, vixTermResolved] = await Promise.all([
       fetchWithTimeout(
         // Explicit projection — lists only the seven fields the wire payload
         // exposes. Prevents accidental regressions where a future widening
@@ -270,6 +287,7 @@ export default async function handler(request) {
         : Promise.resolve(null),
       cloudBandsDateRes,
       dailyGexRes,
+      vixTermRes,
     ]);
 
     if (!levelsRes.ok) throw new Error(`computed_levels query failed: ${levelsRes.status}`);
@@ -430,6 +448,34 @@ export default async function handler(request) {
       const rows = await dailyGexResolved.json();
       if (Array.isArray(rows) && rows.length > 0) dailyGex = rows[0];
     }
+
+    // Pick the latest VIX row and the latest VIX3M row out of the up-to-4
+    // rows the parallel query returned. Both symbols share a (trading_date,
+    // symbol) primary key in vix_family_eod so each trading_date carries at
+    // most one row per symbol; the desc-by-date + limit-4 query reliably
+    // surfaces the two most recent rows for each. asOf reports the older of
+    // the two dates so a stale-by-one-day reading is honestly labelled.
+    let termStructure = null;
+    if (vixTermResolved?.ok) {
+      const rows = await vixTermResolved.json();
+      if (Array.isArray(rows)) {
+        let vix = null;
+        let vix3m = null;
+        for (const r of rows) {
+          if (r.symbol === 'VIX' && !vix) vix = { close: toNum(r.close), date: r.trading_date };
+          if (r.symbol === 'VIX3M' && !vix3m) vix3m = { close: toNum(r.close), date: r.trading_date };
+          if (vix && vix3m) break;
+        }
+        if (vix?.close > 0 && vix3m?.close > 0) {
+          termStructure = {
+            vix: vix.close,
+            vix3m: vix3m.close,
+            ratio: vix3m.close / vix.close,
+            asOf: vix.date < vix3m.date ? vix.date : vix3m.date,
+          };
+        }
+      }
+    }
     let gammaIndex = null;
     let gammaIndexDate = null;
     if (dailyGex) {
@@ -529,6 +575,7 @@ export default async function handler(request) {
       levels,
       expirationMetrics,
       cloudBands,
+      termStructure,
       // cloudBandsTradingDate was shipped here as a debug/provenance field
       // pointing at the source trading_date for the cloud-band overlay
       // (useful when the overlay falls back to yesterday's bands because

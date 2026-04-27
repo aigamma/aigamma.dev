@@ -511,6 +511,7 @@ export default function App() {
               overnightAlignment={overnightAlignment}
               isSynthetic={isSynthetic}
               regimeIndicator={regimeIndicatorObj}
+              termStructure={data.termStructure}
             />
           </ErrorBoundary>
 
