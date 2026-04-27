@@ -29,14 +29,30 @@ import SectorPerformanceBars from '../src/components/SectorPerformanceBars';
 // public.daily_eod via scripts/backfill/daily-eod.mjs. The endpoint at
 // netlify/functions/rotations.mjs computes the rotation ratio and the
 // rotation momentum vs SPY and returns a tail of N daily points per
-// component. The default universe matches the reference chart at
-// C:\i\: SPY benchmark plus the eleven SPDR sector ETFs (XLB, XLC,
-// XLE, XLF, XLI, XLK, XLP, XLRE, XLU, XLV, XLY) and three additional
-// theme ETFs that appear on that chart (XBI biotech, XME metals &
-// mining, KWEB China internet). The sector-performance endpoint
+// component. The universe matches the reference chart at C:\i\: SPY
+// benchmark plus the eleven SPDR sector ETFs (XLB, XLC, XLE, XLF, XLI,
+// XLK, XLP, XLRE, XLU, XLV, XLY) and three additional theme ETFs that
+// appear on that chart (XBI biotech, XME metals & mining, KWEB China
+// internet). The sector-performance endpoint
 // (netlify/functions/sector-performance.mjs) restricts itself to the
 // eleven SPDR sectors so the bar trio matches the conventional GICS
 // framing.
+//
+// Universe is passed explicitly via the symbols prop rather than relying
+// on the rotations endpoint's "default = everything in daily_eod"
+// fallback. daily_eod is shared with /stocks/, which appended 20
+// single-name stocks (NVDA, TSLA, INTC, AMD, AMZN, AAPL, MU, MSFT,
+// MSTR, META, PLTR, GOOGL, ORCL, NFLX, AVGO, TSM, QCOM, MRVL, HOOD,
+// COIN) to the table for its own rotation chart; without an explicit
+// allowlist here, those names bleed onto the sector rotation plane and
+// dilute the GICS framing this page is built around. The /stocks page
+// already passes its own 20-stock list, so this matches the pattern of
+// "every surface that mounts RotationChart owns its own universe."
+const SECTOR_ROTATION_UNIVERSE = [
+  'XBI', 'XLB', 'XLC', 'XLE', 'XLF', 'XLI', 'XLK', 'XLP', 'XLRE',
+  'XLU', 'XLV', 'XLY', 'XME', 'KWEB',
+];
+
 export default function App() {
   return (
     <div className="app-shell lab-shell">
@@ -67,7 +83,9 @@ export default function App() {
       </section>
 
       <section className="lab-slot">
-        <ErrorBoundary><RotationChart /></ErrorBoundary>
+        <ErrorBoundary>
+          <RotationChart symbols={SECTOR_ROTATION_UNIVERSE} />
+        </ErrorBoundary>
       </section>
 
       <div className="card" style={{ padding: '1.1rem 1.25rem', margin: '1.25rem 0' }}>
