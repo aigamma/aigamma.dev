@@ -77,8 +77,8 @@ export default function App() {
             className="lab-badge"
             title="Discrete Vol · binomial · trinomial · SVI raw · SVI natural · SVI-JW · SSVI"
           >
-            <span className="lab-badge__desktop-text">Discrete Vol</span>
-            <span className="lab-badge__mobile-text">Discrete Vol</span>
+            <span className="lab-badge__desktop-text">Discrete</span>
+            <span className="lab-badge__mobile-text">Discrete</span>
           </span>
         </div>
         <TopNav />
