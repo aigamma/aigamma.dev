@@ -262,6 +262,7 @@ export default function LevelsPanel({ levels, spotPrice, prevClose, expirationMe
         }}
       >
         <div
+          className="levels-strip__brand"
           style={{
             display: 'inline-flex',
             alignItems: 'center',

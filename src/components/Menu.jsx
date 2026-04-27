@@ -78,7 +78,7 @@ const MENU_ITEMS = [
 // jumps to the first Research item, not to the "Research" header.
 const INTERACTIVE_ITEMS = MENU_ITEMS.filter((i) => i.type === 'item');
 
-export default function Menu() {
+export default function Menu({ regimeIndicator } = {}) {
   const [isOpen, setIsOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
   const triggerRef = useRef(null);
@@ -244,7 +244,7 @@ export default function Menu() {
         </div>
       )}
     </div>
-    <MobileNav />
+    <MobileNav regimeIndicator={regimeIndicator} />
     </>
   );
 }

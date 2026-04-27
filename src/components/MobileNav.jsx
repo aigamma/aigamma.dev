@@ -47,6 +47,38 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 // .menu / .top-nav / .lab-home-button--inline render normally; at
 // ≤768px, those three desktop blocks are display:none and .mobile-nav
 // becomes display:inline-flex.
+//
+// Home-page-only brand cluster. On the home page (where there is no
+// .lab-badge on the left), the .mobile-nav also carries the aigamma
+// wordmark and the dealer-gamma regime status as a left-aligned pair,
+// so the entire mobile header reads as a single row of:
+//
+//   [logo][Γ]              [RESEARCH ▾] [TOOLS ▾]
+//
+// The brand cluster used to live in the LevelsPanel card's top strip,
+// but on phone-class viewports the LevelsPanel strip stacked vertically
+// (logo+regime cluster as row 1, "Last Updated" as row 2) and pushed the
+// regime read below the navigation row. Pulling the brand into the
+// header on mobile means the wordmark and the gamma status sit on the
+// same row as RESEARCH / TOOLS so all four primary identity + nav
+// elements are visible above the fold without scrolling.
+//
+// Gamma status compresses to a bolded capital Greek gamma (Γ) in the
+// regime tone color — green for POSITIVE GAMMA, coral for NEGATIVE
+// GAMMA, amber for NEAR FLIP — instead of the desktop pill's
+// icon-plus-text chrome. The single colored letter carries the same
+// state signal (color is the regime classifier; the glyph itself is
+// the platform's identity letter, the same Γ that gives "AI Gamma" its
+// name) at a fraction of the horizontal footprint, which is what makes
+// a 4-element row fit alongside the wordmark inside a 360-430px iPhone-
+// class viewport. The desktop LevelsPanel pill keeps the icon + label
+// chrome unchanged because there is no horizontal pressure at desktop
+// widths.
+//
+// Brand cluster only renders when the parent passes a regimeIndicator
+// (the home page App.jsx does; lab page App.jsx files do not) AND the
+// detected path is /, so lab pages keep their lean pills-only mobile
+// row chrome and the lab-badge on the left side of the .lab-header.
 
 const TOOLS_ITEMS = [
   { href: '/tactical/',       label: '/tactical/',       desc: 'VRP, term structure, smile, RND, fixed-strike IV' },
@@ -78,7 +110,7 @@ const ABOUT_ITEM = {
   desc: 'Founder bio, platform notes, off-site exit',
 };
 
-export default function MobileNav() {
+export default function MobileNav({ regimeIndicator } = {}) {
   // Single dropdown-state machine: only one of TOOLS / RESEARCH can be
   // open at a time. Tapping the open pill again closes it; tapping the
   // other pill swaps. The state is plain string-or-null so the conditional
@@ -143,8 +175,40 @@ export default function MobileNav() {
     setOpenPanel((prev) => (prev === which ? null : which));
   };
 
+  // Brand cluster shows only on the home page. The Γ uses the regime tone
+  // color (green / coral / amber) and falls back to the muted brand color
+  // when no regime classification has been resolved yet (e.g., between
+  // mount and the first /api/data response). The wordmark always renders
+  // when on the home page so first-paint shows the logo even before the
+  // gamma classifier resolves.
+  const showBrand = isHome;
+  const gammaColor = regimeIndicator?.color || 'var(--text-secondary)';
+  const gammaTitle = regimeIndicator
+    ? `${regimeIndicator.label}: ${regimeIndicator.hint}`
+    : 'Dealer gamma regime';
+
   return (
-    <div className="mobile-nav" ref={containerRef}>
+    <div
+      className={`mobile-nav${showBrand ? ' mobile-nav--with-brand' : ''}`}
+      ref={containerRef}
+    >
+      {showBrand && (
+        <div className="mobile-nav__brand">
+          <img
+            src="/logo.webp"
+            alt="aigamma.com"
+            className="mobile-nav__logo"
+          />
+          <span
+            className="mobile-nav__gamma"
+            title={gammaTitle}
+            style={{ color: gammaColor }}
+            aria-label={regimeIndicator?.label || 'Dealer gamma regime'}
+          >
+            Γ
+          </span>
+        </div>
+      )}
       {!isHome && (
         <a href="/" className="mobile-nav__pill mobile-nav__pill--home" aria-label="Return Home">
           HOME

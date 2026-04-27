@@ -398,6 +398,23 @@ export default function App() {
   const isSynthetic = data && data.source === 'synthetic';
   const regime = data ? classifyGammaRegime(correctedLevels, data.spotPrice) : null;
 
+  // Regime indicator object shared between LevelsPanel (desktop pill) and
+  // Menu → MobileNav (mobile bolded Γ). Same shape, two render paths: at
+  // desktop widths LevelsPanel paints the icon-plus-text pill in its
+  // top strip; at mobile widths the LevelsPanel strip's brand cluster
+  // hides via CSS and MobileNav paints a single capital Γ in the regime
+  // tone color in the header row alongside the wordmark and the
+  // RESEARCH / TOOLS pills.
+  const regimeIndicatorObj = regime
+    ? {
+        label: regime.label,
+        hint: regime.hint,
+        text: regime.tone === 'amber' ? 'Near Flip' : 'Gamma',
+        color: REGIME_COLORS[regime.tone],
+        state: faviconStateFromRegime(regime),
+      }
+    : null;
+
   // Dynamic favicon: sync the tab icon with the same regime classification
   // that drives the on-page regime badge, so the tab chrome always agrees
   // with the dashboard header. Keyed on the primitive state string so the
@@ -437,7 +454,7 @@ export default function App() {
             captured in src/styles/theme.css beside the .site-header
             and .top-nav rules. */}
         <TopNav />
-        <Menu />
+        <Menu regimeIndicator={regimeIndicatorObj} />
       </header>
 
       {loading && (
@@ -493,26 +510,7 @@ export default function App() {
               vrpMetric={vrpMetric}
               overnightAlignment={overnightAlignment}
               isSynthetic={isSynthetic}
-              regimeIndicator={
-                regime
-                  ? {
-                      label: regime.label,
-                      hint: regime.hint,
-                      text: regime.tone === 'amber' ? 'Near Flip' : 'Gamma',
-                      color: REGIME_COLORS[regime.tone],
-                      // Pass the regime classification ('positive'/'negative'/
-                      // 'neutral') rather than a single 32px PNG path. The
-                      // pill now renders vector-crisp inline SVG for the
-                      // positive/negative plus/minus glyphs and reads the
-                      // 128px source for the neutral wordmark, so the
-                      // sizing-driven blur from the prior icon32.png-only
-                      // path is gone. The browser-tab favicon useEffect
-                      // above continues to read FAVICON_PATHS directly and
-                      // is unaffected by this change.
-                      state: faviconStateFromRegime(regime),
-                    }
-                  : null
-              }
+              regimeIndicator={regimeIndicatorObj}
             />
           </ErrorBoundary>
 

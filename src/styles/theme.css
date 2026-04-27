@@ -288,6 +288,60 @@ body {
   justify-content: flex-end;
 }
 
+/* When the home-page brand cluster is rendered inside .mobile-nav, the
+   container has to span the full row so the .mobile-nav__brand's
+   margin-right: auto has horizontal space to absorb. Without this, the
+   container falls back to its default intrinsic width (sum of children
+   + gaps), the auto margin collapses to 0, and the brand cluster sits
+   flush against the pills with no separation. Lab pages, which don't
+   render the brand cluster, keep the default flex-end layout so the
+   pills cluster on the right edge of the .lab-header alongside the
+   .lab-badge on the left without taking the whole row. */
+.mobile-nav--with-brand {
+  width: 100%;
+}
+
+/* Home-page-only brand cluster on the left edge of .mobile-nav. The
+   wordmark and the dealer-gamma regime status both live here on mobile
+   (their desktop home in the LevelsPanel top strip's brand sub-cluster
+   hides at ≤768px via the .levels-strip__brand display:none rule
+   below). margin-right: auto absorbs the empty horizontal space and
+   pushes the .mobile-nav__pill children — RESEARCH and TOOLS, plus
+   HOME on lab pages — flush against the right edge of the row, so
+   the layout reads as [logo][Γ] ─── [RESEARCH][TOOLS] without needing
+   space-between (which would gap the two pills apart). */
+.mobile-nav__brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin-right: auto;
+}
+
+.mobile-nav__logo {
+  height: 2.8rem;
+  width: auto;
+  display: block;
+}
+
+/* Bolded capital Greek gamma. The single character carries the
+   dealer-gamma regime read at a fraction of the horizontal footprint
+   the desktop icon-plus-text pill takes, which is what lets the four
+   primary mobile-header elements (logo, Γ, RESEARCH pill, TOOLS pill)
+   share a single row inside an iPhone-class viewport. Color is set
+   inline from the regimeIndicator prop and walks through green
+   (POSITIVE GAMMA) / coral (NEGATIVE GAMMA) / amber (NEAR FLIP); the
+   pre-data fallback is the muted secondary text color so the brand
+   cluster doesn't render as an attention-grabbing colored letter
+   before the classifier resolves. */
+.mobile-nav__gamma {
+  font-family: 'Courier New', monospace;
+  font-size: 1.7rem;
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: 0;
+  user-select: none;
+}
+
 .mobile-nav__pill {
   display: inline-flex;
   align-items: center;
@@ -1042,6 +1096,20 @@ body {
   .levels-strip {
     grid-template-columns: 1fr !important;
   }
+
+  /* Hide the LevelsPanel brand sub-cluster (wordmark + dealer-gamma
+     regime pill) on mobile because the same two elements have moved
+     into the .mobile-nav header row at phone widths. Keeping both
+     copies visible would print the wordmark twice on first paint —
+     once at the very top inside .mobile-nav__brand, and a second time
+     immediately below at the start of the LevelsPanel top strip — and
+     would push the freshness "Last Updated: ..." down by ~3.2rem of
+     redundant logo+pill chrome. The strip's freshness span and empty
+     placeholder span continue to render here so the strip still has a
+     line of card chrome visible above the metric grid. */
+  .levels-strip__brand {
+    display: none !important;
+  }
 }
 
 /* Phone-class second-step scaling for the mobile-nav pills so the
@@ -1066,6 +1134,25 @@ body {
     font-size: 0.82rem;
     padding: 0 0.6rem;
     letter-spacing: 0.06em;
+  }
+
+  /* Match the brand cluster height to the shrunken pill height so the
+     header row reads at a single uniform stripe. The wordmark height
+     drops from 2.8rem to 2.4rem; the bolded Γ drops a corresponding
+     step so the letter and the wordmark scale in tandem and the brand
+     cluster's intrinsic width ends up around 6.5rem on the left edge
+     — leaving ~12rem of room for the two right-cluster pills inside a
+     360px-class viewport's content area. */
+  .mobile-nav__logo {
+    height: 2.4rem;
+  }
+
+  .mobile-nav__brand {
+    gap: 0.35rem;
+  }
+
+  .mobile-nav__gamma {
+    font-size: 1.5rem;
   }
 
   .mobile-nav__dropdown {
