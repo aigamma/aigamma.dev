@@ -6,15 +6,24 @@ import TopNav from '../src/components/TopNav';
 import RotationChart from '../src/components/RotationChart';
 import SectorPerformanceBars from '../src/components/SectorPerformanceBars';
 
-// Relative Sector Rotation lab. A four-quadrant scatter that places every
-// sector ETF on a (rotation_ratio, rotation_momentum) plane with a
-// trailing tail showing where it was on each of the previous N trading
-// sessions. Components above 100 on the x-axis are leading the SPY
-// benchmark on price; components above 100 on the y-axis are gaining on
-// that lead. The four quadrants — Leading top-right, Weakening bottom-
-// right, Lagging bottom-left, Improving top-left — describe a clockwise
-// rotation that components typically traverse over weeks-to-months as
-// regimes shift.
+// Relative Sector Rotation lab. The page leads with the Sector
+// Performance bar trio (1D / 1W / 1M horizontal bars) and places the
+// four-quadrant Rotation scatter underneath it. The bars are first so
+// a reader's mousewheel and click drag-zoom land on a non-interactive
+// surface during the initial scroll; the scatter, which uses a Plotly
+// dragmode that captures wheel and click on the canvas, sits at the
+// bottom where a reader has already chosen to engage with it. This
+// layout was chosen specifically to stop the rotation chart from
+// hijacking page scroll when a reader was just trying to read past it.
+//
+// The scatter places every sector ETF on a (rotation_ratio,
+// rotation_momentum) plane with a trailing tail showing where it was
+// on each of the previous N trading sessions. Components above 100 on
+// the x-axis are leading the SPY benchmark on price; components above
+// 100 on the y-axis are gaining on that lead. The four quadrants —
+// Leading top-right, Weakening bottom-right, Lagging bottom-left,
+// Improving top-left — describe a clockwise rotation that components
+// typically traverse over weeks-to-months as regimes shift.
 //
 // Data source: ThetaData /v3/stock/history/eod (Stock Value tier) feeds
 // public.daily_eod via scripts/backfill/daily-eod.mjs. The endpoint at
@@ -24,7 +33,10 @@ import SectorPerformanceBars from '../src/components/SectorPerformanceBars';
 // C:\i\: SPY benchmark plus the eleven SPDR sector ETFs (XLB, XLC,
 // XLE, XLF, XLI, XLK, XLP, XLRE, XLU, XLV, XLY) and three additional
 // theme ETFs that appear on that chart (XBI biotech, XME metals &
-// mining, KWEB China internet).
+// mining, KWEB China internet). The sector-performance endpoint
+// (netlify/functions/sector-performance.mjs) restricts itself to the
+// eleven SPDR sectors so the bar trio matches the conventional GICS
+// framing.
 export default function App() {
   return (
     <div className="app-shell lab-shell">
@@ -51,11 +63,11 @@ export default function App() {
       </header>
 
       <section className="lab-slot">
-        <ErrorBoundary><RotationChart /></ErrorBoundary>
+        <ErrorBoundary><SectorPerformanceBars /></ErrorBoundary>
       </section>
 
       <section className="lab-slot">
-        <ErrorBoundary><SectorPerformanceBars /></ErrorBoundary>
+        <ErrorBoundary><RotationChart /></ErrorBoundary>
       </section>
 
       <div className="card" style={{ padding: '1.1rem 1.25rem', margin: '1.25rem 0' }}>
@@ -73,7 +85,19 @@ export default function App() {
         </div>
         <div style={{ color: 'var(--text-secondary)', lineHeight: 1.65, fontSize: '0.95rem' }}>
           <p style={{ margin: '0 0 0.7rem' }}>
-            <strong style={{ color: 'var(--text-primary)' }}>Top: Sector Rotations.</strong>{' '}
+            <strong style={{ color: 'var(--text-primary)' }}>Top: Sector Performance.</strong>{' '}
+            Three horizontal bar charts ranking the eleven GICS sectors
+            by total return over 1 trading day, 5 trading days (one week),
+            and 21 trading days (one month). Bars are sorted descending
+            within each panel; the top bar is the day's leader, the
+            bottom is the day's laggard. Green for positive, red for
+            negative. The same sector can lead one panel and lag another;
+            that divergence between short and long horizons is the
+            primary regime-shift signal these bars are designed to
+            surface.
+          </p>
+          <p style={{ margin: '0 0 0.7rem' }}>
+            <strong style={{ color: 'var(--text-primary)' }}>Bottom: Relative Sector Rotations.</strong>{' '}
             Each component lands on the plane at coordinates (rotation
             ratio, rotation momentum). The ratio is the component's
             relative-strength price ratio expressed as a percentage of
@@ -118,26 +142,15 @@ export default function App() {
             sessions; the larger labeled circle marks the latest
             position.
           </p>
-          <p style={{ margin: '0 0 0.7rem' }}>
-            <strong style={{ color: 'var(--text-primary)' }}>Bottom: Sector Performance.</strong>{' '}
-            Three horizontal bar charts ranking the eleven GICS sectors
-            by total return over 1 trading day, 5 trading days (one week),
-            and 21 trading days (one month). Bars are sorted descending
-            within each panel; the top bar is the day's leader, the
-            bottom is the day's laggard. Green for positive, red for
-            negative. The same sector can lead one panel and lag another;
-            that divergence between short and long horizons is the
-            primary regime-shift signal these bars are designed to
-            surface.
-          </p>
           <p style={{ margin: 0 }}>
             Source is ThetaData Stock Value EOD prices in
-            public.daily_eod. The rotation scatter's component universe
-            adds three theme ETFs to the eleven SPDR sectors (XBI biotech,
-            XME metals &amp; mining, KWEB China internet); the sector
-            bars below restrict themselves to the eleven SPDR sectors
-            (XLB, XLC, XLE, XLF, XLI, XLK, XLP, XLRE, XLU, XLV, XLY) so
-            the chart matches the conventional GICS-sector framing.
+            public.daily_eod. The sector bars at the top of the page
+            restrict themselves to the eleven SPDR sectors (XLB, XLC,
+            XLE, XLF, XLI, XLK, XLP, XLRE, XLU, XLV, XLY) so the chart
+            matches the conventional GICS-sector framing; the rotation
+            scatter underneath adds three theme ETFs to that list (XBI
+            biotech, XME metals &amp; mining, KWEB China internet) so
+            its universe matches the reference rotation chart.
           </p>
         </div>
       </div>

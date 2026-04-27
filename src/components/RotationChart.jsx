@@ -440,14 +440,27 @@ export default function RotationChart() {
   // back to a working chart without reloading the page. The chart slot
   // below the meta band swaps between loading / error / chart depending
   // on the fetch state for the current step.
-  const benchmarkSymbol = payload?.benchmark?.symbol ?? 'SPY';
+  //
+  // The .rotation-ticker title displays the section name "Relative
+  // Sector Rotations" rather than the benchmark symbol. Earlier the
+  // title rendered payload.benchmark.symbol (typically "SPY"), but on
+  // /rotations the SPY benchmark is implicit in the entire chart's
+  // construction (every component is plotted relative to SPY) — naming
+  // it as a giant page-level title was confusing because a reader
+  // glancing at the card couldn't tell whether it meant "this is a
+  // chart of SPY" (no — SPY is just the basis the components are
+  // measured against) or "this card represents the SPY benchmark"
+  // (also no — SPY appears as a single dot on the plane). Naming the
+  // section after what it shows ("Relative Sector Rotations") is
+  // unambiguous. The benchmark symbol is still implicit in the prose
+  // explainer card below.
   const stepLabel = payload?.params?.step_label || 'periods';
   const errorMessage = fetchError || plotlyError;
 
   return (
     <div className="card rotation-card">
       <div className="rotation-meta">
-        <span className="rotation-ticker">{benchmarkSymbol}</span>
+        <span className="rotation-ticker">Relative Sector Rotations</span>
         <RotationStepToggle step={step} onChange={setStep} disabled={loading} />
         <RotationTailToggle tail={tail} onChange={setTail} disabled={loading} />
         {payload && !errorMessage && (
