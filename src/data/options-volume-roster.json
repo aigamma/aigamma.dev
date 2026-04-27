@@ -1,7 +1,10 @@
 {
-  "generatedAt": "2026-04-26T05:38:27.796Z",
-  "sourceCsv": "C:\\sheets\\stocks-screener-04-26-2026 (top 250 option liquid stocks on the SPX).csv",
+  "generatedAt": "2026-04-27T04:04:07.247Z",
+  "sourceCsv": "C:\\sheets\\04-26-2026 (top 250 option volume).csv",
+  "sp500AsOf": "As of 23-Apr-2026",
   "count": 250,
+  "sp500IntersectCount": 122,
+  "anchorCount": 50,
   "sectors": {
     "Information Technology": 81,
     "Consumer Discretionary": 29,
@@ -20,1501 +23,2751 @@
       "symbol": "NVDA",
       "name": "Nvidia Corp",
       "sector": "Information Technology",
-      "optionsVolume": 6755450
+      "optionsVolume": 6755450,
+      "ovRank": 1,
+      "weight": 7.964,
+      "mcRank": 1,
+      "hype": 0,
+      "anchor": true
     },
     {
       "symbol": "TSLA",
       "name": "Tesla Inc",
       "sector": "Consumer Discretionary",
-      "optionsVolume": 3679546
+      "optionsVolume": 3679546,
+      "ovRank": 2,
+      "weight": 1.7258,
+      "mcRank": 9,
+      "hype": -7,
+      "anchor": true
     },
     {
       "symbol": "INTC",
       "name": "Intel Corp",
       "sector": "Information Technology",
-      "optionsVolume": 2443898
+      "optionsVolume": 2443898,
+      "ovRank": 3,
+      "weight": 0.5147,
+      "mcRank": 33,
+      "hype": -30,
+      "anchor": true
     },
     {
       "symbol": "AMD",
       "name": "Adv Micro Devices",
       "sector": "Information Technology",
-      "optionsVolume": 1798889
+      "optionsVolume": 1798889,
+      "ovRank": 4,
+      "weight": 0.8176,
+      "mcRank": 18,
+      "hype": -14,
+      "anchor": true
     },
     {
       "symbol": "AMZN",
       "name": "Amazon.com Inc",
       "sector": "Consumer Discretionary",
-      "optionsVolume": 1312103
+      "optionsVolume": 1312103,
+      "ovRank": 5,
+      "weight": 4.0906,
+      "mcRank": 4,
+      "hype": 1,
+      "anchor": true
     },
     {
       "symbol": "AAPL",
       "name": "Apple Inc",
       "sector": "Information Technology",
-      "optionsVolume": 1166736
+      "optionsVolume": 1166736,
+      "ovRank": 6,
+      "weight": 6.5899,
+      "mcRank": 2,
+      "hype": 4,
+      "anchor": true
     },
     {
       "symbol": "MU",
       "name": "Micron Technology",
       "sector": "Information Technology",
-      "optionsVolume": 866208
+      "optionsVolume": 866208,
+      "ovRank": 7,
+      "weight": 0.89,
+      "mcRank": 16,
+      "hype": -9,
+      "anchor": true
     },
     {
       "symbol": "MSFT",
       "name": "Microsoft Corp",
       "sector": "Information Technology",
-      "optionsVolume": 761907
+      "optionsVolume": 761907,
+      "ovRank": 8,
+      "weight": 5.068,
+      "mcRank": 3,
+      "hype": 5,
+      "anchor": true
     },
     {
       "symbol": "MSTR",
       "name": "Strategy Inc",
       "sector": "Information Technology",
-      "optionsVolume": 744442
+      "optionsVolume": 744442,
+      "ovRank": 9,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "META",
       "name": "Meta Platforms Inc",
       "sector": "Communication Services",
-      "optionsVolume": 671538
+      "optionsVolume": 671538,
+      "ovRank": 10,
+      "weight": 2.3671,
+      "mcRank": 8,
+      "hype": 2,
+      "anchor": true
     },
     {
       "symbol": "PLTR",
       "name": "Palantir Technologies Inc Cl A",
       "sector": "Information Technology",
-      "optionsVolume": 613101
+      "optionsVolume": 613101,
+      "ovRank": 11,
+      "weight": 0.5307,
+      "mcRank": 29,
+      "hype": -18,
+      "anchor": true
     },
     {
       "symbol": "GOOGL",
       "name": "Alphabet Cl A",
       "sector": "Communication Services",
-      "optionsVolume": 564505
+      "optionsVolume": 564505,
+      "ovRank": 12,
+      "weight": 3.2389,
+      "mcRank": 6,
+      "hype": 6,
+      "anchor": true
     },
     {
       "symbol": "ORCL",
       "name": "Oracle Corp",
       "sector": "Information Technology",
-      "optionsVolume": 431954
+      "optionsVolume": 431954,
+      "ovRank": 13,
+      "weight": 0.4907,
+      "mcRank": 35,
+      "hype": -22,
+      "anchor": true
     },
     {
       "symbol": "NFLX",
       "name": "Netflix Inc",
       "sector": "Communication Services",
-      "optionsVolume": 409393
+      "optionsVolume": 409393,
+      "ovRank": 14,
+      "weight": 0.6436,
+      "mcRank": 21,
+      "hype": -7,
+      "anchor": true
     },
     {
       "symbol": "CRWV",
       "name": "Coreweave Inc Cl A",
       "sector": "Information Technology",
-      "optionsVolume": 389626
+      "optionsVolume": 389626,
+      "ovRank": 15,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "SMCI",
       "name": "Super Micro Computer",
       "sector": "Information Technology",
-      "optionsVolume": 373694
+      "optionsVolume": 373694,
+      "ovRank": 16,
+      "weight": 0.0221,
+      "mcRank": 441,
+      "hype": -425,
+      "anchor": true
     },
     {
       "symbol": "IREN",
       "name": "Iren Limited",
       "sector": "Information Technology",
-      "optionsVolume": 369061
+      "optionsVolume": 369061,
+      "ovRank": 17,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "MARA",
       "name": "Mara Holdings Inc",
       "sector": "Information Technology",
-      "optionsVolume": 359167
+      "optionsVolume": 359167,
+      "ovRank": 18,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "HIMS",
       "name": "Hims & Hers Health Inc",
       "sector": "Health Care",
-      "optionsVolume": 358776
+      "optionsVolume": 358776,
+      "ovRank": 19,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "POET",
       "name": "Poet Technologies Inc",
       "sector": "Information Technology",
-      "optionsVolume": 334670
+      "optionsVolume": 334670,
+      "ovRank": 20,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "AVGO",
       "name": "Broadcom Ltd",
       "sector": "Information Technology",
-      "optionsVolume": 324776
+      "optionsVolume": 324776,
+      "ovRank": 21,
+      "weight": 3.2684,
+      "mcRank": 5,
+      "hype": 16,
+      "anchor": true
     },
     {
       "symbol": "TSM",
       "name": "Taiwan Semiconductor ADR",
       "sector": "Information Technology",
-      "optionsVolume": 318361
+      "optionsVolume": 318361,
+      "ovRank": 22,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "SNDK",
       "name": "Sandisk Corp",
       "sector": "Information Technology",
-      "optionsVolume": 272097
+      "optionsVolume": 272097,
+      "ovRank": 23,
+      "weight": 0.2264,
+      "mcRank": 80,
+      "hype": -57,
+      "anchor": true
     },
     {
       "symbol": "QCOM",
       "name": "Qualcomm Inc",
       "sector": "Information Technology",
-      "optionsVolume": 267684
+      "optionsVolume": 267684,
+      "ovRank": 24,
+      "weight": 0.2344,
+      "mcRank": 76,
+      "hype": -52,
+      "anchor": true
     },
     {
       "symbol": "MRVL",
       "name": "Marvell Technology Inc",
       "sector": "Information Technology",
-      "optionsVolume": 261445
+      "optionsVolume": 261445,
+      "ovRank": 25,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "HOOD",
       "name": "Robinhood Markets Inc Cl A",
       "sector": "Financials",
-      "optionsVolume": 260382
+      "optionsVolume": 260382,
+      "ovRank": 26,
+      "weight": 0.1082,
+      "mcRank": 174,
+      "hype": -148,
+      "anchor": true
     },
     {
       "symbol": "GOOG",
       "name": "Alphabet Cl C",
       "sector": "Communication Services",
-      "optionsVolume": 249490
+      "optionsVolume": 249490,
+      "ovRank": 27,
+      "weight": 2.5935,
+      "mcRank": 7,
+      "hype": 20,
+      "anchor": true
     },
     {
       "symbol": "SOFI",
       "name": "Sofi Technologies Inc",
       "sector": "Financials",
-      "optionsVolume": 243427
+      "optionsVolume": 243427,
+      "ovRank": 28,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "CAR",
       "name": "Avis Budget Group",
       "sector": "Industrials",
-      "optionsVolume": 241316
+      "optionsVolume": 241316,
+      "ovRank": 29,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "GME",
       "name": "Gamestop Corp",
       "sector": "Consumer Discretionary",
-      "optionsVolume": 231306
+      "optionsVolume": 231306,
+      "ovRank": 30,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "NOW",
       "name": "Servicenow Inc",
       "sector": "Information Technology",
-      "optionsVolume": 230110
+      "optionsVolume": 230110,
+      "ovRank": 31,
+      "weight": 0.1456,
+      "mcRank": 124,
+      "hype": -93,
+      "anchor": true
     },
     {
       "symbol": "ARM",
       "name": "Arm Holdings Plc ADR",
       "sector": "Information Technology",
-      "optionsVolume": 210602
+      "optionsVolume": 210602,
+      "ovRank": 32,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "ONDS",
       "name": "Ondas Inc",
       "sector": "Information Technology",
-      "optionsVolume": 203226
+      "optionsVolume": 203226,
+      "ovRank": 33,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "BYND",
       "name": "Beyond Meat Inc",
       "sector": "Consumer Staples",
-      "optionsVolume": 201262
+      "optionsVolume": 201262,
+      "ovRank": 34,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "NOK",
       "name": "Nokia Corp ADR",
       "sector": "Information Technology",
-      "optionsVolume": 198337
+      "optionsVolume": 198337,
+      "ovRank": 35,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "COIN",
       "name": "Coinbase Global Inc Cl A",
       "sector": "Financials",
-      "optionsVolume": 189803
+      "optionsVolume": 189803,
+      "ovRank": 36,
+      "weight": 0.0723,
+      "mcRank": 238,
+      "hype": -202,
+      "anchor": true
     },
     {
       "symbol": "OPEN",
       "name": "Opendoor Technologies Inc",
       "sector": "Real Estate",
-      "optionsVolume": 186772
+      "optionsVolume": 186772,
+      "ovRank": 37,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "EOSE",
       "name": "Eos Energy Enterprises Inc",
       "sector": "Industrials",
-      "optionsVolume": 186692
+      "optionsVolume": 186692,
+      "ovRank": 38,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "BMNR",
       "name": "Bitmine Immersion Technologies",
       "sector": "Information Technology",
-      "optionsVolume": 179678
+      "optionsVolume": 179678,
+      "ovRank": 39,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "NBIS",
       "name": "Nebius Group N.V. Cl A",
       "sector": "Information Technology",
-      "optionsVolume": 171987
+      "optionsVolume": 171987,
+      "ovRank": 40,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "APLD",
       "name": "Applied Digital Corp",
       "sector": "Information Technology",
-      "optionsVolume": 165662
+      "optionsVolume": 165662,
+      "ovRank": 41,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "OKLO",
       "name": "Oklo Inc",
       "sector": "Utilities",
-      "optionsVolume": 163085
+      "optionsVolume": 163085,
+      "ovRank": 42,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "PFE",
       "name": "Pfizer Inc",
       "sector": "Health Care",
-      "optionsVolume": 161774
+      "optionsVolume": 161774,
+      "ovRank": 43,
+      "weight": 0.2493,
+      "mcRank": 72,
+      "hype": -29,
+      "anchor": true
     },
     {
       "symbol": "ASTS",
       "name": "Ast Spacemobile Inc",
       "sector": "Communication Services",
-      "optionsVolume": 152563
+      "optionsVolume": 152563,
+      "ovRank": 44,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "CIFR",
       "name": "Cipher Digital Inc",
       "sector": "Information Technology",
-      "optionsVolume": 152188
+      "optionsVolume": 152188,
+      "ovRank": 45,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "BABA",
       "name": "Alibaba Group Holding ADR",
       "sector": "Consumer Discretionary",
-      "optionsVolume": 149266
+      "optionsVolume": 149266,
+      "ovRank": 46,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "WULF",
       "name": "Terawulf Inc",
       "sector": "Information Technology",
-      "optionsVolume": 145421
+      "optionsVolume": 145421,
+      "ovRank": 47,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "QS",
       "name": "Quantumscape Corp",
       "sector": "Industrials",
-      "optionsVolume": 144709
+      "optionsVolume": 144709,
+      "ovRank": 48,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "CLSK",
       "name": "Cleanspark Inc",
       "sector": "Information Technology",
-      "optionsVolume": 140962
+      "optionsVolume": 140962,
+      "ovRank": 49,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "SOUN",
       "name": "Soundhound AI Inc Cl A",
       "sector": "Information Technology",
-      "optionsVolume": 138078
+      "optionsVolume": 138078,
+      "ovRank": 50,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "RIOT",
       "name": "Riot Platforms Inc",
       "sector": "Information Technology",
-      "optionsVolume": 135369
+      "optionsVolume": 135369,
+      "ovRank": 51,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "BAC",
       "name": "Bank of America Corp",
       "sector": "Financials",
-      "optionsVolume": 132611
+      "optionsVolume": 132611,
+      "ovRank": 52,
+      "weight": 0.5718,
+      "mcRank": 26,
+      "hype": 26,
+      "anchor": true
     },
     {
       "symbol": "RIVN",
       "name": "Rivian Automotive Inc Cl A",
       "sector": "Consumer Discretionary",
-      "optionsVolume": 131556
+      "optionsVolume": 131556,
+      "ovRank": 53,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "RKLB",
       "name": "Rocket Lab Corporation",
       "sector": "Industrials",
-      "optionsVolume": 131448
+      "optionsVolume": 131448,
+      "ovRank": 54,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "VZ",
       "name": "Verizon Communications Inc",
       "sector": "Communication Services",
-      "optionsVolume": 130644
+      "optionsVolume": 130644,
+      "ovRank": 55,
+      "weight": 0.3267,
+      "mcRank": 52,
+      "hype": 3,
+      "anchor": true
     },
     {
       "symbol": "NVO",
       "name": "Novo Nordisk A/S ADR",
       "sector": "Health Care",
-      "optionsVolume": 127563
+      "optionsVolume": 127563,
+      "ovRank": 56,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "IONQ",
       "name": "Ionq Inc",
       "sector": "Information Technology",
-      "optionsVolume": 124045
+      "optionsVolume": 124045,
+      "ovRank": 57,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "UNH",
       "name": "Unitedhealth Group Inc",
       "sector": "Health Care",
-      "optionsVolume": 114784
+      "optionsVolume": 114784,
+      "ovRank": 58,
+      "weight": 0.527,
+      "mcRank": 31,
+      "hype": 27,
+      "anchor": true
     },
     {
       "symbol": "AAL",
       "name": "American Airlines Gp",
       "sector": "Industrials",
-      "optionsVolume": 114085
+      "optionsVolume": 114085,
+      "ovRank": 59,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "NVTS",
       "name": "Navitas Semiconductor Corp",
       "sector": "Information Technology",
-      "optionsVolume": 113577
+      "optionsVolume": 113577,
+      "ovRank": 60,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "LRCX",
       "name": "Lam Research Corp",
       "sector": "Information Technology",
-      "optionsVolume": 109556
+      "optionsVolume": 109556,
+      "ovRank": 61,
+      "weight": 0.5298,
+      "mcRank": 30,
+      "hype": 31,
+      "anchor": true
     },
     {
       "symbol": "WMT",
       "name": "Walmart Inc",
       "sector": "Consumer Staples",
-      "optionsVolume": 108895
+      "optionsVolume": 108895,
+      "ovRank": 62,
+      "weight": 0.9504,
+      "mcRank": 14,
+      "hype": 48,
+      "anchor": true
     },
     {
       "symbol": "CLF",
       "name": "Cleveland-Cliffs Inc",
       "sector": "Materials",
-      "optionsVolume": 104672
+      "optionsVolume": 104672,
+      "ovRank": 63,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "NKE",
       "name": "Nike Inc",
       "sector": "Consumer Discretionary",
-      "optionsVolume": 104589
+      "optionsVolume": 104589,
+      "ovRank": 64,
+      "weight": 0.0875,
+      "mcRank": 210,
+      "hype": -146,
+      "anchor": false
     },
     {
       "symbol": "CMCSA",
       "name": "Comcast Corp A",
       "sector": "Communication Services",
-      "optionsVolume": 102156
+      "optionsVolume": 102156,
+      "ovRank": 65,
+      "weight": 0.1862,
+      "mcRank": 96,
+      "hype": -31,
+      "anchor": false
     },
     {
       "symbol": "MRNA",
       "name": "Moderna Inc",
       "sector": "Health Care",
-      "optionsVolume": 101624
+      "optionsVolume": 101624,
+      "ovRank": 66,
+      "weight": 0.0302,
+      "mcRank": 397,
+      "hype": -331,
+      "anchor": false
     },
     {
       "symbol": "BULL",
       "name": "Webull Corp Cl A",
       "sector": "Financials",
-      "optionsVolume": 98466
+      "optionsVolume": 98466,
+      "ovRank": 67,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "AAOI",
       "name": "Applied Optoelect",
       "sector": "Information Technology",
-      "optionsVolume": 98090
+      "optionsVolume": 98090,
+      "ovRank": 68,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "FCX",
       "name": "Freeport-Mcmoran Inc",
       "sector": "Materials",
-      "optionsVolume": 95996
+      "optionsVolume": 95996,
+      "ovRank": 69,
+      "weight": 0.1454,
+      "mcRank": 125,
+      "hype": -56,
+      "anchor": false
     },
     {
       "symbol": "TTD",
       "name": "Trade Desk Inc",
       "sector": "Communication Services",
-      "optionsVolume": 91747
+      "optionsVolume": 91747,
+      "ovRank": 70,
+      "weight": 0.0164,
+      "mcRank": 473,
+      "hype": -403,
+      "anchor": false
     },
     {
       "symbol": "SNAP",
       "name": "Snap Inc",
       "sector": "Communication Services",
-      "optionsVolume": 91316
+      "optionsVolume": 91316,
+      "ovRank": 71,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "LCID",
       "name": "Lucid Group Inc",
       "sector": "Consumer Discretionary",
-      "optionsVolume": 90174
+      "optionsVolume": 90174,
+      "ovRank": 72,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "IBM",
       "name": "Intl Business Machines",
       "sector": "Information Technology",
-      "optionsVolume": 87890
+      "optionsVolume": 87890,
+      "ovRank": 73,
+      "weight": 0.3544,
+      "mcRank": 48,
+      "hype": 25,
+      "anchor": true
     },
     {
       "symbol": "OXY",
       "name": "Occidental Petroleum Corp",
       "sector": "Energy",
-      "optionsVolume": 86546
+      "optionsVolume": 86546,
+      "ovRank": 74,
+      "weight": 0.0682,
+      "mcRank": 249,
+      "hype": -175,
+      "anchor": false
     },
     {
       "symbol": "RGTI",
       "name": "Rigetti Computing Inc",
       "sector": "Information Technology",
-      "optionsVolume": 85872
+      "optionsVolume": 85872,
+      "ovRank": 75,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "OGN",
       "name": "Organon & Co.",
       "sector": "Health Care",
-      "optionsVolume": 85864
+      "optionsVolume": 85864,
+      "ovRank": 76,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "KO",
       "name": "Coca-Cola Company",
       "sector": "Consumer Staples",
-      "optionsVolume": 84909
+      "optionsVolume": 84909,
+      "ovRank": 77,
+      "weight": 0.4846,
+      "mcRank": 37,
+      "hype": 40,
+      "anchor": true
     },
     {
       "symbol": "CRCL",
       "name": "Circle Internet Group Inc Cl A",
       "sector": "Financials",
-      "optionsVolume": 82155
+      "optionsVolume": 82155,
+      "ovRank": 78,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "CSCO",
       "name": "Cisco Systems Inc",
       "sector": "Information Technology",
-      "optionsVolume": 80025
+      "optionsVolume": 80025,
+      "ovRank": 79,
+      "weight": 0.5748,
+      "mcRank": 25,
+      "hype": 54,
+      "anchor": true
     },
     {
       "symbol": "BA",
       "name": "Boeing Company",
       "sector": "Industrials",
-      "optionsVolume": 78062
+      "optionsVolume": 78062,
+      "ovRank": 80,
+      "weight": 0.3021,
+      "mcRank": 57,
+      "hype": 23,
+      "anchor": true
     },
     {
       "symbol": "FRMI",
       "name": "Fermi Inc",
       "sector": "Utilities",
-      "optionsVolume": 77061
+      "optionsVolume": 77061,
+      "ovRank": 81,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "PLUG",
       "name": "Plug Power Inc",
       "sector": "Industrials",
-      "optionsVolume": 76584
+      "optionsVolume": 76584,
+      "ovRank": 82,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "SNOW",
       "name": "Snowflake Inc Cl A",
       "sector": "Information Technology",
-      "optionsVolume": 75527
+      "optionsVolume": 75527,
+      "ovRank": 83,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "PYPL",
       "name": "Paypal Holdings",
       "sector": "Financials",
-      "optionsVolume": 75226
+      "optionsVolume": 75226,
+      "ovRank": 84,
+      "weight": 0.075,
+      "mcRank": 233,
+      "hype": -149,
+      "anchor": false
     },
     {
       "symbol": "SMR",
       "name": "Nuscale Power Corp",
       "sector": "Utilities",
-      "optionsVolume": 74723
+      "optionsVolume": 74723,
+      "ovRank": 85,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "SLB",
       "name": "Slb Limited",
       "sector": "Energy",
-      "optionsVolume": 73359
+      "optionsVolume": 73359,
+      "ovRank": 86,
+      "weight": 0.1345,
+      "mcRank": 136,
+      "hype": -50,
+      "anchor": false
     },
     {
       "symbol": "PG",
       "name": "Procter & Gamble Company",
       "sector": "Consumer Staples",
-      "optionsVolume": 72837
+      "optionsVolume": 72837,
+      "ovRank": 87,
+      "weight": 0.5515,
+      "mcRank": 28,
+      "hype": 59,
+      "anchor": true
     },
     {
       "symbol": "GLW",
       "name": "Corning Inc",
       "sector": "Information Technology",
-      "optionsVolume": 72715
+      "optionsVolume": 72715,
+      "ovRank": 88,
+      "weight": 0.2176,
+      "mcRank": 84,
+      "hype": 4,
+      "anchor": false
     },
     {
       "symbol": "XOM",
       "name": "Exxon Mobil Corp",
       "sector": "Energy",
-      "optionsVolume": 72267
+      "optionsVolume": 72267,
+      "ovRank": 89,
+      "weight": 1.033,
+      "mcRank": 13,
+      "hype": 76,
+      "anchor": true
     },
     {
       "symbol": "CRM",
       "name": "Salesforce Inc",
       "sector": "Information Technology",
-      "optionsVolume": 71854
+      "optionsVolume": 71854,
+      "ovRank": 90,
+      "weight": 0.2664,
+      "mcRank": 66,
+      "hype": 24,
+      "anchor": false
     },
     {
       "symbol": "PBR",
       "name": "Petroleo Brasileiro S.A. Petrobras ADR",
       "sector": "Energy",
-      "optionsVolume": 71588
+      "optionsVolume": 71588,
+      "ovRank": 91,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "F",
       "name": "Ford Motor Company",
       "sector": "Consumer Discretionary",
-      "optionsVolume": 71312
+      "optionsVolume": 71312,
+      "ovRank": 92,
+      "weight": 0.0803,
+      "mcRank": 220,
+      "hype": -128,
+      "anchor": false
     },
     {
       "symbol": "UBER",
       "name": "Uber Technologies Inc",
       "sector": "Industrials",
-      "optionsVolume": 70267
+      "optionsVolume": 70267,
+      "ovRank": 93,
+      "weight": 0.2522,
+      "mcRank": 69,
+      "hype": 24,
+      "anchor": false
     },
     {
       "symbol": "NIO",
       "name": "Nio Inc ADR",
       "sector": "Consumer Discretionary",
-      "optionsVolume": 69026
+      "optionsVolume": 69026,
+      "ovRank": 94,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "AMC",
       "name": "AMC Entertainment Holdings",
       "sector": "Communication Services",
-      "optionsVolume": 67968
+      "optionsVolume": 67968,
+      "ovRank": 95,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "BE",
       "name": "Bloom Energy Corp Cl A",
       "sector": "Industrials",
-      "optionsVolume": 64508
+      "optionsVolume": 64508,
+      "ovRank": 96,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "QBTS",
       "name": "D-Wave Quantum Inc",
       "sector": "Information Technology",
-      "optionsVolume": 63159
+      "optionsVolume": 63159,
+      "ovRank": 97,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "CCL",
       "name": "Carnival Corp",
       "sector": "Consumer Discretionary",
-      "optionsVolume": 61833
+      "optionsVolume": 61833,
+      "ovRank": 98,
+      "weight": 0.0503,
+      "mcRank": 296,
+      "hype": -198,
+      "anchor": false
     },
     {
       "symbol": "HPE",
       "name": "Hewlett Packard Enterprise Comp",
       "sector": "Information Technology",
-      "optionsVolume": 61758
+      "optionsVolume": 61758,
+      "ovRank": 99,
+      "weight": 0.0607,
+      "mcRank": 269,
+      "hype": -170,
+      "anchor": false
     },
     {
       "symbol": "C",
       "name": "Citigroup Inc",
       "sector": "Financials",
-      "optionsVolume": 59572
+      "optionsVolume": 59572,
+      "ovRank": 100,
+      "weight": 0.3684,
+      "mcRank": 47,
+      "hype": 53,
+      "anchor": true
     },
     {
       "symbol": "LLY",
       "name": "Eli Lilly and Company",
       "sector": "Health Care",
-      "optionsVolume": 58682
+      "optionsVolume": 58682,
+      "ovRank": 101,
+      "weight": 1.194,
+      "mcRank": 12,
+      "hype": 89,
+      "anchor": true
     },
     {
       "symbol": "FIG",
       "name": "Figma Inc Cl A",
       "sector": "Information Technology",
-      "optionsVolume": 58139
+      "optionsVolume": 58139,
+      "ovRank": 102,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "CRML",
       "name": "Critical Metals Corp",
       "sector": "Materials",
-      "optionsVolume": 56852
+      "optionsVolume": 56852,
+      "ovRank": 103,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "PATH",
       "name": "Uipath Inc Cl A",
       "sector": "Information Technology",
-      "optionsVolume": 54816
+      "optionsVolume": 54816,
+      "ovRank": 104,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "AMAT",
       "name": "Applied Materials",
       "sector": "Information Technology",
-      "optionsVolume": 54142
+      "optionsVolume": 54142,
+      "ovRank": 105,
+      "weight": 0.5261,
+      "mcRank": 32,
+      "hype": 73,
+      "anchor": true
     },
     {
       "symbol": "CORZ",
       "name": "Core Scientific Inc",
       "sector": "Information Technology",
-      "optionsVolume": 53835
+      "optionsVolume": 53835,
+      "ovRank": 106,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "JPM",
       "name": "JP Morgan Chase & Company",
       "sector": "Financials",
-      "optionsVolume": 52298
+      "optionsVolume": 52298,
+      "ovRank": 107,
+      "weight": 1.3799,
+      "mcRank": 11,
+      "hype": 96,
+      "anchor": true
     },
     {
       "symbol": "BB",
       "name": "Blackberry Ltd",
       "sector": "Information Technology",
-      "optionsVolume": 51866
+      "optionsVolume": 51866,
+      "ovRank": 108,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "TXN",
       "name": "Texas Instruments",
       "sector": "Information Technology",
-      "optionsVolume": 51342
+      "optionsVolume": 51342,
+      "ovRank": 109,
+      "weight": 0.4202,
+      "mcRank": 41,
+      "hype": 68,
+      "anchor": true
     },
     {
       "symbol": "CVX",
       "name": "Chevron Corp",
       "sector": "Energy",
-      "optionsVolume": 50623
+      "optionsVolume": 50623,
+      "ovRank": 110,
+      "weight": 0.5775,
+      "mcRank": 24,
+      "hype": 86,
+      "anchor": true
     },
     {
       "symbol": "NEM",
       "name": "Newmont Mining Corp",
       "sector": "Materials",
-      "optionsVolume": 50048
+      "optionsVolume": 50048,
+      "ovRank": 111,
+      "weight": 0.1992,
+      "mcRank": 91,
+      "hype": 20,
+      "anchor": false
     },
     {
       "symbol": "USAR",
       "name": "USA Rare Earth Inc",
       "sector": "Energy",
-      "optionsVolume": 49653
+      "optionsVolume": 49653,
+      "ovRank": 112,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "GE",
       "name": "GE Aerospace",
       "sector": "Industrials",
-      "optionsVolume": 49608
+      "optionsVolume": 49608,
+      "ovRank": 113,
+      "weight": 0.4859,
+      "mcRank": 36,
+      "hype": 77,
+      "anchor": true
     },
     {
       "symbol": "XYZ",
       "name": "Block Inc",
       "sector": "Financials",
-      "optionsVolume": 48893
+      "optionsVolume": 48893,
+      "ovRank": 114,
+      "weight": 0.0633,
+      "mcRank": 262,
+      "hype": -148,
+      "anchor": false
     },
     {
       "symbol": "VRT",
       "name": "Vertiv Holdings Llc.",
       "sector": "Industrials",
-      "optionsVolume": 47956
+      "optionsVolume": 47956,
+      "ovRank": 115,
+      "weight": 0.2021,
+      "mcRank": 88,
+      "hype": 27,
+      "anchor": false
     },
     {
       "symbol": "ADBE",
       "name": "Adobe Systems Inc",
       "sector": "Information Technology",
-      "optionsVolume": 47863
+      "optionsVolume": 47863,
+      "ovRank": 116,
+      "weight": 0.1609,
+      "mcRank": 114,
+      "hype": 2,
+      "anchor": false
     },
     {
       "symbol": "CDNS",
       "name": "Cadence Design Sys",
       "sector": "Information Technology",
-      "optionsVolume": 47443
+      "optionsVolume": 47443,
+      "ovRank": 117,
+      "weight": 0.1406,
+      "mcRank": 132,
+      "hype": -15,
+      "anchor": false
     },
     {
       "symbol": "SBET",
       "name": "Sharplink Inc",
       "sector": "Consumer Discretionary",
-      "optionsVolume": 46648
+      "optionsVolume": 46648,
+      "ovRank": 118,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "BRK.B",
       "name": "Berkshire Hathaway Cl B",
       "sector": "Financials",
-      "optionsVolume": 46095
+      "optionsVolume": 46095,
+      "ovRank": 119,
+      "weight": 1.4168,
+      "mcRank": 10,
+      "hype": 109,
+      "anchor": true
     },
     {
       "symbol": "RBLX",
       "name": "Roblox Corp Cl A",
       "sector": "Communication Services",
-      "optionsVolume": 45868
+      "optionsVolume": 45868,
+      "ovRank": 120,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "AI",
       "name": "C3.Ai Inc Cl A",
       "sector": "Information Technology",
-      "optionsVolume": 45790
+      "optionsVolume": 45790,
+      "ovRank": 121,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "CRWD",
       "name": "Crowdstrike Holdings Inc",
       "sector": "Information Technology",
-      "optionsVolume": 44146
+      "optionsVolume": 44146,
+      "ovRank": 122,
+      "weight": 0.1845,
+      "mcRank": 99,
+      "hype": 23,
+      "anchor": false
     },
     {
       "symbol": "LULU",
       "name": "Lululemon Athletica",
       "sector": "Consumer Discretionary",
-      "optionsVolume": 43740
+      "optionsVolume": 43740,
+      "ovRank": 123,
+      "weight": 0.0252,
+      "mcRank": 425,
+      "hype": -302,
+      "anchor": false
     },
     {
       "symbol": "UAL",
       "name": "United Airlines Holdings Inc",
       "sector": "Industrials",
-      "optionsVolume": 42898
+      "optionsVolume": 42898,
+      "ovRank": 124,
+      "weight": 0.0486,
+      "mcRank": 307,
+      "hype": -183,
+      "anchor": false
     },
     {
       "symbol": "APP",
       "name": "Applovin Corp Cl A",
       "sector": "Information Technology",
-      "optionsVolume": 42761
+      "optionsVolume": 42761,
+      "ovRank": 125,
+      "weight": 0.2022,
+      "mcRank": 87,
+      "hype": 38,
+      "anchor": false
     },
     {
       "symbol": "GLXY",
       "name": "Galaxy Digital Holdings",
       "sector": "Financials",
-      "optionsVolume": 42747
+      "optionsVolume": 42747,
+      "ovRank": 126,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "LUNR",
       "name": "Intuitive Machines Inc",
       "sector": "Industrials",
-      "optionsVolume": 42554
+      "optionsVolume": 42554,
+      "ovRank": 127,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "AG",
       "name": "First Majestic Silver",
       "sector": "Materials",
-      "optionsVolume": 42543
+      "optionsVolume": 42543,
+      "ovRank": 128,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "GM",
       "name": "General Motors Company",
       "sector": "Consumer Discretionary",
-      "optionsVolume": 42111
+      "optionsVolume": 42111,
+      "ovRank": 129,
+      "weight": 0.1163,
+      "mcRank": 162,
+      "hype": -33,
+      "anchor": false
     },
     {
       "symbol": "ALAB",
       "name": "Astera Labs Inc",
       "sector": "Information Technology",
-      "optionsVolume": 42076
+      "optionsVolume": 42076,
+      "ovRank": 130,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "WOLF",
       "name": "Wolfspeed Inc",
       "sector": "Information Technology",
-      "optionsVolume": 41742
+      "optionsVolume": 41742,
+      "ovRank": 131,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "DELL",
       "name": "Dell Technologies Inc",
       "sector": "Information Technology",
-      "optionsVolume": 41622
+      "optionsVolume": 41622,
+      "ovRank": 132,
+      "weight": 0.1033,
+      "mcRank": 185,
+      "hype": -53,
+      "anchor": false
     },
     {
       "symbol": "RDW",
       "name": "Redwire Corp",
       "sector": "Industrials",
-      "optionsVolume": 41170
+      "optionsVolume": 41170,
+      "ovRank": 133,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "MBLY",
       "name": "Mobileye Global Inc Cl A",
       "sector": "Information Technology",
-      "optionsVolume": 40849
+      "optionsVolume": 40849,
+      "ovRank": 134,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "WFC",
       "name": "Wells Fargo & Company",
       "sector": "Financials",
-      "optionsVolume": 40735
+      "optionsVolume": 40735,
+      "ovRank": 135,
+      "weight": 0.4085,
+      "mcRank": 42,
+      "hype": 93,
+      "anchor": true
     },
     {
       "symbol": "PANW",
       "name": "Palo Alto Networks Inc",
       "sector": "Information Technology",
-      "optionsVolume": 40624
+      "optionsVolume": 40624,
+      "ovRank": 136,
+      "weight": 0.2298,
+      "mcRank": 78,
+      "hype": 58,
+      "anchor": false
     },
     {
       "symbol": "PTON",
       "name": "Peloton Interactive Inc",
       "sector": "Consumer Discretionary",
-      "optionsVolume": 40181
+      "optionsVolume": 40181,
+      "ovRank": 137,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "T",
       "name": "AT&T Inc",
       "sector": "Communication Services",
-      "optionsVolume": 40180
+      "optionsVolume": 40180,
+      "ovRank": 138,
+      "weight": 0.3056,
+      "mcRank": 55,
+      "hype": 83,
+      "anchor": false
     },
     {
       "symbol": "SCHW",
       "name": "The Charles Schwab Corp",
       "sector": "Financials",
-      "optionsVolume": 40015
+      "optionsVolume": 40015,
+      "ovRank": 139,
+      "weight": 0.2441,
+      "mcRank": 74,
+      "hype": 65,
+      "anchor": false
     },
     {
       "symbol": "WDC",
       "name": "Western Digital Corp",
       "sector": "Information Technology",
-      "optionsVolume": 39958
+      "optionsVolume": 39958,
+      "ovRank": 140,
+      "weight": 0.2241,
+      "mcRank": 81,
+      "hype": 59,
+      "anchor": false
     },
     {
       "symbol": "DAL",
       "name": "Delta Air Lines Inc",
       "sector": "Industrials",
-      "optionsVolume": 39698
+      "optionsVolume": 39698,
+      "ovRank": 141,
+      "weight": 0.073,
+      "mcRank": 236,
+      "hype": -95,
+      "anchor": false
     },
     {
       "symbol": "OWL",
       "name": "Blue Owl Capital Inc",
       "sector": "Financials",
-      "optionsVolume": 39332
+      "optionsVolume": 39332,
+      "ovRank": 142,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "CHTR",
       "name": "Charter Communications Inc",
       "sector": "Communication Services",
-      "optionsVolume": 39191
+      "optionsVolume": 39191,
+      "ovRank": 143,
+      "weight": 0.034,
+      "mcRank": 371,
+      "hype": -228,
+      "anchor": false
     },
     {
       "symbol": "WBD",
       "name": "Discovery Inc Series A",
       "sector": "Communication Services",
-      "optionsVolume": 39082
+      "optionsVolume": 39082,
+      "ovRank": 144,
+      "weight": 0.1097,
+      "mcRank": 169,
+      "hype": -25,
+      "anchor": false
     },
     {
       "symbol": "LITE",
       "name": "Lumentum Holdings",
       "sector": "Information Technology",
-      "optionsVolume": 38664
+      "optionsVolume": 38664,
+      "ovRank": 145,
+      "weight": 0.0993,
+      "mcRank": 193,
+      "hype": -48,
+      "anchor": false
     },
     {
       "symbol": "PDD",
       "name": "Pdd Holdings Inc",
       "sector": "Consumer Discretionary",
-      "optionsVolume": 37778
+      "optionsVolume": 37778,
+      "ovRank": 146,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "DOW",
       "name": "Dow Inc",
       "sector": "Materials",
-      "optionsVolume": 37726
+      "optionsVolume": 37726,
+      "ovRank": 147,
+      "weight": 0.0453,
+      "mcRank": 318,
+      "hype": -171,
+      "anchor": false
     },
     {
       "symbol": "SIRI",
       "name": "Siriusxm Holdings Inc",
       "sector": "Communication Services",
-      "optionsVolume": 37626
+      "optionsVolume": 37626,
+      "ovRank": 148,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "RKT",
       "name": "Rocket Companies Inc Cl A",
       "sector": "Financials",
-      "optionsVolume": 37080
+      "optionsVolume": 37080,
+      "ovRank": 149,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "SHOP",
       "name": "Shopify Inc",
       "sector": "Information Technology",
-      "optionsVolume": 36999
+      "optionsVolume": 36999,
+      "ovRank": 150,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "XPEV",
       "name": "Xpeng Inc ADR",
       "sector": "Consumer Discretionary",
-      "optionsVolume": 36616
+      "optionsVolume": 36616,
+      "ovRank": 151,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "DKNG",
       "name": "Draftkings Inc",
       "sector": "Consumer Discretionary",
-      "optionsVolume": 36427
+      "optionsVolume": 36427,
+      "ovRank": 152,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "U",
       "name": "Unity Software Inc",
       "sector": "Communication Services",
-      "optionsVolume": 36055
+      "optionsVolume": 36055,
+      "ovRank": 153,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "ANET",
       "name": "Arista Networks Inc",
       "sector": "Information Technology",
-      "optionsVolume": 35977
+      "optionsVolume": 35977,
+      "ovRank": 154,
+      "weight": 0.2923,
+      "mcRank": 59,
+      "hype": 95,
+      "anchor": false
     },
     {
       "symbol": "ON",
       "name": "On Semiconductor",
       "sector": "Information Technology",
-      "optionsVolume": 35752
+      "optionsVolume": 35752,
+      "ovRank": 155,
+      "weight": 0.0629,
+      "mcRank": 263,
+      "hype": -108,
+      "anchor": false
     },
     {
       "symbol": "BTDR",
       "name": "Bitdeer Technologies Group",
       "sector": "Information Technology",
-      "optionsVolume": 35228
+      "optionsVolume": 35228,
+      "ovRank": 156,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "LYFT",
       "name": "Lyft Inc Cl A",
       "sector": "Industrials",
-      "optionsVolume": 35204
+      "optionsVolume": 35204,
+      "ovRank": 157,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "IBRX",
       "name": "Immunitybio Inc",
       "sector": "Health Care",
-      "optionsVolume": 35191
+      "optionsVolume": 35191,
+      "ovRank": 158,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "CCJ",
       "name": "Cameco Corp",
       "sector": "Energy",
-      "optionsVolume": 35130
+      "optionsVolume": 35130,
+      "ovRank": 159,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "NU",
       "name": "Nu Holdings Ltd Cl A",
       "sector": "Financials",
-      "optionsVolume": 34778
+      "optionsVolume": 34778,
+      "ovRank": 160,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "AXTI",
       "name": "Axt Inc",
       "sector": "Information Technology",
-      "optionsVolume": 34730
+      "optionsVolume": 34730,
+      "ovRank": 161,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "CMG",
       "name": "Chipotle Mexican Grill",
       "sector": "Consumer Discretionary",
-      "optionsVolume": 34651
+      "optionsVolume": 34651,
+      "ovRank": 162,
+      "weight": 0.0723,
+      "mcRank": 239,
+      "hype": -77,
+      "anchor": false
     },
     {
       "symbol": "TLRY",
       "name": "Tilray Brands Inc",
       "sector": "Health Care",
-      "optionsVolume": 34443
+      "optionsVolume": 34443,
+      "ovRank": 163,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "MDB",
       "name": "Mongodb Inc Cl A",
       "sector": "Information Technology",
-      "optionsVolume": 34371
+      "optionsVolume": 34371,
+      "ovRank": 164,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "VST",
       "name": "Vistra Energy Corp",
       "sector": "Utilities",
-      "optionsVolume": 33974
+      "optionsVolume": 33974,
+      "ovRank": 165,
+      "weight": 0.0823,
+      "mcRank": 216,
+      "hype": -51,
+      "anchor": false
     },
     {
       "symbol": "BBAI",
       "name": "Bigbear.Ai Holdings Inc",
       "sector": "Information Technology",
-      "optionsVolume": 33949
+      "optionsVolume": 33949,
+      "ovRank": 166,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "GS",
       "name": "Goldman Sachs Group",
       "sector": "Financials",
-      "optionsVolume": 33494
+      "optionsVolume": 33494,
+      "ovRank": 167,
+      "weight": 0.4583,
+      "mcRank": 39,
+      "hype": 128,
+      "anchor": true
     },
     {
       "symbol": "VG",
       "name": "Venture Global Inc Cl A",
       "sector": "Energy",
-      "optionsVolume": 33187
+      "optionsVolume": 33187,
+      "ovRank": 168,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "COST",
       "name": "Costco Wholesale",
       "sector": "Consumer Staples",
-      "optionsVolume": 32842
+      "optionsVolume": 32842,
+      "ovRank": 169,
+      "weight": 0.7395,
+      "mcRank": 19,
+      "hype": 150,
+      "anchor": true
     },
     {
       "symbol": "CVNA",
       "name": "Carvana Company Cl A",
       "sector": "Consumer Discretionary",
-      "optionsVolume": 32796
+      "optionsVolume": 32796,
+      "ovRank": 170,
+      "weight": 0.0939,
+      "mcRank": 201,
+      "hype": -31,
+      "anchor": false
     },
     {
       "symbol": "RTX",
       "name": "Rtx Corp",
       "sector": "Industrials",
-      "optionsVolume": 32250
+      "optionsVolume": 32250,
+      "ovRank": 171,
+      "weight": 0.3949,
+      "mcRank": 43,
+      "hype": 128,
+      "anchor": true
     },
     {
       "symbol": "ACHR",
       "name": "Archer Aviation Inc",
       "sector": "Industrials",
-      "optionsVolume": 32159
+      "optionsVolume": 32159,
+      "ovRank": 172,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "AGNC",
       "name": "Agnc Investment Corp",
       "sector": "Real Estate",
-      "optionsVolume": 31941
+      "optionsVolume": 31941,
+      "ovRank": 173,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "DIS",
       "name": "Walt Disney Company",
       "sector": "Communication Services",
-      "optionsVolume": 31764
+      "optionsVolume": 31764,
+      "ovRank": 174,
+      "weight": 0.3012,
+      "mcRank": 58,
+      "hype": 116,
+      "anchor": false
     },
     {
       "symbol": "GEV",
       "name": "GE Vernova Inc",
       "sector": "Industrials",
-      "optionsVolume": 30915
+      "optionsVolume": 30915,
+      "ovRank": 175,
+      "weight": 0.5084,
+      "mcRank": 34,
+      "hype": 141,
+      "anchor": true
     },
     {
       "symbol": "FTNT",
       "name": "Fortinet Inc",
       "sector": "Information Technology",
-      "optionsVolume": 30807
+      "optionsVolume": 30807,
+      "ovRank": 176,
+      "weight": 0.0861,
+      "mcRank": 211,
+      "hype": -35,
+      "anchor": false
     },
     {
       "symbol": "HAL",
       "name": "Halliburton Company",
       "sector": "Energy",
-      "optionsVolume": 30609
+      "optionsVolume": 30609,
+      "ovRank": 177,
+      "weight": 0.0543,
+      "mcRank": 282,
+      "hype": -105,
+      "anchor": false
     },
     {
       "symbol": "WU",
       "name": "Western Union Company",
       "sector": "Financials",
-      "optionsVolume": 30491
+      "optionsVolume": 30491,
+      "ovRank": 178,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "MP",
       "name": "MP Materials Corp",
       "sector": "Materials",
-      "optionsVolume": 29783
+      "optionsVolume": 29783,
+      "ovRank": 179,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "JOBY",
       "name": "Joby Aviation Inc",
       "sector": "Industrials",
-      "optionsVolume": 28933
+      "optionsVolume": 28933,
+      "ovRank": 180,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "EQT",
       "name": "Eqt Corp",
       "sector": "Energy",
-      "optionsVolume": 28889
+      "optionsVolume": 28889,
+      "ovRank": 181,
+      "weight": 0.0605,
+      "mcRank": 270,
+      "hype": -89,
+      "anchor": false
     },
     {
       "symbol": "BIDU",
       "name": "Baidu Inc ADR",
       "sector": "Communication Services",
-      "optionsVolume": 28302
+      "optionsVolume": 28302,
+      "ovRank": 182,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "ZM",
       "name": "Zoom Communications Inc",
       "sector": "Information Technology",
-      "optionsVolume": 28121
+      "optionsVolume": 28121,
+      "ovRank": 183,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "MCHP",
       "name": "Microchip Technology",
       "sector": "Information Technology",
-      "optionsVolume": 27787
+      "optionsVolume": 27787,
+      "ovRank": 184,
+      "weight": 0.0808,
+      "mcRank": 218,
+      "hype": -34,
+      "anchor": false
     },
     {
       "symbol": "JEF",
       "name": "Jefferies Financial Group Inc",
       "sector": "Financials",
-      "optionsVolume": 27681
+      "optionsVolume": 27681,
+      "ovRank": 185,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "V",
       "name": "Visa Inc",
       "sector": "Financials",
-      "optionsVolume": 27505
+      "optionsVolume": 27505,
+      "ovRank": 186,
+      "weight": 0.8527,
+      "mcRank": 17,
+      "hype": 169,
+      "anchor": true
     },
     {
       "symbol": "GRAB",
       "name": "Grab Holdings Ltd Cl A",
       "sector": "Industrials",
-      "optionsVolume": 27262
+      "optionsVolume": 27262,
+      "ovRank": 187,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "HTZ",
       "name": "Hertz Global Holdings Inc",
       "sector": "Industrials",
-      "optionsVolume": 27179
+      "optionsVolume": 27179,
+      "ovRank": 188,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "QUBT",
       "name": "Quantum Computing Inc",
       "sector": "Information Technology",
-      "optionsVolume": 26994
+      "optionsVolume": 26994,
+      "ovRank": 189,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "EBAY",
       "name": "Ebay Inc",
       "sector": "Consumer Discretionary",
-      "optionsVolume": 26914
+      "optionsVolume": 26914,
+      "ovRank": 190,
+      "weight": 0.077,
+      "mcRank": 227,
+      "hype": -37,
+      "anchor": false
     },
     {
       "symbol": "NCLH",
       "name": "Norwegian Cruise Ord",
       "sector": "Consumer Discretionary",
-      "optionsVolume": 26747
+      "optionsVolume": 26747,
+      "ovRank": 191,
+      "weight": 0.0139,
+      "mcRank": 482,
+      "hype": -291,
+      "anchor": false
     },
     {
       "symbol": "PL",
       "name": "Planet Labs Pbc",
       "sector": "Industrials",
-      "optionsVolume": 26355
+      "optionsVolume": 26355,
+      "ovRank": 192,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "PSKY",
       "name": "Paramount Skydance Corporation Cl B",
       "sector": "Communication Services",
-      "optionsVolume": 26332
+      "optionsVolume": 26332,
+      "ovRank": 193,
+      "weight": 0.0058,
+      "mcRank": 503,
+      "hype": -310,
+      "anchor": false
     },
     {
       "symbol": "RCAT",
       "name": "Red Cat Holdings Inc",
       "sector": "Industrials",
-      "optionsVolume": 25697
+      "optionsVolume": 25697,
+      "ovRank": 194,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "AXP",
       "name": "American Express Company",
       "sector": "Financials",
-      "optionsVolume": 25557
+      "optionsVolume": 25557,
+      "ovRank": 195,
+      "weight": 0.2799,
+      "mcRank": 62,
+      "hype": 133,
+      "anchor": false
     },
     {
       "symbol": "RDDT",
       "name": "Reddit Inc Cl A",
       "sector": "Communication Services",
-      "optionsVolume": 25503
+      "optionsVolume": 25503,
+      "ovRank": 196,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "MRK",
       "name": "Merck & Company",
       "sector": "Health Care",
-      "optionsVolume": 25445
+      "optionsVolume": 25445,
+      "ovRank": 197,
+      "weight": 0.4672,
+      "mcRank": 38,
+      "hype": 159,
+      "anchor": true
     },
     {
       "symbol": "NLY",
       "name": "Annaly Capital Management Inc",
       "sector": "Real Estate",
-      "optionsVolume": 25445
+      "optionsVolume": 25445,
+      "ovRank": 198,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "CELH",
       "name": "Celsius Holdings Inc",
       "sector": "Consumer Staples",
-      "optionsVolume": 25049
+      "optionsVolume": 25049,
+      "ovRank": 199,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "CAT",
       "name": "Caterpillar Inc",
       "sector": "Industrials",
-      "optionsVolume": 25000
+      "optionsVolume": 25000,
+      "ovRank": 200,
+      "weight": 0.6383,
+      "mcRank": 22,
+      "hype": 178,
+      "anchor": true
     },
     {
       "symbol": "HL",
       "name": "Hecla Mining Company",
       "sector": "Materials",
-      "optionsVolume": 24696
+      "optionsVolume": 24696,
+      "ovRank": 201,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "CRDO",
       "name": "Credo Technology Group Holding Ltd",
       "sector": "Information Technology",
-      "optionsVolume": 24543
+      "optionsVolume": 24543,
+      "ovRank": 202,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "SLS",
       "name": "Sellas Life Sciences Group Inc",
       "sector": "Health Care",
-      "optionsVolume": 24518
+      "optionsVolume": 24518,
+      "ovRank": 203,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "ACN",
       "name": "Accenture Plc",
       "sector": "Information Technology",
-      "optionsVolume": 23690
+      "optionsVolume": 23690,
+      "ovRank": 204,
+      "weight": 0.1799,
+      "mcRank": 102,
+      "hype": 102,
+      "anchor": false
     },
     {
       "symbol": "ASML",
       "name": "Asml Holdings NY Reg ADR",
       "sector": "Information Technology",
-      "optionsVolume": 23653
+      "optionsVolume": 23653,
+      "ovRank": 205,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "BMY",
       "name": "Bristol-Myers Squibb Company",
       "sector": "Health Care",
-      "optionsVolume": 23477
+      "optionsVolume": 23477,
+      "ovRank": 206,
+      "weight": 0.1974,
+      "mcRank": 94,
+      "hype": 112,
+      "anchor": false
     },
     {
       "symbol": "PCG",
       "name": "Pacific Gas & Electric Company",
       "sector": "Utilities",
-      "optionsVolume": 23331
+      "optionsVolume": 23331,
+      "ovRank": 207,
+      "weight": 0.0609,
+      "mcRank": 268,
+      "hype": -61,
+      "anchor": false
     },
     {
       "symbol": "LMT",
       "name": "Lockheed Martin Corp",
       "sector": "Industrials",
-      "optionsVolume": 23182
+      "optionsVolume": 23182,
+      "ovRank": 208,
+      "weight": 0.1759,
+      "mcRank": 106,
+      "hype": 102,
+      "anchor": false
     },
     {
       "symbol": "ET",
       "name": "Energy Transfer LP",
       "sector": "Energy",
-      "optionsVolume": 23179
+      "optionsVolume": 23179,
+      "ovRank": 209,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "ENPH",
       "name": "Enphase Energy Inc",
       "sector": "Information Technology",
-      "optionsVolume": 23005
+      "optionsVolume": 23005,
+      "ovRank": 210,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "CEG",
       "name": "Constellation Energy Corp",
       "sector": "Utilities",
-      "optionsVolume": 22948
+      "optionsVolume": 22948,
+      "ovRank": 211,
+      "weight": 0.1496,
+      "mcRank": 120,
+      "hype": 91,
+      "anchor": false
     },
     {
       "symbol": "AMPX",
       "name": "Amprius Technologies Inc",
       "sector": "Industrials",
-      "optionsVolume": 22414
+      "optionsVolume": 22414,
+      "ovRank": 212,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "OSCR",
       "name": "Oscar Health Inc Cl A",
       "sector": "Health Care",
-      "optionsVolume": 22280
+      "optionsVolume": 22280,
+      "ovRank": 213,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "BSX",
       "name": "Boston Scientific Corp",
       "sector": "Health Care",
-      "optionsVolume": 22020
+      "optionsVolume": 22020,
+      "ovRank": 214,
+      "weight": 0.16,
+      "mcRank": 115,
+      "hype": 99,
+      "anchor": false
     },
     {
       "symbol": "KR",
       "name": "Kroger Company",
       "sector": "Consumer Staples",
-      "optionsVolume": 22011
+      "optionsVolume": 22011,
+      "ovRank": 215,
+      "weight": 0.0659,
+      "mcRank": 252,
+      "hype": -37,
+      "anchor": false
     },
     {
       "symbol": "UPST",
       "name": "Upstart Holdings Inc",
       "sector": "Financials",
-      "optionsVolume": 21841
+      "optionsVolume": 21841,
+      "ovRank": 216,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "TGT",
       "name": "Target Corp",
       "sector": "Consumer Staples",
-      "optionsVolume": 21778
+      "optionsVolume": 21778,
+      "ovRank": 217,
+      "weight": 0.0965,
+      "mcRank": 199,
+      "hype": 18,
+      "anchor": false
     },
     {
       "symbol": "COHR",
       "name": "Coherent Corp",
       "sector": "Information Technology",
-      "optionsVolume": 21616
+      "optionsVolume": 21616,
+      "ovRank": 218,
+      "weight": 0.1039,
+      "mcRank": 183,
+      "hype": 35,
+      "anchor": false
     },
     {
       "symbol": "DJT",
       "name": "Trump Media & Technology Group Corp",
       "sector": "Communication Services",
-      "optionsVolume": 21571
+      "optionsVolume": 21571,
+      "ovRank": 219,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "KDP",
       "name": "Keurig Dr Pepper Inc",
       "sector": "Consumer Staples",
-      "optionsVolume": 21056
+      "optionsVolume": 21056,
+      "ovRank": 220,
+      "weight": 0.0637,
+      "mcRank": 259,
+      "hype": -39,
+      "anchor": false
     },
     {
       "symbol": "FSLY",
       "name": "Fastly Inc",
       "sector": "Information Technology",
-      "optionsVolume": 20973
+      "optionsVolume": 20973,
+      "ovRank": 221,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "CPNG",
       "name": "Coupang Inc Cl A",
       "sector": "Consumer Discretionary",
-      "optionsVolume": 20826
+      "optionsVolume": 20826,
+      "ovRank": 222,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "NEE",
       "name": "Nextera Energy",
       "sector": "Utilities",
-      "optionsVolume": 20741
+      "optionsVolume": 20741,
+      "ovRank": 223,
+      "weight": 0.3289,
+      "mcRank": 51,
+      "hype": 172,
+      "anchor": false
     },
     {
       "symbol": "SATS",
       "name": "Echostar Corp",
       "sector": "Communication Services",
-      "optionsVolume": 20570
+      "optionsVolume": 20570,
+      "ovRank": 224,
+      "weight": 0.0268,
+      "mcRank": 412,
+      "hype": -188,
+      "anchor": false
     },
     {
       "symbol": "LGO",
       "name": "Largo Inc",
       "sector": "Materials",
-      "optionsVolume": 20323
+      "optionsVolume": 20323,
+      "ovRank": 225,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "LUMN",
       "name": "Lumen Technologies Inc",
       "sector": "Communication Services",
-      "optionsVolume": 20307
+      "optionsVolume": 20307,
+      "ovRank": 226,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "SBUX",
       "name": "Starbucks Corp",
       "sector": "Consumer Discretionary",
-      "optionsVolume": 20272
+      "optionsVolume": 20272,
+      "ovRank": 227,
+      "weight": 0.186,
+      "mcRank": 97,
+      "hype": 130,
+      "anchor": false
     },
     {
       "symbol": "TEM",
       "name": "Tempus AI Cl A",
       "sector": "Health Care",
-      "optionsVolume": 20248
+      "optionsVolume": 20248,
+      "ovRank": 228,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "LEN",
       "name": "Lennar Corp",
       "sector": "Consumer Discretionary",
-      "optionsVolume": 20081
+      "optionsVolume": 20081,
+      "ovRank": 229,
+      "weight": 0.0335,
+      "mcRank": 373,
+      "hype": -144,
+      "anchor": false
     },
     {
       "symbol": "B",
       "name": "Barrick Mining Corp",
       "sector": "Materials",
-      "optionsVolume": 19861
+      "optionsVolume": 19861,
+      "ovRank": 230,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "HPQ",
       "name": "HP Inc",
       "sector": "Information Technology",
-      "optionsVolume": 19828
+      "optionsVolume": 19828,
+      "ovRank": 231,
+      "weight": 0.0302,
+      "mcRank": 399,
+      "hype": -168,
+      "anchor": false
     },
     {
       "symbol": "EH",
       "name": "Ehang Holdings Ltd ADR",
       "sector": "Industrials",
-      "optionsVolume": 19731
+      "optionsVolume": 19731,
+      "ovRank": 232,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "COP",
       "name": "Conocophillips",
       "sector": "Energy",
-      "optionsVolume": 19699
+      "optionsVolume": 19699,
+      "ovRank": 233,
+      "weight": 0.25,
+      "mcRank": 70,
+      "hype": 163,
+      "anchor": false
     },
     {
       "symbol": "TSCO",
       "name": "Tractor Supply Company",
       "sector": "Consumer Discretionary",
-      "optionsVolume": 19633
+      "optionsVolume": 19633,
+      "ovRank": 234,
+      "weight": 0.0333,
+      "mcRank": 376,
+      "hype": -142,
+      "anchor": false
     },
     {
       "symbol": "MO",
       "name": "Altria Group",
       "sector": "Consumer Staples",
-      "optionsVolume": 19450
+      "optionsVolume": 19450,
+      "ovRank": 235,
+      "weight": 0.1853,
+      "mcRank": 98,
+      "hype": 137,
+      "anchor": false
     },
     {
       "symbol": "RCL",
       "name": "Royal Caribbean Cruises Ltd",
       "sector": "Consumer Discretionary",
-      "optionsVolume": 19435
+      "optionsVolume": 19435,
+      "ovRank": 236,
+      "weight": 0.1074,
+      "mcRank": 176,
+      "hype": 60,
+      "anchor": false
     },
     {
       "symbol": "ZS",
       "name": "Zscaler Inc",
       "sector": "Information Technology",
-      "optionsVolume": 19007
+      "optionsVolume": 19007,
+      "ovRank": 237,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "ABNB",
       "name": "Airbnb Inc Cl A",
       "sector": "Consumer Discretionary",
-      "optionsVolume": 18812
+      "optionsVolume": 18812,
+      "ovRank": 238,
+      "weight": 0.0984,
+      "mcRank": 195,
+      "hype": 43,
+      "anchor": false
     },
     {
       "symbol": "CIEN",
       "name": "Ciena Corp",
       "sector": "Information Technology",
-      "optionsVolume": 18803
+      "optionsVolume": 18803,
+      "ovRank": 239,
+      "weight": 0.1191,
+      "mcRank": 158,
+      "hype": 81,
+      "anchor": false
     },
     {
       "symbol": "FLG",
       "name": "Flagstar Bank National Association",
       "sector": "Financials",
-      "optionsVolume": 18784
+      "optionsVolume": 18784,
+      "ovRank": 240,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "MCD",
       "name": "McDonald's Corp",
       "sector": "Consumer Discretionary",
-      "optionsVolume": 18749
+      "optionsVolume": 18749,
+      "ovRank": 241,
+      "weight": 0.3535,
+      "mcRank": 49,
+      "hype": 192,
+      "anchor": false
     },
     {
       "symbol": "CDE",
       "name": "Coeur Mining Inc",
       "sector": "Materials",
-      "optionsVolume": 18657
+      "optionsVolume": 18657,
+      "ovRank": 242,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "QXO",
       "name": "Qxo Inc",
       "sector": "Industrials",
-      "optionsVolume": 18615
+      "optionsVolume": 18615,
+      "ovRank": 243,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "CGC",
       "name": "Canopy Growth Corp",
       "sector": "Health Care",
-      "optionsVolume": 18580
+      "optionsVolume": 18580,
+      "ovRank": 244,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "BKR",
       "name": "Baker Hughes Company",
       "sector": "Energy",
-      "optionsVolume": 18172
+      "optionsVolume": 18172,
+      "ovRank": 245,
+      "weight": 0.1047,
+      "mcRank": 181,
+      "hype": 64,
+      "anchor": false
     },
     {
       "symbol": "CLOV",
       "name": "Clover Health Investments Corp",
       "sector": "Health Care",
-      "optionsVolume": 18143
+      "optionsVolume": 18143,
+      "ovRank": 246,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "ABBV",
       "name": "Abbvie Inc",
       "sector": "Health Care",
-      "optionsVolume": 17820
+      "optionsVolume": 17820,
+      "ovRank": 247,
+      "weight": 0.5833,
+      "mcRank": 23,
+      "hype": 224,
+      "anchor": true
     },
     {
       "symbol": "RIG",
       "name": "Transocean Inc",
       "sector": "Energy",
-      "optionsVolume": 17762
+      "optionsVolume": 17762,
+      "ovRank": 248,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "JD",
       "name": "Jd.com Inc ADR",
       "sector": "Consumer Discretionary",
-      "optionsVolume": 17753
+      "optionsVolume": 17753,
+      "ovRank": 249,
+      "weight": null,
+      "mcRank": null,
+      "hype": null,
+      "anchor": false
     },
     {
       "symbol": "KHC",
       "name": "Kraft Heinz Company",
       "sector": "Consumer Staples",
-      "optionsVolume": 17524
+      "optionsVolume": 17524,
+      "ovRank": 250,
+      "weight": 0.0308,
+      "mcRank": 392,
+      "hype": -142,
+      "anchor": false
     }
   ]
 }
