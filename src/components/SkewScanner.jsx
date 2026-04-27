@@ -135,6 +135,22 @@ export default function SkewScanner() {
   const [data, setData] = useState(null);
   const [error, setError] = useState(null);
   const [tab, setTab] = useState('call');
+  // Earnings filter mode. Three positions:
+  //   'all'  → show every ticker, with an amber pill behind the
+  //            symbol labels of names reporting inside the lookahead
+  //            window.
+  //   'hide' → hide tickers with confirmed earnings inside the
+  //            lookahead window. Useful when a vol trader wants to
+  //            read pure regime-driven IV/skew without the overlay
+  //            of single-name event-vol distortion.
+  //   'only' → keep only tickers with confirmed earnings inside the
+  //            lookahead window. Useful for scanning the names whose
+  //            event vol is currently the dominant signal (the
+  //            quadrant becomes a pre-earnings positioning map).
+  // The lookahead window itself is owned by the server (default 14
+  // days); the response payload exposes earningsLookaheadDays so the
+  // toggle copy stays consistent with the data window.
+  const [earningsFilter, setEarningsFilter] = useState('all');
   const [hoveredSymbol, setHoveredSymbol] = useState(null);
   const [containerWidth, setContainerWidth] = useState(0);
   const wrapRef = useRef(null);
@@ -168,16 +184,30 @@ export default function SkewScanner() {
 
   const spec = TABS[tab];
 
-  // Filter to tickers with valid IV + the relevant skew metric.
-  // Tickers that priced for one tab but not the other (rare but
-  // possible — e.g., the call wing strike was missing) simply drop
-  // from the tab where their datum is null.
+  // Filter to tickers with valid IV + the relevant skew metric, then
+  // apply the earnings filter mode. Tickers that priced for one tab
+  // but not the other (rare but possible — e.g., the call wing strike
+  // was missing) simply drop from the tab where their datum is null.
+  // The earnings filter is applied AFTER the IV/skew finite filter so
+  // that "Only" mode shows only earnings-reporting tickers that ALSO
+  // have valid IV/skew (a confirmed-but-unpriceable ticker drops from
+  // the chart entirely on either tab regardless of the filter).
   const plotted = useMemo(() => {
     if (!data?.tickers) return [];
-    return data.tickers.filter(
+    const finite = data.tickers.filter(
       (t) => Number.isFinite(t.atmIv) && Number.isFinite(t[spec.metricKey])
     );
-  }, [data, spec.metricKey]);
+    if (earningsFilter === 'all') return finite;
+    if (earningsFilter === 'hide') return finite.filter((t) => !t.earningsDate);
+    return finite.filter((t) => !!t.earningsDate);
+  }, [data, spec.metricKey, earningsFilter]);
+
+  // Count of plotted tickers that carry an upcoming earnings warning,
+  // used to drive the meta-line summary line below the quadrant.
+  const earningsPlottedCount = useMemo(
+    () => plotted.filter((t) => !!t.earningsDate).length,
+    [plotted],
+  );
 
   const ivRank = useMemo(() => pctRank(plotted, (t) => t.atmIv), [plotted]);
   const skewRank = useMemo(
@@ -239,6 +269,10 @@ export default function SkewScanner() {
       <ScannerToolbar
         tab={tab}
         onTabChange={setTab}
+        earningsFilter={earningsFilter}
+        onEarningsFilterChange={setEarningsFilter}
+        lookaheadDays={data?.earningsLookaheadDays ?? 14}
+        earningsAvailable={(data?.earningsCount ?? 0) > 0}
       />
 
       {data?.mode === 'seed' && (
@@ -318,7 +352,25 @@ export default function SkewScanner() {
             letterSpacing: '0.04em',
           }}
         >
-          {`${data.pricedCount}/${data.universeSize} priced · ~${data.target?.dteTarget ?? 30}D · ${formatDate(data.sessionDate ?? data.asOf)}`}
+          {(() => {
+            const base = `${data.pricedCount}/${data.universeSize} priced · ~${data.target?.dteTarget ?? 30}D · ${formatDate(data.sessionDate ?? data.asOf)}`;
+            // Surface the earnings count whenever the filter is active OR
+            // the universe contains any earnings names (so a reader
+            // notices the indicator exists even before they touch the
+            // toggle). The filter-active variants tell the reader how
+            // many of the dots they're looking at are actually visible.
+            const window = data.earningsLookaheadDays ?? 14;
+            if (earningsFilter === 'hide') {
+              return `${base} · ${plotted.length} of ${data.pricedCount} shown (hiding ≤${window}d earnings)`;
+            }
+            if (earningsFilter === 'only') {
+              return `${base} · showing ${plotted.length} pre-earnings (≤${window}d)`;
+            }
+            if (earningsPlottedCount > 0) {
+              return `${base} · ${earningsPlottedCount} with earnings ≤${window}d`;
+            }
+            return base;
+          })()}
         </div>
       )}
 
@@ -327,12 +379,24 @@ export default function SkewScanner() {
   );
 }
 
-function ScannerToolbar({ tab, onTabChange }) {
+function ScannerToolbar({
+  tab, onTabChange, earningsFilter, onEarningsFilterChange,
+  lookaheadDays, earningsAvailable,
+}) {
+  // Two-row layout: the call/put skew tab toggle stays the visual
+  // anchor on top, and the earnings-filter row sits below it as a
+  // subordinate control. Both rows are centered. The earnings row
+  // disables itself when the response payload reports zero
+  // upcoming-earnings names — a graceful degradation for slow
+  // earnings periods or for the case where EW was unreachable at
+  // /scan render time (caller passes earningsAvailable=false).
   return (
     <div
       style={{
         display: 'flex',
-        justifyContent: 'center',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: '0.55rem',
       }}
     >
       <div
@@ -365,6 +429,97 @@ function ScannerToolbar({ tab, onTabChange }) {
         >
           Call skew
         </TabButton>
+      </div>
+
+      <EarningsFilterToggle
+        mode={earningsFilter}
+        onChange={onEarningsFilterChange}
+        lookaheadDays={lookaheadDays}
+        disabled={!earningsAvailable}
+      />
+    </div>
+  );
+}
+
+// Three-position pill toggle for the upcoming-earnings filter. The
+// chrome borrows from the .rotation-step-toggle pattern used on the
+// Lab pages: a thin amber outline framing three segmented buttons,
+// active button reverses to a filled amber background with dark
+// text. Amber is the right tonal anchor here because the warning
+// pills behind earnings tickers on the chart are the same amber —
+// the toggle visually previews what a filter mode does to the
+// chart's amber indicators. When `disabled` is true the toggle
+// dims and stops responding, which surfaces the EW outage / empty
+// universe state without removing the control from the layout
+// (so the reader can see the feature exists, just temporarily
+// unavailable).
+function EarningsFilterToggle({ mode, onChange, lookaheadDays, disabled }) {
+  const options = [
+    { id: 'all',  label: 'Show all' },
+    { id: 'hide', label: 'Hide' },
+    { id: 'only', label: 'Only' },
+  ];
+  return (
+    <div
+      role="group"
+      aria-label="Upcoming-earnings filter"
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: '0.55rem',
+        opacity: disabled ? 0.55 : 1,
+      }}
+    >
+      <span
+        style={{
+          fontFamily: 'Courier New, monospace',
+          fontSize: '0.78rem',
+          letterSpacing: '0.04em',
+          color: 'var(--text-secondary)',
+        }}
+      >
+        Earnings ≤{lookaheadDays}d:
+      </span>
+      <div
+        style={{
+          display: 'inline-flex',
+          alignItems: 'stretch',
+          border: '1px solid var(--accent-amber, #f0a030)',
+          borderRadius: '3px',
+          overflow: 'hidden',
+          fontFamily: 'Courier New, monospace',
+          fontSize: '0.75rem',
+          letterSpacing: '0.06em',
+        }}
+      >
+        {options.map((opt, i) => {
+          const active = mode === opt.id;
+          return (
+            <button
+              key={opt.id}
+              type="button"
+              onClick={() => !disabled && onChange(opt.id)}
+              disabled={disabled}
+              aria-pressed={active}
+              style={{
+                appearance: 'none',
+                background: active ? 'var(--accent-amber, #f0a030)' : 'transparent',
+                color: active ? '#0d1016' : 'var(--accent-amber, #f0a030)',
+                border: 'none',
+                borderRight: i < options.length - 1 ? '1px solid rgba(240, 160, 48, 0.4)' : 'none',
+                padding: '0.32rem 0.7rem',
+                cursor: disabled ? 'not-allowed' : 'pointer',
+                textTransform: 'uppercase',
+                fontWeight: active ? 700 : 400,
+                fontFamily: 'inherit',
+                fontSize: 'inherit',
+                letterSpacing: 'inherit',
+              }}
+            >
+              {opt.label}
+            </button>
+          );
+        })}
       </div>
     </div>
   );
@@ -557,6 +712,19 @@ function Quadrant({
           const cx = (1 - xp) * PLOT_SIZE;
           const isHovered = hoveredSymbol === t.symbol;
           const isTopTen = topTenSymbols.has(t.symbol);
+          // hasEarnings flips on whenever the server attached an
+          // earningsDate to this ticker — i.e., the ticker has a
+          // confirmed EW-listed earnings release inside the
+          // server-side EARNINGS_LOOKAHEAD_DAYS window. The flag
+          // drives THREE visual changes downstream: an amber pill
+          // behind the symbol label (rendered as an SVG <rect>
+          // before the <text>), a dark-on-amber text fill in place
+          // of the default gray, and a forced bold weight so the
+          // label reads at every dot size. The dot itself stays the
+          // standard color/style — putting the warning on the label
+          // (the most-readable element) keeps the dot's positional
+          // meaning clean and avoids muddying the hover treatment.
+          const hasEarnings = !!t.earningsDate;
           // All dots are the same size and color — only the LABEL
           // weight communicates options-volume rank. Hover gets the
           // amber accent treatment as the only privileged visual.
@@ -631,14 +799,51 @@ function Quadrant({
                 strokeWidth={isHovered ? 2 : 1}
                 style={{ pointerEvents: 'none', transition: 'r 0.12s ease' }}
               />
+              {hasEarnings && (
+                // Amber warning pill behind the symbol label. Dimensions
+                // are derived from the same labelWidthPx and fontSize
+                // estimates the hit-rect uses, so the pill always
+                // hugs the rendered text regardless of label length
+                // or the right-edge overflow flip. The +2 horizontal
+                // padding on each side gives the dark text a small
+                // safe area off the pill edges; the -1 vertical inset
+                // on top and +2 on the bottom centers the pill on
+                // Courier New's baseline (the glyph ascent rises
+                // ~0.75 × fontSize above baseline; the descent drops
+                // ~0.2 × fontSize below). 2 px corner radius matches
+                // the .rotation-step-toggle__btn pill chrome used
+                // elsewhere on the site so the warning indicator
+                // reads as native UI rather than a pasted-on
+                // ornament.
+                <rect
+                  x={(overflowsRight ? labelX - labelWidthPx : labelX) - 2}
+                  y={cy + 5 - fontSize - 1}
+                  width={labelWidthPx + 4}
+                  height={fontSize + 3}
+                  fill="#f0a030"
+                  rx={2}
+                  ry={2}
+                  style={{ pointerEvents: 'none' }}
+                />
+              )}
               <text
                 x={labelX}
                 y={cy + 5}
                 textAnchor={labelAnchor}
-                fill={isHovered ? '#f3f4f6' : isTopTen ? '#e1e8f4' : '#9aa6c2'}
+                // When the earnings pill is rendered, force a dark
+                // fill so the symbol stays legible against the amber
+                // background regardless of hover state — the pill is
+                // a persistent warning indicator and shouldn't disappear
+                // visually when the ticker is also hovered. When no
+                // pill is rendered, fall back to the original 3-tier
+                // hierarchy: hovered (white), top-10 (off-white),
+                // everything else (muted blue).
+                fill={hasEarnings
+                  ? '#0d1016'
+                  : (isHovered ? '#f3f4f6' : isTopTen ? '#e1e8f4' : '#9aa6c2')}
                 fontFamily="Courier New, monospace"
                 fontSize={fontSize}
-                fontWeight={isHovered || isTopTen ? 700 : 400}
+                fontWeight={hasEarnings || isHovered || isTopTen ? 700 : 400}
                 style={{ pointerEvents: 'none', userSelect: 'none' }}
               >
                 {t.symbol}
@@ -769,6 +974,25 @@ function Tooltip({ ticker: t, style }) {
         subtle
         note="pending backfill"
       />
+      {t.earningsDate && (
+        // Earnings warning row. Highlights the date + reporting
+        // session (BMO / AMC / Unknown) and a "in N days" suffix so
+        // a reader instantly sees how soon the event lands. The
+        // value text is rendered in amber to mirror the chart pill —
+        // a reader scanning the tooltip for context on why the dot's
+        // label is amber-pilled finds the explanation in the same
+        // color. Same EW data lineage as /earnings; the server
+        // attached the field whenever the ticker has a confirmed
+        // release inside its EARNINGS_LOOKAHEAD_DAYS window.
+        <TooltipRow
+          label="Earnings"
+          value={
+            <span style={{ color: '#f0a030', fontWeight: 700 }}>
+              {formatEarningsValue(t.earningsDate, t.earningsSession, t.daysToEarnings)}
+            </span>
+          }
+        />
+      )}
       <TooltipRow label="25Δ call" value={`${formatPct(t.call25dIv)} (${formatVolPoints(t.callSkew)})`} />
       <TooltipRow label="25Δ put"  value={`${formatPct(t.put25dIv)} (${formatVolPoints(t.putSkew)})`} />
       <TooltipRow label="25Δ RR" value={formatVolPoints(t.rrSkew)} />
@@ -779,6 +1003,32 @@ function Tooltip({ ticker: t, style }) {
       <TooltipRow label="Options vol" value={volumeRankLabel} subtle />
     </div>
   );
+}
+
+// Format the earnings tooltip value as e.g. "Mon, Apr 28 · BMO · in 2d"
+// or "Today · AMC". Days-to-earnings = 0 reads as "Today"; 1 reads as
+// "Tomorrow"; otherwise "in Nd". The session label is omitted when EW
+// returned an Unknown session (rather than guessing) so the reader
+// doesn't draw a false conclusion about whether the event lands
+// before-market or after-close. The date itself is formatted in UTC
+// and labeled with a weekday so a reader scanning the tooltip on
+// (say) a Monday sees "Wed, Apr 30" not "2026-04-30".
+function formatEarningsValue(iso, session, days) {
+  if (!iso) return '—';
+  const d = new Date(`${iso}T12:00:00Z`);
+  const dateStr = Number.isNaN(d.getTime())
+    ? iso
+    : d.toLocaleDateString('en-US', {
+      weekday: 'short', month: 'short', day: 'numeric', timeZone: 'UTC',
+    });
+  const parts = [dateStr];
+  if (session && session !== 'Unknown') parts.push(session);
+  if (Number.isFinite(days)) {
+    if (days === 0) parts.push('today');
+    else if (days === 1) parts.push('tomorrow');
+    else if (days > 1) parts.push(`in ${days}d`);
+  }
+  return parts.join(' · ');
 }
 
 function TooltipRow({ label, value, subtle, note }) {
@@ -1022,6 +1272,28 @@ function ScannerLegend() {
           boxShadow: '0 0 0 2px #f0a030',
         }} />
         <span style={{ color: 'var(--text-secondary)' }}>hovered</span>
+      </div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+        {/* Mirror of the in-chart amber pill — same fill color, same
+            radius, same dark-on-amber typography — so a reader can
+            connect the legend entry to the chart indicator at a
+            glance. */}
+        <span
+          style={{
+            display: 'inline-block',
+            background: '#f0a030',
+            color: '#0d1016',
+            fontWeight: 700,
+            fontFamily: 'Courier New, monospace',
+            fontSize: '0.82rem',
+            padding: '0.05rem 0.35rem',
+            borderRadius: '2px',
+            letterSpacing: '0.02em',
+          }}
+        >
+          ABCD
+        </span>
+        <span style={{ color: 'var(--text-secondary)' }}>earnings within ~2 weeks</span>
       </div>
 
       <div style={{

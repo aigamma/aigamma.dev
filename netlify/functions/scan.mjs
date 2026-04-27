@@ -85,6 +85,48 @@ const MASSIVE_API_KEY = process.env.MASSIVE_API_KEY;
 const MASSIVE_BASE = 'https://api.massive.com';
 const MASSIVE_TIMEOUT_MS = 8000;
 
+// EarningsWhispers integration. Same EW endpoint earnings.mjs uses for
+// the calendar grid: /api/caldata/{YYYYMMDD} returns the per-day list
+// of every confirmed earnings release with ticker, releaseTime
+// (1=BMO, 3=AMC), and other metadata. We use it here only to flag
+// /scan tickers with an upcoming earnings release inside the
+// EARNINGS_LOOKAHEAD_DAYS window so a vol trader knows which dots on
+// the quadrant carry idiosyncratic event risk that the IV / skew
+// snapshot is already pricing in. EW requires an ASP.NET Core
+// antiforgery cookie that's seeded by an initial GET to /calendar; we
+// duplicate the bootstrap helper here (rather than import from
+// earnings.mjs) for the same self-contained-function rationale that
+// led to fetchMassiveGroupedDay being duplicated across heatmap.mjs /
+// scan.mjs / earnings.mjs — each Netlify function bundles only the
+// code it imports, so internal sharing across functions only saves
+// disk space, not runtime, and a shared module with module-scope state
+// (the cookie cache) has subtler reload semantics across function
+// instances than two independent caches do.
+const EW_BASE = 'https://www.earningswhispers.com';
+const EW_USER_AGENT =
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 ' +
+  '(KHTML, like Gecko) Chrome/126.0 Safari/537.36';
+const EW_TIMEOUT_MS = 6000;
+const EW_CONCURRENCY = 4;
+
+// Lookahead window. Eric's directive ("warn people if a stock has
+// earnings in the next 14 days") sets the window directly. Two weeks
+// covers the next-month earnings cycle for any single stock — a name
+// that reports outside this window is one cycle out and not yet a
+// near-term event-risk consideration for the typical /scan reader,
+// who is using the page to assess current-week skew positioning.
+const EARNINGS_LOOKAHEAD_DAYS = 14;
+
+// Module-scope EW cookie cache. Reset on every cold start; reused
+// across warm invocations within a function instance lifetime. The
+// 30-min TTL guards against the cookie quietly expiring server-side
+// without triggering an immediate failure — better to refresh
+// proactively than to fail one request out of every long-running
+// instance. Mirrors earnings.mjs's identical cache.
+let _ewCookieCache = null;
+let _ewCookieFetchedAt = 0;
+const EW_COOKIE_TTL_MS = 30 * 60 * 1000;
+
 // Universe size cap. The roster JSON holds ~250 names sorted by
 // options volume desc. The query string can override this for ad-hoc
 // experimentation (?top=80 etc.) but is bounded to 100 to protect the
@@ -442,6 +484,166 @@ async function pmap(items, concurrency, mapper) {
   return out;
 }
 
+function isoToYyyymmdd(iso) {
+  return iso.replace(/-/g, '');
+}
+
+function dayOfWeekFromIso(iso) {
+  return new Date(`${iso}T00:00:00Z`).getUTCDay(); // 0=Sun..6=Sat
+}
+
+// Return every weekday inside the next N CALENDAR days (not the next
+// N weekdays — that's a longer window). Skipping weekends keeps the
+// EW fan-out tight (EW returns empty 200s on Saturdays/Sundays
+// anyway). Starts from today inclusive. Holidays are not modeled — EW
+// returns an empty array on closed days, which the upstream
+// Map-build loop tolerates. Caller passes EARNINGS_LOOKAHEAD_DAYS
+// (the calendar-day window the user actually cares about); the
+// returned weekday list is what we hit EW with.
+function weekdaysInNextNCalendarDays(todayIso, n) {
+  const out = [];
+  for (let i = 0; i < n; i++) {
+    const cursor = addDaysIso(todayIso, i);
+    const dow = dayOfWeekFromIso(cursor);
+    if (dow !== 0 && dow !== 6) out.push(cursor);
+  }
+  return out;
+}
+
+// Bootstrap the antiforgery cookie. ASP.NET Core sets a
+// .AspNetCore.Antiforgery.<seg> cookie on the first GET of any page
+// that renders a form-protected view; /calendar is the natural seed
+// because that's what the JSON endpoints back. We capture every
+// Set-Cookie header (there can be both the antiforgery cookie and an
+// auth/session cookie) and rejoin them as a single Cookie request
+// header for downstream API calls. Identical to earnings.mjs's
+// bootstrapEwCookie — duplicated rather than imported per the
+// self-contained-function convention documented at the top of this
+// file.
+async function bootstrapEwCookie() {
+  if (_ewCookieCache && Date.now() - _ewCookieFetchedAt < EW_COOKIE_TTL_MS) {
+    return _ewCookieCache;
+  }
+  const res = await fetch(`${EW_BASE}/calendar`, {
+    headers: { 'User-Agent': EW_USER_AGENT, Accept: 'text/html' },
+    signal: AbortSignal.timeout(EW_TIMEOUT_MS),
+    redirect: 'follow',
+  });
+  if (!res.ok) {
+    throw new Error(`ew-bootstrap-${res.status}`);
+  }
+  let setCookies = [];
+  if (typeof res.headers.getSetCookie === 'function') {
+    setCookies = res.headers.getSetCookie();
+  } else {
+    const raw = res.headers.get('set-cookie');
+    if (raw) setCookies = [raw];
+  }
+  const tokens = [];
+  for (const sc of setCookies) {
+    if (!sc) continue;
+    const first = sc.split(';')[0].trim();
+    if (
+      first.startsWith('.AspNetCore.Antiforgery') ||
+      first.startsWith('.AspNetCore.Cookies') ||
+      first.startsWith('AspNetCore') ||
+      first.startsWith('ASP.NET_SessionId')
+    ) {
+      tokens.push(first);
+    }
+  }
+  if (tokens.length === 0) {
+    throw new Error('ew-bootstrap-no-cookie');
+  }
+  _ewCookieCache = tokens.join('; ');
+  _ewCookieFetchedAt = Date.now();
+  return _ewCookieCache;
+}
+
+async function fetchEwCalendarDay(yyyymmdd) {
+  let cookie;
+  try {
+    cookie = await bootstrapEwCookie();
+  } catch (err) {
+    return { ok: false, reason: String(err.message || err) };
+  }
+  let res;
+  try {
+    res = await fetch(`${EW_BASE}/api/caldata/${yyyymmdd}`, {
+      headers: {
+        'User-Agent': EW_USER_AGENT,
+        Accept: 'application/json, text/javascript, */*; q=0.01',
+        Referer: `${EW_BASE}/calendar`,
+        'X-Requested-With': 'XMLHttpRequest',
+        Cookie: cookie,
+      },
+      signal: AbortSignal.timeout(EW_TIMEOUT_MS),
+    });
+  } catch (err) {
+    return { ok: false, reason: String(err?.name || 'ew-fetch-error') };
+  }
+  if (res.status === 204) return { ok: true, rows: [] };
+  if (!res.ok) {
+    if (res.status === 401 || res.status === 403) {
+      _ewCookieCache = null;
+      _ewCookieFetchedAt = 0;
+    }
+    return { ok: false, reason: `ew-http-${res.status}` };
+  }
+  let body;
+  try {
+    body = await res.json();
+  } catch {
+    return { ok: false, reason: 'ew-invalid-json' };
+  }
+  if (!Array.isArray(body)) return { ok: true, rows: [] };
+  return { ok: true, rows: body };
+}
+
+// Build the upcoming-earnings Map<TICKER, {date, sessionLabel,
+// daysToEarnings}> for the lookahead window. Walks the next
+// EARNINGS_LOOKAHEAD_DAYS calendar days (weekdays only — EW returns
+// empty on weekends), fetches each day's calendar in parallel under
+// the EW concurrency cap, and merges into a single Map. Per-day
+// failures don't fail the whole map — the failed day just contributes
+// no entries. Per-ticker dedupe keeps the EARLIEST earnings date when
+// a ticker appears on multiple days inside the window (rare in a
+// 14-day window since companies report once per quarter, but defensive
+// against EW occasionally listing a confirmation on multiple days).
+//
+// Returns the Map directly; callers should treat an empty Map as
+// "no earnings within the window" (which is also the failure-mode
+// fallback when EW is unreachable, so the page degrades gracefully —
+// the quadrant still renders, just without earnings indicators).
+async function fetchUpcomingEarningsMap(todayIso) {
+  const dates = weekdaysInNextNCalendarDays(todayIso, EARNINGS_LOOKAHEAD_DAYS);
+  const dayResults = await pmap(dates, EW_CONCURRENCY, async (iso) => {
+    const result = await fetchEwCalendarDay(isoToYyyymmdd(iso));
+    if (!result.ok) return { isoDate: iso, ok: false, rows: [] };
+    return { isoDate: iso, ok: true, rows: result.rows };
+  });
+  const map = new Map();
+  // dayResults preserves input order, and dates are ascending, so
+  // first-seen ticker gets the earliest date.
+  for (const day of dayResults) {
+    if (!day.ok) continue;
+    for (const row of day.rows) {
+      const ticker = String(row?.ticker || '').toUpperCase();
+      if (!ticker || map.has(ticker)) continue;
+      const releaseTime = Number(row?.releaseTime);
+      const sessionLabel = releaseTime === 1 ? 'BMO'
+        : releaseTime === 3 ? 'AMC'
+        : 'Unknown';
+      map.set(ticker, {
+        date: day.isoDate,
+        sessionLabel,
+        daysToEarnings: dteDays(day.isoDate, todayIso),
+      });
+    }
+  }
+  return map;
+}
+
 // Deterministic seed. Returns plausible (not necessarily current)
 // IV / skew numbers so the page is never blank during local
 // development without a Massive key, or in a degraded production
@@ -500,13 +702,21 @@ export default async function handler(request) {
   const universe = roster.holdings.slice(0, topN);
   const todayIso = etTodayIso();
 
-  // Establish the session anchor. On weekdays during/after market
-  // hours this is today's date; on weekends and Monday holidays it
-  // walks back to Friday's session (or whichever was the most recent
-  // trading day). The two-session walk-back also returns the prior
-  // session's closes so each ticker's pctChange can be computed
-  // server-side without an extra per-ticker round trip.
-  const sessions = MASSIVE_API_KEY ? await fetchMostRecentTwoSessionsGrouped() : null;
+  // Establish the session anchor and the upcoming-earnings map in
+  // parallel. The session walk-back hits Massive's grouped daily bars;
+  // the earnings fetch hits EarningsWhispers. They're independent
+  // hosts so concurrent requests don't share a rate budget, and
+  // pulling them together keeps the wall time down by ~1-2 s on cold
+  // cache compared to serial fetches. EW failures are tolerated — an
+  // empty earnings map degrades the page to "no earnings indicators
+  // shown" rather than blocking /scan from rendering.
+  const [sessions, earningsMap] = await Promise.all([
+    MASSIVE_API_KEY ? fetchMostRecentTwoSessionsGrouped() : Promise.resolve(null),
+    fetchUpcomingEarningsMap(todayIso).catch((err) => {
+      console.warn('[scan] ew-fetch-failed:', err?.message || err);
+      return new Map();
+    }),
+  ]);
   const sessionDate = sessions?.ok ? sessions.last.date : todayIso;
   const prevSessionDate = sessions?.ok ? sessions.prev.date : null;
   const sessionSpots = sessions?.ok ? sessions.last.prices : new Map();
@@ -559,8 +769,15 @@ export default async function handler(request) {
     }
   }
 
+  // Earnings lookup helper. Returns null when the ticker has no
+  // upcoming earnings inside EARNINGS_LOOKAHEAD_DAYS, or {date,
+  // sessionLabel, daysToEarnings} when it does. Symbol comparison is
+  // upper-cased to match EW's normalization in fetchUpcomingEarningsMap.
+  const earningsFor = (sym) => earningsMap.get(String(sym || '').toUpperCase()) ?? null;
+
   const tickers = [];
   for (const r of rows) {
+    const earnings = earningsFor(r.holding.symbol);
     if (!r.ok) {
       tickers.push({
         symbol: r.holding.symbol,
@@ -568,6 +785,9 @@ export default async function handler(request) {
         sector: r.holding.sector,
         optionsVolume: r.holding.optionsVolume,
         skipReason: r.reason || 'unknown',
+        earningsDate: earnings?.date ?? null,
+        earningsSession: earnings?.sessionLabel ?? null,
+        daysToEarnings: earnings?.daysToEarnings ?? null,
       });
       continue;
     }
@@ -590,6 +810,14 @@ export default async function handler(request) {
       callDelta: r.callDelta,
       putDelta: r.putDelta,
       seeded: r.seeded === true,
+      // Upcoming-earnings indicator. Populated when the ticker has a
+      // confirmed EW-listed earnings release inside the next
+      // EARNINGS_LOOKAHEAD_DAYS calendar days; null otherwise. The
+      // frontend uses this to render an amber pill behind the symbol
+      // label and to power the show/hide/only earnings filter toggle.
+      earningsDate: earnings?.date ?? null,
+      earningsSession: earnings?.sessionLabel ?? null,
+      daysToEarnings: earnings?.daysToEarnings ?? null,
     });
   }
 
@@ -605,6 +833,8 @@ export default async function handler(request) {
     universeSize: universe.length,
     pricedCount: tickers.filter((t) => t.atmIv != null).length,
     target: { dteMin: SKEW_DTE_MIN, dteMax: SKEW_DTE_MAX, dteTarget: SKEW_DTE_TARGET },
+    earningsLookaheadDays: EARNINGS_LOOKAHEAD_DAYS,
+    earningsCount: tickers.filter((t) => t.earningsDate != null).length,
     generatedAt: roster.generatedAt,
     tickers,
   };
