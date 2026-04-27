@@ -510,6 +510,21 @@ body {
   gap: 1rem;
 }
 
+/* P/C Ratio (Volume) renders twice in LevelsPanel — once at the end of
+   row 2 (with class --desktop) and once at the end of row 3 (with class
+   --mobile). On desktop both rows use 5 columns and we want the original
+   row-2 placement, so the row-3 mobile copy is display:none here. The
+   mirror @media (max-width: 768px) rule below flips the visibility:
+   the row-2 desktop copy hides and the row-3 mobile copy shows so the
+   2-column mobile grid lays out as row 2 = [Gamma][Dist] / [VRP][IV
+   Rank] (4 cells, no trailing empty slot) and row 3 = [Expiration]
+   [Expected Move] / [25Δ Put][ATM] / [25Δ Call][P/C Volume] (6 cells,
+   no trailing empty slot). With display:none the hidden Stat is removed
+   from the grid entirely so neither row leaves an empty placeholder. */
+.levels-pc-volume--mobile {
+  display: none;
+}
+
 /* Outlined toggle row used by VolatilityRiskPremium to drive series
    visibility. Replaces the native Plotly legend on that chart so the
    toggle affordance reads at a glance — Plotly's default legend entries
@@ -933,6 +948,21 @@ body {
   .levels-row {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 0.75rem;
+  }
+
+  /* Mobile P/C Volume slot swap (companion to the .levels-pc-volume--mobile
+     default-hidden rule above). Hiding the row-2 desktop copy collapses
+     row 2 from 5 cells to 4 (a clean 2x2 mobile grid with no trailing
+     empty slot) and showing the row-3 mobile copy expands row 3 from
+     5 cells to 6 (a clean 3x2 mobile grid with no trailing empty slot).
+     Filling both phantom slots that the 5-into-2-column collapse used
+     to leave behind. */
+  .levels-pc-volume--desktop {
+    display: none;
+  }
+
+  .levels-pc-volume--mobile {
+    display: block;
   }
 
   /* Mobile-nav swap. The desktop right-cluster (six TopNav buttons +

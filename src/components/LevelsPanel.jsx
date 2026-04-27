@@ -112,9 +112,9 @@ function flipDistAccent(dist) {
   return 'var(--accent-coral)';
 }
 
-function Stat({ label, value, accent, sub, bold }) {
+function Stat({ label, value, accent, sub, bold, className }) {
   return (
-    <div style={{ minWidth: 0 }}>
+    <div className={className} style={{ minWidth: 0 }}>
       <div
         style={{
           fontSize: '0.8rem',
@@ -435,6 +435,7 @@ export default function LevelsPanel({ levels, spotPrice, prevClose, expirationMe
               ? `${formatGamma(levels.total_put_volume)}P / ${formatGamma(levels.total_call_volume)}C`
               : null
           }
+          className={relevantMetric ? 'levels-pc-volume--desktop' : undefined}
         />
       </div>
 
@@ -500,6 +501,17 @@ export default function LevelsPanel({ levels, spotPrice, prevClose, expirationMe
               label="25Δ Call IV"
               value={formatPercent(relevantMetric.call_25d_iv)}
               sub={ivDeltaSub(relevantMetric.call_25d_iv, prevMetric?.call_25d_iv)}
+            />
+            <Stat
+              label="P/C Ratio (Volume)"
+              value={formatRatio(levels.put_call_ratio_volume)}
+              accent="var(--accent-purple)"
+              sub={
+                levels.total_put_volume != null && levels.total_call_volume != null
+                  ? `${formatGamma(levels.total_put_volume)}P / ${formatGamma(levels.total_call_volume)}C`
+                  : null
+              }
+              className="levels-pc-volume--mobile"
             />
           </div>
         </>
