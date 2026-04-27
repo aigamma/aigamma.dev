@@ -249,6 +249,7 @@ export default function LevelsPanel({ levels, spotPrice, prevClose, expirationMe
           horizontal padding so the new chrome reads at the same
           visual register as the wordmark next to it. */}
       <div
+        className="levels-strip"
         style={{
           display: 'grid',
           gridTemplateColumns: '1fr auto 1fr',
@@ -339,7 +340,7 @@ export default function LevelsPanel({ levels, spotPrice, prevClose, expirationMe
               justifySelf: 'center',
             }}
           >
-            <span>{'Last Updated: '}{freshness}</span>
+            <span style={{ whiteSpace: 'nowrap' }}>{'Last Updated: '}{freshness}</span>
             {isSynthetic && (
               <span
                 style={{

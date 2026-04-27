@@ -978,6 +978,33 @@ body {
   .chat-body { max-height: 60vh; }
   .chat-tab { padding: 0.75rem 0.75rem; font-size: 0.62rem; }
   .chat-input-row { padding: 0.75rem 1rem; }
+
+  /* Collapse the LevelsPanel top strip from a three-column
+     (logo+regime / freshness / spacer) grid to a single column at
+     phone widths. The desktop 1fr auto 1fr layout horizontally
+     centers the freshness inside the card by sandwiching the auto-
+     sized middle column between two symmetric flex columns, but on
+     a 375px-class viewport the logo+regime cluster on the left
+     pushes the auto column down to its min-content width (the
+     longest unbreakable token in "Last Updated: Apr 27, 14:30 ET",
+     which is "Updated:" at ~8 chars). The text then wraps at every
+     space and the trailing "ET" lands on a third visible line.
+
+     Switching to grid-template-columns: 1fr at ≤768px stacks the
+     three children vertically: row 1 is the logo+regime cluster
+     (justify-self: start = left-aligned), row 2 is the freshness
+     span (justify-self: center = horizontally centered in the card)
+     with whiteSpace: nowrap so the full "Last Updated: Apr 27,
+     14:30 ET" string sits on a single line, row 3 is the empty
+     placeholder span which collapses to 0 height because it has no
+     content. The !important is required because the grid-template-
+     columns declaration is set inline on the strip (style={{...}})
+     and inline styles win specificity by default. The non-layout
+     inline styles (fontFamily, fontSize, color) are unaffected by
+     this override. */
+  .levels-strip {
+    grid-template-columns: 1fr !important;
+  }
 }
 
 /* Phone-class second-step scaling for the mobile-nav pills so the
