@@ -390,10 +390,32 @@ export default function SpxHeatmap() {
                   const bg = pctToColor(t.pctChange);
                   const fg = pctToTextColor(t.pctChange);
                   const volStr = formatVolume(t.optionsVolume);
+                  // Anchor names get an extra line in the title tooltip
+                  // and a small corner dot rendered below. The dot is
+                  // intentionally minimal so it doesn't compete with
+                  // the existing pct-change background color (which is
+                  // the tile's primary visual signal). Hype score —
+                  // the ovRank − mcRank divergence — is included in
+                  // the tooltip when both ranks are available, so a
+                  // hover reveals the joint-rank story per ticker
+                  // even though no in-tile glyph encodes it.
+                  const titleLines = [
+                    `${t.symbol} · ${t.name}`,
+                    t.sector,
+                    `${formatPct(t.pctChange)} · last ${formatPrice(t.last)} · prev ${formatPrice(t.prev)}`,
+                  ];
+                  if (volStr) titleLines.push(`Opt vol ${volStr}`);
+                  if (t.anchor) {
+                    titleLines.push(`Anchor 50 (ov${t.ovRank}/mc${t.mcRank}, weight ${t.weight}%)`);
+                  } else if (t.weight != null) {
+                    titleLines.push(`SP500 weight ${t.weight}% · ovRank ${t.ovRank} · mcRank ${t.mcRank}${t.hype != null ? ` · hype ${t.hype}` : ''}`);
+                  } else if (t.ovRank != null) {
+                    titleLines.push(`Non-SP500 · ovRank ${t.ovRank}`);
+                  }
                   return (
                     <div
                       key={t.symbol}
-                      title={`${t.symbol} · ${t.name}\n${t.sector}\n${formatPct(t.pctChange)} · last ${formatPrice(t.last)} · prev ${formatPrice(t.prev)}${volStr ? `\nOpt vol ${volStr}` : ''}`}
+                      title={titleLines.join('\n')}
                       style={{
                         background: bg,
                         color: fg,
@@ -406,8 +428,37 @@ export default function SpxHeatmap() {
                         cursor: 'default',
                         padding: '2px',
                         boxSizing: 'border-box',
+                        position: 'relative',
                       }}
                     >
+                      {t.anchor && (
+                        // Anchor 50 indicator — 5x5 cream dot in the
+                        // top-right corner. Cream (#fff5d6) reads
+                        // against any of the pct-change background
+                        // colors (green / red / muted gray) without
+                        // collapsing into them. Absolute positioning
+                        // means the dot doesn't reflow the tile's
+                        // flex layout — the symbol + pct change
+                        // continue to center vertically as before.
+                        // The 50%-tinted box-shadow gives the dot
+                        // a subtle halo so it stays findable on the
+                        // brightest green tiles where pure cream
+                        // could otherwise blend with the saturated
+                        // background near tile edges.
+                        <span
+                          aria-hidden="true"
+                          style={{
+                            position: 'absolute',
+                            top: '3px',
+                            right: '3px',
+                            width: '5px',
+                            height: '5px',
+                            borderRadius: '50%',
+                            background: '#fff5d6',
+                            boxShadow: '0 0 2px rgba(0, 0, 0, 0.5)',
+                          }}
+                        />
+                      )}
                       <span
                         style={{
                           fontWeight: 700,
