@@ -833,6 +833,30 @@ function ChartTooltip({ ticker: t, style, scale = 1 }) {
       {t.confirmDate && (
         <TooltipRow label="Confirmed" value={t.confirmDate.slice(0, 10)} subtle />
       )}
+      {/* Anchor / SP500 enrichment rows. Same conditional pattern
+          used in /scan's tooltip — anchor names get the joint-rank
+          tuple in accent-blue, SP500-but-not-anchor get a muted
+          divergence diagnostic, non-SP500 names stay silent because
+          the absence of any SP500 row IS the signal. The roster
+          fields land on every ticker via earnings.mjs's
+          ROSTER_MAP enrichment block. */}
+      {t.anchor && (
+        <TooltipRow
+          label="Anchor 50"
+          value={
+            <span style={{ color: 'var(--accent-blue, #4a9eff)', fontWeight: 700 }}>
+              {`ov${t.ovRank}/mc${t.mcRank} · ${t.weight}%`}
+            </span>
+          }
+        />
+      )}
+      {!t.anchor && t.weight != null && (
+        <TooltipRow
+          label="SP500"
+          value={`${t.weight}% · ov${t.ovRank}/mc${t.mcRank}${t.hype != null ? ` · hype ${t.hype}` : ''}`}
+          subtle
+        />
+      )}
     </div>
   );
 }
@@ -1017,24 +1041,62 @@ function SessionCell({ label, color, tickers, scale = 1 }) {
         <div style={{ color: '#3a4253', fontSize: `${0.88 * scale}rem` }}>—</div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.22rem' }}>
-          {tickers.map((t) => (
-            <div
-              key={t.ticker}
-              title={`${t.company} · ${formatRevenue(t.revenueEst)} est${t.epsEst != null ? ` · EPS $${Number(t.epsEst).toFixed(2)}` : ''}`}
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                gap: '0.5rem',
-                color: '#cfd6e6',
-                cursor: 'help',
-              }}
-            >
-              <span style={{ fontWeight: 600 }}>{t.ticker}</span>
-              <span style={{ color: 'var(--text-secondary)', fontSize: `${0.85 * scale}rem` }}>
-                {formatRevenue(t.revenueEst)}
-              </span>
-            </div>
-          ))}
+          {tickers.map((t) => {
+            // Calendar grid tooltip extends the existing browser-native
+            // title with anchor / SP500 metadata when available so a
+            // hover reveals the durable-core context without needing
+            // to switch surfaces. Non-SP500 names get the same
+            // baseline title as before (no extra line) — the absence
+            // of an anchor / SP500 line IS the signal that the ticker
+            // sits in the dynamic-tail half of the OV roster.
+            const titleParts = [
+              `${t.company} · ${formatRevenue(t.revenueEst)} est${t.epsEst != null ? ` · EPS $${Number(t.epsEst).toFixed(2)}` : ''}`,
+            ];
+            if (t.anchor) {
+              titleParts.push(`Anchor 50 (ov${t.ovRank}/mc${t.mcRank}, weight ${t.weight}%)`);
+            } else if (t.weight != null) {
+              titleParts.push(`SP500 weight ${t.weight}% · ov${t.ovRank}/mc${t.mcRank}${t.hype != null ? ` · hype ${t.hype}` : ''}`);
+            }
+            return (
+              <div
+                key={t.ticker}
+                title={titleParts.join('\n')}
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  gap: '0.5rem',
+                  color: '#cfd6e6',
+                  cursor: 'help',
+                }}
+              >
+                <span style={{ fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '0.32rem' }}>
+                  {t.anchor && (
+                    // Anchor 50 indicator inline with the ticker label.
+                    // 5px round dot in cream — same treatment as the
+                    // /heatmap tile dot — mirrors the visual language
+                    // for "this name is in the durable core" across
+                    // the two surfaces. Aria-hidden because the textual
+                    // anchor info lives in the title attribute already.
+                    <span
+                      aria-hidden="true"
+                      style={{
+                        width: '5px',
+                        height: '5px',
+                        borderRadius: '50%',
+                        background: '#fff5d6',
+                        boxShadow: '0 0 2px rgba(0, 0, 0, 0.5)',
+                        flexShrink: 0,
+                      }}
+                    />
+                  )}
+                  {t.ticker}
+                </span>
+                <span style={{ color: 'var(--text-secondary)', fontSize: `${0.85 * scale}rem` }}>
+                  {formatRevenue(t.revenueEst)}
+                </span>
+              </div>
+            );
+          })}
         </div>
       )}
     </div>

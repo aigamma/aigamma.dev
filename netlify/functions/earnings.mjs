@@ -102,17 +102,50 @@ const ROSTER_URL = new URL('../../src/data/options-volume-roster.json', import.m
 const roster = JSON.parse(readFileSync(ROSTER_URL, 'utf8'));
 const ROSTER_SYMBOLS = (roster?.holdings ?? []).map((h) => String(h.symbol || '').toUpperCase());
 
+// Per-symbol enrichment lookup. Keyed by upper-cased ticker so the
+// EW-derived ticker (which the EW API returns in upper-case already)
+// can be looked up without case normalization at call time. Each
+// entry carries the five SP500-merged fields that the OV roster
+// generator computes (commit 4ce8a6b): anchor flag, hype score,
+// SP500 weight, market-cap rank, options-volume rank. Names not in
+// the roster (rare — EW occasionally lists tickers outside the
+// top-250 OV universe) get `null` on every field via the `?.` chain
+// at lookup time. The map is built once at module init.
+const ROSTER_MAP = new Map();
+for (const h of (roster?.holdings ?? [])) {
+  const sym = String(h.symbol || '').toUpperCase();
+  if (!sym) continue;
+  ROSTER_MAP.set(sym, {
+    anchor: h.anchor === true,
+    hype: h.hype ?? null,
+    weight: h.weight ?? null,
+    mcRank: h.mcRank ?? null,
+    ovRank: h.ovRank ?? null,
+  });
+}
+
 // Pre-built top-N roster sets for the chart's options-volume filter
 // modes. The roster JSON holds ~250 symbols sorted by US options
 // volume desc, so slicing the leading N gives the top-N set.
 const CHART_TOP_100_SET = new Set(ROSTER_SYMBOLS.slice(0, 100));
 const CHART_TOP_250_SET = new Set(ROSTER_SYMBOLS.slice(0, 250));
+// Anchor 50 set — top OV-∩-SP500 names by joint-rank harmonic mean,
+// computed in the OV roster generator. Smaller universe (50 names)
+// than the OV-100 / OV-250 modes; selects only the structurally
+// durable core of options-active large-caps.
+const CHART_ANCHOR_SET = new Set(
+  (roster?.holdings ?? [])
+    .filter((h) => h.anchor === true)
+    .map((h) => String(h.symbol || '').toUpperCase())
+);
 
 // Chart filter mode resolver. Each mode produces a (ticker → bool)
 // predicate that the handler intersects with the chart-window
 // universe. Modes are exposed in the response payload so the front-
 // end can render the toggle UI without a hardcoded duplicate.
 const CHART_FILTER_MODES = [
+  { id: 'anchor-50', label: 'Anchor 50',
+    predicate: (t) => CHART_ANCHOR_SET.has(t.ticker) },
   { id: 'topN-100', label: 'Top 100 OV',
     predicate: (t) => CHART_TOP_100_SET.has(t.ticker) },
   { id: 'topN-250', label: 'Top 250 OV',
@@ -449,8 +482,15 @@ function normalizeEwRow(r) {
   const sessionLabel = releaseTime === 1 ? 'BMO'
     : releaseTime === 3 ? 'AMC'
     : 'Unknown';
+  const sym = String(r?.ticker || '').toUpperCase();
+  // Roster enrichment — null-safe lookup, returns five fields or
+  // undefined if the ticker isn't in the OV roster. The undefined
+  // case happens for EW-listed names outside the top-250 OV
+  // universe; downstream consumers (chart filter predicates,
+  // tooltip rows) handle null branches gracefully.
+  const enrich = ROSTER_MAP.get(sym);
   return {
-    ticker: String(r?.ticker || '').toUpperCase(),
+    ticker: sym,
     company: String(r?.company || '').trim(),
     releaseTime: Number.isFinite(releaseTime) ? releaseTime : null,
     sessionLabel,
@@ -463,6 +503,11 @@ function normalizeEwRow(r) {
     revenueEst,
     qSales: Number.isFinite(qSales) ? qSales : null,
     sentimentTotal: Number.isFinite(Number(r?.total)) ? Number(r.total) : null,
+    anchor: enrich?.anchor ?? false,
+    hype: enrich?.hype ?? null,
+    weight: enrich?.weight ?? null,
+    mcRank: enrich?.mcRank ?? null,
+    ovRank: enrich?.ovRank ?? null,
   };
 }
 
@@ -855,6 +900,17 @@ export default async function handler(request) {
       epsEst: t.epsEst,
       epsTime: t.epsTime,
       confirmDate: t.confirmDate,
+      // Roster-derived enrichment fields. The chart's tickers carry
+      // these via the `...d`-spread render path (line 832), but the
+      // calendar projects an explicit shape so the new fields have
+      // to be added here too. Same five fields the chart side
+      // ships, in the same nullable shape — anchor/hype/weight/
+      // mcRank/ovRank.
+      anchor: t.anchor === true,
+      hype: t.hype ?? null,
+      weight: t.weight ?? null,
+      mcRank: t.mcRank ?? null,
+      ovRank: t.ovRank ?? null,
     })),
   }));
 
