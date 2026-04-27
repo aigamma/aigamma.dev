@@ -1,0 +1,4046 @@
+{
+  "generatedAt": "2026-04-27T03:36:12.146Z",
+  "asOf": "As of 23-Apr-2026",
+  "source": "https://www.ssga.com/library-content/products/fund-data/etfs/us/holdings-daily-us-en-spy.xlsx",
+  "count": 503,
+  "totalWeight": 99.931,
+  "sectors": {
+    "Information Technology": 73,
+    "Consumer Discretionary": 48,
+    "Communication Services": 23,
+    "Financials": 76,
+    "Health Care": 58,
+    "Energy": 22,
+    "Consumer Staples": 36,
+    "Industrials": 79,
+    "Materials": 26,
+    "Utilities": 31,
+    "Real Estate": 31
+  },
+  "holdings": [
+    {
+      "symbol": "NVDA",
+      "name": "NVIDIA CORP",
+      "sector": "Information Technology",
+      "weight": 7.964013,
+      "sharesHeld": 288592151,
+      "subIndustry": "Semiconductors"
+    },
+    {
+      "symbol": "AAPL",
+      "name": "APPLE INC",
+      "sector": "Information Technology",
+      "weight": 6.58995,
+      "sharesHeld": 174355685,
+      "subIndustry": "Technology Hardware, Storage & Peripherals"
+    },
+    {
+      "symbol": "MSFT",
+      "name": "MICROSOFT CORP",
+      "sector": "Information Technology",
+      "weight": 5.068007,
+      "sharesHeld": 88187105,
+      "subIndustry": "Systems Software"
+    },
+    {
+      "symbol": "AMZN",
+      "name": "AMAZON.COM INC",
+      "sector": "Consumer Discretionary",
+      "weight": 4.090563,
+      "sharesHeld": 116013043,
+      "subIndustry": "Broadline Retail"
+    },
+    {
+      "symbol": "AVGO",
+      "name": "BROADCOM INC",
+      "sector": "Information Technology",
+      "weight": 3.268446,
+      "sharesHeld": 56305930,
+      "subIndustry": "Semiconductors"
+    },
+    {
+      "symbol": "GOOGL",
+      "name": "ALPHABET INC CL A",
+      "sector": "Communication Services",
+      "weight": 3.238866,
+      "sharesHeld": 69140800,
+      "subIndustry": "Interactive Media & Services"
+    },
+    {
+      "symbol": "GOOG",
+      "name": "ALPHABET INC CL C",
+      "sector": "Communication Services",
+      "weight": 2.593505,
+      "sharesHeld": 55550998,
+      "subIndustry": "Interactive Media & Services"
+    },
+    {
+      "symbol": "META",
+      "name": "META PLATFORMS INC CLASS A",
+      "sector": "Communication Services",
+      "weight": 2.36714,
+      "sharesHeld": 25980039,
+      "subIndustry": "Interactive Media & Services"
+    },
+    {
+      "symbol": "TSLA",
+      "name": "TESLA INC",
+      "sector": "Consumer Discretionary",
+      "weight": 1.725817,
+      "sharesHeld": 33407856,
+      "subIndustry": "Automobile Manufacturers"
+    },
+    {
+      "symbol": "BRK.B",
+      "name": "BERKSHIRE HATHAWAY INC CL B",
+      "sector": "Financials",
+      "weight": 1.416825,
+      "sharesHeld": 21782645,
+      "subIndustry": "Multi-Sector Holdings"
+    },
+    {
+      "symbol": "JPM",
+      "name": "JPMORGAN CHASE + CO",
+      "sector": "Financials",
+      "weight": 1.379915,
+      "sharesHeld": 32027992,
+      "subIndustry": "Diversified Banks"
+    },
+    {
+      "symbol": "LLY",
+      "name": "ELI LILLY + CO",
+      "sector": "Health Care",
+      "weight": 1.194041,
+      "sharesHeld": 9413312,
+      "subIndustry": "Pharmaceuticals"
+    },
+    {
+      "symbol": "XOM",
+      "name": "EXXON MOBIL CORP",
+      "sector": "Energy",
+      "weight": 1.032956,
+      "sharesHeld": 49643075,
+      "subIndustry": "Integrated Oil & Gas"
+    },
+    {
+      "symbol": "WMT",
+      "name": "WALMART INC",
+      "sector": "Consumer Staples",
+      "weight": 0.950406,
+      "sharesHeld": 52075865,
+      "subIndustry": "Consumer Staples Merchandise Retail"
+    },
+    {
+      "symbol": "JNJ",
+      "name": "JOHNSON + JOHNSON",
+      "sector": "Health Care",
+      "weight": 0.912751,
+      "sharesHeld": 28628535,
+      "subIndustry": "Pharmaceuticals"
+    },
+    {
+      "symbol": "MU",
+      "name": "MICRON TECHNOLOGY INC",
+      "sector": "Information Technology",
+      "weight": 0.890022,
+      "sharesHeld": 13366152,
+      "subIndustry": "Semiconductors"
+    },
+    {
+      "symbol": "V",
+      "name": "VISA INC CLASS A SHARES",
+      "sector": "Financials",
+      "weight": 0.8527,
+      "sharesHeld": 19971306,
+      "subIndustry": "Transaction & Payment Processing Services"
+    },
+    {
+      "symbol": "AMD",
+      "name": "ADVANCED MICRO DEVICES",
+      "sector": "Information Technology",
+      "weight": 0.817601,
+      "sharesHeld": 19371901,
+      "subIndustry": "Semiconductors"
+    },
+    {
+      "symbol": "COST",
+      "name": "COSTCO WHOLESALE CORP",
+      "sector": "Consumer Staples",
+      "weight": 0.739515,
+      "sharesHeld": 5274077,
+      "subIndustry": "Consumer Staples Merchandise Retail"
+    },
+    {
+      "symbol": "MA",
+      "name": "MASTERCARD INC   A",
+      "sector": "Financials",
+      "weight": 0.671912,
+      "sharesHeld": 9675649,
+      "subIndustry": "Transaction & Payment Processing Services"
+    },
+    {
+      "symbol": "NFLX",
+      "name": "NETFLIX INC",
+      "sector": "Communication Services",
+      "weight": 0.643594,
+      "sharesHeld": 50161495,
+      "subIndustry": "Movies & Entertainment"
+    },
+    {
+      "symbol": "CAT",
+      "name": "CATERPILLAR INC",
+      "sector": "Industrials",
+      "weight": 0.638277,
+      "sharesHeld": 5528384,
+      "subIndustry": "Construction Machinery & Heavy Transportation Equipment"
+    },
+    {
+      "symbol": "ABBV",
+      "name": "ABBVIE INC",
+      "sector": "Health Care",
+      "weight": 0.583259,
+      "sharesHeld": 20997783,
+      "subIndustry": "Biotechnology"
+    },
+    {
+      "symbol": "CVX",
+      "name": "CHEVRON CORP",
+      "sector": "Energy",
+      "weight": 0.577512,
+      "sharesHeld": 22270405,
+      "subIndustry": "Integrated Oil & Gas"
+    },
+    {
+      "symbol": "CSCO",
+      "name": "CISCO SYSTEMS INC",
+      "sector": "Information Technology",
+      "weight": 0.574788,
+      "sharesHeld": 46937867,
+      "subIndustry": "Communications Equipment"
+    },
+    {
+      "symbol": "BAC",
+      "name": "BANK OF AMERICA CORP",
+      "sector": "Financials",
+      "weight": 0.571803,
+      "sharesHeld": 78838011,
+      "subIndustry": "Diversified Banks"
+    },
+    {
+      "symbol": "HD",
+      "name": "HOME DEPOT INC",
+      "sector": "Consumer Discretionary",
+      "weight": 0.555694,
+      "sharesHeld": 11818236,
+      "subIndustry": "Home Improvement Retail"
+    },
+    {
+      "symbol": "PG",
+      "name": "PROCTER + GAMBLE CO/THE",
+      "sector": "Consumer Staples",
+      "weight": 0.551546,
+      "sharesHeld": 27589806,
+      "subIndustry": "Personal Care Products"
+    },
+    {
+      "symbol": "PLTR",
+      "name": "PALANTIR TECHNOLOGIES INC A",
+      "sector": "Information Technology",
+      "weight": 0.530701,
+      "sharesHeld": 27119336,
+      "subIndustry": "Application Software"
+    },
+    {
+      "symbol": "LRCX",
+      "name": "LAM RESEARCH CORP",
+      "sector": "Information Technology",
+      "weight": 0.529821,
+      "sharesHeld": 14824099,
+      "subIndustry": "Semiconductor Materials & Equipment"
+    },
+    {
+      "symbol": "UNH",
+      "name": "UNITEDHEALTH GROUP INC",
+      "sector": "Health Care",
+      "weight": 0.527,
+      "sharesHeld": 10752781,
+      "subIndustry": "Managed Health Care"
+    },
+    {
+      "symbol": "AMAT",
+      "name": "APPLIED MATERIALS INC",
+      "sector": "Information Technology",
+      "weight": 0.526077,
+      "sharesHeld": 9422476,
+      "subIndustry": "Semiconductor Materials & Equipment"
+    },
+    {
+      "symbol": "INTC",
+      "name": "INTEL CORP",
+      "sector": "Information Technology",
+      "weight": 0.514709,
+      "sharesHeld": 55759031,
+      "subIndustry": "Semiconductors"
+    },
+    {
+      "symbol": "GEV",
+      "name": "GE VERNOVA INC",
+      "sector": "Industrials",
+      "weight": 0.50839,
+      "sharesHeld": 3199464,
+      "subIndustry": "Heavy Electrical Equipment"
+    },
+    {
+      "symbol": "ORCL",
+      "name": "ORACLE CORP",
+      "sector": "Information Technology",
+      "weight": 0.490687,
+      "sharesHeld": 20137334,
+      "subIndustry": "Application Software"
+    },
+    {
+      "symbol": "GE",
+      "name": "GENERAL ELECTRIC",
+      "sector": "Industrials",
+      "weight": 0.485923,
+      "sharesHeld": 12450740,
+      "subIndustry": "Aerospace & Defense"
+    },
+    {
+      "symbol": "KO",
+      "name": "COCA COLA CO/THE",
+      "sector": "Consumer Staples",
+      "weight": 0.484589,
+      "sharesHeld": 45958226,
+      "subIndustry": "Soft Drinks & Non-alcoholic Beverages"
+    },
+    {
+      "symbol": "MRK",
+      "name": "MERCK + CO. INC.",
+      "sector": "Health Care",
+      "weight": 0.467245,
+      "sharesHeld": 29490666,
+      "subIndustry": "Pharmaceuticals"
+    },
+    {
+      "symbol": "GS",
+      "name": "GOLDMAN SACHS GROUP INC",
+      "sector": "Financials",
+      "weight": 0.458281,
+      "sharesHeld": 3559934,
+      "subIndustry": "Investment Banking & Brokerage"
+    },
+    {
+      "symbol": "PM",
+      "name": "PHILIP MORRIS INTERNATIONAL",
+      "sector": "Consumer Staples",
+      "weight": 0.432149,
+      "sharesHeld": 18478180,
+      "subIndustry": "Tobacco"
+    },
+    {
+      "symbol": "TXN",
+      "name": "TEXAS INSTRUMENTS INC",
+      "sector": "Information Technology",
+      "weight": 0.420196,
+      "sharesHeld": 10770832,
+      "subIndustry": "Semiconductors"
+    },
+    {
+      "symbol": "WFC",
+      "name": "WELLS FARGO + CO",
+      "sector": "Financials",
+      "weight": 0.40853,
+      "sharesHeld": 36709172,
+      "subIndustry": "Diversified Banks"
+    },
+    {
+      "symbol": "RTX",
+      "name": "RTX CORP",
+      "sector": "Industrials",
+      "weight": 0.394918,
+      "sharesHeld": 15934084,
+      "subIndustry": "Aerospace & Defense"
+    },
+    {
+      "symbol": "KLAC",
+      "name": "KLA CORP",
+      "sector": "Information Technology",
+      "weight": 0.39037,
+      "sharesHeld": 1555597,
+      "subIndustry": "Semiconductor Materials & Equipment"
+    },
+    {
+      "symbol": "LIN",
+      "name": "LINDE PLC",
+      "sector": "Materials",
+      "weight": 0.389267,
+      "sharesHeld": 5542851,
+      "subIndustry": "Industrial Gases"
+    },
+    {
+      "symbol": "MS",
+      "name": "MORGAN STANLEY",
+      "sector": "Financials",
+      "weight": 0.372357,
+      "sharesHeld": 14279182,
+      "subIndustry": "Investment Banking & Brokerage"
+    },
+    {
+      "symbol": "C",
+      "name": "CITIGROUP INC",
+      "sector": "Financials",
+      "weight": 0.368429,
+      "sharesHeld": 20740369,
+      "subIndustry": "Diversified Banks"
+    },
+    {
+      "symbol": "IBM",
+      "name": "INTL BUSINESS MACHINES CORP",
+      "sector": "Information Technology",
+      "weight": 0.354413,
+      "sharesHeld": 11095506,
+      "subIndustry": "IT Consulting & Other Services"
+    },
+    {
+      "symbol": "MCD",
+      "name": "MCDONALD S CORP",
+      "sector": "Consumer Discretionary",
+      "weight": 0.353487,
+      "sharesHeld": 8452886,
+      "subIndustry": "Restaurants"
+    },
+    {
+      "symbol": "PEP",
+      "name": "PEPSICO INC",
+      "sector": "Consumer Staples",
+      "weight": 0.349118,
+      "sharesHeld": 16221239,
+      "subIndustry": "Soft Drinks & Non-alcoholic Beverages"
+    },
+    {
+      "symbol": "NEE",
+      "name": "NEXTERA ENERGY INC",
+      "sector": "Utilities",
+      "weight": 0.328859,
+      "sharesHeld": 24717797,
+      "subIndustry": "Multi-Utilities"
+    },
+    {
+      "symbol": "VZ",
+      "name": "VERIZON COMMUNICATIONS INC",
+      "sector": "Communication Services",
+      "weight": 0.326704,
+      "sharesHeld": 50052796,
+      "subIndustry": "Integrated Telecommunication Services"
+    },
+    {
+      "symbol": "ADI",
+      "name": "ANALOG DEVICES INC",
+      "sector": "Information Technology",
+      "weight": 0.323715,
+      "sharesHeld": 5798434,
+      "subIndustry": "Semiconductors"
+    },
+    {
+      "symbol": "AMGN",
+      "name": "AMGEN INC",
+      "sector": "Health Care",
+      "weight": 0.307974,
+      "sharesHeld": 6390905,
+      "subIndustry": "Biotechnology"
+    },
+    {
+      "symbol": "T",
+      "name": "AT+T INC",
+      "sector": "Communication Services",
+      "weight": 0.305623,
+      "sharesHeld": 83088704,
+      "subIndustry": "Integrated Telecommunication Services"
+    },
+    {
+      "symbol": "APH",
+      "name": "AMPHENOL CORP CL A",
+      "sector": "Information Technology",
+      "weight": 0.303035,
+      "sharesHeld": 14597600,
+      "subIndustry": "Electronic Components"
+    },
+    {
+      "symbol": "BA",
+      "name": "BOEING CO/THE",
+      "sector": "Industrials",
+      "weight": 0.302078,
+      "sharesHeld": 9333068,
+      "subIndustry": "Aerospace & Defense"
+    },
+    {
+      "symbol": "DIS",
+      "name": "WALT DISNEY CO/THE",
+      "sector": "Communication Services",
+      "weight": 0.301227,
+      "sharesHeld": 21024422,
+      "subIndustry": "Movies & Entertainment"
+    },
+    {
+      "symbol": "ANET",
+      "name": "ARISTA NETWORKS INC",
+      "sector": "Information Technology",
+      "weight": 0.29226,
+      "sharesHeld": 12253328,
+      "subIndustry": "Communications Equipment"
+    },
+    {
+      "symbol": "TJX",
+      "name": "TJX COMPANIES INC",
+      "sector": "Consumer Discretionary",
+      "weight": 0.288471,
+      "sharesHeld": 13179075,
+      "subIndustry": "Apparel Retail"
+    },
+    {
+      "symbol": "TMO",
+      "name": "THERMO FISHER SCIENTIFIC INC",
+      "sector": "Health Care",
+      "weight": 0.28766,
+      "sharesHeld": 4459050,
+      "subIndustry": "Life Sciences Tools & Services"
+    },
+    {
+      "symbol": "AXP",
+      "name": "AMERICAN EXPRESS CO",
+      "sector": "Financials",
+      "weight": 0.279863,
+      "sharesHeld": 6355773,
+      "subIndustry": "Consumer Finance"
+    },
+    {
+      "symbol": "ISRG",
+      "name": "INTUITIVE SURGICAL INC",
+      "sector": "Health Care",
+      "weight": 0.279023,
+      "sharesHeld": 4215679,
+      "subIndustry": "Health Care Equipment"
+    },
+    {
+      "symbol": "GILD",
+      "name": "GILEAD SCIENCES INC",
+      "sector": "Health Care",
+      "weight": 0.272007,
+      "sharesHeld": 14724584,
+      "subIndustry": "Biotechnology"
+    },
+    {
+      "symbol": "ETN",
+      "name": "EATON CORP PLC",
+      "sector": "Industrials",
+      "weight": 0.270988,
+      "sharesHeld": 4618197,
+      "subIndustry": "Electrical Components & Equipment"
+    },
+    {
+      "symbol": "CRM",
+      "name": "SALESFORCE INC",
+      "sector": "Information Technology",
+      "weight": 0.266399,
+      "sharesHeld": 11120760,
+      "subIndustry": "Application Software"
+    },
+    {
+      "symbol": "UNP",
+      "name": "UNION PACIFIC CORP",
+      "sector": "Industrials",
+      "weight": 0.264521,
+      "sharesHeld": 7054635,
+      "subIndustry": "Rail Transportation"
+    },
+    {
+      "symbol": "ABT",
+      "name": "ABBOTT LABORATORIES",
+      "sector": "Health Care",
+      "weight": 0.263821,
+      "sharesHeld": 20637686,
+      "subIndustry": "Health Care Equipment"
+    },
+    {
+      "symbol": "UBER",
+      "name": "UBER TECHNOLOGIES INC",
+      "sector": "Industrials",
+      "weight": 0.252195,
+      "sharesHeld": 24423963,
+      "subIndustry": "Passenger Ground Transportation"
+    },
+    {
+      "symbol": "COP",
+      "name": "CONOCOPHILLIPS",
+      "sector": "Energy",
+      "weight": 0.249953,
+      "sharesHeld": 14539256,
+      "subIndustry": "Oil & Gas Exploration & Production"
+    },
+    {
+      "symbol": "BLK",
+      "name": "BLACKROCK INC",
+      "sector": "Financials",
+      "weight": 0.249336,
+      "sharesHeld": 1712232,
+      "subIndustry": "Asset Management & Custody Banks"
+    },
+    {
+      "symbol": "PFE",
+      "name": "PFIZER INC",
+      "sector": "Health Care",
+      "weight": 0.249303,
+      "sharesHeld": 67624568,
+      "subIndustry": "Pharmaceuticals"
+    },
+    {
+      "symbol": "DE",
+      "name": "DEERE + CO",
+      "sector": "Industrials",
+      "weight": 0.245174,
+      "sharesHeld": 2996329,
+      "subIndustry": "Agricultural & Farm Machinery"
+    },
+    {
+      "symbol": "SCHW",
+      "name": "SCHWAB (CHARLES) CORP",
+      "sector": "Financials",
+      "weight": 0.244129,
+      "sharesHeld": 19861839,
+      "subIndustry": "Investment Banking & Brokerage"
+    },
+    {
+      "symbol": "WELL",
+      "name": "WELLTOWER INC",
+      "sector": "Real Estate",
+      "weight": 0.238521,
+      "sharesHeld": 8286340,
+      "subIndustry": "Health Care REITs"
+    },
+    {
+      "symbol": "QCOM",
+      "name": "QUALCOMM INC",
+      "sector": "Information Technology",
+      "weight": 0.234434,
+      "sharesHeld": 12661278,
+      "subIndustry": "Semiconductors"
+    },
+    {
+      "symbol": "BKNG",
+      "name": "BOOKING HOLDINGS INC",
+      "sector": "Consumer Discretionary",
+      "weight": 0.23402,
+      "sharesHeld": 9578402,
+      "subIndustry": "Hotels, Resorts & Cruise Lines"
+    },
+    {
+      "symbol": "PANW",
+      "name": "PALO ALTO NETWORKS INC",
+      "sector": "Information Technology",
+      "weight": 0.229762,
+      "sharesHeld": 9596335,
+      "subIndustry": "Systems Software"
+    },
+    {
+      "symbol": "LOW",
+      "name": "LOWE S COS INC",
+      "sector": "Consumer Discretionary",
+      "weight": 0.227247,
+      "sharesHeld": 6668233,
+      "subIndustry": "Home Improvement Retail"
+    },
+    {
+      "symbol": "SNDK",
+      "name": "SANDISK CORP",
+      "sector": "Information Technology",
+      "weight": 0.226405,
+      "sharesHeld": 1756585,
+      "subIndustry": "Technology Hardware, Storage & Peripherals"
+    },
+    {
+      "symbol": "WDC",
+      "name": "WESTERN DIGITAL CORP",
+      "sector": "Information Technology",
+      "weight": 0.224118,
+      "sharesHeld": 4022013,
+      "subIndustry": "Technology Hardware, Storage & Peripherals"
+    },
+    {
+      "symbol": "HON",
+      "name": "HONEYWELL INTERNATIONAL INC",
+      "sector": "Industrials",
+      "weight": 0.223211,
+      "sharesHeld": 7533758,
+      "subIndustry": "Industrial Conglomerates"
+    },
+    {
+      "symbol": "SPGI",
+      "name": "S+P GLOBAL INC",
+      "sector": "Financials",
+      "weight": 0.220346,
+      "sharesHeld": 3630879,
+      "subIndustry": "Financial Exchanges & Data"
+    },
+    {
+      "symbol": "GLW",
+      "name": "CORNING INC",
+      "sector": "Information Technology",
+      "weight": 0.217602,
+      "sharesHeld": 9287381,
+      "subIndustry": "Electronic Components"
+    },
+    {
+      "symbol": "PLD",
+      "name": "PROLOGIS INC",
+      "sector": "Real Estate",
+      "weight": 0.217008,
+      "sharesHeld": 11029330,
+      "subIndustry": "Industrial REITs"
+    },
+    {
+      "symbol": "STX",
+      "name": "SEAGATE TECHNOLOGY HOLDINGS",
+      "sector": "Information Technology",
+      "weight": 0.210824,
+      "sharesHeld": 2595513,
+      "subIndustry": "Technology Hardware, Storage & Peripherals"
+    },
+    {
+      "symbol": "APP",
+      "name": "APPLOVIN CORP CLASS A",
+      "sector": "Information Technology",
+      "weight": 0.202229,
+      "sharesHeld": 3221254,
+      "subIndustry": "Application Software"
+    },
+    {
+      "symbol": "VRT",
+      "name": "VERTIV HOLDINGS CO A",
+      "sector": "Industrials",
+      "weight": 0.202058,
+      "sharesHeld": 4543165,
+      "subIndustry": "Electrical Components & Equipment"
+    },
+    {
+      "symbol": "COF",
+      "name": "CAPITAL ONE FINANCIAL CORP",
+      "sector": "Financials",
+      "weight": 0.201575,
+      "sharesHeld": 7416299,
+      "subIndustry": "Consumer Finance"
+    },
+    {
+      "symbol": "PH",
+      "name": "PARKER HANNIFIN CORP",
+      "sector": "Industrials",
+      "weight": 0.201551,
+      "sharesHeld": 1497196,
+      "subIndustry": "Industrial Machinery & Supplies & Components"
+    },
+    {
+      "symbol": "NEM",
+      "name": "NEWMONT CORP",
+      "sector": "Materials",
+      "weight": 0.199171,
+      "sharesHeld": 12973852,
+      "subIndustry": "Gold"
+    },
+    {
+      "symbol": "CB",
+      "name": "CHUBB LTD",
+      "sector": "Financials",
+      "weight": 0.198581,
+      "sharesHeld": 4315690,
+      "subIndustry": "Property & Casualty Insurance"
+    },
+    {
+      "symbol": "PGR",
+      "name": "PROGRESSIVE CORP",
+      "sector": "Financials",
+      "weight": 0.197842,
+      "sharesHeld": 6970552,
+      "subIndustry": "Property & Casualty Insurance"
+    },
+    {
+      "symbol": "BMY",
+      "name": "BRISTOL MYERS SQUIBB CO",
+      "sector": "Health Care",
+      "weight": 0.19744,
+      "sharesHeld": 24201127,
+      "subIndustry": "Pharmaceuticals"
+    },
+    {
+      "symbol": "SYK",
+      "name": "STRYKER CORP",
+      "sector": "Health Care",
+      "weight": 0.186426,
+      "sharesHeld": 4091233,
+      "subIndustry": "Health Care Equipment"
+    },
+    {
+      "symbol": "CMCSA",
+      "name": "COMCAST CORP CLASS A",
+      "sector": "Communication Services",
+      "weight": 0.186179,
+      "sharesHeld": 42569172,
+      "subIndustry": "Cable & Satellite"
+    },
+    {
+      "symbol": "SBUX",
+      "name": "STARBUCKS CORP",
+      "sector": "Consumer Discretionary",
+      "weight": 0.18596,
+      "sharesHeld": 13515178,
+      "subIndustry": "Restaurants"
+    },
+    {
+      "symbol": "MO",
+      "name": "ALTRIA GROUP INC",
+      "sector": "Consumer Staples",
+      "weight": 0.185338,
+      "sharesHeld": 19967253,
+      "subIndustry": "Tobacco"
+    },
+    {
+      "symbol": "CRWD",
+      "name": "CROWDSTRIKE HOLDINGS INC   A",
+      "sector": "Information Technology",
+      "weight": 0.184517,
+      "sharesHeld": 2997070,
+      "subIndustry": "Systems Software"
+    },
+    {
+      "symbol": "DHR",
+      "name": "DANAHER CORP",
+      "sector": "Health Care",
+      "weight": 0.184498,
+      "sharesHeld": 7474535,
+      "subIndustry": "Life Sciences Tools & Services"
+    },
+    {
+      "symbol": "VRTX",
+      "name": "VERTEX PHARMACEUTICALS INC",
+      "sector": "Health Care",
+      "weight": 0.181787,
+      "sharesHeld": 3022546,
+      "subIndustry": "Biotechnology"
+    },
+    {
+      "symbol": "ACN",
+      "name": "ACCENTURE PLC CL A",
+      "sector": "Information Technology",
+      "weight": 0.179916,
+      "sharesHeld": 7300765,
+      "subIndustry": "IT Consulting & Other Services"
+    },
+    {
+      "symbol": "EQIX",
+      "name": "EQUINIX INC",
+      "sector": "Real Estate",
+      "weight": 0.179792,
+      "sharesHeld": 1166223,
+      "subIndustry": "Data Center REITs"
+    },
+    {
+      "symbol": "TT",
+      "name": "TRANE TECHNOLOGIES PLC",
+      "sector": "Industrials",
+      "weight": 0.176211,
+      "sharesHeld": 2625536,
+      "subIndustry": "Building Products"
+    },
+    {
+      "symbol": "MDT",
+      "name": "MEDTRONIC PLC",
+      "sector": "Health Care",
+      "weight": 0.176163,
+      "sharesHeld": 15209774,
+      "subIndustry": "Health Care Equipment"
+    },
+    {
+      "symbol": "LMT",
+      "name": "LOCKHEED MARTIN CORP",
+      "sector": "Industrials",
+      "weight": 0.175945,
+      "sharesHeld": 2402555,
+      "subIndustry": "Aerospace & Defense"
+    },
+    {
+      "symbol": "INTU",
+      "name": "INTUIT INC",
+      "sector": "Information Technology",
+      "weight": 0.174944,
+      "sharesHeld": 3301871,
+      "subIndustry": "Application Software"
+    },
+    {
+      "symbol": "SO",
+      "name": "SOUTHERN CO/THE",
+      "sector": "Utilities",
+      "weight": 0.169565,
+      "sharesHeld": 13062427,
+      "subIndustry": "Electric Utilities"
+    },
+    {
+      "symbol": "CME",
+      "name": "CME GROUP INC",
+      "sector": "Financials",
+      "weight": 0.168821,
+      "sharesHeld": 4278240,
+      "subIndustry": "Financial Exchanges & Data"
+    },
+    {
+      "symbol": "MCK",
+      "name": "MCKESSON CORP",
+      "sector": "Health Care",
+      "weight": 0.167927,
+      "sharesHeld": 1452990,
+      "subIndustry": "Health Care Distributors"
+    },
+    {
+      "symbol": "CVS",
+      "name": "CVS HEALTH CORP",
+      "sector": "Health Care",
+      "weight": 0.164619,
+      "sharesHeld": 15101571,
+      "subIndustry": "Health Care Services"
+    },
+    {
+      "symbol": "DUK",
+      "name": "DUKE ENERGY CORP",
+      "sector": "Utilities",
+      "weight": 0.163575,
+      "sharesHeld": 9242141,
+      "subIndustry": "Electric Utilities"
+    },
+    {
+      "symbol": "HWM",
+      "name": "HOWMET AEROSPACE INC",
+      "sector": "Industrials",
+      "weight": 0.161819,
+      "sharesHeld": 4755689,
+      "subIndustry": "Aerospace & Defense"
+    },
+    {
+      "symbol": "ADBE",
+      "name": "ADOBE INC",
+      "sector": "Information Technology",
+      "weight": 0.160868,
+      "sharesHeld": 4869764,
+      "subIndustry": "Application Software"
+    },
+    {
+      "symbol": "BSX",
+      "name": "BOSTON SCIENTIFIC CORP",
+      "sector": "Health Care",
+      "weight": 0.160006,
+      "sharesHeld": 17621217,
+      "subIndustry": "Health Care Equipment"
+    },
+    {
+      "symbol": "PWR",
+      "name": "QUANTA SERVICES INC",
+      "sector": "Industrials",
+      "weight": 0.155339,
+      "sharesHeld": 1774083,
+      "subIndustry": "Construction & Engineering"
+    },
+    {
+      "symbol": "BK",
+      "name": "BANK OF NEW YORK MELLON CORP",
+      "sector": "Financials",
+      "weight": 0.152777,
+      "sharesHeld": 8161604,
+      "subIndustry": "Asset Management & Custody Banks"
+    },
+    {
+      "symbol": "TMUS",
+      "name": "T MOBILE US INC",
+      "sector": "Communication Services",
+      "weight": 0.15078,
+      "sharesHeld": 5620624,
+      "subIndustry": "Wireless Telecommunication Services"
+    },
+    {
+      "symbol": "BX",
+      "name": "BLACKSTONE INC",
+      "sector": "Financials",
+      "weight": 0.15034,
+      "sharesHeld": 8890799,
+      "subIndustry": "Asset Management & Custody Banks"
+    },
+    {
+      "symbol": "CEG",
+      "name": "CONSTELLATION ENERGY",
+      "sector": "Utilities",
+      "weight": 0.149593,
+      "sharesHeld": 3696440,
+      "subIndustry": "Electric Utilities"
+    },
+    {
+      "symbol": "PNC",
+      "name": "PNC FINANCIAL SERVICES GROUP",
+      "sector": "Financials",
+      "weight": 0.149242,
+      "sharesHeld": 4796605,
+      "subIndustry": "Diversified Banks"
+    },
+    {
+      "symbol": "CMI",
+      "name": "CUMMINS INC",
+      "sector": "Industrials",
+      "weight": 0.148895,
+      "sharesHeld": 1639690,
+      "subIndustry": "Construction Machinery & Heavy Transportation Equipment"
+    },
+    {
+      "symbol": "ICE",
+      "name": "INTERCONTINENTAL EXCHANGE IN",
+      "sector": "Financials",
+      "weight": 0.146625,
+      "sharesHeld": 6735685,
+      "subIndustry": "Financial Exchanges & Data"
+    },
+    {
+      "symbol": "NOW",
+      "name": "SERVICENOW INC",
+      "sector": "Information Technology",
+      "weight": 0.145569,
+      "sharesHeld": 12421580,
+      "subIndustry": "Systems Software"
+    },
+    {
+      "symbol": "FCX",
+      "name": "FREEPORT MCMORAN INC",
+      "sector": "Materials",
+      "weight": 0.145384,
+      "sharesHeld": 17107307,
+      "subIndustry": "Copper"
+    },
+    {
+      "symbol": "USB",
+      "name": "US BANCORP",
+      "sector": "Financials",
+      "weight": 0.144709,
+      "sharesHeld": 18486211,
+      "subIndustry": "Diversified Banks"
+    },
+    {
+      "symbol": "SNPS",
+      "name": "SYNOPSYS INC",
+      "sector": "Information Technology",
+      "weight": 0.143466,
+      "sharesHeld": 2271827,
+      "subIndustry": "Application Software"
+    },
+    {
+      "symbol": "WMB",
+      "name": "WILLIAMS COS INC",
+      "sector": "Energy",
+      "weight": 0.14346,
+      "sharesHeld": 14484901,
+      "subIndustry": "Oil & Gas Storage & Transportation"
+    },
+    {
+      "symbol": "JCI",
+      "name": "JOHNSON CONTROLS INTERNATION",
+      "sector": "Industrials",
+      "weight": 0.142633,
+      "sharesHeld": 7280436,
+      "subIndustry": "Building Products"
+    },
+    {
+      "symbol": "WM",
+      "name": "WASTE MANAGEMENT INC",
+      "sector": "Industrials",
+      "weight": 0.142122,
+      "sharesHeld": 4416490,
+      "subIndustry": "Environmental & Facilities Services"
+    },
+    {
+      "symbol": "CSX",
+      "name": "CSX CORP",
+      "sector": "Industrials",
+      "weight": 0.141261,
+      "sharesHeld": 22129409,
+      "subIndustry": "Rail Transportation"
+    },
+    {
+      "symbol": "CDNS",
+      "name": "CADENCE DESIGN SYS INC",
+      "sector": "Information Technology",
+      "weight": 0.140624,
+      "sharesHeld": 3236486,
+      "subIndustry": "Application Software"
+    },
+    {
+      "symbol": "FDX",
+      "name": "FEDEX CORP",
+      "sector": "Industrials",
+      "weight": 0.139245,
+      "sharesHeld": 2565249,
+      "subIndustry": "Air Freight & Logistics"
+    },
+    {
+      "symbol": "MRSH",
+      "name": "MARSH + MCLENNAN COS",
+      "sector": "Financials",
+      "weight": 0.138112,
+      "sharesHeld": 5741912,
+      "subIndustry": "Insurance Brokers"
+    },
+    {
+      "symbol": "AMT",
+      "name": "AMERICAN TOWER CORP",
+      "sector": "Real Estate",
+      "weight": 0.137638,
+      "sharesHeld": 5562393,
+      "subIndustry": "Telecom Tower REITs"
+    },
+    {
+      "symbol": "SLB",
+      "name": "SLB LTD",
+      "sector": "Energy",
+      "weight": 0.134483,
+      "sharesHeld": 17773027,
+      "subIndustry": "Oil & Gas Equipment & Services"
+    },
+    {
+      "symbol": "GD",
+      "name": "GENERAL DYNAMICS CORP",
+      "sector": "Industrials",
+      "weight": 0.133061,
+      "sharesHeld": 3020332,
+      "subIndustry": "Aerospace & Defense"
+    },
+    {
+      "symbol": "MAR",
+      "name": "MARRIOTT INTERNATIONAL  CL A",
+      "sector": "Consumer Discretionary",
+      "weight": 0.132748,
+      "sharesHeld": 2607934,
+      "subIndustry": "Hotels, Resorts & Cruise Lines"
+    },
+    {
+      "symbol": "EMR",
+      "name": "EMERSON ELECTRIC CO",
+      "sector": "Industrials",
+      "weight": 0.13155,
+      "sharesHeld": 6681291,
+      "subIndustry": "Electrical Components & Equipment"
+    },
+    {
+      "symbol": "ADP",
+      "name": "AUTOMATIC DATA PROCESSING",
+      "sector": "Industrials",
+      "weight": 0.131047,
+      "sharesHeld": 4775303,
+      "subIndustry": "Human Resource & Employment Services"
+    },
+    {
+      "symbol": "UPS",
+      "name": "UNITED PARCEL SERVICE CL B",
+      "sector": "Industrials",
+      "weight": 0.130875,
+      "sharesHeld": 8789434,
+      "subIndustry": "Air Freight & Logistics"
+    },
+    {
+      "symbol": "CRH",
+      "name": "CRH PLC",
+      "sector": "Materials",
+      "weight": 0.129306,
+      "sharesHeld": 7984334,
+      "subIndustry": "Construction Materials"
+    },
+    {
+      "symbol": "ORLY",
+      "name": "O REILLY AUTOMOTIVE INC",
+      "sector": "Consumer Discretionary",
+      "weight": 0.128672,
+      "sharesHeld": 9983507,
+      "subIndustry": "Automotive Retail"
+    },
+    {
+      "symbol": "NOC",
+      "name": "NORTHROP GRUMMAN CORP",
+      "sector": "Industrials",
+      "weight": 0.128566,
+      "sharesHeld": 1582701,
+      "subIndustry": "Aerospace & Defense"
+    },
+    {
+      "symbol": "SHW",
+      "name": "SHERWIN WILLIAMS CO/THE",
+      "sector": "Materials",
+      "weight": 0.128182,
+      "sharesHeld": 2746294,
+      "subIndustry": "Specialty Chemicals"
+    },
+    {
+      "symbol": "MPWR",
+      "name": "MONOLITHIC POWER SYSTEMS INC",
+      "sector": "Information Technology",
+      "weight": 0.127265,
+      "sharesHeld": 578254,
+      "subIndustry": "Semiconductors"
+    },
+    {
+      "symbol": "REGN",
+      "name": "REGENERON PHARMACEUTICALS",
+      "sector": "Health Care",
+      "weight": 0.12713,
+      "sharesHeld": 1200626,
+      "subIndustry": "Biotechnology"
+    },
+    {
+      "symbol": "HLT",
+      "name": "HILTON WORLDWIDE HOLDINGS IN",
+      "sector": "Consumer Discretionary",
+      "weight": 0.125609,
+      "sharesHeld": 2718381,
+      "subIndustry": "Hotels, Resorts & Cruise Lines"
+    },
+    {
+      "symbol": "ELV",
+      "name": "ELEVANCE HEALTH INC",
+      "sector": "Health Care",
+      "weight": 0.125235,
+      "sharesHeld": 2616284,
+      "subIndustry": "Managed Health Care"
+    },
+    {
+      "symbol": "MMM",
+      "name": "3M CO",
+      "sector": "Industrials",
+      "weight": 0.125042,
+      "sharesHeld": 6245493,
+      "subIndustry": "Industrial Conglomerates"
+    },
+    {
+      "symbol": "HCA",
+      "name": "HCA HEALTHCARE INC",
+      "sector": "Health Care",
+      "weight": 0.121634,
+      "sharesHeld": 1856307,
+      "subIndustry": "Health Care Facilities"
+    },
+    {
+      "symbol": "MDLZ",
+      "name": "MONDELEZ INTERNATIONAL INC A",
+      "sector": "Consumer Staples",
+      "weight": 0.12125,
+      "sharesHeld": 15199575,
+      "subIndustry": "Packaged Foods & Meats"
+    },
+    {
+      "symbol": "CI",
+      "name": "THE CIGNA GROUP",
+      "sector": "Health Care",
+      "weight": 0.120779,
+      "sharesHeld": 3123700,
+      "subIndustry": "Health Care Services"
+    },
+    {
+      "symbol": "MSI",
+      "name": "MOTOROLA SOLUTIONS INC",
+      "sector": "Information Technology",
+      "weight": 0.120326,
+      "sharesHeld": 1964221,
+      "subIndustry": "Communications Equipment"
+    },
+    {
+      "symbol": "ROST",
+      "name": "ROSS STORES INC",
+      "sector": "Consumer Discretionary",
+      "weight": 0.120287,
+      "sharesHeld": 3834832,
+      "subIndustry": "Apparel Retail"
+    },
+    {
+      "symbol": "AEP",
+      "name": "AMERICAN ELECTRIC POWER",
+      "sector": "Utilities",
+      "weight": 0.119936,
+      "sharesHeld": 6423301,
+      "subIndustry": "Electric Utilities"
+    },
+    {
+      "symbol": "EOG",
+      "name": "EOG RESOURCES INC",
+      "sector": "Energy",
+      "weight": 0.119081,
+      "sharesHeld": 6435137,
+      "subIndustry": "Oil & Gas Exploration & Production"
+    },
+    {
+      "symbol": "CIEN",
+      "name": "CIENA CORP",
+      "sector": "Information Technology",
+      "weight": 0.119054,
+      "sharesHeld": 1669632,
+      "subIndustry": "Communications Equipment"
+    },
+    {
+      "symbol": "NSC",
+      "name": "NORFOLK SOUTHERN CORP",
+      "sector": "Industrials",
+      "weight": 0.118781,
+      "sharesHeld": 2673306,
+      "subIndustry": "Rail Transportation"
+    },
+    {
+      "symbol": "ITW",
+      "name": "ILLINOIS TOOL WORKS",
+      "sector": "Industrials",
+      "weight": 0.117409,
+      "sharesHeld": 3109803,
+      "subIndustry": "Industrial Machinery & Supplies & Components"
+    },
+    {
+      "symbol": "VLO",
+      "name": "VALERO ENERGY CORP",
+      "sector": "Energy",
+      "weight": 0.116911,
+      "sharesHeld": 3617055,
+      "subIndustry": "Oil & Gas Refining & Marketing"
+    },
+    {
+      "symbol": "GM",
+      "name": "GENERAL MOTORS CO",
+      "sector": "Consumer Discretionary",
+      "weight": 0.116326,
+      "sharesHeld": 10717590,
+      "subIndustry": "Automobile Manufacturers"
+    },
+    {
+      "symbol": "KKR",
+      "name": "KKR + CO INC",
+      "sector": "Financials",
+      "weight": 0.114879,
+      "sharesHeld": 8176656,
+      "subIndustry": "Asset Management & Custody Banks"
+    },
+    {
+      "symbol": "MCO",
+      "name": "MOODY S CORP",
+      "sector": "Financials",
+      "weight": 0.114283,
+      "sharesHeld": 1827703,
+      "subIndustry": "Financial Exchanges & Data"
+    },
+    {
+      "symbol": "AON",
+      "name": "AON PLC CLASS A",
+      "sector": "Financials",
+      "weight": 0.113753,
+      "sharesHeld": 2543354,
+      "subIndustry": "Insurance Brokers"
+    },
+    {
+      "symbol": "ECL",
+      "name": "ECOLAB INC",
+      "sector": "Materials",
+      "weight": 0.113652,
+      "sharesHeld": 3028926,
+      "subIndustry": "Specialty Chemicals"
+    },
+    {
+      "symbol": "APD",
+      "name": "AIR PRODUCTS + CHEMICALS INC",
+      "sector": "Materials",
+      "weight": 0.1113,
+      "sharesHeld": 2651676,
+      "subIndustry": "Industrial Gases"
+    },
+    {
+      "symbol": "CL",
+      "name": "COLGATE PALMOLIVE CO",
+      "sector": "Consumer Staples",
+      "weight": 0.11112,
+      "sharesHeld": 9602072,
+      "subIndustry": "Household Products"
+    },
+    {
+      "symbol": "WBD",
+      "name": "WARNER BROS DISCOVERY INC",
+      "sector": "Communication Services",
+      "weight": 0.109651,
+      "sharesHeld": 29489096,
+      "subIndustry": "Broadcasting"
+    },
+    {
+      "symbol": "PCAR",
+      "name": "PACCAR INC",
+      "sector": "Industrials",
+      "weight": 0.10963,
+      "sharesHeld": 6246407,
+      "subIndustry": "Construction Machinery & Heavy Transportation Equipment"
+    },
+    {
+      "symbol": "DASH",
+      "name": "DOORDASH INC   A",
+      "sector": "Consumer Discretionary",
+      "weight": 0.108945,
+      "sharesHeld": 4452813,
+      "subIndustry": "Specialized Consumer Services"
+    },
+    {
+      "symbol": "TRV",
+      "name": "TRAVELERS COS INC/THE",
+      "sector": "Financials",
+      "weight": 0.10891,
+      "sharesHeld": 2563684,
+      "subIndustry": "Property & Casualty Insurance"
+    },
+    {
+      "symbol": "SPG",
+      "name": "SIMON PROPERTY GROUP INC",
+      "sector": "Real Estate",
+      "weight": 0.108532,
+      "sharesHeld": 3855231,
+      "subIndustry": "Retail REITs"
+    },
+    {
+      "symbol": "HOOD",
+      "name": "ROBINHOOD MARKETS INC   A",
+      "sector": "Financials",
+      "weight": 0.108191,
+      "sharesHeld": 9369102,
+      "subIndustry": "Investment Banking & Brokerage"
+    },
+    {
+      "symbol": "TDG",
+      "name": "TRANSDIGM GROUP INC",
+      "sector": "Industrials",
+      "weight": 0.108024,
+      "sharesHeld": 670363,
+      "subIndustry": "Aerospace & Defense"
+    },
+    {
+      "symbol": "RCL",
+      "name": "ROYAL CARIBBEAN CRUISES LTD",
+      "sector": "Consumer Discretionary",
+      "weight": 0.107377,
+      "sharesHeld": 2982779,
+      "subIndustry": "Hotels, Resorts & Cruise Lines"
+    },
+    {
+      "symbol": "MPC",
+      "name": "MARATHON PETROLEUM CORP",
+      "sector": "Energy",
+      "weight": 0.106909,
+      "sharesHeld": 3498045,
+      "subIndustry": "Oil & Gas Refining & Marketing"
+    },
+    {
+      "symbol": "DLR",
+      "name": "DIGITAL REALTY TRUST INC",
+      "sector": "Real Estate",
+      "weight": 0.106342,
+      "sharesHeld": 3846596,
+      "subIndustry": "Data Center REITs"
+    },
+    {
+      "symbol": "TFC",
+      "name": "TRUIST FINANCIAL CORP",
+      "sector": "Financials",
+      "weight": 0.106309,
+      "sharesHeld": 14962607,
+      "subIndustry": "Diversified Banks"
+    },
+    {
+      "symbol": "PSX",
+      "name": "PHILLIPS 66",
+      "sector": "Energy",
+      "weight": 0.105586,
+      "sharesHeld": 4788120,
+      "subIndustry": "Oil & Gas Refining & Marketing"
+    },
+    {
+      "symbol": "BKR",
+      "name": "BAKER HUGHES CO",
+      "sector": "Energy",
+      "weight": 0.104687,
+      "sharesHeld": 11743618,
+      "subIndustry": "Oil & Gas Equipment & Services"
+    },
+    {
+      "symbol": "TEL",
+      "name": "TE CONNECTIVITY PLC",
+      "sector": "Information Technology",
+      "weight": 0.104686,
+      "sharesHeld": 3478320,
+      "subIndustry": "Electronic Manufacturing Services"
+    },
+    {
+      "symbol": "COHR",
+      "name": "COHERENT CORP",
+      "sector": "Information Technology",
+      "weight": 0.103923,
+      "sharesHeld": 2226425,
+      "subIndustry": "Electronic Components"
+    },
+    {
+      "symbol": "TER",
+      "name": "TERADYNE INC",
+      "sector": "Information Technology",
+      "weight": 0.103414,
+      "sharesHeld": 1865712,
+      "subIndustry": "Semiconductor Materials & Equipment"
+    },
+    {
+      "symbol": "DELL",
+      "name": "DELL TECHNOLOGIES  C",
+      "sector": "Information Technology",
+      "weight": 0.103251,
+      "sharesHeld": 3521034,
+      "subIndustry": "Technology Hardware, Storage & Peripherals"
+    },
+    {
+      "symbol": "FIX",
+      "name": "COMFORT SYSTEMS USA INC",
+      "sector": "Industrials",
+      "weight": 0.102649,
+      "sharesHeld": 418624,
+      "subIndustry": "Construction & Engineering"
+    },
+    {
+      "symbol": "KMI",
+      "name": "KINDER MORGAN INC",
+      "sector": "Energy",
+      "weight": 0.102172,
+      "sharesHeld": 23295025,
+      "subIndustry": "Oil & Gas Storage & Transportation"
+    },
+    {
+      "symbol": "URI",
+      "name": "UNITED RENTALS INC",
+      "sector": "Industrials",
+      "weight": 0.101831,
+      "sharesHeld": 746551,
+      "subIndustry": "Trading Companies & Distributors"
+    },
+    {
+      "symbol": "LHX",
+      "name": "L3HARRIS TECHNOLOGIES INC",
+      "sector": "Industrials",
+      "weight": 0.101541,
+      "sharesHeld": 2224527,
+      "subIndustry": "Aerospace & Defense"
+    },
+    {
+      "symbol": "SRE",
+      "name": "SEMPRA",
+      "sector": "Utilities",
+      "weight": 0.100772,
+      "sharesHeld": 7762957,
+      "subIndustry": "Multi-Utilities"
+    },
+    {
+      "symbol": "NXPI",
+      "name": "NXP SEMICONDUCTORS NV",
+      "sector": "Information Technology",
+      "weight": 0.099639,
+      "sharesHeld": 2988980,
+      "subIndustry": "Semiconductors"
+    },
+    {
+      "symbol": "COR",
+      "name": "CENCORA INC",
+      "sector": "Health Care",
+      "weight": 0.099418,
+      "sharesHeld": 2309720,
+      "subIndustry": "Health Care Distributors"
+    },
+    {
+      "symbol": "LITE",
+      "name": "LUMENTUM HOLDINGS INC",
+      "sector": "Information Technology",
+      "weight": 0.0993,
+      "sharesHeld": 848250,
+      "subIndustry": "Communications Equipment"
+    },
+    {
+      "symbol": "CTAS",
+      "name": "CINTAS CORP",
+      "sector": "Industrials",
+      "weight": 0.098935,
+      "sharesHeld": 4029552,
+      "subIndustry": "Diversified Support Services"
+    },
+    {
+      "symbol": "ABNB",
+      "name": "AIRBNB INC CLASS A",
+      "sector": "Consumer Discretionary",
+      "weight": 0.098444,
+      "sharesHeld": 5019960,
+      "subIndustry": "Hotels, Resorts & Cruise Lines"
+    },
+    {
+      "symbol": "AZO",
+      "name": "AUTOZONE INC",
+      "sector": "Consumer Discretionary",
+      "weight": 0.097753,
+      "sharesHeld": 196591,
+      "subIndustry": "Automotive Retail"
+    },
+    {
+      "symbol": "KEYS",
+      "name": "KEYSIGHT TECHNOLOGIES IN",
+      "sector": "Information Technology",
+      "weight": 0.09736,
+      "sharesHeld": 2032533,
+      "subIndustry": "Electronic Equipment & Instruments"
+    },
+    {
+      "symbol": "O",
+      "name": "REALTY INCOME CORP",
+      "sector": "Real Estate",
+      "weight": 0.097065,
+      "sharesHeld": 10958184,
+      "subIndustry": "Retail REITs"
+    },
+    {
+      "symbol": "TGT",
+      "name": "TARGET CORP",
+      "sector": "Consumer Staples",
+      "weight": 0.096546,
+      "sharesHeld": 5365670,
+      "subIndustry": "Consumer Staples Merchandise Retail"
+    },
+    {
+      "symbol": "APO",
+      "name": "APOLLO GLOBAL MANAGEMENT INC",
+      "sector": "Financials",
+      "weight": 0.095393,
+      "sharesHeld": 5531056,
+      "subIndustry": "Asset Management & Custody Banks"
+    },
+    {
+      "symbol": "CVNA",
+      "name": "CARVANA CO",
+      "sector": "Consumer Discretionary",
+      "weight": 0.093856,
+      "sharesHeld": 1684753,
+      "subIndustry": "Automotive Retail"
+    },
+    {
+      "symbol": "AJG",
+      "name": "ARTHUR J GALLAGHER + CO",
+      "sector": "Financials",
+      "weight": 0.092628,
+      "sharesHeld": 3054680,
+      "subIndustry": "Insurance Brokers"
+    },
+    {
+      "symbol": "ALL",
+      "name": "ALLSTATE CORP",
+      "sector": "Financials",
+      "weight": 0.092232,
+      "sharesHeld": 3081075,
+      "subIndustry": "Property & Casualty Insurance"
+    },
+    {
+      "symbol": "MNST",
+      "name": "MONSTER BEVERAGE CORP",
+      "sector": "Consumer Staples",
+      "weight": 0.091018,
+      "sharesHeld": 8489669,
+      "subIndustry": "Soft Drinks & Non-alcoholic Beverages"
+    },
+    {
+      "symbol": "OKE",
+      "name": "ONEOK INC",
+      "sector": "Energy",
+      "weight": 0.090055,
+      "sharesHeld": 7470332,
+      "subIndustry": "Oil & Gas Storage & Transportation"
+    },
+    {
+      "symbol": "AME",
+      "name": "AMETEK INC",
+      "sector": "Industrials",
+      "weight": 0.089086,
+      "sharesHeld": 2742484,
+      "subIndustry": "Electrical Components & Equipment"
+    },
+    {
+      "symbol": "AFL",
+      "name": "AFLAC INC",
+      "sector": "Financials",
+      "weight": 0.088026,
+      "sharesHeld": 5531734,
+      "subIndustry": "Life & Health Insurance"
+    },
+    {
+      "symbol": "CTVA",
+      "name": "CORTEVA INC",
+      "sector": "Materials",
+      "weight": 0.087725,
+      "sharesHeld": 7969765,
+      "subIndustry": "Fertilizers & Agricultural Chemicals"
+    },
+    {
+      "symbol": "D",
+      "name": "DOMINION ENERGY INC",
+      "sector": "Utilities",
+      "weight": 0.087681,
+      "sharesHeld": 10145752,
+      "subIndustry": "Multi-Utilities"
+    },
+    {
+      "symbol": "NKE",
+      "name": "NIKE INC  CL B",
+      "sector": "Consumer Discretionary",
+      "weight": 0.087494,
+      "sharesHeld": 14134907,
+      "subIndustry": "Apparel, Accessories & Luxury Goods"
+    },
+    {
+      "symbol": "FTNT",
+      "name": "FORTINET INC",
+      "sector": "Information Technology",
+      "weight": 0.086144,
+      "sharesHeld": 7530199,
+      "subIndustry": "Systems Software"
+    },
+    {
+      "symbol": "FAST",
+      "name": "FASTENAL CO",
+      "sector": "Industrials",
+      "weight": 0.085894,
+      "sharesHeld": 13671864,
+      "subIndustry": "Trading Companies & Distributors"
+    },
+    {
+      "symbol": "ETR",
+      "name": "ENTERGY CORP",
+      "sector": "Utilities",
+      "weight": 0.084589,
+      "sharesHeld": 5371736,
+      "subIndustry": "Electric Utilities"
+    },
+    {
+      "symbol": "TRGP",
+      "name": "TARGA RESOURCES CORP",
+      "sector": "Energy",
+      "weight": 0.084498,
+      "sharesHeld": 2547981,
+      "subIndustry": "Oil & Gas Storage & Transportation"
+    },
+    {
+      "symbol": "GWW",
+      "name": "WW GRAINGER INC",
+      "sector": "Industrials",
+      "weight": 0.083908,
+      "sharesHeld": 521086,
+      "subIndustry": "Industrial Machinery & Supplies & Components"
+    },
+    {
+      "symbol": "VST",
+      "name": "VISTRA CORP",
+      "sector": "Utilities",
+      "weight": 0.082269,
+      "sharesHeld": 3794457,
+      "subIndustry": "Electric Utilities"
+    },
+    {
+      "symbol": "PSA",
+      "name": "PUBLIC STORAGE",
+      "sector": "Real Estate",
+      "weight": 0.080806,
+      "sharesHeld": 1880763,
+      "subIndustry": "Self-Storage REITs"
+    },
+    {
+      "symbol": "MCHP",
+      "name": "MICROCHIP TECHNOLOGY INC",
+      "sector": "Information Technology",
+      "weight": 0.080786,
+      "sharesHeld": 6447865,
+      "subIndustry": "Semiconductors"
+    },
+    {
+      "symbol": "ADSK",
+      "name": "AUTODESK INC",
+      "sector": "Information Technology",
+      "weight": 0.080557,
+      "sharesHeld": 2512182,
+      "subIndustry": "Application Software"
+    },
+    {
+      "symbol": "F",
+      "name": "FORD MOTOR CO",
+      "sector": "Consumer Discretionary",
+      "weight": 0.080323,
+      "sharesHeld": 46561165,
+      "subIndustry": "Automobile Manufacturers"
+    },
+    {
+      "symbol": "ZTS",
+      "name": "ZOETIS INC",
+      "sector": "Health Care",
+      "weight": 0.080245,
+      "sharesHeld": 5001879,
+      "subIndustry": "Pharmaceuticals"
+    },
+    {
+      "symbol": "NUE",
+      "name": "NUCOR CORP",
+      "sector": "Materials",
+      "weight": 0.07995,
+      "sharesHeld": 2716063,
+      "subIndustry": "Steel"
+    },
+    {
+      "symbol": "CARR",
+      "name": "CARRIER GLOBAL CORP",
+      "sector": "Industrials",
+      "weight": 0.079184,
+      "sharesHeld": 9308480,
+      "subIndustry": "Building Products"
+    },
+    {
+      "symbol": "CAH",
+      "name": "CARDINAL HEALTH INC",
+      "sector": "Health Care",
+      "weight": 0.078907,
+      "sharesHeld": 2788389,
+      "subIndustry": "Health Care Distributors"
+    },
+    {
+      "symbol": "EXC",
+      "name": "EXELON CORP",
+      "sector": "Utilities",
+      "weight": 0.0785,
+      "sharesHeld": 12147466,
+      "subIndustry": "Electric Utilities"
+    },
+    {
+      "symbol": "XEL",
+      "name": "XCEL ENERGY INC",
+      "sector": "Utilities",
+      "weight": 0.07738,
+      "sharesHeld": 7043246,
+      "subIndustry": "Multi-Utilities"
+    },
+    {
+      "symbol": "EBAY",
+      "name": "EBAY INC",
+      "sector": "Consumer Discretionary",
+      "weight": 0.076963,
+      "sharesHeld": 5384720,
+      "subIndustry": "Broadline Retail"
+    },
+    {
+      "symbol": "EW",
+      "name": "EDWARDS LIFESCIENCES CORP",
+      "sector": "Health Care",
+      "weight": 0.076178,
+      "sharesHeld": 6912902,
+      "subIndustry": "Health Care Equipment"
+    },
+    {
+      "symbol": "ROK",
+      "name": "ROCKWELL AUTOMATION INC",
+      "sector": "Industrials",
+      "weight": 0.075686,
+      "sharesHeld": 1339025,
+      "subIndustry": "Electrical Components & Equipment"
+    },
+    {
+      "symbol": "WAB",
+      "name": "WABTEC CORP",
+      "sector": "Industrials",
+      "weight": 0.075628,
+      "sharesHeld": 2030512,
+      "subIndustry": "Construction Machinery & Heavy Transportation Equipment"
+    },
+    {
+      "symbol": "FITB",
+      "name": "FIFTH THIRD BANCORP",
+      "sector": "Financials",
+      "weight": 0.07527,
+      "sharesHeld": 10700205,
+      "subIndustry": "Regional Banks"
+    },
+    {
+      "symbol": "EA",
+      "name": "ELECTRONIC ARTS INC",
+      "sector": "Communication Services",
+      "weight": 0.075055,
+      "sharesHeld": 2681218,
+      "subIndustry": "Interactive Home Entertainment"
+    },
+    {
+      "symbol": "PYPL",
+      "name": "PAYPAL HOLDINGS INC",
+      "sector": "Financials",
+      "weight": 0.074983,
+      "sharesHeld": 10903575,
+      "subIndustry": "Transaction & Payment Processing Services"
+    },
+    {
+      "symbol": "IDXX",
+      "name": "IDEXX LABORATORIES INC",
+      "sector": "Health Care",
+      "weight": 0.073483,
+      "sharesHeld": 947713,
+      "subIndustry": "Health Care Equipment"
+    },
+    {
+      "symbol": "YUM",
+      "name": "YUM  BRANDS INC",
+      "sector": "Consumer Discretionary",
+      "weight": 0.073422,
+      "sharesHeld": 3304674,
+      "subIndustry": "Restaurants"
+    },
+    {
+      "symbol": "DAL",
+      "name": "DELTA AIR LINES INC",
+      "sector": "Industrials",
+      "weight": 0.073006,
+      "sharesHeld": 7724909,
+      "subIndustry": "Passenger Airlines"
+    },
+    {
+      "symbol": "DHI",
+      "name": "DR HORTON INC",
+      "sector": "Consumer Discretionary",
+      "weight": 0.07242,
+      "sharesHeld": 3190306,
+      "subIndustry": "Homebuilding"
+    },
+    {
+      "symbol": "COIN",
+      "name": "COINBASE GLOBAL INC  CLASS A",
+      "sector": "Financials",
+      "weight": 0.072298,
+      "sharesHeld": 2642482,
+      "subIndustry": "Financial Exchanges & Data"
+    },
+    {
+      "symbol": "CMG",
+      "name": "CHIPOTLE MEXICAN GRILL INC",
+      "sector": "Consumer Discretionary",
+      "weight": 0.072293,
+      "sharesHeld": 15427482,
+      "subIndustry": "Restaurants"
+    },
+    {
+      "symbol": "BDX",
+      "name": "BECTON DICKINSON AND CO",
+      "sector": "Health Care",
+      "weight": 0.072206,
+      "sharesHeld": 3373358,
+      "subIndustry": "Health Care Equipment"
+    },
+    {
+      "symbol": "MSCI",
+      "name": "MSCI INC",
+      "sector": "Financials",
+      "weight": 0.071948,
+      "sharesHeld": 870385,
+      "subIndustry": "Financial Exchanges & Data"
+    },
+    {
+      "symbol": "CBRE",
+      "name": "CBRE GROUP INC   A",
+      "sector": "Real Estate",
+      "weight": 0.071015,
+      "sharesHeld": 3440813,
+      "subIndustry": "Real Estate Services"
+    },
+    {
+      "symbol": "RSG",
+      "name": "REPUBLIC SERVICES INC",
+      "sector": "Industrials",
+      "weight": 0.070923,
+      "sharesHeld": 2397120,
+      "subIndustry": "Environmental & Facilities Services"
+    },
+    {
+      "symbol": "GRMN",
+      "name": "GARMIN LTD",
+      "sector": "Consumer Discretionary",
+      "weight": 0.070272,
+      "sharesHeld": 1949272,
+      "subIndustry": "Consumer Electronics"
+    },
+    {
+      "symbol": "STT",
+      "name": "STATE STREET CORP",
+      "sector": "Financials",
+      "weight": 0.069555,
+      "sharesHeld": 3326850,
+      "subIndustry": "Asset Management & Custody Banks"
+    },
+    {
+      "symbol": "DDOG",
+      "name": "DATADOG INC   CLASS A",
+      "sector": "Information Technology",
+      "weight": 0.069078,
+      "sharesHeld": 3908469,
+      "subIndustry": "Application Software"
+    },
+    {
+      "symbol": "AMP",
+      "name": "AMERIPRISE FINANCIAL INC",
+      "sector": "Financials",
+      "weight": 0.068692,
+      "sharesHeld": 1081183,
+      "subIndustry": "Asset Management & Custody Banks"
+    },
+    {
+      "symbol": "MET",
+      "name": "METLIFE INC",
+      "sector": "Financials",
+      "weight": 0.068526,
+      "sharesHeld": 6517797,
+      "subIndustry": "Life & Health Insurance"
+    },
+    {
+      "symbol": "OXY",
+      "name": "OCCIDENTAL PETROLEUM CORP",
+      "sector": "Energy",
+      "weight": 0.068216,
+      "sharesHeld": 8533593,
+      "subIndustry": "Oil & Gas Exploration & Production"
+    },
+    {
+      "symbol": "ODFL",
+      "name": "OLD DOMINION FREIGHT LINE",
+      "sector": "Industrials",
+      "weight": 0.06724,
+      "sharesHeld": 2183493,
+      "subIndustry": "Cargo Ground Transportation"
+    },
+    {
+      "symbol": "AIG",
+      "name": "AMERICAN INTERNATIONAL GROUP",
+      "sector": "Financials",
+      "weight": 0.067044,
+      "sharesHeld": 6354227,
+      "subIndustry": "Multi-line Insurance"
+    },
+    {
+      "symbol": "KR",
+      "name": "KROGER CO",
+      "sector": "Consumer Staples",
+      "weight": 0.065875,
+      "sharesHeld": 6896724,
+      "subIndustry": "Food Retail"
+    },
+    {
+      "symbol": "PEG",
+      "name": "PUBLIC SERVICE ENTERPRISE GP",
+      "sector": "Utilities",
+      "weight": 0.065728,
+      "sharesHeld": 5931888,
+      "subIndustry": "Electric Utilities"
+    },
+    {
+      "symbol": "ED",
+      "name": "CONSOLIDATED EDISON INC",
+      "sector": "Utilities",
+      "weight": 0.065453,
+      "sharesHeld": 4294904,
+      "subIndustry": "Multi-Utilities"
+    },
+    {
+      "symbol": "VTR",
+      "name": "VENTAS INC",
+      "sector": "Real Estate",
+      "weight": 0.064657,
+      "sharesHeld": 5640345,
+      "subIndustry": "Health Care REITs"
+    },
+    {
+      "symbol": "EME",
+      "name": "EMCOR GROUP INC",
+      "sector": "Industrials",
+      "weight": 0.064296,
+      "sharesHeld": 532738,
+      "subIndustry": "Construction & Engineering"
+    },
+    {
+      "symbol": "HIG",
+      "name": "HARTFORD INSURANCE GROUP INC",
+      "sector": "Financials",
+      "weight": 0.064062,
+      "sharesHeld": 3319606,
+      "subIndustry": "Property & Casualty Insurance"
+    },
+    {
+      "symbol": "NDAQ",
+      "name": "NASDAQ INC",
+      "sector": "Financials",
+      "weight": 0.06398,
+      "sharesHeld": 5317735,
+      "subIndustry": "Financial Exchanges & Data"
+    },
+    {
+      "symbol": "KDP",
+      "name": "KEURIG DR PEPPER INC",
+      "sector": "Consumer Staples",
+      "weight": 0.063655,
+      "sharesHeld": 16140977,
+      "subIndustry": "Soft Drinks & Non-alcoholic Beverages"
+    },
+    {
+      "symbol": "VMC",
+      "name": "VULCAN MATERIALS CO",
+      "sector": "Materials",
+      "weight": 0.063535,
+      "sharesHeld": 1570273,
+      "subIndustry": "Construction Materials"
+    },
+    {
+      "symbol": "ROP",
+      "name": "ROPER TECHNOLOGIES INC",
+      "sector": "Information Technology",
+      "weight": 0.063469,
+      "sharesHeld": 1262255,
+      "subIndustry": "Electronic Equipment & Instruments"
+    },
+    {
+      "symbol": "XYZ",
+      "name": "BLOCK INC",
+      "sector": "Financials",
+      "weight": 0.06327,
+      "sharesHeld": 6545364,
+      "subIndustry": "Transaction & Payment Processing Services"
+    },
+    {
+      "symbol": "ON",
+      "name": "ON SEMICONDUCTOR",
+      "sector": "Information Technology",
+      "weight": 0.062946,
+      "sharesHeld": 4657114,
+      "subIndustry": "Semiconductors"
+    },
+    {
+      "symbol": "CCI",
+      "name": "CROWN CASTLE INC",
+      "sector": "Real Estate",
+      "weight": 0.062606,
+      "sharesHeld": 5174974,
+      "subIndustry": "Telecom Tower REITs"
+    },
+    {
+      "symbol": "FANG",
+      "name": "DIAMONDBACK ENERGY INC",
+      "sector": "Energy",
+      "weight": 0.06233,
+      "sharesHeld": 2305405,
+      "subIndustry": "Oil & Gas Exploration & Production"
+    },
+    {
+      "symbol": "WEC",
+      "name": "WEC ENERGY GROUP INC",
+      "sector": "Utilities",
+      "weight": 0.061897,
+      "sharesHeld": 3874589,
+      "subIndustry": "Electric Utilities"
+    },
+    {
+      "symbol": "MLM",
+      "name": "MARTIN MARIETTA MATERIALS",
+      "sector": "Materials",
+      "weight": 0.061422,
+      "sharesHeld": 717979,
+      "subIndustry": "Construction Materials"
+    },
+    {
+      "symbol": "PCG",
+      "name": "P G + E CORP",
+      "sector": "Utilities",
+      "weight": 0.060871,
+      "sharesHeld": 26165402,
+      "subIndustry": "Multi-Utilities"
+    },
+    {
+      "symbol": "HPE",
+      "name": "HEWLETT PACKARD ENTERPRISE",
+      "sector": "Information Technology",
+      "weight": 0.060695,
+      "sharesHeld": 15721151,
+      "subIndustry": "Technology Hardware, Storage & Peripherals"
+    },
+    {
+      "symbol": "EQT",
+      "name": "EQT CORP",
+      "sector": "Energy",
+      "weight": 0.060509,
+      "sharesHeld": 7428209,
+      "subIndustry": "Oil & Gas Exploration & Production"
+    },
+    {
+      "symbol": "TTWO",
+      "name": "TAKE TWO INTERACTIVE SOFTWRE",
+      "sector": "Communication Services",
+      "weight": 0.059918,
+      "sharesHeld": 2065125,
+      "subIndustry": "Interactive Home Entertainment"
+    },
+    {
+      "symbol": "SYY",
+      "name": "SYSCO CORP",
+      "sector": "Consumer Staples",
+      "weight": 0.05959,
+      "sharesHeld": 5686546,
+      "subIndustry": "Food Distributors"
+    },
+    {
+      "symbol": "JBL",
+      "name": "JABIL INC",
+      "sector": "Information Technology",
+      "weight": 0.058437,
+      "sharesHeld": 1248789,
+      "subIndustry": "Electronic Manufacturing Services"
+    },
+    {
+      "symbol": "ACGL",
+      "name": "ARCH CAPITAL GROUP LTD",
+      "sector": "Financials",
+      "weight": 0.057357,
+      "sharesHeld": 4231038,
+      "subIndustry": "Property & Casualty Insurance"
+    },
+    {
+      "symbol": "HBAN",
+      "name": "HUNTINGTON BANCSHARES INC",
+      "sector": "Financials",
+      "weight": 0.056277,
+      "sharesHeld": 24190519,
+      "subIndustry": "Regional Banks"
+    },
+    {
+      "symbol": "IRM",
+      "name": "IRON MOUNTAIN INC",
+      "sector": "Real Estate",
+      "weight": 0.056253,
+      "sharesHeld": 3504618,
+      "subIndustry": "Other Specialized REITs"
+    },
+    {
+      "symbol": "IBKR",
+      "name": "INTERACTIVE BROKERS GRO CL A",
+      "sector": "Financials",
+      "weight": 0.055596,
+      "sharesHeld": 5299135,
+      "subIndustry": "Investment Banking & Brokerage"
+    },
+    {
+      "symbol": "ADM",
+      "name": "ARCHER DANIELS MIDLAND CO",
+      "sector": "Consumer Staples",
+      "weight": 0.055217,
+      "sharesHeld": 5704094,
+      "subIndustry": "Agricultural Products & Services"
+    },
+    {
+      "symbol": "KVUE",
+      "name": "KENVUE INC",
+      "sector": "Consumer Staples",
+      "weight": 0.055108,
+      "sharesHeld": 22794328,
+      "subIndustry": "Personal Care Products"
+    },
+    {
+      "symbol": "MTB",
+      "name": "M + T BANK CORP",
+      "sector": "Financials",
+      "weight": 0.054553,
+      "sharesHeld": 1796334,
+      "subIndustry": "Regional Banks"
+    },
+    {
+      "symbol": "FISV",
+      "name": "FISERV INC",
+      "sector": "Financials",
+      "weight": 0.054514,
+      "sharesHeld": 6407349,
+      "subIndustry": "Transaction & Payment Processing Services"
+    },
+    {
+      "symbol": "HAL",
+      "name": "HALLIBURTON CO",
+      "sector": "Energy",
+      "weight": 0.054331,
+      "sharesHeld": 9912993,
+      "subIndustry": "Oil & Gas Equipment & Services"
+    },
+    {
+      "symbol": "NRG",
+      "name": "NRG ENERGY INC",
+      "sector": "Utilities",
+      "weight": 0.053981,
+      "sharesHeld": 2527143,
+      "subIndustry": "Independent Power Producers & Energy Traders"
+    },
+    {
+      "symbol": "PRU",
+      "name": "PRUDENTIAL FINANCIAL INC",
+      "sector": "Financials",
+      "weight": 0.053711,
+      "sharesHeld": 4118309,
+      "subIndustry": "Life & Health Insurance"
+    },
+    {
+      "symbol": "A",
+      "name": "AGILENT TECHNOLOGIES INC",
+      "sector": "Health Care",
+      "weight": 0.053497,
+      "sharesHeld": 3382433,
+      "subIndustry": "Life Sciences Tools & Services"
+    },
+    {
+      "symbol": "KMB",
+      "name": "KIMBERLY CLARK CORP",
+      "sector": "Consumer Staples",
+      "weight": 0.053492,
+      "sharesHeld": 3951619,
+      "subIndustry": "Household Products"
+    },
+    {
+      "symbol": "RMD",
+      "name": "RESMED INC",
+      "sector": "Health Care",
+      "weight": 0.052543,
+      "sharesHeld": 1731640,
+      "subIndustry": "Health Care Equipment"
+    },
+    {
+      "symbol": "GEHC",
+      "name": "GE HEALTHCARE TECHNOLOGY",
+      "sector": "Health Care",
+      "weight": 0.052518,
+      "sharesHeld": 5436188,
+      "subIndustry": "Health Care Equipment"
+    },
+    {
+      "symbol": "CBOE",
+      "name": "CBOE GLOBAL MARKETS INC",
+      "sector": "Financials",
+      "weight": 0.051482,
+      "sharesHeld": 1240959,
+      "subIndustry": "Financial Exchanges & Data"
+    },
+    {
+      "symbol": "OTIS",
+      "name": "OTIS WORLDWIDE CORP",
+      "sector": "Industrials",
+      "weight": 0.051006,
+      "sharesHeld": 4642063,
+      "subIndustry": "Industrial Machinery & Supplies & Components"
+    },
+    {
+      "symbol": "ATO",
+      "name": "ATMOS ENERGY CORP",
+      "sector": "Utilities",
+      "weight": 0.051001,
+      "sharesHeld": 1964546,
+      "subIndustry": "Gas Utilities"
+    },
+    {
+      "symbol": "STLD",
+      "name": "STEEL DYNAMICS INC",
+      "sector": "Materials",
+      "weight": 0.050874,
+      "sharesHeld": 1635372,
+      "subIndustry": "Steel"
+    },
+    {
+      "symbol": "AEE",
+      "name": "AMEREN CORPORATION",
+      "sector": "Utilities",
+      "weight": 0.050842,
+      "sharesHeld": 3282569,
+      "subIndustry": "Multi-Utilities"
+    },
+    {
+      "symbol": "AXON",
+      "name": "AXON ENTERPRISE INC",
+      "sector": "Industrials",
+      "weight": 0.050772,
+      "sharesHeld": 935464,
+      "subIndustry": "Aerospace & Defense"
+    },
+    {
+      "symbol": "NTRS",
+      "name": "NORTHERN TRUST CORP",
+      "sector": "Financials",
+      "weight": 0.050365,
+      "sharesHeld": 2203046,
+      "subIndustry": "Asset Management & Custody Banks"
+    },
+    {
+      "symbol": "CCL",
+      "name": "CARNIVAL CORP",
+      "sector": "Consumer Discretionary",
+      "weight": 0.050315,
+      "sharesHeld": 13658506,
+      "subIndustry": "Hotels, Resorts & Cruise Lines"
+    },
+    {
+      "symbol": "DOV",
+      "name": "DOVER CORP",
+      "sector": "Industrials",
+      "weight": 0.050306,
+      "sharesHeld": 1595158,
+      "subIndustry": "Industrial Machinery & Supplies & Components"
+    },
+    {
+      "symbol": "DTE",
+      "name": "DTE ENERGY COMPANY",
+      "sector": "Utilities",
+      "weight": 0.050165,
+      "sharesHeld": 2462065,
+      "subIndustry": "Multi-Utilities"
+    },
+    {
+      "symbol": "TDY",
+      "name": "TELEDYNE TECHNOLOGIES INC",
+      "sector": "Information Technology",
+      "weight": 0.050104,
+      "sharesHeld": 556148,
+      "subIndustry": "Electronic Equipment & Instruments"
+    },
+    {
+      "symbol": "WAT",
+      "name": "WATERS CORP",
+      "sector": "Health Care",
+      "weight": 0.049921,
+      "sharesHeld": 1160500,
+      "subIndustry": "Life Sciences Tools & Services"
+    },
+    {
+      "symbol": "VICI",
+      "name": "VICI PROPERTIES INC",
+      "sector": "Real Estate",
+      "weight": 0.049881,
+      "sharesHeld": 12657139,
+      "subIndustry": "Hotel & Resort REITs"
+    },
+    {
+      "symbol": "EXR",
+      "name": "EXTRA SPACE STORAGE INC",
+      "sector": "Real Estate",
+      "weight": 0.049849,
+      "sharesHeld": 2527856,
+      "subIndustry": "Self-Storage REITs"
+    },
+    {
+      "symbol": "CPRT",
+      "name": "COPART INC",
+      "sector": "Industrials",
+      "weight": 0.049503,
+      "sharesHeld": 10570358,
+      "subIndustry": "Diversified Support Services"
+    },
+    {
+      "symbol": "IR",
+      "name": "INGERSOLL RAND INC",
+      "sector": "Industrials",
+      "weight": 0.049447,
+      "sharesHeld": 4210927,
+      "subIndustry": "Industrial Machinery & Supplies & Components"
+    },
+    {
+      "symbol": "DVN",
+      "name": "DEVON ENERGY CORP",
+      "sector": "Energy",
+      "weight": 0.048849,
+      "sharesHeld": 7339442,
+      "subIndustry": "Oil & Gas Exploration & Production"
+    },
+    {
+      "symbol": "XYL",
+      "name": "XYLEM INC",
+      "sector": "Industrials",
+      "weight": 0.048617,
+      "sharesHeld": 2890215,
+      "subIndustry": "Industrial Machinery & Supplies & Components"
+    },
+    {
+      "symbol": "UAL",
+      "name": "UNITED AIRLINES HOLDINGS INC",
+      "sector": "Industrials",
+      "weight": 0.04861,
+      "sharesHeld": 3853865,
+      "subIndustry": "Passenger Airlines"
+    },
+    {
+      "symbol": "HUBB",
+      "name": "HUBBELL INC",
+      "sector": "Industrials",
+      "weight": 0.048587,
+      "sharesHeld": 630085,
+      "subIndustry": "Industrial Machinery & Supplies & Components"
+    },
+    {
+      "symbol": "Q",
+      "name": "QNITY ELECTRONICS INC",
+      "sector": "Information Technology",
+      "weight": 0.048519,
+      "sharesHeld": 2504845,
+      "subIndustry": "Semiconductor Materials & Equipment"
+    },
+    {
+      "symbol": "PAYX",
+      "name": "PAYCHEX INC",
+      "sector": "Industrials",
+      "weight": 0.048504,
+      "sharesHeld": 3858101,
+      "subIndustry": "Human Resource & Employment Services"
+    },
+    {
+      "symbol": "TPR",
+      "name": "TAPESTRY INC",
+      "sector": "Consumer Discretionary",
+      "weight": 0.048491,
+      "sharesHeld": 2395367,
+      "subIndustry": "Apparel, Accessories & Luxury Goods"
+    },
+    {
+      "symbol": "EXPE",
+      "name": "EXPEDIA GROUP INC",
+      "sector": "Consumer Discretionary",
+      "weight": 0.048243,
+      "sharesHeld": 1393968,
+      "subIndustry": "Hotels, Resorts & Cruise Lines"
+    },
+    {
+      "symbol": "CASY",
+      "name": "CASEY S GENERAL STORES INC",
+      "sector": "Consumer Staples",
+      "weight": 0.047561,
+      "sharesHeld": 435632,
+      "subIndustry": "Food Retail"
+    },
+    {
+      "symbol": "PPL",
+      "name": "PPL CORP",
+      "sector": "Utilities",
+      "weight": 0.046722,
+      "sharesHeld": 8770298,
+      "subIndustry": "Electric Utilities"
+    },
+    {
+      "symbol": "HSY",
+      "name": "HERSHEY CO/THE",
+      "sector": "Consumer Staples",
+      "weight": 0.046671,
+      "sharesHeld": 1757602,
+      "subIndustry": "Packaged Foods & Meats"
+    },
+    {
+      "symbol": "CNP",
+      "name": "CENTERPOINT ENERGY INC",
+      "sector": "Utilities",
+      "weight": 0.046194,
+      "sharesHeld": 7739403,
+      "subIndustry": "Multi-Utilities"
+    },
+    {
+      "symbol": "BIIB",
+      "name": "BIOGEN INC",
+      "sector": "Health Care",
+      "weight": 0.045438,
+      "sharesHeld": 1749600,
+      "subIndustry": "Biotechnology"
+    },
+    {
+      "symbol": "DOW",
+      "name": "DOW INC",
+      "sector": "Materials",
+      "weight": 0.045268,
+      "sharesHeld": 8499429,
+      "subIndustry": "Commodity Chemicals"
+    },
+    {
+      "symbol": "CFG",
+      "name": "CITIZENS FINANCIAL GROUP",
+      "sector": "Financials",
+      "weight": 0.045258,
+      "sharesHeld": 5023947,
+      "subIndustry": "Regional Banks"
+    },
+    {
+      "symbol": "WTW",
+      "name": "WILLIS TOWERS WATSON PLC",
+      "sector": "Financials",
+      "weight": 0.045211,
+      "sharesHeld": 1124391,
+      "subIndustry": "Insurance Brokers"
+    },
+    {
+      "symbol": "IQV",
+      "name": "IQVIA HOLDINGS INC",
+      "sector": "Health Care",
+      "weight": 0.044949,
+      "sharesHeld": 2023758,
+      "subIndustry": "Life Sciences Tools & Services"
+    },
+    {
+      "symbol": "EIX",
+      "name": "EDISON INTERNATIONAL",
+      "sector": "Utilities",
+      "weight": 0.044635,
+      "sharesHeld": 4590687,
+      "subIndustry": "Electric Utilities"
+    },
+    {
+      "symbol": "RJF",
+      "name": "RAYMOND JAMES FINANCIAL INC",
+      "sector": "Financials",
+      "weight": 0.044527,
+      "sharesHeld": 2099752,
+      "subIndustry": "Investment Banking & Brokerage"
+    },
+    {
+      "symbol": "DG",
+      "name": "DOLLAR GENERAL CORP",
+      "sector": "Consumer Staples",
+      "weight": 0.04403,
+      "sharesHeld": 2609619,
+      "subIndustry": "Consumer Staples Merchandise Retail"
+    },
+    {
+      "symbol": "SYF",
+      "name": "SYNCHRONY FINANCIAL",
+      "sector": "Financials",
+      "weight": 0.043508,
+      "sharesHeld": 4107949,
+      "subIndustry": "Consumer Finance"
+    },
+    {
+      "symbol": "AWK",
+      "name": "AMERICAN WATER WORKS CO INC",
+      "sector": "Utilities",
+      "weight": 0.043368,
+      "sharesHeld": 2324499,
+      "subIndustry": "Water Utilities"
+    },
+    {
+      "symbol": "CINF",
+      "name": "CINCINNATI FINANCIAL CORP",
+      "sector": "Financials",
+      "weight": 0.04321,
+      "sharesHeld": 1858706,
+      "subIndustry": "Property & Casualty Insurance"
+    },
+    {
+      "symbol": "CTSH",
+      "name": "COGNIZANT TECH SOLUTIONS A",
+      "sector": "Information Technology",
+      "weight": 0.043095,
+      "sharesHeld": 5658193,
+      "subIndustry": "IT Consulting & Other Services"
+    },
+    {
+      "symbol": "HUM",
+      "name": "HUMANA INC",
+      "sector": "Health Care",
+      "weight": 0.04254,
+      "sharesHeld": 1431721,
+      "subIndustry": "Managed Health Care"
+    },
+    {
+      "symbol": "MTD",
+      "name": "METTLER TOLEDO INTERNATIONAL",
+      "sector": "Health Care",
+      "weight": 0.042532,
+      "sharesHeld": 243359,
+      "subIndustry": "Life Sciences Tools & Services"
+    },
+    {
+      "symbol": "FE",
+      "name": "FIRSTENERGY CORP",
+      "sector": "Utilities",
+      "weight": 0.042259,
+      "sharesHeld": 6161187,
+      "subIndustry": "Electric Utilities"
+    },
+    {
+      "symbol": "ES",
+      "name": "EVERSOURCE ENERGY",
+      "sector": "Utilities",
+      "weight": 0.04225,
+      "sharesHeld": 4444592,
+      "subIndustry": "Electric Utilities"
+    },
+    {
+      "symbol": "CTRA",
+      "name": "COTERRA ENERGY INC",
+      "sector": "Energy",
+      "weight": 0.042046,
+      "sharesHeld": 9039358,
+      "subIndustry": "Oil & Gas Exploration & Production"
+    },
+    {
+      "symbol": "TPL",
+      "name": "TEXAS PACIFIC LAND CORP",
+      "sector": "Energy",
+      "weight": 0.041766,
+      "sharesHeld": 688032,
+      "subIndustry": "Oil & Gas Exploration & Production"
+    },
+    {
+      "symbol": "PHM",
+      "name": "PULTEGROUP INC",
+      "sector": "Consumer Discretionary",
+      "weight": 0.041009,
+      "sharesHeld": 2270909,
+      "subIndustry": "Homebuilding"
+    },
+    {
+      "symbol": "ULTA",
+      "name": "ULTA BEAUTY INC",
+      "sector": "Consumer Discretionary",
+      "weight": 0.040923,
+      "sharesHeld": 524500,
+      "subIndustry": "Other Specialty Retail"
+    },
+    {
+      "symbol": "VRSK",
+      "name": "VERISK ANALYTICS INC",
+      "sector": "Industrials",
+      "weight": 0.04074,
+      "sharesHeld": 1663808,
+      "subIndustry": "Research & Consulting Services"
+    },
+    {
+      "symbol": "PPG",
+      "name": "PPG INDUSTRIES INC",
+      "sector": "Materials",
+      "weight": 0.040551,
+      "sharesHeld": 2659873,
+      "subIndustry": "Specialty Chemicals"
+    },
+    {
+      "symbol": "AVB",
+      "name": "AVALONBAY COMMUNITIES INC",
+      "sector": "Real Estate",
+      "weight": 0.04037,
+      "sharesHeld": 1684735,
+      "subIndustry": "Multi-Family Residential REITs"
+    },
+    {
+      "symbol": "RF",
+      "name": "REGIONS FINANCIAL CORP",
+      "sector": "Financials",
+      "weight": 0.040264,
+      "sharesHeld": 10256403,
+      "subIndustry": "Regional Banks"
+    },
+    {
+      "symbol": "WDAY",
+      "name": "WORKDAY INC CLASS A",
+      "sector": "Information Technology",
+      "weight": 0.039941,
+      "sharesHeld": 2519797,
+      "subIndustry": "Application Software"
+    },
+    {
+      "symbol": "LYV",
+      "name": "LIVE NATION ENTERTAINMENT IN",
+      "sector": "Communication Services",
+      "weight": 0.039912,
+      "sharesHeld": 1884587,
+      "subIndustry": "Movies & Entertainment"
+    },
+    {
+      "symbol": "OMC",
+      "name": "OMNICOM GROUP",
+      "sector": "Communication Services",
+      "weight": 0.039491,
+      "sharesHeld": 3718965,
+      "subIndustry": "Advertising"
+    },
+    {
+      "symbol": "DXCM",
+      "name": "DEXCOM INC",
+      "sector": "Health Care",
+      "weight": 0.039445,
+      "sharesHeld": 4551220,
+      "subIndustry": "Health Care Equipment"
+    },
+    {
+      "symbol": "FIS",
+      "name": "FIDELITY NATIONAL INFO SERV",
+      "sector": "Financials",
+      "weight": 0.039001,
+      "sharesHeld": 6168543,
+      "subIndustry": "Transaction & Payment Processing Services"
+    },
+    {
+      "symbol": "ARES",
+      "name": "ARES MANAGEMENT CORP   A",
+      "sector": "Financials",
+      "weight": 0.038824,
+      "sharesHeld": 2447020,
+      "subIndustry": "Asset Management & Custody Banks"
+    },
+    {
+      "symbol": "CMS",
+      "name": "CMS ENERGY CORP",
+      "sector": "Utilities",
+      "weight": 0.038539,
+      "sharesHeld": 3638796,
+      "subIndustry": "Multi-Utilities"
+    },
+    {
+      "symbol": "SBAC",
+      "name": "SBA COMMUNICATIONS CORP",
+      "sector": "Real Estate",
+      "weight": 0.038529,
+      "sharesHeld": 1269275,
+      "subIndustry": "Telecom Tower REITs"
+    },
+    {
+      "symbol": "FICO",
+      "name": "FAIR ISAAC CORP",
+      "sector": "Information Technology",
+      "weight": 0.038251,
+      "sharesHeld": 282441,
+      "subIndustry": "Application Software"
+    },
+    {
+      "symbol": "DRI",
+      "name": "DARDEN RESTAURANTS INC",
+      "sector": "Consumer Discretionary",
+      "weight": 0.038066,
+      "sharesHeld": 1361002,
+      "subIndustry": "Restaurants"
+    },
+    {
+      "symbol": "NI",
+      "name": "NISOURCE INC",
+      "sector": "Utilities",
+      "weight": 0.037768,
+      "sharesHeld": 5658093,
+      "subIndustry": "Multi-Utilities"
+    },
+    {
+      "symbol": "EXE",
+      "name": "EXPAND ENERGY CORP",
+      "sector": "Energy",
+      "weight": 0.037716,
+      "sharesHeld": 2833359,
+      "subIndustry": "Oil & Gas Exploration & Production"
+    },
+    {
+      "symbol": "WSM",
+      "name": "WILLIAMS SONOMA INC",
+      "sector": "Consumer Discretionary",
+      "weight": 0.037505,
+      "sharesHeld": 1410297,
+      "subIndustry": "Homefurnishing Retail"
+    },
+    {
+      "symbol": "VRSN",
+      "name": "VERISIGN INC",
+      "sector": "Information Technology",
+      "weight": 0.037313,
+      "sharesHeld": 974668,
+      "subIndustry": "Internet Services & Infrastructure"
+    },
+    {
+      "symbol": "ALB",
+      "name": "ALBEMARLE CORP",
+      "sector": "Materials",
+      "weight": 0.037213,
+      "sharesHeld": 1393887,
+      "subIndustry": "Specialty Chemicals"
+    },
+    {
+      "symbol": "STZ",
+      "name": "CONSTELLATION BRANDS INC A",
+      "sector": "Consumer Staples",
+      "weight": 0.036983,
+      "sharesHeld": 1679422,
+      "subIndustry": "Distillers & Vintners"
+    },
+    {
+      "symbol": "WST",
+      "name": "WEST PHARMACEUTICAL SERVICES",
+      "sector": "Health Care",
+      "weight": 0.03669,
+      "sharesHeld": 857046,
+      "subIndustry": "Health Care Supplies"
+    },
+    {
+      "symbol": "CHD",
+      "name": "CHURCH + DWIGHT CO INC",
+      "sector": "Consumer Staples",
+      "weight": 0.036571,
+      "sharesHeld": 2797301,
+      "subIndustry": "Household Products"
+    },
+    {
+      "symbol": "VLTO",
+      "name": "VERALTO CORP",
+      "sector": "Industrials",
+      "weight": 0.036434,
+      "sharesHeld": 2968526,
+      "subIndustry": "Environmental & Facilities Services"
+    },
+    {
+      "symbol": "LH",
+      "name": "LABCORP HOLDINGS INC",
+      "sector": "Health Care",
+      "weight": 0.036234,
+      "sharesHeld": 989463,
+      "subIndustry": "Health Care Services"
+    },
+    {
+      "symbol": "STE",
+      "name": "STERIS PLC",
+      "sector": "Health Care",
+      "weight": 0.036127,
+      "sharesHeld": 1169287,
+      "subIndustry": "Health Care Equipment"
+    },
+    {
+      "symbol": "CPAY",
+      "name": "CORPAY INC",
+      "sector": "Financials",
+      "weight": 0.036112,
+      "sharesHeld": 833396,
+      "subIndustry": "Transaction & Payment Processing Services"
+    },
+    {
+      "symbol": "TROW",
+      "name": "T ROWE PRICE GROUP INC",
+      "sector": "Financials",
+      "weight": 0.035948,
+      "sharesHeld": 2613949,
+      "subIndustry": "Asset Management & Custody Banks"
+    },
+    {
+      "symbol": "CHRW",
+      "name": "C.H. ROBINSON WORLDWIDE INC",
+      "sector": "Industrials",
+      "weight": 0.035863,
+      "sharesHeld": 1412018,
+      "subIndustry": "Air Freight & Logistics"
+    },
+    {
+      "symbol": "DGX",
+      "name": "QUEST DIAGNOSTICS INC",
+      "sector": "Health Care",
+      "weight": 0.035846,
+      "sharesHeld": 1299663,
+      "subIndustry": "Health Care Services"
+    },
+    {
+      "symbol": "EQR",
+      "name": "EQUITY RESIDENTIAL",
+      "sector": "Real Estate",
+      "weight": 0.035168,
+      "sharesHeld": 4060932,
+      "subIndustry": "Multi-Family Residential REITs"
+    },
+    {
+      "symbol": "NTAP",
+      "name": "NETAPP INC",
+      "sector": "Information Technology",
+      "weight": 0.035052,
+      "sharesHeld": 2339266,
+      "subIndustry": "Technology Hardware, Storage & Peripherals"
+    },
+    {
+      "symbol": "SW",
+      "name": "SMURFIT WESTROCK PLC",
+      "sector": "Materials",
+      "weight": 0.034793,
+      "sharesHeld": 6211934,
+      "subIndustry": "Paper & Plastic Packaging Products & Materials"
+    },
+    {
+      "symbol": "FSLR",
+      "name": "FIRST SOLAR INC",
+      "sector": "Information Technology",
+      "weight": 0.034463,
+      "sharesHeld": 1270806,
+      "subIndustry": "Semiconductors"
+    },
+    {
+      "symbol": "EFX",
+      "name": "EQUIFAX INC",
+      "sector": "Industrials",
+      "weight": 0.034399,
+      "sharesHeld": 1422608,
+      "subIndustry": "Research & Consulting Services"
+    },
+    {
+      "symbol": "CHTR",
+      "name": "CHARTER COMMUNICATIONS INC A",
+      "sector": "Communication Services",
+      "weight": 0.033969,
+      "sharesHeld": 1016406,
+      "subIndustry": "Cable & Satellite"
+    },
+    {
+      "symbol": "KEY",
+      "name": "KEYCORP",
+      "sector": "Financials",
+      "weight": 0.03372,
+      "sharesHeld": 11083350,
+      "subIndustry": "Regional Banks"
+    },
+    {
+      "symbol": "LEN",
+      "name": "LENNAR CORP W/D",
+      "sector": "Consumer Discretionary",
+      "weight": 0.033458,
+      "sharesHeld": 2570044,
+      "subIndustry": "Homebuilding"
+    },
+    {
+      "symbol": "SNA",
+      "name": "SNAP ON INC",
+      "sector": "Industrials",
+      "weight": 0.033369,
+      "sharesHeld": 617799,
+      "subIndustry": "Industrial Machinery & Supplies & Components"
+    },
+    {
+      "symbol": "WRB",
+      "name": "WR BERKLEY CORP",
+      "sector": "Financials",
+      "weight": 0.033291,
+      "sharesHeld": 3518491,
+      "subIndustry": "Property & Casualty Insurance"
+    },
+    {
+      "symbol": "TSCO",
+      "name": "TRACTOR SUPPLY COMPANY",
+      "sector": "Consumer Discretionary",
+      "weight": 0.033284,
+      "sharesHeld": 6308237,
+      "subIndustry": "Other Specialty Retail"
+    },
+    {
+      "symbol": "EXPD",
+      "name": "EXPEDITORS INTL WASH INC",
+      "sector": "Industrials",
+      "weight": 0.03305,
+      "sharesHeld": 1596622,
+      "subIndustry": "Air Freight & Logistics"
+    },
+    {
+      "symbol": "BRO",
+      "name": "BROWN + BROWN INC",
+      "sector": "Financials",
+      "weight": 0.032553,
+      "sharesHeld": 3486359,
+      "subIndustry": "Insurance Brokers"
+    },
+    {
+      "symbol": "CF",
+      "name": "CF INDUSTRIES HOLDINGS INC",
+      "sector": "Materials",
+      "weight": 0.032258,
+      "sharesHeld": 1858159,
+      "subIndustry": "Fertilizers & Agricultural Chemicals"
+    },
+    {
+      "symbol": "CNC",
+      "name": "CENTENE CORP",
+      "sector": "Health Care",
+      "weight": 0.031487,
+      "sharesHeld": 5543661,
+      "subIndustry": "Managed Health Care"
+    },
+    {
+      "symbol": "PKG",
+      "name": "PACKAGING CORP OF AMERICA",
+      "sector": "Materials",
+      "weight": 0.031438,
+      "sharesHeld": 1057730,
+      "subIndustry": "Paper & Plastic Packaging Products & Materials"
+    },
+    {
+      "symbol": "L",
+      "name": "LOEWS CORP",
+      "sector": "Financials",
+      "weight": 0.031404,
+      "sharesHeld": 2020890,
+      "subIndustry": "Multi-line Insurance"
+    },
+    {
+      "symbol": "JBHT",
+      "name": "HUNT (JB) TRANSPRT SVCS INC",
+      "sector": "Industrials",
+      "weight": 0.031403,
+      "sharesHeld": 895443,
+      "subIndustry": "Cargo Ground Transportation"
+    },
+    {
+      "symbol": "PFG",
+      "name": "PRINCIPAL FINANCIAL GROUP",
+      "sector": "Financials",
+      "weight": 0.031308,
+      "sharesHeld": 2335003,
+      "subIndustry": "Life & Health Insurance"
+    },
+    {
+      "symbol": "FTV",
+      "name": "FORTIVE CORP",
+      "sector": "Industrials",
+      "weight": 0.03124,
+      "sharesHeld": 3698217,
+      "subIndustry": "Industrial Machinery & Supplies & Components"
+    },
+    {
+      "symbol": "GIS",
+      "name": "GENERAL MILLS INC",
+      "sector": "Consumer Staples",
+      "weight": 0.031196,
+      "sharesHeld": 6362647,
+      "subIndustry": "Packaged Foods & Meats"
+    },
+    {
+      "symbol": "LDOS",
+      "name": "LEIDOS HOLDINGS INC",
+      "sector": "Industrials",
+      "weight": 0.03113,
+      "sharesHeld": 1525794,
+      "subIndustry": "Diversified Support Services"
+    },
+    {
+      "symbol": "EVRG",
+      "name": "EVERGY INC",
+      "sector": "Utilities",
+      "weight": 0.03113,
+      "sharesHeld": 2750110,
+      "subIndustry": "Electric Utilities"
+    },
+    {
+      "symbol": "DD",
+      "name": "DUPONT DE NEMOURS INC",
+      "sector": "Materials",
+      "weight": 0.030956,
+      "sharesHeld": 4829506,
+      "subIndustry": "Specialty Chemicals"
+    },
+    {
+      "symbol": "DLTR",
+      "name": "DOLLAR TREE INC",
+      "sector": "Consumer Staples",
+      "weight": 0.03087,
+      "sharesHeld": 2184102,
+      "subIndustry": "Consumer Staples Merchandise Retail"
+    },
+    {
+      "symbol": "EL",
+      "name": "ESTEE LAUDER COMPANIES CL A",
+      "sector": "Consumer Staples",
+      "weight": 0.030813,
+      "sharesHeld": 2917707,
+      "subIndustry": "Personal Care Products"
+    },
+    {
+      "symbol": "KHC",
+      "name": "KRAFT HEINZ CO/THE",
+      "sector": "Consumer Staples",
+      "weight": 0.030786,
+      "sharesHeld": 10137481,
+      "subIndustry": "Packaged Foods & Meats"
+    },
+    {
+      "symbol": "NVR",
+      "name": "NVR INC",
+      "sector": "Consumer Discretionary",
+      "weight": 0.030527,
+      "sharesHeld": 33115,
+      "subIndustry": "Homebuilding"
+    },
+    {
+      "symbol": "LNT",
+      "name": "ALLIANT ENERGY CORP",
+      "sector": "Utilities",
+      "weight": 0.03051,
+      "sharesHeld": 3038943,
+      "subIndustry": "Electric Utilities"
+    },
+    {
+      "symbol": "TSN",
+      "name": "TYSON FOODS INC CL A",
+      "sector": "Consumer Staples",
+      "weight": 0.030398,
+      "sharesHeld": 3371259,
+      "subIndustry": "Packaged Foods & Meats"
+    },
+    {
+      "symbol": "LUV",
+      "name": "SOUTHWEST AIRLINES CO",
+      "sector": "Industrials",
+      "weight": 0.03028,
+      "sharesHeld": 5802896,
+      "subIndustry": "Passenger Airlines"
+    },
+    {
+      "symbol": "MRNA",
+      "name": "MODERNA INC",
+      "sector": "Health Care",
+      "weight": 0.030169,
+      "sharesHeld": 4129631,
+      "subIndustry": "Biotechnology"
+    },
+    {
+      "symbol": "ZBH",
+      "name": "ZIMMER BIOMET HOLDINGS INC",
+      "sector": "Health Care",
+      "weight": 0.030165,
+      "sharesHeld": 2360691,
+      "subIndustry": "Health Care Equipment"
+    },
+    {
+      "symbol": "HPQ",
+      "name": "HP INC",
+      "sector": "Information Technology",
+      "weight": 0.030153,
+      "sharesHeld": 10831139,
+      "subIndustry": "Technology Hardware, Storage & Peripherals"
+    },
+    {
+      "symbol": "AMCR",
+      "name": "AMCOR PLC",
+      "sector": "Materials",
+      "weight": 0.030123,
+      "sharesHeld": 5497428,
+      "subIndustry": "Paper & Plastic Packaging Products & Materials"
+    },
+    {
+      "symbol": "BR",
+      "name": "BROADRIDGE FINANCIAL SOLUTIO",
+      "sector": "Industrials",
+      "weight": 0.030048,
+      "sharesHeld": 1393879,
+      "subIndustry": "Data Processing & Outsourced Services"
+    },
+    {
+      "symbol": "LYB",
+      "name": "LYONDELLBASELL INDU CL A",
+      "sector": "Materials",
+      "weight": 0.029987,
+      "sharesHeld": 3067533,
+      "subIndustry": "Specialty Chemicals"
+    },
+    {
+      "symbol": "IFF",
+      "name": "INTL FLAVORS + FRAGRANCES",
+      "sector": "Materials",
+      "weight": 0.029704,
+      "sharesHeld": 3029196,
+      "subIndustry": "Specialty Chemicals"
+    },
+    {
+      "symbol": "WY",
+      "name": "WEYERHAEUSER CO",
+      "sector": "Real Estate",
+      "weight": 0.02964,
+      "sharesHeld": 8577037,
+      "subIndustry": "Timber REITs"
+    },
+    {
+      "symbol": "CDW",
+      "name": "CDW CORP/DE",
+      "sector": "Information Technology",
+      "weight": 0.029416,
+      "sharesHeld": 1559354,
+      "subIndustry": "Technology Distributors"
+    },
+    {
+      "symbol": "IP",
+      "name": "INTERNATIONAL PAPER CO",
+      "sector": "Materials",
+      "weight": 0.028992,
+      "sharesHeld": 6253290,
+      "subIndustry": "Paper & Plastic Packaging Products & Materials"
+    },
+    {
+      "symbol": "BG",
+      "name": "BUNGE GLOBAL SA",
+      "sector": "Consumer Staples",
+      "weight": 0.028177,
+      "sharesHeld": 1612447,
+      "subIndustry": "Agricultural Products & Services"
+    },
+    {
+      "symbol": "VTRS",
+      "name": "VIATRIS INC",
+      "sector": "Health Care",
+      "weight": 0.02807,
+      "sharesHeld": 13767180,
+      "subIndustry": "Pharmaceuticals"
+    },
+    {
+      "symbol": "BALL",
+      "name": "BALL CORP",
+      "sector": "Materials",
+      "weight": 0.027855,
+      "sharesHeld": 3192515,
+      "subIndustry": "Metal, Glass & Plastic Containers"
+    },
+    {
+      "symbol": "FFIV",
+      "name": "F5 INC",
+      "sector": "Information Technology",
+      "weight": 0.02764,
+      "sharesHeld": 666766,
+      "subIndustry": "Communications Equipment"
+    },
+    {
+      "symbol": "ROL",
+      "name": "ROLLINS INC",
+      "sector": "Industrials",
+      "weight": 0.027388,
+      "sharesHeld": 3476615,
+      "subIndustry": "Environmental & Facilities Services"
+    },
+    {
+      "symbol": "SATS",
+      "name": "ECHOSTAR CORP A",
+      "sector": "Communication Services",
+      "weight": 0.02685,
+      "sharesHeld": 1598450,
+      "subIndustry": "Wireless Telecommunication Services"
+    },
+    {
+      "symbol": "ESS",
+      "name": "ESSEX PROPERTY TRUST INC",
+      "sector": "Real Estate",
+      "weight": 0.026811,
+      "sharesHeld": 760448,
+      "subIndustry": "Multi-Family Residential REITs"
+    },
+    {
+      "symbol": "PTC",
+      "name": "PTC INC",
+      "sector": "Information Technology",
+      "weight": 0.026753,
+      "sharesHeld": 1424854,
+      "subIndustry": "Application Software"
+    },
+    {
+      "symbol": "KIM",
+      "name": "KIMCO REALTY CORP",
+      "sector": "Real Estate",
+      "weight": 0.026563,
+      "sharesHeld": 8060647,
+      "subIndustry": "Retail REITs"
+    },
+    {
+      "symbol": "GPN",
+      "name": "GLOBAL PAYMENTS INC",
+      "sector": "Financials",
+      "weight": 0.026455,
+      "sharesHeld": 2820305,
+      "subIndustry": "Transaction & Payment Processing Services"
+    },
+    {
+      "symbol": "CSGP",
+      "name": "COSTAR GROUP INC",
+      "sector": "Real Estate",
+      "weight": 0.026127,
+      "sharesHeld": 5056485,
+      "subIndustry": "Real Estate Services"
+    },
+    {
+      "symbol": "TRMB",
+      "name": "TRIMBLE INC",
+      "sector": "Information Technology",
+      "weight": 0.026123,
+      "sharesHeld": 2818969,
+      "subIndustry": "Application Software"
+    },
+    {
+      "symbol": "INCY",
+      "name": "INCYTE CORP",
+      "sector": "Health Care",
+      "weight": 0.026025,
+      "sharesHeld": 1972064,
+      "subIndustry": "Biotechnology"
+    },
+    {
+      "symbol": "LVS",
+      "name": "LAS VEGAS SANDS CORP",
+      "sector": "Consumer Discretionary",
+      "weight": 0.026022,
+      "sharesHeld": 3623726,
+      "subIndustry": "Casinos & Gaming"
+    },
+    {
+      "symbol": "LII",
+      "name": "LENNOX INTERNATIONAL INC",
+      "sector": "Industrials",
+      "weight": 0.025786,
+      "sharesHeld": 377871,
+      "subIndustry": "Building Products"
+    },
+    {
+      "symbol": "TXT",
+      "name": "TEXTRON INC",
+      "sector": "Industrials",
+      "weight": 0.025651,
+      "sharesHeld": 2053406,
+      "subIndustry": "Aerospace & Defense"
+    },
+    {
+      "symbol": "IEX",
+      "name": "IDEX CORP",
+      "sector": "Industrials",
+      "weight": 0.025469,
+      "sharesHeld": 891646,
+      "subIndustry": "Industrial Machinery & Supplies & Components"
+    },
+    {
+      "symbol": "INVH",
+      "name": "INVITATION HOMES INC",
+      "sector": "Real Estate",
+      "weight": 0.025293,
+      "sharesHeld": 6702639,
+      "subIndustry": "Single-Family Residential REITs"
+    },
+    {
+      "symbol": "LULU",
+      "name": "LULULEMON ATHLETICA INC",
+      "sector": "Consumer Discretionary",
+      "weight": 0.025161,
+      "sharesHeld": 1284909,
+      "subIndustry": "Apparel, Accessories & Luxury Goods"
+    },
+    {
+      "symbol": "GPC",
+      "name": "GENUINE PARTS CO",
+      "sector": "Consumer Discretionary",
+      "weight": 0.024986,
+      "sharesHeld": 1646418,
+      "subIndustry": "Distributors"
+    },
+    {
+      "symbol": "MAS",
+      "name": "MASCO CORP",
+      "sector": "Industrials",
+      "weight": 0.02497,
+      "sharesHeld": 2395824,
+      "subIndustry": "Building Products"
+    },
+    {
+      "symbol": "J",
+      "name": "JACOBS SOLUTIONS INC",
+      "sector": "Industrials",
+      "weight": 0.024924,
+      "sharesHeld": 1413322,
+      "subIndustry": "Construction & Engineering"
+    },
+    {
+      "symbol": "DECK",
+      "name": "DECKERS OUTDOOR CORP",
+      "sector": "Consumer Discretionary",
+      "weight": 0.024918,
+      "sharesHeld": 1673607,
+      "subIndustry": "Footwear"
+    },
+    {
+      "symbol": "NDSN",
+      "name": "NORDSON CORP",
+      "sector": "Industrials",
+      "weight": 0.024881,
+      "sharesHeld": 634177,
+      "subIndustry": "Industrial Machinery & Supplies & Components"
+    },
+    {
+      "symbol": "PNR",
+      "name": "PENTAIR PLC",
+      "sector": "Industrials",
+      "weight": 0.024381,
+      "sharesHeld": 1949355,
+      "subIndustry": "Industrial Machinery & Supplies & Components"
+    },
+    {
+      "symbol": "MAA",
+      "name": "MID AMERICA APARTMENT COMM",
+      "sector": "Real Estate",
+      "weight": 0.024355,
+      "sharesHeld": 1398332,
+      "subIndustry": "Multi-Family Residential REITs"
+    },
+    {
+      "symbol": "TYL",
+      "name": "TYLER TECHNOLOGIES INC",
+      "sector": "Information Technology",
+      "weight": 0.023788,
+      "sharesHeld": 512579,
+      "subIndustry": "Application Software"
+    },
+    {
+      "symbol": "HII",
+      "name": "HUNTINGTON INGALLS INDUSTRIE",
+      "sector": "Industrials",
+      "weight": 0.023742,
+      "sharesHeld": 464030,
+      "subIndustry": "Aerospace & Defense"
+    },
+    {
+      "symbol": "RL",
+      "name": "RALPH LAUREN CORP",
+      "sector": "Consumer Discretionary",
+      "weight": 0.023546,
+      "sharesHeld": 458965,
+      "subIndustry": "Apparel, Accessories & Luxury Goods"
+    },
+    {
+      "symbol": "EG",
+      "name": "EVEREST GROUP LTD",
+      "sector": "Financials",
+      "weight": 0.023247,
+      "sharesHeld": 479400,
+      "subIndustry": "Reinsurance"
+    },
+    {
+      "symbol": "AKAM",
+      "name": "AKAMAI TECHNOLOGIES INC",
+      "sector": "Information Technology",
+      "weight": 0.022623,
+      "sharesHeld": 1701655,
+      "subIndustry": "Internet Services & Infrastructure"
+    },
+    {
+      "symbol": "APA",
+      "name": "APA CORP",
+      "sector": "Energy",
+      "weight": 0.022576,
+      "sharesHeld": 4224507,
+      "subIndustry": "Oil & Gas Exploration & Production"
+    },
+    {
+      "symbol": "PODD",
+      "name": "INSULET CORP",
+      "sector": "Health Care",
+      "weight": 0.022183,
+      "sharesHeld": 834925,
+      "subIndustry": "Health Care Equipment"
+    },
+    {
+      "symbol": "HST",
+      "name": "HOST HOTELS + RESORTS INC",
+      "sector": "Real Estate",
+      "weight": 0.022098,
+      "sharesHeld": 7587412,
+      "subIndustry": "Hotel & Resort REITs"
+    },
+    {
+      "symbol": "SMCI",
+      "name": "SUPER MICRO COMPUTER INC",
+      "sector": "Information Technology",
+      "weight": 0.022058,
+      "sharesHeld": 5965310,
+      "subIndustry": "Technology Hardware, Storage & Peripherals"
+    },
+    {
+      "symbol": "REG",
+      "name": "REGENCY CENTERS CORP",
+      "sector": "Real Estate",
+      "weight": 0.021934,
+      "sharesHeld": 1965313,
+      "subIndustry": "Retail REITs"
+    },
+    {
+      "symbol": "MKC",
+      "name": "MCCORMICK + CO NON VTG SHRS",
+      "sector": "Consumer Staples",
+      "weight": 0.021631,
+      "sharesHeld": 3015751,
+      "subIndustry": "Packaged Foods & Meats"
+    },
+    {
+      "symbol": "AVY",
+      "name": "AVERY DENNISON CORP",
+      "sector": "Materials",
+      "weight": 0.021311,
+      "sharesHeld": 920802,
+      "subIndustry": "Paper & Plastic Packaging Products & Materials"
+    },
+    {
+      "symbol": "HAS",
+      "name": "HASBRO INC",
+      "sector": "Consumer Discretionary",
+      "weight": 0.021068,
+      "sharesHeld": 1578073,
+      "subIndustry": "Leisure Products"
+    },
+    {
+      "symbol": "FOXA",
+      "name": "FOX CORP   CLASS A",
+      "sector": "Communication Services",
+      "weight": 0.021059,
+      "sharesHeld": 2360897,
+      "subIndustry": "Broadcasting"
+    },
+    {
+      "symbol": "APTV",
+      "name": "APTIV PLC",
+      "sector": "Consumer Discretionary",
+      "weight": 0.020941,
+      "sharesHeld": 2507794,
+      "subIndustry": "Automotive Parts & Equipment"
+    },
+    {
+      "symbol": "ALGN",
+      "name": "ALIGN TECHNOLOGY INC",
+      "sector": "Health Care",
+      "weight": 0.020932,
+      "sharesHeld": 794207,
+      "subIndustry": "Health Care Supplies"
+    },
+    {
+      "symbol": "ALLE",
+      "name": "ALLEGION PLC",
+      "sector": "Industrials",
+      "weight": 0.020878,
+      "sharesHeld": 1024559,
+      "subIndustry": "Building Products"
+    },
+    {
+      "symbol": "GNRC",
+      "name": "GENERAC HOLDINGS INC",
+      "sector": "Industrials",
+      "weight": 0.020833,
+      "sharesHeld": 690137,
+      "subIndustry": "Electrical Components & Equipment"
+    },
+    {
+      "symbol": "COO",
+      "name": "COOPER COS INC/THE",
+      "sector": "Health Care",
+      "weight": 0.020729,
+      "sharesHeld": 2308923,
+      "subIndustry": "Health Care Supplies"
+    },
+    {
+      "symbol": "PNW",
+      "name": "PINNACLE WEST CAPITAL",
+      "sector": "Utilities",
+      "weight": 0.020525,
+      "sharesHeld": 1435359,
+      "subIndustry": "Multi-Utilities"
+    },
+    {
+      "symbol": "TKO",
+      "name": "TKO GROUP HOLDINGS INC",
+      "sector": "Communication Services",
+      "weight": 0.020332,
+      "sharesHeld": 789716,
+      "subIndustry": "Movies & Entertainment"
+    },
+    {
+      "symbol": "GL",
+      "name": "GLOBE LIFE INC",
+      "sector": "Financials",
+      "weight": 0.019962,
+      "sharesHeld": 937919,
+      "subIndustry": "Life & Health Insurance"
+    },
+    {
+      "symbol": "BBY",
+      "name": "BEST BUY CO INC",
+      "sector": "Consumer Discretionary",
+      "weight": 0.019783,
+      "sharesHeld": 2327118,
+      "subIndustry": "Computer & Electronics Retail"
+    },
+    {
+      "symbol": "SWK",
+      "name": "STANLEY BLACK + DECKER INC",
+      "sector": "Industrials",
+      "weight": 0.019465,
+      "sharesHeld": 1852622,
+      "subIndustry": "Industrial Machinery & Supplies & Components"
+    },
+    {
+      "symbol": "CLX",
+      "name": "CLOROX COMPANY",
+      "sector": "Consumer Staples",
+      "weight": 0.019428,
+      "sharesHeld": 1439195,
+      "subIndustry": "Household Products"
+    },
+    {
+      "symbol": "AIZ",
+      "name": "ASSURANT INC",
+      "sector": "Financials",
+      "weight": 0.019159,
+      "sharesHeld": 601415,
+      "subIndustry": "Multi-line Insurance"
+    },
+    {
+      "symbol": "DPZ",
+      "name": "DOMINO S PIZZA INC",
+      "sector": "Consumer Discretionary",
+      "weight": 0.019088,
+      "sharesHeld": 370811,
+      "subIndustry": "Restaurants"
+    },
+    {
+      "symbol": "GDDY",
+      "name": "GODADDY INC   CLASS A",
+      "sector": "Information Technology",
+      "weight": 0.018865,
+      "sharesHeld": 1609923,
+      "subIndustry": "Internet Services & Infrastructure"
+    },
+    {
+      "symbol": "DOC",
+      "name": "HEALTHPEAK PROPERTIES INC",
+      "sector": "Real Estate",
+      "weight": 0.018585,
+      "sharesHeld": 8193016,
+      "subIndustry": "Health Care REITs"
+    },
+    {
+      "symbol": "IVZ",
+      "name": "INVESCO LTD",
+      "sector": "Financials",
+      "weight": 0.018441,
+      "sharesHeld": 5258602,
+      "subIndustry": "Asset Management & Custody Banks"
+    },
+    {
+      "symbol": "ZBRA",
+      "name": "ZEBRA TECHNOLOGIES CORP CL A",
+      "sector": "Information Technology",
+      "weight": 0.01813,
+      "sharesHeld": 578117,
+      "subIndustry": "Electronic Equipment & Instruments"
+    },
+    {
+      "symbol": "JKHY",
+      "name": "JACK HENRY + ASSOCIATES INC",
+      "sector": "Financials",
+      "weight": 0.017948,
+      "sharesHeld": 862190,
+      "subIndustry": "Transaction & Payment Processing Services"
+    },
+    {
+      "symbol": "UDR",
+      "name": "UDR INC",
+      "sector": "Real Estate",
+      "weight": 0.01743,
+      "sharesHeld": 3612101,
+      "subIndustry": "Multi-Family Residential REITs"
+    },
+    {
+      "symbol": "CPT",
+      "name": "CAMDEN PROPERTY TRUST",
+      "sector": "Real Estate",
+      "weight": 0.017385,
+      "sharesHeld": 1227891,
+      "subIndustry": "Multi-Family Residential REITs"
+    },
+    {
+      "symbol": "GEN",
+      "name": "GEN DIGITAL INC",
+      "sector": "Information Technology",
+      "weight": 0.017309,
+      "sharesHeld": 6656928,
+      "subIndustry": "Systems Software"
+    },
+    {
+      "symbol": "AES",
+      "name": "AES CORP",
+      "sector": "Utilities",
+      "weight": 0.017149,
+      "sharesHeld": 8556097,
+      "subIndustry": "Independent Power Producers & Energy Traders"
+    },
+    {
+      "symbol": "SJM",
+      "name": "JM SMUCKER CO/THE",
+      "sector": "Consumer Staples",
+      "weight": 0.017029,
+      "sharesHeld": 1280729,
+      "subIndustry": "Packaged Foods & Meats"
+    },
+    {
+      "symbol": "IT",
+      "name": "GARTNER INC",
+      "sector": "Information Technology",
+      "weight": 0.017018,
+      "sharesHeld": 828473,
+      "subIndustry": "IT Consulting & Other Services"
+    },
+    {
+      "symbol": "SOLV",
+      "name": "SOLVENTUM CORP",
+      "sector": "Health Care",
+      "weight": 0.016817,
+      "sharesHeld": 1764190,
+      "subIndustry": "Health Care Technology"
+    },
+    {
+      "symbol": "BLDR",
+      "name": "BUILDERS FIRSTSOURCE INC",
+      "sector": "Industrials",
+      "weight": 0.016556,
+      "sharesHeld": 1328754,
+      "subIndustry": "Building Products"
+    },
+    {
+      "symbol": "TTD",
+      "name": "TRADE DESK INC/THE  CLASS A",
+      "sector": "Communication Services",
+      "weight": 0.016399,
+      "sharesHeld": 5244851,
+      "subIndustry": "Advertising"
+    },
+    {
+      "symbol": "UHS",
+      "name": "UNIVERSAL HEALTH SERVICES B",
+      "sector": "Health Care",
+      "weight": 0.016298,
+      "sharesHeld": 650767,
+      "subIndustry": "Health Care Facilities"
+    },
+    {
+      "symbol": "NWSA",
+      "name": "NEWS CORP   CLASS A",
+      "sector": "Communication Services",
+      "weight": 0.016218,
+      "sharesHeld": 4459350,
+      "subIndustry": "Publishing"
+    },
+    {
+      "symbol": "RVTY",
+      "name": "REVVITY INC",
+      "sector": "Health Care",
+      "weight": 0.016108,
+      "sharesHeld": 1337162,
+      "subIndustry": "Health Care Equipment"
+    },
+    {
+      "symbol": "BAX",
+      "name": "BAXTER INTERNATIONAL INC",
+      "sector": "Health Care",
+      "weight": 0.01563,
+      "sharesHeld": 6142058,
+      "subIndustry": "Health Care Equipment"
+    },
+    {
+      "symbol": "SWKS",
+      "name": "SKYWORKS SOLUTIONS INC",
+      "sector": "Information Technology",
+      "weight": 0.015395,
+      "sharesHeld": 1809516,
+      "subIndustry": "Semiconductors"
+    },
+    {
+      "symbol": "WYNN",
+      "name": "WYNN RESORTS LTD",
+      "sector": "Consumer Discretionary",
+      "weight": 0.014621,
+      "sharesHeld": 1001575,
+      "subIndustry": "Casinos & Gaming"
+    },
+    {
+      "symbol": "FRT",
+      "name": "FEDERAL REALTY INVS TRUST",
+      "sector": "Real Estate",
+      "weight": 0.014386,
+      "sharesHeld": 933422,
+      "subIndustry": "Retail REITs"
+    },
+    {
+      "symbol": "FDS",
+      "name": "FACTSET RESEARCH SYSTEMS INC",
+      "sector": "Financials",
+      "weight": 0.014068,
+      "sharesHeld": 446202,
+      "subIndustry": "Financial Exchanges & Data"
+    },
+    {
+      "symbol": "NCLH",
+      "name": "NORWEGIAN CRUISE LINE HOLDIN",
+      "sector": "Consumer Discretionary",
+      "weight": 0.013935,
+      "sharesHeld": 5472869,
+      "subIndustry": "Hotels, Resorts & Cruise Lines"
+    },
+    {
+      "symbol": "BXP",
+      "name": "BXP INC",
+      "sector": "Real Estate",
+      "weight": 0.013781,
+      "sharesHeld": 1749004,
+      "subIndustry": "Office REITs"
+    },
+    {
+      "symbol": "BEN",
+      "name": "FRANKLIN RESOURCES INC",
+      "sector": "Financials",
+      "weight": 0.013765,
+      "sharesHeld": 3712852,
+      "subIndustry": "Asset Management & Custody Banks"
+    },
+    {
+      "symbol": "CRL",
+      "name": "CHARLES RIVER LABORATORIES",
+      "sector": "Health Care",
+      "weight": 0.013691,
+      "sharesHeld": 590477,
+      "subIndustry": "Life Sciences Tools & Services"
+    },
+    {
+      "symbol": "TECH",
+      "name": "BIO TECHNE CORP",
+      "sector": "Health Care",
+      "weight": 0.013393,
+      "sharesHeld": 1856188,
+      "subIndustry": "Life Sciences Tools & Services"
+    },
+    {
+      "symbol": "FOX",
+      "name": "FOX CORP   CLASS B",
+      "sector": "Communication Services",
+      "weight": 0.013216,
+      "sharesHeld": 1655895,
+      "subIndustry": "Broadcasting"
+    },
+    {
+      "symbol": "HSIC",
+      "name": "HENRY SCHEIN INC",
+      "sector": "Health Care",
+      "weight": 0.01289,
+      "sharesHeld": 1192129,
+      "subIndustry": "Health Care Distributors"
+    },
+    {
+      "symbol": "MOS",
+      "name": "MOSAIC CO/THE",
+      "sector": "Materials",
+      "weight": 0.012719,
+      "sharesHeld": 3789803,
+      "subIndustry": "Fertilizers & Agricultural Chemicals"
+    },
+    {
+      "symbol": "POOL",
+      "name": "POOL CORP",
+      "sector": "Consumer Discretionary",
+      "weight": 0.012313,
+      "sharesHeld": 389529,
+      "subIndustry": "Distributors"
+    },
+    {
+      "symbol": "MGM",
+      "name": "MGM RESORTS INTERNATIONAL",
+      "sector": "Consumer Discretionary",
+      "weight": 0.012077,
+      "sharesHeld": 2243751,
+      "subIndustry": "Casinos & Gaming"
+    },
+    {
+      "symbol": "AOS",
+      "name": "SMITH (A.O.) CORP",
+      "sector": "Industrials",
+      "weight": 0.012059,
+      "sharesHeld": 1340330,
+      "subIndustry": "Building Products"
+    },
+    {
+      "symbol": "ARE",
+      "name": "ALEXANDRIA REAL ESTATE EQUIT",
+      "sector": "Real Estate",
+      "weight": 0.011856,
+      "sharesHeld": 1849246,
+      "subIndustry": "Office REITs"
+    },
+    {
+      "symbol": "TAP",
+      "name": "MOLSON COORS BEVERAGE CO   B",
+      "sector": "Consumer Staples",
+      "weight": 0.01177,
+      "sharesHeld": 1986253,
+      "subIndustry": "Brewers"
+    },
+    {
+      "symbol": "CAG",
+      "name": "CONAGRA BRANDS INC",
+      "sector": "Consumer Staples",
+      "weight": 0.011414,
+      "sharesHeld": 5730471,
+      "subIndustry": "Packaged Foods & Meats"
+    },
+    {
+      "symbol": "EPAM",
+      "name": "EPAM SYSTEMS INC",
+      "sector": "Information Technology",
+      "weight": 0.010968,
+      "sharesHeld": 657004,
+      "subIndustry": "IT Consulting & Other Services"
+    },
+    {
+      "symbol": "HRL",
+      "name": "HORMEL FOODS CORP",
+      "sector": "Consumer Staples",
+      "weight": 0.01052,
+      "sharesHeld": 3497428,
+      "subIndustry": "Packaged Foods & Meats"
+    },
+    {
+      "symbol": "ERIE",
+      "name": "ERIE INDEMNITY COMPANY CL A",
+      "sector": "Financials",
+      "weight": 0.010333,
+      "sharesHeld": 300335,
+      "subIndustry": "Insurance Brokers"
+    },
+    {
+      "symbol": "DVA",
+      "name": "DAVITA INC",
+      "sector": "Health Care",
+      "weight": 0.008307,
+      "sharesHeld": 387631,
+      "subIndustry": "Health Care Services"
+    },
+    {
+      "symbol": "BF.B",
+      "name": "BROWN FORMAN CORP CLASS B",
+      "sector": "Consumer Staples",
+      "weight": 0.008043,
+      "sharesHeld": 2048689,
+      "subIndustry": "Distillers & Vintners"
+    },
+    {
+      "symbol": "CPB",
+      "name": "THE CAMPBELL S COMPANY",
+      "sector": "Consumer Staples",
+      "weight": 0.006832,
+      "sharesHeld": 2357959,
+      "subIndustry": "Packaged Foods & Meats"
+    },
+    {
+      "symbol": "NWS",
+      "name": "NEWS CORP   CLASS B",
+      "sector": "Communication Services",
+      "weight": 0.006069,
+      "sharesHeld": 1444140,
+      "subIndustry": "Publishing"
+    },
+    {
+      "symbol": "PSKY",
+      "name": "PARAMOUNT SKYDANCE CL B",
+      "sector": "Communication Services",
+      "weight": 0.005793,
+      "sharesHeld": 3718764,
+      "subIndustry": "Movies & Entertainment"
+    }
+  ]
+}
