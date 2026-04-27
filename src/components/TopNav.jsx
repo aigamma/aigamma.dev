@@ -36,13 +36,17 @@
 // adjacent buttons keep whatever color their visible index gave
 // them.
 //
-// On viewports ≤768px each item swaps to a compact mobile label
-// via paired desktop/mobile spans (the same pattern used by
-// .lab-badge and .lab-home-button--split). With six buttons plus
-// the Menu trigger (and the Return Home button on lab pages), the
-// row will flex-wrap onto a second line at the narrower phone
-// widths; flex-wrap on the header is the documented fallback and
-// degrades cleanly.
+// Mobile uses the same full labels as desktop. An earlier version
+// of this component carried a paired desktop/mobile span splitter
+// that swapped each label for a 3-4 letter abbreviation (Vol /
+// Earn / Rot / Seas) at ≤768px to try to keep all six buttons +
+// the Menu trigger on a single header row. That goal was never
+// reachable: even at the most aggressive abbreviation the Menu
+// pill spilled to a second row on real phone widths, so the row
+// wrapped anyway. With wrap unavoidable the abbreviations bought
+// nothing and cost legibility, so the short labels were dropped
+// in favor of the full names. The header's flex-wrap fallback
+// already handles the multi-row layout cleanly.
 //
 // The `current` prop suppresses the button matching the page the
 // user is already on — the lab-badge in the upper-left already
@@ -51,12 +55,12 @@
 // destinations (e.g. /rough/, /risk/, /jump/) omit the prop and
 // see all six buttons.
 const TOP_NAV_ITEMS = [
-  { key: 'tactical',    href: '/tactical/',    label: 'Tactical Vol', short: 'Vol'  },
-  { key: 'earnings',    href: '/earnings/',    label: 'Earnings',     short: 'Earn' },
-  { key: 'scan',        href: '/scan/',        label: 'Scan',         short: 'Scan' },
-  { key: 'rotations',   href: '/rotations/',   label: 'Rotations',    short: 'Rot'  },
-  { key: 'vix',         href: '/vix/',         label: 'VIX',          short: 'VIX',  variant: 'purple' },
-  { key: 'seasonality', href: '/seasonality/', label: 'Seasonality',  short: 'Seas' },
+  { key: 'tactical',    href: '/tactical/',    label: 'Tactical Vol' },
+  { key: 'earnings',    href: '/earnings/',    label: 'Earnings'     },
+  { key: 'scan',        href: '/scan/',        label: 'Scan'         },
+  { key: 'rotations',   href: '/rotations/',   label: 'Rotations'    },
+  { key: 'vix',         href: '/vix/',         label: 'VIX',          variant: 'purple' },
+  { key: 'seasonality', href: '/seasonality/', label: 'Seasonality'  },
 ];
 
 export default function TopNav({ current } = {}) {
@@ -69,8 +73,7 @@ export default function TopNav({ current } = {}) {
           : (index % 2 === 0 ? 'top-nav__item--blue' : 'top-nav__item--white');
         return (
           <a key={item.href} href={item.href} className={`top-nav__item ${variant}`}>
-            <span className="top-nav__desktop-text">{item.label}</span>
-            <span className="top-nav__mobile-text">{item.short}</span>
+            {item.label}
           </a>
         );
       })}

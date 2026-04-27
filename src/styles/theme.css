@@ -188,11 +188,13 @@ body {
    Trigger sizing matches the 3.2rem chrome of .menu-trigger and
    .lab-home-button--inline so the six buttons sit on a single
    horizontal baseline alongside the Menu trigger at desktop
-   widths. Two-span splitter (top-nav__desktop-text +
-   top-nav__mobile-text) shortens labels at ≤768px; with six
+   widths. Mobile uses the same full labels — an earlier two-span
+   splitter that abbreviated to 3-4 letters at ≤768px was removed
+   because the Menu trigger spilled to a second row anyway, so the
+   abbreviations bought nothing and cost legibility. With six
    buttons plus the Menu trigger the cluster will flex-wrap to a
-   second line at the narrower phone widths, which is the
-   documented fallback. */
+   second line at narrower phone widths, which is the documented
+   fallback. */
 .top-nav {
   display: inline-flex;
   align-items: center;
@@ -251,14 +253,6 @@ body {
 .top-nav__item--purple:focus-visible {
   background-color: rgba(191, 127, 255, 0.08);
   outline: none;
-}
-
-.top-nav__mobile-text {
-  display: none;
-}
-
-.top-nav__desktop-text {
-  display: inline;
 }
 
 /* ===== SITE HEADER =====
@@ -784,14 +778,6 @@ body {
     height: 2.8rem;
     padding: 0 0.65rem;
     letter-spacing: 0.06em;
-  }
-
-  .top-nav__desktop-text {
-    display: none;
-  }
-
-  .top-nav__mobile-text {
-    display: inline;
   }
 
   .chat-body { max-height: 60vh; }
