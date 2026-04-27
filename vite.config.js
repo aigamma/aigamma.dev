@@ -172,6 +172,27 @@ export default defineConfig({
         'expiring-gamma': fileURLToPath(new URL('./expiring-gamma/index.html', import.meta.url)),
         vix: fileURLToPath(new URL('./vix/index.html', import.meta.url)),
       },
+      output: {
+        // Pin react / react-dom into a stable `vendor` chunk. Without this,
+        // Rolldown auto-names the shared blob after whichever component
+        // happens to be the heaviest static import in its graph (TopNav, in
+        // practice) — which makes bundle output misleading: a chunk labeled
+        // "TopNav" was actually the React runtime plus a few KB of nav, and
+        // any future bundle audit would misattribute its weight. Splitting
+        // them out also gives the React runtime its own immutable
+        // content-hashed URL that doesn't churn whenever a single component
+        // changes, so a returning reader's browser cache hits across more
+        // deploys. Caching profile is identical (the existing /assets/*
+        // 1-year immutable rule covers the new file). Vite 8 / Rolldown
+        // requires the function form here — the array-shorthand record was
+        // rejected with "Expected Function but received Object."
+        manualChunks(id) {
+          if (id.includes('node_modules/react-dom/')) return 'vendor';
+          if (id.includes('node_modules/react/')) return 'vendor';
+          if (id.includes('node_modules/scheduler/')) return 'vendor';
+          return undefined;
+        },
+      },
     },
   },
 })
