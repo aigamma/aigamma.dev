@@ -328,12 +328,16 @@ export default function SlotC() {
 
     const layout = plotly2DChartLayout({
       title: {
-        ...plotlyTitle('Dupire Local Volatility Surface'),
+        ...plotlyTitle(
+          mobile
+            ? 'Dupire Local<br>Volatility Surface'
+            : 'Dupire Local Volatility Surface'
+        ),
         y: 0.97,
         yref: 'container',
         yanchor: 'top',
       },
-      margin: mobile ? { t: 50, r: 20, b: 85, l: 65 } : { t: 70, r: 30, b: 95, l: 80 },
+      margin: mobile ? { t: 75, r: 20, b: 85, l: 65 } : { t: 70, r: 30, b: 95, l: 80 },
       xaxis: plotlyAxis('log-moneyness  y = ln(K/F)', {
         range: [-Y_HALF_WIDTH, Y_HALF_WIDTH],
         autorange: false,

@@ -289,12 +289,16 @@ export default function SlotD() {
 
     const layout = plotly2DChartLayout({
       title: {
-        ...plotlyTitle(`${greekDef.label} across strikes · SPX`),
+        ...plotlyTitle(
+          mobile
+            ? `${greekDef.label} across<br>strikes · SPX`
+            : `${greekDef.label} across strikes · SPX`
+        ),
         y: 0.97,
         yref: 'container',
         yanchor: 'top',
       },
-      margin: mobile ? { t: 50, r: 25, b: 85, l: 65 } : { t: 70, r: 35, b: 100, l: 80 },
+      margin: mobile ? { t: 75, r: 25, b: 85, l: 65 } : { t: 70, r: 35, b: 100, l: 80 },
       xaxis: plotlyAxis('Strike'),
       yaxis: plotlyAxis(greekDef.axis, {
         range: [yMin - pad, yMax + pad],

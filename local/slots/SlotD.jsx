@@ -268,12 +268,16 @@ export default function SlotD() {
     ];
     const layout = plotly2DChartLayout({
       title: {
-        ...plotlyTitle("Today's τ-Smile vs Pure Local-Vol Forward Smile"),
+        ...plotlyTitle(
+          mobile
+            ? "Today's τ-Smile vs<br>Pure Local-Vol Forward Smile"
+            : "Today's τ-Smile vs Pure Local-Vol Forward Smile"
+        ),
         y: 0.97,
         yref: 'container',
         yanchor: 'top',
       },
-      margin: mobile ? { t: 50, r: 30, b: 100, l: 70 } : { t: 70, r: 40, b: 110, l: 85 },
+      margin: mobile ? { t: 75, r: 30, b: 100, l: 70 } : { t: 70, r: 40, b: 110, l: 85 },
       xaxis: plotlyAxis('log-moneyness  y = ln(K/S)', {
         tickformat: '.2f',
       }),

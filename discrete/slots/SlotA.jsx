@@ -317,12 +317,16 @@ export default function SlotA() {
 
     const layout = plotly2DChartLayout({
       title: {
-        ...plotlyTitle(`Binomial Convergence · SPX ${optionType === 'call' ? 'Call' : 'Put'} · K = ${cfg.K}`),
+        ...plotlyTitle(
+          mobile
+            ? `Binomial Convergence<br>SPX ${optionType === 'call' ? 'Call' : 'Put'} · K = ${cfg.K}`
+            : `Binomial Convergence · SPX ${optionType === 'call' ? 'Call' : 'Put'} · K = ${cfg.K}`
+        ),
         y: 0.97,
         yref: 'container',
         yanchor: 'top',
       },
-      margin: mobile ? { t: 50, r: 25, b: 85, l: 60 } : { t: 70, r: 35, b: 100, l: 75 },
+      margin: mobile ? { t: 75, r: 25, b: 85, l: 60 } : { t: 70, r: 35, b: 100, l: 75 },
       xaxis: plotlyAxis('N · tree depth', {
         range: activeNRange,
         autorange: false,

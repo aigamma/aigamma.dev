@@ -318,13 +318,17 @@ export default function SlotC() {
 
     const layout = plotly2DChartLayout({
       title: {
-        ...plotlyTitle('Hurst estimator triangulation · intercept-centered log-log'),
+        ...plotlyTitle(
+          mobile
+            ? 'Hurst estimator triangulation<br>intercept-centered log-log'
+            : 'Hurst estimator triangulation · intercept-centered log-log'
+        ),
         y: 0.97,
         yref: 'container',
         yanchor: 'top',
       },
       margin: mobile
-        ? { t: 50, r: 20, b: 95, l: 65 }
+        ? { t: 75, r: 20, b: 95, l: 65 }
         : { t: 70, r: 30, b: 105, l: 80 },
       xaxis: plotlyAxis('log (Δ or n)'),
       yaxis: plotlyAxis('centered log scaling value'),

@@ -347,13 +347,17 @@ export default function SlotC() {
 
     const layout = plotly2DChartLayout({
       title: {
-        ...plotlyTitle('Wasserstein K-Means · 20-Day Window Clusters'),
+        ...plotlyTitle(
+          mobile
+            ? 'Wasserstein K-Means<br>20-Day Window Clusters'
+            : 'Wasserstein K-Means · 20-Day Window Clusters'
+        ),
         y: 0.97,
         yref: 'container',
         yanchor: 'top',
       },
       margin: mobile
-        ? { t: 50, r: 20, b: 85, l: 60 }
+        ? { t: 75, r: 20, b: 85, l: 60 }
         : { t: 70, r: 30, b: 100, l: 75 },
       xaxis: plotlyAxis('Date', { type: 'date' }),
       yaxis: plotlyAxis('Daily log return (%)', {

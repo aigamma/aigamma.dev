@@ -286,12 +286,16 @@ export default function SlotE() {
 
     const layout = plotly2DChartLayout({
       title: {
-        ...plotlyTitle('σ(k) · SVI-JW Parameters on the Smile'),
+        ...plotlyTitle(
+          mobile
+            ? 'σ(k) · SVI-JW Parameters<br>on the Smile'
+            : 'σ(k) · SVI-JW Parameters on the Smile'
+        ),
         y: 0.97,
         yref: 'container',
         yanchor: 'top',
       },
-      margin: mobile ? { t: 50, r: 25, b: 140, l: 60 } : { t: 70, r: 35, b: 150, l: 75 },
+      margin: mobile ? { t: 75, r: 25, b: 140, l: 60 } : { t: 70, r: 35, b: 150, l: 75 },
       xaxis: plotlyAxis('Log-Moneyness k = ln(K/F)', {
         range: [kLo, kHi],
         autorange: false,

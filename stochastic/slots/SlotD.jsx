@@ -286,12 +286,16 @@ export default function SlotD() {
 
     const layout = plotly2DChartLayout({
       title: {
-        ...plotlyTitle('ATM Skew Term Structure · SPX'),
+        ...plotlyTitle(
+          mobile
+            ? 'ATM Skew Term<br>Structure · SPX'
+            : 'ATM Skew Term Structure · SPX'
+        ),
         y: 0.97,
         yref: 'container',
         yanchor: 'top',
       },
-      margin: mobile ? { t: 50, r: 30, b: 90, l: 70 } : { t: 70, r: 40, b: 100, l: 85 },
+      margin: mobile ? { t: 75, r: 30, b: 90, l: 70 } : { t: 70, r: 40, b: 100, l: 85 },
       xaxis: plotlyAxis('Tenor T (years, log)', {
         type: 'log',
         range: [Math.log10(Tmin * 0.95), Math.log10(Tmax * 1.05)],

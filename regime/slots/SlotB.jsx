@@ -370,13 +370,17 @@ export default function SlotB() {
 
     const layout = plotly2DChartLayout({
       title: {
-        ...plotlyTitle('Markov Regime Switching · Smoothed Pr(crisis)'),
+        ...plotlyTitle(
+          mobile
+            ? 'Markov Regime Switching<br>Smoothed Pr(crisis)'
+            : 'Markov Regime Switching · Smoothed Pr(crisis)'
+        ),
         y: 0.97,
         yref: 'container',
         yanchor: 'top',
       },
       margin: mobile
-        ? { t: 50, r: 55, b: 65, l: 60 }
+        ? { t: 75, r: 55, b: 65, l: 60 }
         : { t: 70, r: 75, b: 70, l: 75 },
       xaxis: plotlyAxis('Date', { type: 'date' }),
       yaxis: plotlyAxis('|daily return| (%)', { ticksuffix: '%', tickformat: '.1f', rangemode: 'tozero' }),

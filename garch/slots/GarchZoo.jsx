@@ -429,9 +429,12 @@ export default function GarchZoo() {
     }
 
     const totalOk = fitState.fit.models.filter((m) => m.condVar != null).length;
-    const titleText = visibleModels.length === totalOk
-      ? `GARCH Ensemble · Conditional σ (Annualized) · ${totalOk} specifications + ensemble average`
-      : `GARCH Ensemble · Conditional σ (Annualized) · ${visibleModels.length} of ${totalOk} specifications + ensemble average`;
+    const titleSpecs = visibleModels.length === totalOk
+      ? `${totalOk} specifications + ensemble average`
+      : `${visibleModels.length} of ${totalOk} specifications + ensemble average`;
+    const titleText = mobile
+      ? `GARCH Ensemble · Conditional σ (Annualized)<br>${titleSpecs}`
+      : `GARCH Ensemble · Conditional σ (Annualized) · ${titleSpecs}`;
     const layout = plotly2DChartLayout({
       title: {
         ...plotlyTitle(titleText),
@@ -439,7 +442,7 @@ export default function GarchZoo() {
         yref: 'container',
         yanchor: 'top',
       },
-      margin: mobile ? { t: 50, r: 20, b: 110, l: 60 } : { t: 70, r: 30, b: 120, l: 75 },
+      margin: mobile ? { t: 75, r: 20, b: 110, l: 60 } : { t: 70, r: 30, b: 120, l: 75 },
       xaxis: plotlyAxis('', { type: 'date', range: activeRange, autorange: false }),
       yaxis: plotlyAxis('σ (%)', {
         ticksuffix: '%',

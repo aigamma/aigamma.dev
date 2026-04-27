@@ -579,13 +579,17 @@ export default function SlotA() {
 
     const layout = plotly2DChartLayout({
       title: {
-        ...plotlyTitle('Put-Call Parity · Box vs Direct PCP'),
+        ...plotlyTitle(
+          mobile
+            ? 'Put-Call Parity<br>Box vs Direct PCP'
+            : 'Put-Call Parity · Box vs Direct PCP'
+        ),
         y: 0.97,
         yref: 'container',
         yanchor: 'top',
       },
       margin: mobile
-        ? { t: 50, r: 55, b: 105, l: 60 }
+        ? { t: 75, r: 55, b: 105, l: 60 }
         : { t: 70, r: 75, b: 115, l: 75 },
       // Top panel (r%) owns xaxis anchored to y; its tick labels are
       // hidden so the shared DTE axis reads only once at the bottom.

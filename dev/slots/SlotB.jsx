@@ -270,12 +270,16 @@ export default function SlotB() {
 
     const layout = plotly2DChartLayout({
       title: {
-        ...plotlyTitle('GARCH Ensemble · Conditional σ (Annualized)'),
+        ...plotlyTitle(
+          mobile
+            ? 'GARCH Ensemble<br>Conditional σ (Annualized)'
+            : 'GARCH Ensemble · Conditional σ (Annualized)'
+        ),
         y: 0.97,
         yref: 'container',
         yanchor: 'top',
       },
-      margin: mobile ? { t: 50, r: 20, b: 80, l: 60 } : { t: 70, r: 30, b: 90, l: 75 },
+      margin: mobile ? { t: 75, r: 20, b: 80, l: 60 } : { t: 70, r: 30, b: 90, l: 75 },
       xaxis: plotlyAxis('', { type: 'date' }),
       yaxis: plotlyAxis('σ (%)', {
         ticksuffix: '%',

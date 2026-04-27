@@ -489,12 +489,16 @@ export default function SlotC() {
 
     const layout = plotly2DChartLayout({
       title: {
-        ...plotlyTitle('Vanna-Volga Smile Reconstruction'),
+        ...plotlyTitle(
+          mobile
+            ? 'Vanna-Volga<br>Smile Reconstruction'
+            : 'Vanna-Volga Smile Reconstruction'
+        ),
         y: 0.97,
         yref: 'container',
         yanchor: 'top',
       },
-      margin: mobile ? { t: 50, r: 25, b: 95, l: 65 } : { t: 70, r: 35, b: 110, l: 80 },
+      margin: mobile ? { t: 75, r: 25, b: 95, l: 65 } : { t: 70, r: 35, b: 110, l: 80 },
       xaxis: plotlyAxis('Strike'),
       yaxis: plotlyAxis('Implied vol', {
         range: [Math.max(0, yMin - pad), yMax + pad],

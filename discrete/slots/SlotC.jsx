@@ -191,12 +191,12 @@ export default function SlotC() {
 
     const layout = plotly2DChartLayout({
       title: {
-        ...plotlyTitle('SVI Raw Fit · SPX slice'),
+        ...plotlyTitle(mobile ? 'SVI Raw Fit<br>SPX slice' : 'SVI Raw Fit · SPX slice'),
         y: 0.97,
         yref: 'container',
         yanchor: 'top',
       },
-      margin: mobile ? { t: 50, r: 25, b: 85, l: 60 } : { t: 70, r: 35, b: 100, l: 75 },
+      margin: mobile ? { t: 75, r: 25, b: 85, l: 60 } : { t: 70, r: 35, b: 100, l: 75 },
       xaxis: plotlyAxis('Strike', {
         range: [xLo - (xHi - xLo) * 0.02, xHi + (xHi - xLo) * 0.02],
         autorange: false,
@@ -266,12 +266,16 @@ export default function SlotC() {
 
     const layout = plotly2DChartLayout({
       title: {
-        ...plotlyTitle('No-Butterfly-Arbitrage · g(k) ≥ 0 required'),
+        ...plotlyTitle(
+          mobile
+            ? 'No-Butterfly-Arbitrage<br>g(k) ≥ 0 required'
+            : 'No-Butterfly-Arbitrage · g(k) ≥ 0 required'
+        ),
         y: 0.96,
         yref: 'container',
         yanchor: 'top',
       },
-      margin: mobile ? { t: 50, r: 25, b: 70, l: 60 } : { t: 60, r: 35, b: 80, l: 75 },
+      margin: mobile ? { t: 75, r: 25, b: 70, l: 60 } : { t: 60, r: 35, b: 80, l: 75 },
       xaxis: plotlyAxis('Log-Moneyness k = ln(K/F)', {
         range: [-W, W],
         autorange: false,

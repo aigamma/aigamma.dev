@@ -254,12 +254,16 @@ export default function SlotD() {
 
     const layout = plotly2DChartLayout({
       title: {
-        ...plotlyTitle('Total Variance w(k) · SVI Natural Form'),
+        ...plotlyTitle(
+          mobile
+            ? 'Total Variance w(k)<br>SVI Natural Form'
+            : 'Total Variance w(k) · SVI Natural Form'
+        ),
         y: 0.97,
         yref: 'container',
         yanchor: 'top',
       },
-      margin: mobile ? { t: 50, r: 25, b: 85, l: 70 } : { t: 70, r: 35, b: 100, l: 85 },
+      margin: mobile ? { t: 75, r: 25, b: 85, l: 70 } : { t: 70, r: 35, b: 100, l: 85 },
       xaxis: plotlyAxis('Log-Moneyness k = ln(K/F)', {
         range: [kLo, kHi],
         autorange: false,

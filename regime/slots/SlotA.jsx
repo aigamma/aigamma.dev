@@ -329,13 +329,17 @@ export default function SlotA() {
 
     const layout = plotly2DChartLayout({
       title: {
-        ...plotlyTitle('Mixture Lognormal · 2-Component EM Fit'),
+        ...plotlyTitle(
+          mobile
+            ? 'Mixture Lognormal<br>2-Component EM Fit'
+            : 'Mixture Lognormal · 2-Component EM Fit'
+        ),
         y: 0.97,
         yref: 'container',
         yanchor: 'top',
       },
       margin: mobile
-        ? { t: 50, r: 20, b: 90, l: 60 }
+        ? { t: 75, r: 20, b: 90, l: 60 }
         : { t: 70, r: 30, b: 105, l: 75 },
       xaxis: plotlyAxis('Daily log return', {
         range: [lo, hi],

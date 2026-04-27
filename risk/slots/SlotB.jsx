@@ -352,12 +352,16 @@ export default function SlotB() {
 
     const layout = plotly2DChartLayout({
       title: {
-        ...plotlyTitle('Delta definitions across strikes · SPX'),
+        ...plotlyTitle(
+          mobile
+            ? 'Delta definitions<br>across strikes · SPX'
+            : 'Delta definitions across strikes · SPX'
+        ),
         y: 0.97,
         yref: 'container',
         yanchor: 'top',
       },
-      margin: mobile ? { t: 50, r: 25, b: 90, l: 65 } : { t: 70, r: 35, b: 100, l: 80 },
+      margin: mobile ? { t: 75, r: 25, b: 90, l: 65 } : { t: 70, r: 35, b: 100, l: 80 },
       xaxis: plotlyAxis('Strike'),
       yaxis: plotlyAxis('Delta', {
         range: [yMin - pad, yMax + pad],

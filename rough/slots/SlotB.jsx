@@ -573,12 +573,16 @@ export default function SlotB() {
 
     const layout = plotly2DChartLayout({
       title: {
-        ...plotlyTitle('Rough Bergomi · instantaneous volatility paths'),
+        ...plotlyTitle(
+          mobile
+            ? 'Rough Bergomi · instantaneous<br>volatility paths'
+            : 'Rough Bergomi · instantaneous volatility paths'
+        ),
         y: 0.97,
         yref: 'container',
         yanchor: 'top',
       },
-      margin: mobile ? { t: 50, r: 20, b: 90, l: 65 } : { t: 70, r: 30, b: 100, l: 80 },
+      margin: mobile ? { t: 75, r: 20, b: 90, l: 65 } : { t: 70, r: 30, b: 100, l: 80 },
       xaxis: plotlyAxis('t (years)'),
       yaxis: plotlyAxis('σ_t', { rangemode: 'tozero', tickformat: '.0%' }),
       showlegend: true,
@@ -630,12 +634,16 @@ export default function SlotB() {
 
     const layout = plotly2DChartLayout({
       title: {
-        ...plotlyTitle('MC-implied smile · σ_BS(k, T)'),
+        ...plotlyTitle(
+          mobile
+            ? 'MC-implied smile<br>σ_BS(k, T)'
+            : 'MC-implied smile · σ_BS(k, T)'
+        ),
         y: 0.97,
         yref: 'container',
         yanchor: 'top',
       },
-      margin: mobile ? { t: 50, r: 20, b: 90, l: 65 } : { t: 70, r: 30, b: 100, l: 80 },
+      margin: mobile ? { t: 75, r: 20, b: 90, l: 65 } : { t: 70, r: 30, b: 100, l: 80 },
       xaxis: plotlyAxis('k = log(K / S₀)', { tickformat: '.2f' }),
       yaxis: plotlyAxis('Implied σ', { rangemode: 'tozero', tickformat: '.0%' }),
       showlegend: true,

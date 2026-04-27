@@ -295,12 +295,16 @@ export default function SlotB() {
 
     const layout = plotly2DChartLayout({
       title: {
-        ...plotlyTitle('Put-Call Parity · Box-Spread Implied Rate'),
+        ...plotlyTitle(
+          mobile
+            ? 'Put-Call Parity<br>Box-Spread Implied Rate'
+            : 'Put-Call Parity · Box-Spread Implied Rate'
+        ),
         y: 0.97,
         yref: 'container',
         yanchor: 'top',
       },
-      margin: mobile ? { t: 50, r: 20, b: 55, l: 60 } : { t: 70, r: 30, b: 60, l: 75 },
+      margin: mobile ? { t: 75, r: 20, b: 55, l: 60 } : { t: 70, r: 30, b: 60, l: 75 },
       xaxis: plotlyAxis('Days to Expiration', { range: [xMin, xMax], autorange: false }),
       yaxis: plotlyAxis('Implied r (%)', {
         range: [yMin - yPad, yMax + yPad],

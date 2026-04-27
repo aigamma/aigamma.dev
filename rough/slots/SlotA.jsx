@@ -261,13 +261,17 @@ export default function SlotA() {
 
     const layout = plotly2DChartLayout({
       title: {
-        ...plotlyTitle('RFSV · log m(q, Δ) vs log Δ on log |r|'),
+        ...plotlyTitle(
+          mobile
+            ? 'RFSV · log m(q, Δ)<br>vs log Δ on log |r|'
+            : 'RFSV · log m(q, Δ) vs log Δ on log |r|'
+        ),
         y: 0.97,
         yref: 'container',
         yanchor: 'top',
       },
       margin: mobile
-        ? { t: 50, r: 20, b: 95, l: 65 }
+        ? { t: 75, r: 20, b: 95, l: 65 }
         : { t: 70, r: 30, b: 105, l: 80 },
       xaxis: plotlyAxis('log Δ (days)', {
         tickvals: LAGS.map((d) => Math.log(d)),
