@@ -5,9 +5,14 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 // page without touching the URL bar. Items are organized into three
 // sections separated by inline section headers — Tools (operational
 // surfaces and diagnostics), Research (model-family zoos), About
-// (off-site exit to about.aigamma.com). Within each section, items
-// stay alphabetized by path so a reader who knows the URL can find
-// it in linear time.
+// (off-site exit to about.aigamma.com). Research stays alphabetized
+// by path so a reader who knows the URL can find it in linear time.
+// Tools is curated by importance rather than alphabetized: /stocks/
+// (top option-liquid single names) leads, followed by /heatmap/
+// (sector-weighted overview), /expiring-gamma/ (dated catalyst), and
+// /parity/ (diagnostic). The earlier alphabetized order put
+// /expiring-gamma/ at the top, which understated the centrality of
+// the single-names and sector views to the daily read.
 //
 // Six lab pages — /tactical/, /earnings/, /scan/, /rotations/,
 // /vix/, /seasonality/ — live in the TopNav component (see
@@ -34,10 +39,10 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 // flow into the focusable ref array.
 const MENU_ITEMS = [
   { type: 'header', label: 'Tools' },
-  { type: 'item', href: '/expiring-gamma/', label: '/expiring-gamma/', desc: 'Gamma scheduled to expire per date' },
-  { type: 'item', href: '/heatmap/',        label: '/heatmap/',        desc: 'Market-cap-weighted SPX heatmap by sector' },
-  { type: 'item', href: '/parity/',         label: '/parity/',         desc: 'Put-call parity, box-spread rate, implied forward' },
   { type: 'item', href: '/stocks/',         label: '/stocks/',         desc: 'Top option-liquid single names, performance + rotation' },
+  { type: 'item', href: '/heatmap/',        label: '/heatmap/',        desc: 'Market-cap-weighted SPX heatmap by sector' },
+  { type: 'item', href: '/expiring-gamma/', label: '/expiring-gamma/', desc: 'Gamma scheduled to expire per date' },
+  { type: 'item', href: '/parity/',         label: '/parity/',         desc: 'Put-call parity, box-spread rate, implied forward' },
   { type: 'header', label: 'Research' },
   { type: 'item', href: '/discrete/',       label: '/discrete/',       desc: 'Binomial and trinomial trees, SVI and SSVI surfaces' },
   { type: 'item', href: '/garch/',          label: '/garch/',          desc: 'GARCH family and ensemble forecasts' },
