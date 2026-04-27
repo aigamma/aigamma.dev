@@ -308,11 +308,24 @@ export default async function handler(_request) {
       const pctChange = (Number.isFinite(last) && Number.isFinite(prev) && prev > 0)
         ? ((last - prev) / prev) * 100
         : null;
+      // Pass-through of the new roster enrichment fields so the
+      // frontend can rank within sector by market-cap weight (with
+      // graceful fallback to optionsVolume for non-SP500 names) and
+      // a future ScannerToolbar-equivalent on /heatmap can offer
+      // an "Anchor only" or "Hide hype > N" filter without needing
+      // a second roster fetch. The four fields are nullable on names
+      // that don't intersect SP500 (~50% of the roster); the
+      // frontend's sort comparator handles the null branch.
       const tile = {
         symbol: h.symbol,
         name: h.name,
         sector: h.sector,
         optionsVolume: h.optionsVolume,
+        ovRank: h.ovRank ?? null,
+        weight: h.weight ?? null,
+        mcRank: h.mcRank ?? null,
+        hype: h.hype ?? null,
+        anchor: h.anchor === true,
         last,
         prev,
         pctChange,

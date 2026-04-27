@@ -207,11 +207,38 @@ export default function SpxHeatmap() {
       if (!bySector.has(key)) bySector.set(key, []);
       bySector.get(key).push(t);
     }
-    // Within each sector, sort by options volume descending so the
-    // most-traded names sit in the top-left of each band — same
-    // reading order as the underlying roster.
+    // Within each sector, sort by SP500 market-cap weight descending
+    // so the durable anchor names (NVDA / AAPL / MSFT in Information
+    // Technology, AMZN / TSLA in Consumer Discretionary, JPM / V / MA
+    // in Financials, …) cluster at the top-left of each sector band.
+    // Non-SP500 names (MSTR / IREN / HIMS / TSM / MRVL — the ~50% of
+    // the OV roster that doesn't intersect SP500) carry weight=null
+    // and sort below all SP500 names in the band, ordered by their
+    // existing options-volume rank so the most-active dynamic-tail
+    // names still cluster reasonably within their non-SP500 sub-group.
+    // Tile sizes remain equal — only the ORDER changes; the visual
+    // hierarchy now matches the mental map "big anchors first, hype
+    // tail trails" without violating the equal-tile principle that
+    // motivated rejecting cap-weighted treemaps in the first place.
+    // Symbol-asc tiebreaker keeps the layout deterministic when two
+    // tiles share both weight (rare; same SP500 cap-rank) and
+    // optionsVolume (rare).
     for (const [, list] of bySector) {
-      list.sort((a, b) => (b.optionsVolume || 0) - (a.optionsVolume || 0));
+      list.sort((a, b) => {
+        const wa = a.weight;
+        const wb = b.weight;
+        if (wa != null && wb != null) {
+          if (wb !== wa) return wb - wa;
+        } else if (wa != null) {
+          return -1; // SP500-anchored above non-SP500
+        } else if (wb != null) {
+          return 1;
+        }
+        const ova = a.optionsVolume || 0;
+        const ovb = b.optionsVolume || 0;
+        if (ovb !== ova) return ovb - ova;
+        return (a.symbol || '').localeCompare(b.symbol || '');
+      });
     }
     return SECTOR_ORDER
       .filter((s) => bySector.has(s))
