@@ -8,12 +8,19 @@ import SlotB, { slotName as slotBName } from './slots/SlotB';
 // Beta Lab shell — single slot for models under test. Graduated
 // slots (previously SlotA/SPX-vs-Vol-Flip and SlotC/Gamma-Index-
 // Oscillator) now live on the main dashboard; SlotB remains as the
-// one experimental surface in the lab. Visual language intentionally
-// mirrors the production dashboard (dark card chrome, Courier New
-// monospace accents, four-token palette) so that a component
-// developed here can be dropped into the main App with zero restyle.
-// The amber badge and warning strip are the only signals that this
-// is a sandbox rather than the production dashboard.
+// one experimental surface in the lab. Current tenant: an Economic
+// Events page that pairs a near-full-viewport TradingView Economic
+// Calendar widget with a Forex Factory analytics panel (NFP, CPI,
+// FOMC, GDP, PCE spotlight cards, plus Upcoming / Past Week tables
+// keyed off the FF weekly XML feed proxied through
+// /api/events-calendar). See beta/slots/SlotB.jsx and
+// netlify/functions/events-calendar.mjs for the full data path.
+// Visual language intentionally mirrors the production dashboard
+// (dark card chrome, Courier New monospace accents, four-token
+// palette) so that a component developed here can be dropped into
+// the main App with zero restyle. The amber badge and warning strip
+// are the only signals that this is a sandbox rather than the
+// production dashboard.
 //
 // The logo in the header links back to the homepage and the Menu on
 // the right of the header opens the nine-lab directory, so the page is
