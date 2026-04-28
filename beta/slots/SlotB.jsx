@@ -20,9 +20,10 @@
 //
 // Two parallel data fetches drive the page:
 //
-//   1. /api/events-calendar — the FF weekly XML proxy. Polled every
-//      10 min; returns the USD subset (~30 events / week) with title /
-//      impact / forecast / previous / dateTime per row.
+//   1. /api/events-calendar — the FF rolling-4-week aggregator
+//      (XML for this week + HTML scrape for the next 3). Polled
+//      every 10 min; returns the USD subset (~80–100 events) with
+//      title / impact / forecast / previous / dateTime per row.
 //
 //   2. /api/data?skip_contracts=1 — the SPX intraday snapshot endpoint
 //      (the same wire path the main dashboard reads). With the
@@ -429,8 +430,8 @@ export default function SlotB() {
         ) : (
           <div className="econ-events__hero econ-events__hero--empty">
             <div className="econ-events__hero-empty-text">
-              No remaining events this week inside the current scope.
-              Broaden the filter or wait for next week's feed refresh.
+              No remaining events in the next 4 weeks inside the current scope.
+              Broaden the impact filter or wait for the next feed refresh.
             </div>
           </div>
         )}
@@ -450,15 +451,16 @@ export default function SlotB() {
       />
 
       <footer className="econ-events__footnote">
-        Source: Forex Factory weekly XML at <code>nfs.faireconomy.media/ff_calendar_thisweek.xml</code> +
-        the platform's SPX intraday snapshot at <code>/api/data</code> for the implied-move overlays.
+        Source: Forex Factory rolling 4-week aggregate (XML for the current week from
+        <code>nfs.faireconomy.media/ff_calendar_thisweek.xml</code> plus the next three weeks
+        scraped from <code>forexfactory.com/calendar?week=&lt;slug&gt;</code>) joined with the
+        platform's SPX intraday snapshot at <code>/api/data</code> for the implied-move overlays.
         The FF proxy filters to USD events only at the server (this is an SPX-positioning surface).
         Implied move per event = <code>spot × ATM IV × √(DTE/365)</code> evaluated against the next
         SPX expiration AT-OR-AFTER the event date — the move you'd be hedging if you bought a
         straddle at that expiration today, conditional on the event being the next material catalyst.
         Click any row to expose its FF source link, an .ics calendar download, and a 5-minute
-        lead-time notification toggle. Times render in your local timezone after server-side
-        normalization to America/New_York.
+        lead-time notification toggle. Times render in your local timezone.
       </footer>
     </div>
   );
@@ -875,7 +877,7 @@ function TimelineStrip({ events, now }) {
     return (
       <section className="econ-events__timeline">
         <div className="econ-events__timeline-meta">
-          <span className="econ-events__timeline-title">This Week's Catalysts</span>
+          <span className="econ-events__timeline-title">Next 4 Weeks of Catalysts</span>
           <span className="econ-events__timeline-source">no qualifying events in scope</span>
         </div>
         <div className="econ-events__timeline-empty">
@@ -896,7 +898,7 @@ function TimelineStrip({ events, now }) {
   return (
     <section className="econ-events__timeline">
       <div className="econ-events__timeline-meta">
-        <span className="econ-events__timeline-title">This Week's Catalysts</span>
+        <span className="econ-events__timeline-title">Next 4 Weeks of Catalysts</span>
         <span className="econ-events__timeline-source">
           {events.length} event{events.length === 1 ? '' : 's'} · circle size keys impact, color keys family
         </span>
