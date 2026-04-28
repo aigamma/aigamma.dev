@@ -18,7 +18,7 @@ export default class ErrorBoundary extends Component {
             maxWidth: 1100,
             margin: '2rem auto',
             padding: '2rem',
-            fontFamily: 'Courier New, monospace',
+            fontFamily: "Calibri, 'Segoe UI', system-ui, sans-serif",
             color: '#e74c3c',
             background: '#141820',
             border: '1px solid #e74c3c',
@@ -38,7 +38,7 @@ export default class ErrorBoundary extends Component {
             style={{
               marginTop: '1rem',
               padding: '0.5rem 1.5rem',
-              fontFamily: 'Courier New, monospace',
+              fontFamily: "Calibri, 'Segoe UI', system-ui, sans-serif",
               fontSize: '0.9rem',
               background: 'transparent',
               color: '#4a9eff',

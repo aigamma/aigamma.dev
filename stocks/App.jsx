@@ -112,7 +112,7 @@ export default function App() {
       <div className="card" style={{ padding: '1.1rem 1.25rem', margin: '1.25rem 0' }}>
         <div
           style={{
-            fontFamily: 'Courier New, monospace',
+            fontFamily: "Calibri, 'Segoe UI', system-ui, sans-serif",
             fontSize: '0.7rem',
             letterSpacing: '0.14em',
             textTransform: 'uppercase',

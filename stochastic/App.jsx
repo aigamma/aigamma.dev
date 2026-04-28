@@ -106,7 +106,7 @@ export default function App() {
         <a
           href="/"
           style={{
-            fontFamily: "'Courier New', monospace",
+            fontFamily: "Calibri, 'Segoe UI', system-ui, sans-serif",
             fontSize: '1rem',
             letterSpacing: '0.14em',
             textTransform: 'uppercase',

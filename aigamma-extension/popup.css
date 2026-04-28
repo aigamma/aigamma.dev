@@ -15,7 +15,7 @@ body {
   margin: 0;
   padding: 12px;
   width: 320px;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  font-family: Calibri, 'Segoe UI', system-ui, sans-serif;
   background: var(--bg);
   color: var(--value);
   font-size: 13px;

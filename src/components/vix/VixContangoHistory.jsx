@@ -111,13 +111,13 @@ export default function VixContangoHistory({ data }) {
         {
           x: 0.01, xref: 'paper', y: 1, yref: 'y',
           text: 'Contango', showarrow: false,
-          font: { color: '#2ecc71', family: 'Courier New, monospace', size: 11 },
+          font: { color: '#2ecc71', family: "Calibri, 'Segoe UI', system-ui, sans-serif", size: 11 },
           align: 'left', xanchor: 'left', yanchor: 'bottom',
         },
         {
           x: 0.01, xref: 'paper', y: 1, yref: 'y',
           text: 'Backwardation', showarrow: false,
-          font: { color: '#e74c3c', family: 'Courier New, monospace', size: 11 },
+          font: { color: '#e74c3c', family: "Calibri, 'Segoe UI', system-ui, sans-serif", size: 11 },
           align: 'left', xanchor: 'left', yanchor: 'top',
         },
       ],

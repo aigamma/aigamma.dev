@@ -279,7 +279,7 @@ function StatCell({ label, value, sub, accent }) {
       </div>
       <div
         style={{
-          fontFamily: 'Courier New, monospace',
+          fontFamily: "Calibri, 'Segoe UI', system-ui, sans-serif",
           fontSize: '1.25rem',
           color: accent || 'var(--text-primary)',
         }}
@@ -433,7 +433,7 @@ export default function SlotC() {
     <div className="card" style={{ padding: '1.25rem 1.25rem 1rem' }}>
       <div
         style={{
-          fontFamily: 'Courier New, monospace',
+          fontFamily: "Calibri, 'Segoe UI', system-ui, sans-serif",
           fontSize: '0.7rem',
           letterSpacing: '0.14em',
           textTransform: 'uppercase',

@@ -1,7 +1,12 @@
-// Shared Plotly layout theme — dark mode, Courier New monospace.
+// Shared Plotly layout theme — dark mode, brand sans-serif (Calibri).
 // Every 2D chart on the platform composes its layout from the constants and
 // helpers below so background, typography, and color language stay in sync
-// across the site.
+// across the site. The font family is the same Calibri-first stack the rest
+// of the platform uses (mirrors --font-base in src/styles/theme.css); Plotly
+// reads font.family as a string and writes it inline on every <text> SVG it
+// emits, so updating PLOTLY_FONT_FAMILY here is what flips chart text from
+// the old Courier New monospace to the new Calibri-style sans without any
+// per-chart-component changes.
 
 export const PLOTLY_COLORS = {
   paper: 'transparent',
@@ -26,7 +31,7 @@ export const PLOTLY_COLORS = {
   negative: '#e74c3c',
 };
 
-export const PLOTLY_FONT_FAMILY = 'Courier New, monospace';
+export const PLOTLY_FONT_FAMILY = "Calibri, 'Segoe UI', system-ui, sans-serif";
 
 export const PLOTLY_FONTS = {
   base: { family: PLOTLY_FONT_FAMILY, color: PLOTLY_COLORS.titleText, size: 12 },

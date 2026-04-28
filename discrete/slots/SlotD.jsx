@@ -92,7 +92,7 @@ function StatCell({ label, value, sub, accent }) {
       </div>
       <div
         style={{
-          fontFamily: 'Courier New, monospace',
+          fontFamily: "Calibri, 'Segoe UI', system-ui, sans-serif",
           fontSize: '1.2rem',
           color: accent || 'var(--text-primary)',
         }}
@@ -220,7 +220,7 @@ export default function SlotD() {
         },
         text: [' (μ, Δ)'],
         textposition: 'top right',
-        textfont: { color: PLOTLY_COLORS.secondary, family: 'Courier New, monospace', size: 11 },
+        textfont: { color: PLOTLY_COLORS.secondary, family: "Calibri, 'Segoe UI', system-ui, sans-serif", size: 11 },
         hovertemplate: 'μ = %{x:.3f}<br>Δ = %{y:.4f}<extra></extra>',
       },
       {
@@ -337,7 +337,7 @@ export default function SlotD() {
     <div className="card" style={{ padding: '1.25rem 1.25rem 1rem' }}>
       <div
         style={{
-          fontFamily: 'Courier New, monospace',
+          fontFamily: "Calibri, 'Segoe UI', system-ui, sans-serif",
           fontSize: '0.7rem',
           letterSpacing: '0.14em',
           textTransform: 'uppercase',
@@ -375,7 +375,7 @@ export default function SlotD() {
             color: 'var(--text-primary)',
             border: '1px solid var(--bg-card-border)',
             padding: '0.3rem 0.5rem',
-            fontFamily: 'Courier New, monospace',
+            fontFamily: "Calibri, 'Segoe UI', system-ui, sans-serif",
             fontSize: '0.85rem',
           }}
         >

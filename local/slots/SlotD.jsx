@@ -145,7 +145,7 @@ function StatCell({ label, value, sub, accent }) {
       </div>
       <div
         style={{
-          fontFamily: 'Courier New, monospace',
+          fontFamily: "Calibri, 'Segoe UI', system-ui, sans-serif",
           fontSize: '1.2rem',
           color: accent || 'var(--text-primary)',
         }}
@@ -367,7 +367,7 @@ export default function SlotD() {
     <div className="card" style={{ padding: '1.25rem 1.25rem 1rem' }}>
       <div
         style={{
-          fontFamily: 'Courier New, monospace',
+          fontFamily: "Calibri, 'Segoe UI', system-ui, sans-serif",
           fontSize: '0.7rem',
           letterSpacing: '0.14em',
           textTransform: 'uppercase',
@@ -482,7 +482,7 @@ export default function SlotD() {
           onClick={() => setSeed((s) => (s * 1103515245 + 12345) | 0)}
           style={{
             padding: '0.45rem 1rem',
-            fontFamily: 'Courier New, monospace',
+            fontFamily: "Calibri, 'Segoe UI', system-ui, sans-serif",
             fontSize: '0.78rem',
             background: 'transparent',
             color: PLOTLY_COLORS.primary,

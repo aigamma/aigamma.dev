@@ -208,7 +208,7 @@ function computeYRange(series, xStart, xEnd, includeCallWall, includePutWall) {
 }
 
 // Button with a pressed (active) / unpressed (inactive) look, styled
-// to match the ResetButton visual language (Courier New, uppercase,
+// to match the ResetButton visual language (brand sans, uppercase,
 // letter-spaced) but keyed to a color pair rather than a single fixed
 // tint. Active renders with a filled background at ~0.22 alpha of the
 // active color, a full-saturation border, and bright white text; the

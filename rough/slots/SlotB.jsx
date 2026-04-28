@@ -455,7 +455,7 @@ function StatCell({ label, value, sub, accent }) {
       </div>
       <div
         style={{
-          fontFamily: 'Courier New, monospace',
+          fontFamily: "Calibri, 'Segoe UI', system-ui, sans-serif",
           fontSize: '1.25rem',
           color: accent || 'var(--text-primary)',
         }}
@@ -485,7 +485,7 @@ function SliderRow({ label, value, min, max, step, onChange, format }) {
         }}
       >
         <span>{label}</span>
-        <span style={{ color: 'var(--text-primary)', fontFamily: 'Courier New, monospace' }}>
+        <span style={{ color: 'var(--text-primary)', fontFamily: "Calibri, 'Segoe UI', system-ui, sans-serif" }}>
           {format ? format(value) : value}
         </span>
       </span>
@@ -695,7 +695,7 @@ export default function SlotB() {
     <div className="card" style={{ padding: '1.25rem 1.25rem 1rem' }}>
       <div
         style={{
-          fontFamily: 'Courier New, monospace',
+          fontFamily: "Calibri, 'Segoe UI', system-ui, sans-serif",
           fontSize: '0.7rem',
           letterSpacing: '0.14em',
           textTransform: 'uppercase',
@@ -812,7 +812,7 @@ export default function SlotB() {
             background: 'transparent',
             border: '1px solid var(--bg-card-border)',
             color: 'var(--text-secondary)',
-            fontFamily: 'Courier New, monospace',
+            fontFamily: "Calibri, 'Segoe UI', system-ui, sans-serif",
             fontSize: '0.75rem',
             letterSpacing: '0.08em',
             textTransform: 'uppercase',

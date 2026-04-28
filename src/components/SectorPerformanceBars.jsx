@@ -6,20 +6,13 @@ import {
   PLOTLY_COLORS,
 } from '../lib/plotlyTheme';
 
-// Local font override for this chart only. The rest of the platform uses
-// Courier New monospace per the brand guideline in CLAUDE.md, but the
-// Sector Performance bar trio renders enough small-size text (12-13px
-// y-axis sector labels, 12px bar-tip percent labels, 26px panel titles)
-// that Plotly's SVG-rendered Courier New comes out visibly thinner and
-// less legible than the surrounding body copy — which uses the system
-// sans-serif stack defined in src/styles/theme.css. Aligning the chart
-// to the same stack makes the chart and the explanatory text underneath
-// it match visually and reads cleanly at every size on the panel. The
-// stack is in fallback order: -apple-system on macOS Safari/Chrome,
-// BlinkMacSystemFont on macOS Chrome, Segoe UI on Windows, then a
-// generic sans-serif catch-all for anything else.
-const CHART_FONT_FAMILY =
-  '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+// Mirrors the platform brand stack — the same Calibri-first sans the rest
+// of the platform now uses (see PLOTLY_FONT_FAMILY in src/lib/plotlyTheme.js
+// and --font-base in src/styles/theme.css). Held as a local constant rather
+// than imported because the legacy fallback chain on this chart was already
+// platform-sans before the cross-site brand swap; consolidating it here
+// keeps a single string the reader can audit per chart.
+const CHART_FONT_FAMILY = "Calibri, 'Segoe UI', system-ui, sans-serif";
 
 // Sector-performance horizontal-bar trio. Renders the /api/sector-performance
 // payload as three horizontal Plotly bar charts stacked vertically (1 day,

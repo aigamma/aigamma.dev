@@ -11,7 +11,7 @@ import SlotB, { slotName as slotBName } from './slots/SlotB';
 // the main dashboard or as their own production lab pages. SlotB
 // is currently empty, ready for the next experimental tenant.
 // Visual language intentionally mirrors the production dashboard
-// (dark card chrome, Courier New monospace accents, four-token
+// (dark card chrome, Calibri-style brand sans-serif, four-token
 // palette) so that a component developed here can be dropped into
 // the main App with zero restyle. The amber badge and warning strip
 // are the only signals that this is a sandbox rather than the

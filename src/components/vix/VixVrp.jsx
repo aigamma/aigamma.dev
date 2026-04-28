@@ -146,7 +146,7 @@ export default function VixVrp({ data }) {
         overlaying: 'y',
         side: 'right',
         showgrid: false,
-        tickfont: { color: PLOTLY_COLORS.primary, family: 'Courier New, monospace', size: 12 },
+        tickfont: { color: PLOTLY_COLORS.primary, family: "Calibri, 'Segoe UI', system-ui, sans-serif", size: 12 },
       }),
       margin: { t: isMobile ? 75 : 50, r: 70, b: 80, l: 70 },
       height: 460,

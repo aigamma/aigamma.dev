@@ -249,7 +249,7 @@ export default function LevelsPanel({ levels, spotPrice, prevClose, expirationMe
           alignItems: 'center',
           gap: '0.5rem',
           marginBottom: '1rem',
-          fontFamily: 'Courier New, monospace',
+          fontFamily: "Calibri, 'Segoe UI', system-ui, sans-serif",
           fontSize: '0.8rem',
           color: 'var(--text-secondary)',
         }}
@@ -281,7 +281,7 @@ export default function LevelsPanel({ levels, spotPrice, prevClose, expirationMe
                 border: `1px solid ${regimeIndicator.color}`,
                 color: regimeIndicator.color,
                 borderRadius: '4px',
-                fontFamily: 'Courier New, monospace',
+                fontFamily: "Calibri, 'Segoe UI', system-ui, sans-serif",
                 fontSize: '1.05rem',
                 letterSpacing: '0.08em',
                 textTransform: 'uppercase',
@@ -471,7 +471,7 @@ export default function LevelsPanel({ levels, spotPrice, prevClose, expirationMe
                   background: 'var(--bg-primary)',
                   color: 'var(--text-primary)',
                   padding: '0.35rem 0.5rem',
-                  fontFamily: 'Courier New, monospace',
+                  fontFamily: "Calibri, 'Segoe UI', system-ui, sans-serif",
                   fontSize: '0.9rem',
                   width: '100%',
                 }}

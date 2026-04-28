@@ -213,7 +213,7 @@ export default function Menu({ regimeIndicator } = {}) {
                       letterSpacing: '0.18em',
                       textTransform: 'uppercase',
                       color: 'rgba(191, 127, 255, 0.55)',
-                      fontFamily: 'Courier New, monospace',
+                      fontFamily: "Calibri, 'Segoe UI', system-ui, sans-serif",
                       borderTop: idx === 0
                         ? 'none'
                         : '1px solid rgba(191, 127, 255, 0.12)',

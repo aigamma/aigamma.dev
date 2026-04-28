@@ -69,7 +69,7 @@ function StatCell({ label, value, sub, accent }) {
       </div>
       <div
         style={{
-          fontFamily: 'Courier New, monospace',
+          fontFamily: "Calibri, 'Segoe UI', system-ui, sans-serif",
           fontSize: '1.25rem',
           color: accent || 'var(--text-primary)',
         }}
@@ -95,31 +95,31 @@ function ParamRow({ model, weight, color }) {
         : Math.abs(p.beta);
   return (
     <tr>
-      <td style={{ padding: '0.5rem 0.6rem', color, fontFamily: 'Courier New, monospace' }}>
+      <td style={{ padding: '0.5rem 0.6rem', color, fontFamily: "Calibri, 'Segoe UI', system-ui, sans-serif" }}>
         {model.name}
       </td>
-      <td style={{ padding: '0.5rem 0.6rem', fontFamily: 'Courier New, monospace', textAlign: 'right' }}>
+      <td style={{ padding: '0.5rem 0.6rem', fontFamily: "Calibri, 'Segoe UI', system-ui, sans-serif", textAlign: 'right' }}>
         {formatParam(p.omega)}
       </td>
-      <td style={{ padding: '0.5rem 0.6rem', fontFamily: 'Courier New, monospace', textAlign: 'right' }}>
+      <td style={{ padding: '0.5rem 0.6rem', fontFamily: "Calibri, 'Segoe UI', system-ui, sans-serif", textAlign: 'right' }}>
         {formatParam(p.alpha)}
       </td>
-      <td style={{ padding: '0.5rem 0.6rem', fontFamily: 'Courier New, monospace', textAlign: 'right' }}>
+      <td style={{ padding: '0.5rem 0.6rem', fontFamily: "Calibri, 'Segoe UI', system-ui, sans-serif", textAlign: 'right' }}>
         {p.gamma == null ? '—' : formatParam(p.gamma)}
       </td>
-      <td style={{ padding: '0.5rem 0.6rem', fontFamily: 'Courier New, monospace', textAlign: 'right' }}>
+      <td style={{ padding: '0.5rem 0.6rem', fontFamily: "Calibri, 'Segoe UI', system-ui, sans-serif", textAlign: 'right' }}>
         {formatParam(p.beta)}
       </td>
-      <td style={{ padding: '0.5rem 0.6rem', fontFamily: 'Courier New, monospace', textAlign: 'right' }}>
+      <td style={{ padding: '0.5rem 0.6rem', fontFamily: "Calibri, 'Segoe UI', system-ui, sans-serif", textAlign: 'right' }}>
         {persistence.toFixed(3)}
       </td>
-      <td style={{ padding: '0.5rem 0.6rem', fontFamily: 'Courier New, monospace', textAlign: 'right' }}>
+      <td style={{ padding: '0.5rem 0.6rem', fontFamily: "Calibri, 'Segoe UI', system-ui, sans-serif", textAlign: 'right' }}>
         {model.logLik.toFixed(1)}
       </td>
-      <td style={{ padding: '0.5rem 0.6rem', fontFamily: 'Courier New, monospace', textAlign: 'right' }}>
+      <td style={{ padding: '0.5rem 0.6rem', fontFamily: "Calibri, 'Segoe UI', system-ui, sans-serif", textAlign: 'right' }}>
         {model.bic.toFixed(1)}
       </td>
-      <td style={{ padding: '0.5rem 0.6rem', fontFamily: 'Courier New, monospace', textAlign: 'right', color }}>
+      <td style={{ padding: '0.5rem 0.6rem', fontFamily: "Calibri, 'Segoe UI', system-ui, sans-serif", textAlign: 'right', color }}>
         {(weight * 100).toFixed(1)}%
       </td>
     </tr>
@@ -380,7 +380,7 @@ export default function SlotB() {
       <div style={{ marginBottom: '0.85rem' }}>
         <div
           style={{
-            fontFamily: 'Courier New, monospace',
+            fontFamily: "Calibri, 'Segoe UI', system-ui, sans-serif",
             fontSize: '0.7rem',
             letterSpacing: '0.14em',
             textTransform: 'uppercase',
@@ -402,7 +402,7 @@ export default function SlotB() {
           SPX log-return series: vanilla GARCH(1,1), GJR-GARCH(1,1,1) with a
           leverage term, and EGARCH(1,1) on log-variance. The ensemble blends
           them by BIC weight{' '}
-          <code style={{ fontFamily: 'Courier New, monospace', color: 'var(--text-primary)' }}>
+          <code style={{ fontFamily: "Calibri, 'Segoe UI', system-ui, sans-serif", color: 'var(--text-primary)' }}>
             w<sub>i</sub> ∝ exp(−½·ΔBIC<sub>i</sub>)
           </code>
           , penalizing the two asymmetric models' extra parameter against
@@ -508,15 +508,15 @@ export default function SlotB() {
         Fit in-browser on {returnsWithDate.length.toLocaleString()} daily log returns
         ({returnsWithDate[0].date} → {returnsWithDate[returnsWithDate.length - 1].date})
         in {ensemble.elapsedMs.toFixed(0)}ms. Persistence is{' '}
-        <code style={{ fontFamily: 'Courier New, monospace', color: 'var(--text-primary)' }}>
+        <code style={{ fontFamily: "Calibri, 'Segoe UI', system-ui, sans-serif", color: 'var(--text-primary)' }}>
           α+β
         </code>{' '}
         for GARCH,{' '}
-        <code style={{ fontFamily: 'Courier New, monospace', color: 'var(--text-primary)' }}>
+        <code style={{ fontFamily: "Calibri, 'Segoe UI', system-ui, sans-serif", color: 'var(--text-primary)' }}>
           α+γ/2+β
         </code>{' '}
         for GJR (symmetric-innovation stationary sum), and{' '}
-        <code style={{ fontFamily: 'Courier New, monospace', color: 'var(--text-primary)' }}>
+        <code style={{ fontFamily: "Calibri, 'Segoe UI', system-ui, sans-serif", color: 'var(--text-primary)' }}>
           |β|
         </code>{' '}
         for EGARCH. Close to 1 means vol shocks die out slowly. The EGARCH

@@ -451,7 +451,7 @@ function StatCell({ label, value, accent }) {
       </div>
       <div
         style={{
-          fontFamily: 'Courier New, monospace',
+          fontFamily: "Calibri, 'Segoe UI', system-ui, sans-serif",
           fontSize: '1.1rem',
           color: accent || 'var(--text-primary)',
         }}
@@ -708,7 +708,7 @@ export default function VolatilitySmile({
             background: 'var(--bg-card)',
             color: 'var(--text-primary)',
             padding: '0.3rem 0.5rem',
-            fontFamily: 'Courier New, monospace',
+            fontFamily: "Calibri, 'Segoe UI', system-ui, sans-serif",
             fontSize: '0.85rem',
           }}
         >
@@ -791,7 +791,7 @@ export default function VolatilitySmile({
                 background: on ? `${color}22` : 'transparent',
                 color: on ? color : 'var(--text-secondary)',
                 padding: '0.3rem 0.7rem',
-                fontFamily: 'Courier New, monospace',
+                fontFamily: "Calibri, 'Segoe UI', system-ui, sans-serif",
                 fontSize: '0.75rem',
                 letterSpacing: '0.05em',
                 cursor: 'pointer',

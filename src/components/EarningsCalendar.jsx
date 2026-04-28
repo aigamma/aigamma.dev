@@ -198,7 +198,7 @@ export default function EarningsCalendar() {
       {error && (
         <div style={{
           color: 'var(--accent-coral)',
-          fontFamily: 'Courier New, monospace',
+          fontFamily: "Calibri, 'Segoe UI', system-ui, sans-serif",
           fontSize: `${1.0 * scale}rem`,
           padding: '1rem',
         }}>
@@ -211,7 +211,7 @@ export default function EarningsCalendar() {
           padding: '4rem 1rem',
           textAlign: 'center',
           color: 'var(--text-secondary)',
-          fontFamily: 'Courier New, monospace',
+          fontFamily: "Calibri, 'Segoe UI', system-ui, sans-serif",
           fontSize: `${1.0 * scale}rem`,
         }}>
           Loading earnings schedule…
@@ -223,7 +223,7 @@ export default function EarningsCalendar() {
           background: '#3a2a1a',
           border: '1px solid #5a4220',
           color: '#e8c890',
-          fontFamily: 'Courier New, monospace',
+          fontFamily: "Calibri, 'Segoe UI', system-ui, sans-serif",
           fontSize: `${0.92 * scale}rem`,
           padding: '0.5rem 0.75rem',
           borderRadius: '3px',
@@ -308,7 +308,7 @@ function CalendarHeader({
         </div>
         <div style={{
           color: 'var(--text-secondary)',
-          fontFamily: 'Courier New, monospace',
+          fontFamily: "Calibri, 'Segoe UI', system-ui, sans-serif",
           fontSize: `${0.95 * scale}rem`,
           letterSpacing: '0.04em',
         }}>
@@ -347,7 +347,7 @@ function FilterToggleRow({ modes, active, onChange, loading, scale, label = 'Fil
     }}>
       <span style={{
         color: 'var(--text-secondary)',
-        fontFamily: 'Courier New, monospace',
+        fontFamily: "Calibri, 'Segoe UI', system-ui, sans-serif",
         fontSize: `${0.85 * scale}rem`,
         letterSpacing: '0.14em',
         textTransform: 'uppercase',
@@ -364,7 +364,7 @@ function FilterToggleRow({ modes, active, onChange, loading, scale, label = 'Fil
             onClick={() => { if (!isActive) onChange(m.id); }}
             disabled={loading && !isActive}
             style={{
-              fontFamily: 'Courier New, monospace',
+              fontFamily: "Calibri, 'Segoe UI', system-ui, sans-serif",
               fontSize: `${0.92 * scale}rem`,
               padding: '0.36rem 0.78rem',
               borderRadius: '3px',
@@ -384,7 +384,7 @@ function FilterToggleRow({ modes, active, onChange, loading, scale, label = 'Fil
       {loading && (
         <span style={{
           color: 'var(--text-secondary)',
-          fontFamily: 'Courier New, monospace',
+          fontFamily: "Calibri, 'Segoe UI', system-ui, sans-serif",
           fontSize: `${0.85 * scale}rem`,
           marginLeft: '0.5rem',
         }}>
@@ -411,7 +411,7 @@ function TextSizeToggle({ active, onChange, scale }) {
     }}>
       <span style={{
         color: 'var(--text-secondary)',
-        fontFamily: 'Courier New, monospace',
+        fontFamily: "Calibri, 'Segoe UI', system-ui, sans-serif",
         fontSize: `${0.85 * scale}rem`,
         letterSpacing: '0.14em',
         textTransform: 'uppercase',
@@ -427,7 +427,7 @@ function TextSizeToggle({ active, onChange, scale }) {
             type="button"
             onClick={() => { if (!isActive) onChange(m.id); }}
             style={{
-              fontFamily: 'Courier New, monospace',
+              fontFamily: "Calibri, 'Segoe UI', system-ui, sans-serif",
               fontSize: `${0.92 * scale}rem`,
               padding: '0.36rem 0.85rem',
               borderRadius: '3px',
@@ -456,7 +456,7 @@ function LegendDot({ color, label, scale = 1 }) {
       display: 'inline-flex',
       alignItems: 'center',
       gap: '0.45rem',
-      fontFamily: 'Courier New, monospace',
+      fontFamily: "Calibri, 'Segoe UI', system-ui, sans-serif",
       fontSize: `${0.95 * scale}rem`,
       color: 'var(--text-secondary)',
     }}>
@@ -598,7 +598,7 @@ function ScatterChart({ chartDays, containerWidth, impliedMovesLive, impliedMove
                   x={PADDING.left - 10}
                   y={y + Math.round(5 * scale)}
                   textAnchor="end"
-                  fontFamily="Courier New, monospace"
+                  fontFamily="Calibri, 'Segoe UI', system-ui, sans-serif"
                   fontSize={fsTickLabel}
                   fill="#9aa6c2"
                 >
@@ -622,7 +622,7 @@ function ScatterChart({ chartDays, containerWidth, impliedMovesLive, impliedMove
               x={xForDay(i)}
               y={height - PADDING.bottom + Math.round(26 * scale)}
               textAnchor="middle"
-              fontFamily="Courier New, monospace"
+              fontFamily="Calibri, 'Segoe UI', system-ui, sans-serif"
               fontSize={fsXDateLabel}
               fill="#cfd6e6"
             >
@@ -632,7 +632,7 @@ function ScatterChart({ chartDays, containerWidth, impliedMovesLive, impliedMove
               x={xForDay(i)}
               y={height - PADDING.bottom + Math.round(46 * scale)}
               textAnchor="middle"
-              fontFamily="Courier New, monospace"
+              fontFamily="Calibri, 'Segoe UI', system-ui, sans-serif"
               fontSize={fsXWeekday}
               fill="#7e8aa0"
             >
@@ -650,7 +650,7 @@ function ScatterChart({ chartDays, containerWidth, impliedMovesLive, impliedMove
           y={Math.round(20 * scale)}
           transform="rotate(-90)"
           textAnchor="middle"
-          fontFamily="Courier New, monospace"
+          fontFamily="Calibri, 'Segoe UI', system-ui, sans-serif"
           fontSize={fsAxisTitle}
           fontWeight={600}
           fill="#cfd6e6"
@@ -663,7 +663,7 @@ function ScatterChart({ chartDays, containerWidth, impliedMovesLive, impliedMove
           x={PADDING.left + plotW / 2}
           y={height - Math.round(6 * scale)}
           textAnchor="middle"
-          fontFamily="Courier New, monospace"
+          fontFamily="Calibri, 'Segoe UI', system-ui, sans-serif"
           fontSize={fsAxisTitle}
           fontWeight={600}
           fill="#cfd6e6"
@@ -721,7 +721,7 @@ function ScatterChart({ chartDays, containerWidth, impliedMovesLive, impliedMove
               x={cx}
               y={cy - Math.round(10 * scale) - (g.members.length > 1 ? Math.round(4 * scale) : 0)}
               textAnchor="middle"
-              fontFamily="Courier New, monospace"
+              fontFamily="Calibri, 'Segoe UI', system-ui, sans-serif"
               fontSize={fsDotTicker}
               fontWeight={600}
               fill="#dde4f0"
@@ -753,7 +753,7 @@ function ScatterChart({ chartDays, containerWidth, impliedMovesLive, impliedMove
           border: '1px solid rgba(160, 172, 200, 0.35)',
           borderRadius: '4px',
           padding: `${0.65 * scale}rem ${0.85 * scale}rem`,
-          fontFamily: 'Courier New, monospace',
+          fontFamily: "Calibri, 'Segoe UI', system-ui, sans-serif",
           fontSize: `${0.92 * scale}rem`,
           color: '#e1e8f4',
           minWidth: Math.round(240 * scale),
@@ -775,7 +775,7 @@ function ScatterChart({ chartDays, containerWidth, impliedMovesLive, impliedMove
           background: '#22262e',
           border: '1px solid #2e3540',
           color: '#cfd6e6',
-          fontFamily: 'Courier New, monospace',
+          fontFamily: "Calibri, 'Segoe UI', system-ui, sans-serif",
           fontSize: `${0.88 * scale}rem`,
           padding: '0.55rem 0.75rem',
           borderRadius: '3px',
@@ -909,7 +909,7 @@ function UpcomingGrid({ calendarDays, scale = 1 }) {
   return (
     <div className="card" style={{ padding: '1rem 1.15rem' }}>
       <div style={{
-        fontFamily: 'Courier New, monospace',
+        fontFamily: "Calibri, 'Segoe UI', system-ui, sans-serif",
         fontSize: `${0.88 * scale}rem`,
         letterSpacing: '0.14em',
         textTransform: 'uppercase',
@@ -982,7 +982,7 @@ function DayColumn({ day, scale, rowSpan, renderUnknownCell }) {
       <div style={{
         padding: '0.5rem 0.55rem',
         borderBottom: '1px solid #1d232c',
-        fontFamily: 'Courier New, monospace',
+        fontFamily: "Calibri, 'Segoe UI', system-ui, sans-serif",
         fontSize: `${0.95 * scale}rem`,
         fontWeight: 700,
         color: '#cfd6e6',
@@ -1013,7 +1013,7 @@ function SessionCell({ label, color, tickers, scale = 1 }) {
     <div style={{
       borderTop: '1px solid #1d232c',
       padding: '0.55rem 0.55rem',
-      fontFamily: 'Courier New, monospace',
+      fontFamily: "Calibri, 'Segoe UI', system-ui, sans-serif",
       fontSize: `${0.95 * scale}rem`,
     }}>
       <div style={{

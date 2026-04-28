@@ -991,7 +991,7 @@ function TimelineStrip({ events, now }) {
                           x={x}
                           y={ROW_HEIGHT - 4}
                           textAnchor="middle"
-                          fontFamily="Courier New, monospace"
+                          fontFamily="Calibri, 'Segoe UI', system-ui, sans-serif"
                           fontSize={9}
                           fill="rgba(160, 172, 200, 0.55)"
                         >
@@ -1013,7 +1013,7 @@ function TimelineStrip({ events, now }) {
                       <text
                         x={nowX + 3}
                         y={10}
-                        fontFamily="Courier New, monospace"
+                        fontFamily="Calibri, 'Segoe UI', system-ui, sans-serif"
                         fontSize={9}
                         fontWeight={700}
                         fill="#f0a030"
@@ -1057,7 +1057,7 @@ function TimelineStrip({ events, now }) {
                             x={cx}
                             y={cy + 3.5}
                             textAnchor="middle"
-                            fontFamily="Courier New, monospace"
+                            fontFamily="Calibri, 'Segoe UI', system-ui, sans-serif"
                             fontSize={9}
                             fontWeight={700}
                             fill={appearance.fill === 'transparent' ? appearance.stroke : '#0d1016'}
@@ -1083,7 +1083,7 @@ function TimelineStrip({ events, now }) {
                     border: '1px solid rgba(160, 172, 200, 0.35)',
                     borderRadius: '4px',
                     padding: '0.7rem 0.95rem',
-                    fontFamily: 'Courier New, monospace',
+                    fontFamily: "Calibri, 'Segoe UI', system-ui, sans-serif",
                     fontSize: '0.82rem',
                     color: '#e1e8f4',
                     minWidth: 260,

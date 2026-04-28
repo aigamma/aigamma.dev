@@ -21,17 +21,31 @@
   --accent-purple: #BF7FFF;
   --accent-cyan: #1abc9c;
 
-  /* Font stack for model-title text — the prominent name of each model
-     shown on its lab page header (.lab-badge) and on per-model card
-     headers like .sector-bars__title. The rest of the platform uses
-     'Courier New', monospace per the brand guideline in CLAUDE.md, but
-     model titles render at large enough sizes (1.25rem+ across labs) on
-     small enough strokes that the monospace face was reading thinner
-     and less legible than the body copy directly underneath each title.
-     The system sans-serif stack matches the body { font-family } stack
-     defined below so model titles and surrounding copy share one
-     typographic voice. */
-  --font-model-title: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  /* Brand font stack — one Calibri-style sans across the entire platform
+     (chrome, body copy, model titles, chart text, dropdown options, the
+     LevelsPanel data values, the chips above the AI Gamma Map, the lab
+     badges, everything). Calibri itself ships with Microsoft Office on
+     Windows, which is Eric's primary surface; Segoe UI is Windows'
+     native UI font and renders nearly identically to Calibri at body
+     sizes when Office isn't installed; system-ui resolves to San
+     Francisco on macOS and Roboto on Android, both clean serif-free
+     sans-serifs in the same visual family; the generic sans-serif
+     keyword is the last resort on platforms that respect none of the
+     above. The previous brand was 'Courier New', monospace which
+     carries small terminal-strokes serifs at every glyph endpoint and
+     fixed-width spacing that visually compressed numeric data — on
+     Eric's read it made the dashboard feel "smaller than it is" and
+     the visual identity was the wrong direction. The single --font-base
+     variable is referenced by every CSS rule that used to hardcode
+     'Courier New', monospace so a future brand change is one-line. */
+  --font-base: Calibri, 'Segoe UI', system-ui, sans-serif;
+  /* Kept for backward compatibility with lab.css references that target
+     model-title text specifically. Same value as --font-base now that the
+     whole platform shares one font, but the variable name is preserved
+     so a future divergence (e.g., a heavier Calibri Bold for titles only)
+     can land at this single declaration without re-grepping every lab
+     CSS class. */
+  --font-model-title: var(--font-base);
 }
 
 * {
@@ -43,7 +57,7 @@
 body {
   background-color: var(--bg-primary);
   color: var(--text-primary);
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family: var(--font-base);
   font-size: 15px;
   line-height: 1.5;
 }

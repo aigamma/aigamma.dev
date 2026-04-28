@@ -390,7 +390,7 @@ export default function ExpiringGamma() {
           showarrow: false,
           yshift: 14,
           font: {
-            family: 'Courier New, monospace',
+            family: "Calibri, 'Segoe UI', system-ui, sans-serif",
             color: tag.color,
             size: 10,
           },
@@ -540,7 +540,7 @@ export default function ExpiringGamma() {
 
   if (!data) {
     return (
-      <div className="card" style={{ padding: '2.5rem 1rem', textAlign: 'center', color: 'var(--text-secondary)', fontFamily: 'Courier New, monospace' }}>
+      <div className="card" style={{ padding: '2.5rem 1rem', textAlign: 'center', color: 'var(--text-secondary)', fontFamily: "Calibri, 'Segoe UI', system-ui, sans-serif" }}>
         Loading expiration concentration…
       </div>
     );

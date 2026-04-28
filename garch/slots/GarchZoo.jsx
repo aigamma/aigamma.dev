@@ -150,7 +150,7 @@ function StatCell({ label, value, sub, accent }) {
       </div>
       <div
         style={{
-          fontFamily: 'Courier New, monospace',
+          fontFamily: "Calibri, 'Segoe UI', system-ui, sans-serif",
           fontSize: '1.25rem',
           color: accent || 'var(--text-primary)',
         }}
@@ -554,7 +554,7 @@ export default function GarchZoo() {
     <div className="card" style={{ padding: '1.25rem 1.25rem 1rem' }}>
       <div
         style={{
-          fontFamily: 'Courier New, monospace',
+          fontFamily: "Calibri, 'Segoe UI', system-ui, sans-serif",
           fontSize: '0.7rem',
           letterSpacing: '0.14em',
           textTransform: 'uppercase',
@@ -642,7 +642,7 @@ export default function GarchZoo() {
                 border: `1px solid ${active ? color : 'var(--bg-card-border)'}`,
                 color: active ? color : 'var(--text-secondary)',
                 padding: '0.3rem 0.65rem',
-                fontFamily: 'Courier New, monospace',
+                fontFamily: "Calibri, 'Segoe UI', system-ui, sans-serif",
                 fontSize: '0.74rem',
                 cursor: 'pointer',
                 borderRadius: '3px',
@@ -665,7 +665,7 @@ export default function GarchZoo() {
               border: '1px solid var(--bg-card-border)',
               color: 'var(--text-secondary)',
               padding: '0.3rem 0.65rem',
-              fontFamily: 'Courier New, monospace',
+              fontFamily: "Calibri, 'Segoe UI', system-ui, sans-serif",
               fontSize: '0.74rem',
               cursor: 'pointer',
               borderRadius: '3px',
@@ -882,37 +882,37 @@ export default function GarchZoo() {
               const pers = persistenceOf(m);
               return (
                 <tr key={m.name}>
-                  <td style={{ padding: '0.45rem 0.55rem', color: rowColors[i], fontFamily: 'Courier New, monospace' }}>
+                  <td style={{ padding: '0.45rem 0.55rem', color: rowColors[i], fontFamily: "Calibri, 'Segoe UI', system-ui, sans-serif" }}>
                     {m.name}
                   </td>
                   <td style={{ padding: '0.45rem 0.55rem', color: 'var(--text-secondary)' }}>
                     {m.family}
                   </td>
-                  <td style={{ padding: '0.45rem 0.55rem', fontFamily: 'Courier New, monospace', textAlign: 'right' }}>
+                  <td style={{ padding: '0.45rem 0.55rem', fontFamily: "Calibri, 'Segoe UI', system-ui, sans-serif", textAlign: 'right' }}>
                     {m.k}
                   </td>
-                  <td style={{ padding: '0.45rem 0.55rem', fontFamily: 'Courier New, monospace', textAlign: 'right' }}>
+                  <td style={{ padding: '0.45rem 0.55rem', fontFamily: "Calibri, 'Segoe UI', system-ui, sans-serif", textAlign: 'right' }}>
                     {formatNum(p.omega)}
                   </td>
-                  <td style={{ padding: '0.45rem 0.55rem', fontFamily: 'Courier New, monospace', textAlign: 'right' }}>
+                  <td style={{ padding: '0.45rem 0.55rem', fontFamily: "Calibri, 'Segoe UI', system-ui, sans-serif", textAlign: 'right' }}>
                     {formatNum(primaryAlpha(m))}
                   </td>
-                  <td style={{ padding: '0.45rem 0.55rem', fontFamily: 'Courier New, monospace', textAlign: 'right' }}>
+                  <td style={{ padding: '0.45rem 0.55rem', fontFamily: "Calibri, 'Segoe UI', system-ui, sans-serif", textAlign: 'right' }}>
                     {formatNum(leverageTerm(m))}
                   </td>
-                  <td style={{ padding: '0.45rem 0.55rem', fontFamily: 'Courier New, monospace', textAlign: 'right' }}>
+                  <td style={{ padding: '0.45rem 0.55rem', fontFamily: "Calibri, 'Segoe UI', system-ui, sans-serif", textAlign: 'right' }}>
                     {formatNum(p.beta)}
                   </td>
-                  <td style={{ padding: '0.45rem 0.55rem', fontFamily: 'Courier New, monospace', textAlign: 'right' }}>
+                  <td style={{ padding: '0.45rem 0.55rem', fontFamily: "Calibri, 'Segoe UI', system-ui, sans-serif", textAlign: 'right' }}>
                     {formatNum(powerTerm(m), 2)}
                   </td>
-                  <td style={{ padding: '0.45rem 0.55rem', fontFamily: 'Courier New, monospace', textAlign: 'right' }}>
+                  <td style={{ padding: '0.45rem 0.55rem', fontFamily: "Calibri, 'Segoe UI', system-ui, sans-serif", textAlign: 'right' }}>
                     {pers != null ? pers.toFixed(3) : '–'}
                   </td>
-                  <td style={{ padding: '0.45rem 0.55rem', fontFamily: 'Courier New, monospace', textAlign: 'right' }}>
+                  <td style={{ padding: '0.45rem 0.55rem', fontFamily: "Calibri, 'Segoe UI', system-ui, sans-serif", textAlign: 'right' }}>
                     {m.logLik != null ? m.logLik.toFixed(1) : '–'}
                   </td>
-                  <td style={{ padding: '0.45rem 0.55rem', fontFamily: 'Courier New, monospace', textAlign: 'right' }}>
+                  <td style={{ padding: '0.45rem 0.55rem', fontFamily: "Calibri, 'Segoe UI', system-ui, sans-serif", textAlign: 'right' }}>
                     {m.bic != null ? m.bic.toFixed(1) : '–'}
                   </td>
                 </tr>
@@ -931,7 +931,7 @@ export default function GarchZoo() {
             borderRadius: '4px',
             fontSize: '0.78rem',
             color: 'var(--accent-coral)',
-            fontFamily: 'Courier New, monospace',
+            fontFamily: "Calibri, 'Segoe UI', system-ui, sans-serif",
           }}
         >
           {failed.length} fit{failed.length === 1 ? '' : 's'} failed:{' '}

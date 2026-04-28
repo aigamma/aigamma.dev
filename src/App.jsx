@@ -478,7 +478,7 @@ export default function App() {
               marginTop: '1rem',
               padding: '0 1rem',
               height: '2.4rem',
-              fontFamily: 'Courier New, monospace',
+              fontFamily: "Calibri, 'Segoe UI', system-ui, sans-serif",
               fontSize: '0.9rem',
               letterSpacing: '0.08em',
               textTransform: 'uppercase',

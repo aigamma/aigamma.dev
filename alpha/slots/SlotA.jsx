@@ -271,7 +271,7 @@ function StatCell({ label, value, sub, accent }) {
       </div>
       <div
         style={{
-          fontFamily: 'Courier New, monospace',
+          fontFamily: "Calibri, 'Segoe UI', system-ui, sans-serif",
           fontSize: '1.25rem',
           color: accent || 'var(--text-primary)',
         }}
@@ -707,7 +707,7 @@ export default function SlotA() {
       <div style={{ marginBottom: '0.85rem' }}>
         <div
           style={{
-            fontFamily: 'Courier New, monospace',
+            fontFamily: "Calibri, 'Segoe UI', system-ui, sans-serif",
             fontSize: '0.7rem',
             letterSpacing: '0.14em',
             textTransform: 'uppercase',
@@ -840,7 +840,7 @@ export default function SlotA() {
       >
         <span
           style={{
-            fontFamily: 'Courier New, monospace',
+            fontFamily: "Calibri, 'Segoe UI', system-ui, sans-serif",
             fontSize: '0.7rem',
             letterSpacing: '0.14em',
             textTransform: 'uppercase',
@@ -860,7 +860,7 @@ export default function SlotA() {
               aria-pressed={active}
               style={{
                 padding: '0.3rem 0.7rem',
-                fontFamily: 'Courier New, monospace',
+                fontFamily: "Calibri, 'Segoe UI', system-ui, sans-serif",
                 fontSize: '0.7rem',
                 letterSpacing: '0.1em',
                 textTransform: 'uppercase',

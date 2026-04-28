@@ -276,7 +276,7 @@ export default function SpxHeatmap() {
             background: '#3a2a1a',
             border: '1px solid #5a4220',
             color: '#e8c890',
-            fontFamily: 'Courier New, monospace',
+            fontFamily: "Calibri, 'Segoe UI', system-ui, sans-serif",
             fontSize: '0.78rem',
             padding: '0.4rem 0.6rem',
             borderRadius: '3px',
@@ -292,7 +292,7 @@ export default function SpxHeatmap() {
         <div
           style={{
             color: 'var(--accent-coral)',
-            fontFamily: 'Courier New, monospace',
+            fontFamily: "Calibri, 'Segoe UI', system-ui, sans-serif",
             padding: '1rem',
           }}
         >
@@ -314,7 +314,7 @@ export default function SpxHeatmap() {
               padding: '4rem 1rem',
               textAlign: 'center',
               color: 'var(--text-secondary)',
-              fontFamily: 'Courier New, monospace',
+              fontFamily: "Calibri, 'Segoe UI', system-ui, sans-serif",
               fontSize: '0.85rem',
             }}
           >
@@ -345,7 +345,7 @@ export default function SpxHeatmap() {
                 <div
                   style={{
                     background: SECTOR_HEADER_BG,
-                    fontFamily: 'Courier New, monospace',
+                    fontFamily: "Calibri, 'Segoe UI', system-ui, sans-serif",
                     padding: '0.6rem 0.65rem 0.55rem',
                     marginBottom: '2px',
                     borderBottom: '1px solid #131720',
@@ -385,7 +385,7 @@ export default function SpxHeatmap() {
                   height: SECTOR_HEADER_HEIGHT,
                   background: SECTOR_HEADER_BG,
                   color: SECTOR_HEADER_FG,
-                  fontFamily: 'Courier New, monospace',
+                  fontFamily: "Calibri, 'Segoe UI', system-ui, sans-serif",
                   fontSize: '0.7rem',
                   letterSpacing: '0.1em',
                   textTransform: 'uppercase',
@@ -487,7 +487,7 @@ export default function SpxHeatmap() {
                       style={{
                         background: bg,
                         color: fg,
-                        fontFamily: 'Courier New, monospace',
+                        fontFamily: "Calibri, 'Segoe UI', system-ui, sans-serif",
                         display: 'flex',
                         flexDirection: 'column',
                         justifyContent: 'center',

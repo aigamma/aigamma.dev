@@ -36,7 +36,7 @@ function LevelLabel({ name, value, color, format = formatInteger }) {
         display: 'flex',
         alignItems: 'baseline',
         gap: '0.5rem',
-        fontFamily: 'Courier New, monospace',
+        fontFamily: "Calibri, 'Segoe UI', system-ui, sans-serif",
       }}
     >
       <span
@@ -100,7 +100,7 @@ function CustomLevelRow({ label, value, color, mobile }) {
           fontSize: mobile ? '0.6rem' : '0.7rem',
           textTransform: 'uppercase',
           letterSpacing: '0.05em',
-          fontFamily: 'Courier New, monospace',
+          fontFamily: "Calibri, 'Segoe UI', system-ui, sans-serif",
         }}
       >
         {label}
@@ -110,7 +110,7 @@ function CustomLevelRow({ label, value, color, mobile }) {
           color,
           fontSize: mobile ? '0.8rem' : '0.95rem',
           fontWeight: 'bold',
-          fontFamily: 'Courier New, monospace',
+          fontFamily: "Calibri, 'Segoe UI', system-ui, sans-serif",
         }}
       >
         {value != null ? formatInteger(value) : '—'}
@@ -459,7 +459,7 @@ export default function GexProfile({ contracts, spotPrice, levels, prevContracts
           <span
             style={{
               color: PLOTLY_COLORS.titleText,
-              fontFamily: 'Courier New, monospace',
+              fontFamily: "Calibri, 'Segoe UI', system-ui, sans-serif",
               fontSize: '20px',
               fontWeight: 'normal',
               lineHeight: 1,
@@ -533,7 +533,7 @@ export default function GexProfile({ contracts, spotPrice, levels, prevContracts
                 fontSize: mobile ? '0.55rem' : '0.62rem',
                 textTransform: 'uppercase',
                 letterSpacing: '0.08em',
-                fontFamily: 'Courier New, monospace',
+                fontFamily: "Calibri, 'Segoe UI', system-ui, sans-serif",
                 paddingBottom: mobile ? '0.2rem' : '0.3rem',
                 borderBottom: '1px solid var(--bg-card-border)',
               }}

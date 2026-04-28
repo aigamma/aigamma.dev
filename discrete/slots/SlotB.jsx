@@ -233,7 +233,7 @@ function StatCell({ label, value, sub, accent }) {
       </div>
       <div
         style={{
-          fontFamily: 'Courier New, monospace',
+          fontFamily: "Calibri, 'Segoe UI', system-ui, sans-serif",
           fontSize: '1.2rem',
           color: accent || 'var(--text-primary)',
         }}
@@ -456,7 +456,7 @@ export default function SlotB() {
     <div className="card" style={{ padding: '1.25rem 1.25rem 1rem' }}>
       <div
         style={{
-          fontFamily: 'Courier New, monospace',
+          fontFamily: "Calibri, 'Segoe UI', system-ui, sans-serif",
           fontSize: '0.7rem',
           letterSpacing: '0.14em',
           textTransform: 'uppercase',
@@ -494,7 +494,7 @@ export default function SlotB() {
             color: 'var(--text-primary)',
             border: '1px solid var(--bg-card-border)',
             padding: '0.3rem 0.5rem',
-            fontFamily: 'Courier New, monospace',
+            fontFamily: "Calibri, 'Segoe UI', system-ui, sans-serif",
             fontSize: '0.85rem',
           }}
         >
@@ -520,7 +520,7 @@ export default function SlotB() {
             color: 'var(--text-primary)',
             border: '1px solid var(--bg-card-border)',
             padding: '0.3rem 0.5rem',
-            fontFamily: 'Courier New, monospace',
+            fontFamily: "Calibri, 'Segoe UI', system-ui, sans-serif",
             fontSize: '0.85rem',
           }}
         >

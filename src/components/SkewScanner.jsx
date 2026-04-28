@@ -304,7 +304,7 @@ export default function SkewScanner() {
             background: '#3a2a1a',
             border: '1px solid #5a4220',
             color: '#e8c890',
-            fontFamily: 'Courier New, monospace',
+            fontFamily: "Calibri, 'Segoe UI', system-ui, sans-serif",
             fontSize: '0.78rem',
             padding: '0.5rem 0.75rem',
             borderRadius: '3px',
@@ -320,7 +320,7 @@ export default function SkewScanner() {
         <div
           style={{
             color: 'var(--accent-coral)',
-            fontFamily: 'Courier New, monospace',
+            fontFamily: "Calibri, 'Segoe UI', system-ui, sans-serif",
             padding: '1rem',
           }}
         >
@@ -334,7 +334,7 @@ export default function SkewScanner() {
             padding: '4rem 1rem',
             textAlign: 'center',
             color: 'var(--text-secondary)',
-            fontFamily: 'Courier New, monospace',
+            fontFamily: "Calibri, 'Segoe UI', system-ui, sans-serif",
             fontSize: '0.85rem',
           }}
         >
@@ -370,7 +370,7 @@ export default function SkewScanner() {
           style={{
             textAlign: 'center',
             color: 'var(--text-secondary)',
-            fontFamily: 'Courier New, monospace',
+            fontFamily: "Calibri, 'Segoe UI', system-ui, sans-serif",
             fontSize: '0.78rem',
             letterSpacing: '0.04em',
           }}
@@ -432,7 +432,7 @@ function ScannerToolbar({
           border: '2px solid #e8edf6',
           borderRadius: '4px',
           overflow: 'hidden',
-          fontFamily: 'Courier New, monospace',
+          fontFamily: "Calibri, 'Segoe UI', system-ui, sans-serif",
         }}
       >
         <TabButton
@@ -501,7 +501,7 @@ function AnchorFilterToggle({ mode, onChange, anchorCount, disabled }) {
     >
       <span
         style={{
-          fontFamily: 'Courier New, monospace',
+          fontFamily: "Calibri, 'Segoe UI', system-ui, sans-serif",
           fontSize: '0.78rem',
           letterSpacing: '0.04em',
           color: 'var(--text-secondary)',
@@ -516,7 +516,7 @@ function AnchorFilterToggle({ mode, onChange, anchorCount, disabled }) {
           border: '1px solid var(--accent-blue, #4a9eff)',
           borderRadius: '3px',
           overflow: 'hidden',
-          fontFamily: 'Courier New, monospace',
+          fontFamily: "Calibri, 'Segoe UI', system-ui, sans-serif",
           fontSize: '0.75rem',
           letterSpacing: '0.06em',
         }}
@@ -585,7 +585,7 @@ function EarningsFilterToggle({ mode, onChange, lookaheadDays, disabled }) {
     >
       <span
         style={{
-          fontFamily: 'Courier New, monospace',
+          fontFamily: "Calibri, 'Segoe UI', system-ui, sans-serif",
           fontSize: '0.78rem',
           letterSpacing: '0.04em',
           color: 'var(--text-secondary)',
@@ -600,7 +600,7 @@ function EarningsFilterToggle({ mode, onChange, lookaheadDays, disabled }) {
           border: '1px solid var(--accent-amber, #f0a030)',
           borderRadius: '3px',
           overflow: 'hidden',
-          fontFamily: 'Courier New, monospace',
+          fontFamily: "Calibri, 'Segoe UI', system-ui, sans-serif",
           fontSize: '0.75rem',
           letterSpacing: '0.06em',
         }}
@@ -647,7 +647,7 @@ function TabButton({ active, onClick, children, tone }) {
       onClick={onClick}
       style={{
         padding: '0.45rem 1.1rem',
-        fontFamily: 'Courier New, monospace',
+        fontFamily: "Calibri, 'Segoe UI', system-ui, sans-serif",
         fontSize: '1.1rem',
         fontWeight: 700,
         letterSpacing: '0.05em',
@@ -849,12 +849,14 @@ function Quadrant({
           // near the right edge of the canvas the rightward label
           // would extend past PLOT_SIZE and either clip at the SVG
           // boundary or paint into adjacent page chrome. Estimate the
-          // rendered text width using Courier New's monospace ratio
-          // (~0.6 em per glyph) and flip the label to the LEFT side
-          // of the dot (text-anchor=end) when the rightward placement
-          // would overflow. The flip happens silently — no visual
-          // marker — because all symbols are 3-5 chars and the
-          // leftward fallback always fits within the canvas.
+          // rendered text width using a 0.6 em per glyph approximation
+          // — slightly conservative for the platform's Calibri-style
+          // sans (Calibri averages ~0.5-0.55 em for short uppercase
+          // ticker glyphs), which means the flip-to-left triggers a
+          // touch sooner than strictly necessary; the conservatism is
+          // benign because the leftward fallback always fits and the
+          // flip happens silently with no visual marker. All symbols
+          // are 3-5 chars so the worst-case overestimate is < 5 px.
           const charWidthPx = fontSize * 0.6;
           const labelWidthPx = t.symbol.length * charWidthPx;
           const overflowsRight = (cx + r + 4 + labelWidthPx) > PLOT_SIZE;
@@ -921,9 +923,12 @@ function Quadrant({
                 // padding on each side gives the dark text a small
                 // safe area off the pill edges; the -1 vertical inset
                 // on top and +2 on the bottom centers the pill on
-                // Courier New's baseline (the glyph ascent rises
-                // ~0.75 × fontSize above baseline; the descent drops
-                // ~0.2 × fontSize below). 2 px corner radius matches
+                // the Calibri-style baseline (Calibri's glyph ascent
+                // rises ~0.75 × fontSize above baseline and the
+                // descent drops ~0.21 × fontSize below — close enough
+                // to Courier New's geometry that the inset numbers
+                // didn't need re-tuning when the platform font swap
+                // landed). 2 px corner radius matches
                 // the .rotation-step-toggle__btn pill chrome used
                 // elsewhere on the site so the warning indicator
                 // reads as native UI rather than a pasted-on
@@ -954,7 +959,7 @@ function Quadrant({
                 fill={hasEarnings
                   ? '#0d1016'
                   : (isHovered ? '#f3f4f6' : isTopTen ? '#e1e8f4' : '#9aa6c2')}
-                fontFamily="Courier New, monospace"
+                fontFamily="Calibri, 'Segoe UI', system-ui, sans-serif"
                 fontSize={fontSize}
                 fontWeight={hasEarnings || isHovered || isTopTen ? 700 : 400}
                 style={{ pointerEvents: 'none', userSelect: 'none' }}
@@ -993,7 +998,7 @@ function Quadrant({
           border: '1px solid rgba(160, 172, 200, 0.35)',
           borderRadius: '4px',
           padding: '0.55rem 0.75rem',
-          fontFamily: 'Courier New, monospace',
+          fontFamily: "Calibri, 'Segoe UI', system-ui, sans-serif",
           fontSize: '0.78rem',
           color: '#e1e8f4',
           minWidth: 220,
@@ -1233,7 +1238,7 @@ function EdgeLabel({ edge, outside, chartLeft, chartTop, chartSize, plotPadding,
   const baseStyle = {
     position: 'absolute',
     pointerEvents: 'none',
-    fontFamily: 'Courier New, monospace',
+    fontFamily: "Calibri, 'Segoe UI', system-ui, sans-serif",
     fontSize: '1.0rem',
     fontWeight: 700,
     letterSpacing: '0.02em',
@@ -1375,7 +1380,7 @@ function ScannerLegend() {
         flexWrap: 'wrap',
         gap: '1.25rem',
         alignItems: 'center',
-        fontFamily: 'Courier New, monospace',
+        fontFamily: "Calibri, 'Segoe UI', system-ui, sans-serif",
         fontSize: '0.82rem',
       }}
     >
@@ -1394,7 +1399,7 @@ function ScannerLegend() {
           style={{
             color: '#e1e8f4',
             fontWeight: 700,
-            fontFamily: 'Courier New, monospace',
+            fontFamily: "Calibri, 'Segoe UI', system-ui, sans-serif",
             fontSize: '0.95rem',
           }}
         >
@@ -1424,7 +1429,7 @@ function ScannerLegend() {
             background: '#f0a030',
             color: '#0d1016',
             fontWeight: 700,
-            fontFamily: 'Courier New, monospace',
+            fontFamily: "Calibri, 'Segoe UI', system-ui, sans-serif",
             fontSize: '0.82rem',
             padding: '0.05rem 0.35rem',
             borderRadius: '2px',
