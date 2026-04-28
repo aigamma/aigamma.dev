@@ -735,7 +735,6 @@ function Totals({ scoped, upcoming, past }) {
   const low = scoped.filter((e) => e.impact === 'Low').length;
   return (
     <div className="econ-events__totals">
-      <Stat label="In scope" value={scoped.length} />
       <Stat label="High" value={high} accent="coral" />
       <Stat label="Medium" value={medium} accent="amber" />
       <Stat label="Low" value={low} accent="muted" />
