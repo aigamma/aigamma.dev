@@ -43,6 +43,22 @@ export function daysToExpiration(expirationDate, capturedAt) {
   return Math.max(0, diffDays);
 }
 
+// Picker dropdown label for an ISO expiration date. Appends a rounded DTE
+// suffix and tags AM-settled standard SPX monthlies with "AM" so the
+// reader can distinguish them from PM-settled SPXW weeklies. PM is the
+// default and is left unlabeled to keep the dropdown column narrow enough
+// for a date + DTE + AM marker to fit without truncation. Shared by the
+// LevelsPanel single-expiration picker and the GexProfile single-chain
+// picker so both controls render identical option strings.
+export function formatExpirationOption(exp, capturedAt) {
+  const dteFrac = daysToExpiration(exp, capturedAt);
+  const dteLabel = dteFrac != null ? `${Math.max(0, Math.round(dteFrac))}d` : '—d';
+  if (isThirdFridayMonthly(exp)) {
+    return `${exp} AM (${dteLabel})`;
+  }
+  return `${exp} (${dteLabel})`;
+}
+
 // Months where the SPX AM-settled monthly expires on the Thursday before the
 // nominal 3rd Friday because that Friday is a US market holiday (Good
 // Friday or observed Juneteenth). Without this set, the 3rd-Friday-only

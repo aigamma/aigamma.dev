@@ -552,6 +552,7 @@ export default function App() {
                 levels={correctedLevels}
                 prevContracts={prevDayContracts}
                 prevSpotPrice={prevDaySpotPrice}
+                capturedAt={data.capturedAt}
               />
             </LazyMount>
           </ErrorBoundary>

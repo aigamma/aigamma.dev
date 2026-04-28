@@ -1,23 +1,5 @@
 import { formatGamma, formatInteger, formatPercent, formatRatio } from '../lib/format';
-import { daysToExpiration, formatFreshness, isThirdFridayMonthly } from '../lib/dates';
-
-// Treat the 3rd Friday of the month (Friday whose calendar day is 15-21) as
-// an AM-settled standard SPX monthly; everything else is a PM-settled SPXW
-// weekly. Only the AM case is labeled in the dropdown — PM is the default
-// so an unlabeled entry implicitly means PM, which keeps the dropdown
-// column narrow enough to fit the longer AM label without clipping. On
-// 3rd Fridays both roots technically share the same calendar date, but the
-// App-level same-day filter removes that date from the picker entirely,
-// leaving only future 3rd Fridays (where the AM monthly is the primary
-// interest) and non-3rd-Friday weeklies (where only SPXW exists).
-function formatExpirationOption(exp, capturedAt) {
-  const dteFrac = daysToExpiration(exp, capturedAt);
-  const dteLabel = dteFrac != null ? `${Math.max(0, Math.round(dteFrac))}d` : '—d';
-  if (isThirdFridayMonthly(exp)) {
-    return `${exp} AM (${dteLabel})`;
-  }
-  return `${exp} (${dteLabel})`;
-}
+import { daysToExpiration, formatExpirationOption, formatFreshness } from '../lib/dates';
 
 function distanceSub(level, spot) {
   if (level == null || spot == null) return null;
