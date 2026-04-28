@@ -2932,6 +2932,136 @@
   font-weight: 700;
 }
 
+/* Key Events list — the human-readable counterpart to the
+   scatter dots, lives at the top of the chart card so the plot
+   area below renders uncluttered. Grouped into per-day columns
+   that line up roughly with the chart's X axis below; each row
+   carries a family-colored bullet, a time stamp, the full title,
+   and a family pill so a reader can scan the week's catalysts
+   in one read without having to hover any dot. */
+.econ-events__keylist {
+  padding: 0.75rem 0.85rem 0.85rem;
+  background: rgba(255, 255, 255, 0.018);
+  border: 1px solid var(--bg-card-border);
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.econ-events__keylist-label {
+  font-family: 'Courier New', monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  font-weight: 700;
+}
+
+.econ-events__keylist-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.65rem 1rem;
+}
+
+.econ-events__keylist-day {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  min-width: 0;
+}
+
+.econ-events__keylist-day-header {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  padding-bottom: 0.25rem;
+  border-bottom: 1px solid var(--bg-card-border);
+  font-family: 'Courier New', monospace;
+  letter-spacing: 0.06em;
+}
+
+.econ-events__keylist-day-name {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: 0.14em;
+}
+
+.econ-events__keylist-day-date {
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.econ-events__keylist-day-count {
+  margin-left: auto;
+  font-size: 0.62rem;
+  letter-spacing: 0.12em;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  font-variant-numeric: tabular-nums;
+}
+
+.econ-events__keylist-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 0.18rem;
+}
+
+.econ-events__keylist-row {
+  display: grid;
+  grid-template-columns: 0.55rem 3.3rem 1fr min-content min-content;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: 'Courier New', monospace;
+  font-size: 0.74rem;
+  color: var(--text-primary);
+  letter-spacing: 0.02em;
+  padding: 0.12rem 0;
+}
+
+.econ-events__keylist-bullet {
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.econ-events__keylist-time {
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  font-size: 0.7rem;
+}
+
+.econ-events__keylist-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.econ-events__keylist-family {
+  display: inline-block;
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  padding: 0.05rem 0.3rem;
+  border-radius: 2px;
+  border: 1px solid currentColor;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.econ-events__keylist-move {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  color: var(--accent-blue);
+  font-size: 0.7rem;
+  white-space: nowrap;
+}
+
 /* Brush below the scatter — the date pan/zoom control. The
    .econ-events__brush-meta strip above the brush track names the
    start, span, and end of the visible window so the reader sees the

@@ -999,30 +999,15 @@ function ImpliedMoveChart({ events, ivContext }) {
     );
   }
 
-  // Per-cluster max size in the visible window. The label stack
-  // above each cluster's dot is one row per event (vs the prior
-  // truncated comma-joined single line), so the chart's top padding
-  // grows with the worst-case stack height to keep the topmost
-  // cluster's stack clear of the chart border. A dense FOMC day
-  // (3-4 same-expiration events) needs ~50-65px of headroom; a
-  // GDP/PCE Thursday morning (5 events at 12:30) needs ~75px. The
-  // base padding of 36px covers the gap between the chart top and
-  // the topmost line of the tallest stack.
-  const maxClusterSize = visibleLabelGroups.length > 0
-    ? Math.max(...visibleLabelGroups.map((g) => uniqueTitles(g.members).length))
-    : 1;
-  const STACK_LINE_HEIGHT = 14;
-  const STACK_DOT_GAP = 12; // pixels between bottom line and dot
-  const stackReserve = STACK_DOT_GAP + STACK_LINE_HEIGHT * maxClusterSize;
-
+  // Layout. The plot area no longer carries per-event text labels
+  // (the prior vertical stacks blocked dots from adjacent days when
+  // a tall cluster's stack extended horizontally past its column),
+  // so top padding can be the prior fixed 52px regardless of cluster
+  // sizes — the events list lives in its own header panel above the
+  // SVG instead, where vertical real estate is cheap.
   const width = Math.max(Math.min(containerWidth - 16, 1100), 320);
   const height = Math.round(Math.min(width * 0.6, 560));
-  const PADDING = {
-    top: Math.max(52, 36 + stackReserve),
-    right: 60,
-    bottom: 68,
-    left: 76,
-  };
+  const PADDING = { top: 36, right: 60, bottom: 68, left: 76 };
   const plotW = width - PADDING.left - PADDING.right;
   const plotH = height - PADDING.top - PADDING.bottom;
 
@@ -1068,6 +1053,7 @@ function ImpliedMoveChart({ events, ivContext }) {
           {' '}±1σ = spot × ATM&nbsp;IV × √(DTE/365)
         </span>
       </div>
+      <KeyEventsList events={events} />
       <div ref={containerRef} className="econ-events__scatter">
         <svg width={width} height={height} role="img" aria-label="SPX implied move per event scatter chart">
           {/* Y gridlines + tick labels */}
@@ -1218,103 +1204,10 @@ function ImpliedMoveChart({ events, ivContext }) {
             );
           })}
 
-          {/* Cluster labels — vertical stack of per-event titles
-              above the cluster's dot, one line per event, each
-              colored by family. Replaces the prior single-line
-              comma-joined display that truncated past 5 events
-              with " · …" — Eric flagged that as a hard ceiling
-              that lost information for any cluster larger than
-              the cap. Vertical stacking has no such ceiling: the
-              chart's top padding adapts to the worst-case stack
-              height (see maxClusterSize / stackReserve above), so
-              every event in every cluster gets its own readable
-              line. Lines are ordered chronologically with the
-              earliest event at the TOP and the last event at the
-              BOTTOM closest to the dot, so reading top-to-bottom
-              is reading chronologically; the bottom line "anchors"
-              the stack to the dot. */}
-          {visibleLabelGroups.map((g) => {
-            const member = g.members[0];
-            const cx = xForMs(g.anchorMs);
-            const cy = yForMove(member._impliedMove.movePct);
-
-            // Per-event lines, deduped by title (rare same-title
-            // duplicates collapse to one line). Each line carries
-            // its event's family hex for tinting, or the default
-            // text-primary off-white if no family matched.
-            const seen = new Set();
-            const lines = [];
-            for (const m of g.members) {
-              const text = truncTitle(m.title);
-              if (seen.has(text)) continue;
-              seen.add(text);
-              lines.push({
-                text,
-                color: m._spotlight ? m._spotlight.hex : '#dde4f0',
-              });
-            }
-
-            // Edge anchoring: when the cluster sits in the leftmost
-            // 18% / rightmost 18% of the visible plot, flip the
-            // textAnchor so the label extends inward rather than
-            // overhanging the Y-axis or the right border.
-            const fracX = (cx - PADDING.left) / plotW;
-            const isLeftZone = fracX < 0.18;
-            const isRightZone = fracX > 0.82;
-            const textAnchor = isLeftZone ? 'start' : isRightZone ? 'end' : 'middle';
-            const xOffset = isLeftZone ? -4 : isRightZone ? 4 : 0;
-
-            // Stack the lines upward from the dot. The bottommost
-            // line sits STACK_DOT_GAP above the dot, the next line
-            // STACK_LINE_HEIGHT above that, etc. Iterate the lines
-            // array in REVERSE so the last (chronologically latest)
-            // event lands at the bottom of the stack and the first
-            // event lands at the top — top-to-bottom reading order
-            // is chronological order.
-            const stackElements = [];
-            for (let i = 0; i < lines.length; i++) {
-              const fromBottom = lines.length - 1 - i;
-              const y = cy - STACK_DOT_GAP - fromBottom * STACK_LINE_HEIGHT;
-              stackElements.push(
-                <text
-                  key={`lbl-${g.date}-${g.yBkt}-${i}`}
-                  x={cx + xOffset}
-                  y={y}
-                  textAnchor={textAnchor}
-                  fontFamily="Courier New, monospace"
-                  fontSize={11.5}
-                  fontWeight={600}
-                  fill={lines[i].color}
-                  style={{ pointerEvents: 'none' }}
-                >
-                  {lines[i].text}
-                </text>,
-              );
-            }
-
-            // Thin leader line from just below the bottom label down
-            // to just above the dot — the visual "arrow" that ties
-            // the multi-line stack to its single anchor point. Only
-            // rendered for clusters with 2+ lines (a single-event
-            // cluster doesn't need a leader because the text already
-            // sits directly above the dot).
-            if (lines.length >= 2) {
-              const lineTop = cy - STACK_DOT_GAP + 2;
-              const lineBottom = cy - 6;
-              stackElements.push(
-                <line
-                  key={`lead-${g.date}-${g.yBkt}`}
-                  x1={cx} x2={cx}
-                  y1={lineTop} y2={lineBottom}
-                  stroke="rgba(160, 172, 200, 0.45)"
-                  strokeWidth={1}
-                  style={{ pointerEvents: 'none' }}
-                />,
-              );
-            }
-
-            return stackElements;
-          })}
+          {/* Per-event labels live in the KeyEventsList panel above
+              the SVG (see the chart-card layout below), not on the
+              plot itself, so the dots and term-structure curve
+              render uncluttered. */}
         </svg>
 
         {/* Hover-anchored tooltip — branches on hovered._kind so a
@@ -1552,34 +1445,95 @@ function ChartTooltipRow({ label, value, highlight }) {
 }
 
 // Short human-readable label for non-family events, used as the
-// Per-event label rendered as a single line in the cluster stack
-// above the dot. Trims FF's trailing rate-frequency suffixes
-// (m/m, y/y, q/q) for visual tidiness — a reader who needs the
-// frequency sees it in the hover tooltip — and clips at 28 chars
-// with an ellipsis so the label band never grows wide enough to
-// collide with the next column even on a fully-zoomed-out brush.
-function truncTitle(title) {
-  if (!title) return '?';
-  const cleaned = title.replace(/\s+m\/m$|\s+y\/y$|\s+q\/q$/i, '').trim();
-  if (cleaned.length <= 28) return cleaned;
-  return cleaned.slice(0, 27) + '…';
-}
+// Key Events list — the human-readable counterpart to the chart's
+// scatter dots. Lives at the top of the chart card above the SVG so
+// the plot area stays uncluttered (per Eric's directive after the
+// vertical-stack-of-labels variant blocked dots from adjacent days
+// when a tall cluster's stack extended horizontally past its
+// column). Events are grouped by date with a small day-header per
+// block; each event line carries a family-colored bullet, a time
+// stamp, the full title, and a family pill for non-FOMC matches.
+// The list shows the FULL set of upcoming-in-scope events
+// regardless of the brush window — this is the "table of contents"
+// for the week, and a reader who pans the brush to a future window
+// shouldn't lose visibility into what's coming earlier.
+function KeyEventsList({ events }) {
+  if (!events || events.length === 0) return null;
 
-// Same dedup pass the cluster-render block uses; lifted as a
-// helper so the per-cluster max-size calculation that drives the
-// chart's adaptive top padding agrees with what actually renders
-// (rendering 4 unique lines but reserving padding for 5 raw
-// members would leave wasted whitespace).
-function uniqueTitles(members) {
-  const seen = new Set();
-  const out = [];
-  for (const m of members) {
-    const t = truncTitle(m.title);
-    if (seen.has(t)) continue;
-    seen.add(t);
-    out.push(t);
+  // Group by date, preserve chronological order within each day.
+  const byDate = new Map();
+  for (const e of events) {
+    if (!byDate.has(e.date)) byDate.set(e.date, []);
+    byDate.get(e.date).push(e);
   }
-  return out;
+  const dayBlocks = [...byDate.entries()]
+    .sort((a, b) => a[0].localeCompare(b[0]))
+    .map(([date, list]) => ({
+      date,
+      events: list.sort((a, b) => a._ms - b._ms),
+    }));
+
+  return (
+    <div className="econ-events__keylist">
+      <div className="econ-events__keylist-label">Key Events</div>
+      <div className="econ-events__keylist-grid">
+        {dayBlocks.map((block) => {
+          const at = new Date(`${block.date}T12:00:00`);
+          const dayName = at.toLocaleDateString(undefined, { weekday: 'short' }).toUpperCase();
+          const dayDate = at.toLocaleDateString(undefined, { month: 'numeric', day: 'numeric' });
+          return (
+            <div key={block.date} className="econ-events__keylist-day">
+              <div className="econ-events__keylist-day-header">
+                <span className="econ-events__keylist-day-name">{dayName}</span>
+                <span className="econ-events__keylist-day-date">{dayDate}</span>
+                <span className="econ-events__keylist-day-count">
+                  {block.events.length}
+                </span>
+              </div>
+              <div className="econ-events__keylist-rows">
+                {block.events.map((e) => {
+                  const sp = e._spotlight;
+                  const color = sp ? sp.hex : '#8a8f9c';
+                  return (
+                    <div
+                      key={e._id}
+                      className="econ-events__keylist-row"
+                      title={`${e.title} · forecast ${e.forecast || '—'} · previous ${e.previous || '—'}`}
+                    >
+                      <span
+                        className="econ-events__keylist-bullet"
+                        style={{ background: color }}
+                        aria-hidden="true"
+                      />
+                      <span className="econ-events__keylist-time">
+                        {formatTimeOnly(e._at, e.dayKind)}
+                      </span>
+                      <span className="econ-events__keylist-title">
+                        {e.title}
+                      </span>
+                      {sp && (
+                        <span
+                          className="econ-events__keylist-family"
+                          style={{ color, borderColor: color }}
+                        >
+                          {sp.label}
+                        </span>
+                      )}
+                      {e._impliedMove && (
+                        <span className="econ-events__keylist-move">
+                          ±{formatPct(e._impliedMove.movePct)}
+                        </span>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
 }
 
 
