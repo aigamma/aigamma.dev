@@ -2791,22 +2791,19 @@
   border-radius: 3px;
 }
 
-/* Implied-move chart card --------------------------------------- */
-.econ-events__chart-card {
+/* Timeline strip ------------------------------------------------ */
+.econ-events__timeline {
   background-color: var(--bg-card);
   border: 1px solid var(--bg-card-border);
   border-radius: 6px;
   padding: 0.85rem 1rem 1rem;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
-  /* Tooltip extends out of .econ-events__scatter via position:absolute,
-     so the card must also let it overflow rather than clip at the
-     border. */
+  gap: 0.6rem;
   overflow: visible;
 }
 
-.econ-events__chart-meta {
+.econ-events__timeline-meta {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
@@ -2816,7 +2813,7 @@
   letter-spacing: 0.04em;
 }
 
-.econ-events__chart-title {
+.econ-events__timeline-title {
   font-family: var(--font-model-title);
   font-size: 1.15rem;
   font-weight: 700;
@@ -2824,51 +2821,93 @@
   letter-spacing: 0.02em;
 }
 
-.econ-events__chart-source {
+.econ-events__timeline-source {
   font-size: 0.7rem;
   color: var(--text-secondary);
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
 
-/* Scatter container — the SVG sizes itself from the container width
-   via ResizeObserver, so this rule just sets the well around the
-   chart. Position relative so the absolute-positioned hover tooltip
-   anchors against this box rather than the document. */
-.econ-events__scatter {
-  position: relative;
-  width: 100%;
-  background: #141820;
-  border: 1px solid var(--bg-card-border);
-  border-radius: 4px;
-  padding: 0.4rem;
-  overflow: visible;
-}
-
-.econ-events__scatter svg {
-  display: block;
-  max-width: 100%;
-}
-
-.econ-events__chart-empty {
+.econ-events__timeline-empty {
   font-family: 'Courier New', monospace;
   font-size: 0.78rem;
   line-height: 1.6;
   color: var(--text-secondary);
-  padding: 1.5rem 1rem;
+  padding: 1.2rem 1rem;
   text-align: center;
   border: 1px dashed var(--bg-card-border);
   border-radius: 4px;
-  background: rgba(255, 255, 255, 0.012);
 }
 
-.econ-events__chart-empty code {
-  font-size: 0.92em;
-  background: rgba(255, 255, 255, 0.04);
-  padding: 0.05rem 0.35rem;
-  border-radius: 2px;
+.econ-events__timeline-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  background: #141820;
   border: 1px solid var(--bg-card-border);
+  border-radius: 4px;
+  padding: 0.5rem 0.75rem;
+}
+
+.econ-events__timeline-row {
+  display: grid;
+  grid-template-columns: 88px 1fr;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.18rem 0;
+  border-bottom: 1px dashed rgba(160, 172, 200, 0.08);
+}
+
+.econ-events__timeline-row:last-child {
+  border-bottom: none;
+}
+
+.econ-events__timeline-row--today {
+  background: rgba(240, 160, 48, 0.05);
+  border-radius: 3px;
+  padding-left: 0.25rem;
+  padding-right: 0.25rem;
+}
+
+.econ-events__timeline-label {
+  display: flex;
+  align-items: baseline;
+  gap: 0.45rem;
+  font-family: 'Courier New', monospace;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.econ-events__timeline-day {
+  font-size: 0.78rem;
+  font-weight: 700;
   color: var(--text-primary);
+  letter-spacing: 0.14em;
+}
+
+.econ-events__timeline-row--today .econ-events__timeline-day {
+  color: #f0a030;
+}
+
+.econ-events__timeline-date {
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.econ-events__timeline-count {
+  margin-left: auto;
+  font-size: 0.62rem;
+  letter-spacing: 0.12em;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  font-variant-numeric: tabular-nums;
+}
+
+.econ-events__timeline-track {
+  position: relative;
+  min-width: 0;
 }
 
 /* Hover-anchored tooltip — full event + IV detail. Styles are
@@ -2929,164 +2968,6 @@
 
 .econ-events__chart-tooltip-value--highlight {
   color: var(--accent-blue);
-  font-weight: 700;
-}
-
-/* Key Events list — the human-readable counterpart to the
-   scatter dots, lives at the top of the chart card so the plot
-   area below renders uncluttered. Grouped into per-day columns
-   that line up roughly with the chart's X axis below; each row
-   carries a family-colored bullet, a time stamp, the full title,
-   and a family pill so a reader can scan the week's catalysts
-   in one read without having to hover any dot. */
-.econ-events__keylist {
-  padding: 0.75rem 0.85rem 0.85rem;
-  background: rgba(255, 255, 255, 0.018);
-  border: 1px solid var(--bg-card-border);
-  border-radius: 4px;
-  display: flex;
-  flex-direction: column;
-  gap: 0.55rem;
-}
-
-.econ-events__keylist-label {
-  font-family: 'Courier New', monospace;
-  font-size: 0.65rem;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--text-secondary);
-  font-weight: 700;
-}
-
-.econ-events__keylist-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 0.65rem 1rem;
-}
-
-.econ-events__keylist-day {
-  display: flex;
-  flex-direction: column;
-  gap: 0.3rem;
-  min-width: 0;
-}
-
-.econ-events__keylist-day-header {
-  display: flex;
-  align-items: baseline;
-  gap: 0.5rem;
-  padding-bottom: 0.25rem;
-  border-bottom: 1px solid var(--bg-card-border);
-  font-family: 'Courier New', monospace;
-  letter-spacing: 0.06em;
-}
-
-.econ-events__keylist-day-name {
-  font-size: 0.78rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  letter-spacing: 0.14em;
-}
-
-.econ-events__keylist-day-date {
-  font-size: 0.72rem;
-  color: var(--text-secondary);
-  font-variant-numeric: tabular-nums;
-}
-
-.econ-events__keylist-day-count {
-  margin-left: auto;
-  font-size: 0.62rem;
-  letter-spacing: 0.12em;
-  color: var(--text-secondary);
-  text-transform: uppercase;
-  font-variant-numeric: tabular-nums;
-}
-
-.econ-events__keylist-rows {
-  display: flex;
-  flex-direction: column;
-  gap: 0.18rem;
-}
-
-.econ-events__keylist-row {
-  display: grid;
-  grid-template-columns: 0.55rem 3.3rem 1fr min-content min-content;
-  align-items: center;
-  gap: 0.4rem;
-  font-family: 'Courier New', monospace;
-  font-size: 0.74rem;
-  color: var(--text-primary);
-  letter-spacing: 0.02em;
-  padding: 0.12rem 0;
-}
-
-.econ-events__keylist-bullet {
-  width: 0.55rem;
-  height: 0.55rem;
-  border-radius: 50%;
-  display: inline-block;
-}
-
-.econ-events__keylist-time {
-  color: var(--text-secondary);
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-  font-size: 0.7rem;
-}
-
-.econ-events__keylist-title {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  min-width: 0;
-}
-
-.econ-events__keylist-family {
-  display: inline-block;
-  font-size: 0.58rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  padding: 0.05rem 0.3rem;
-  border-radius: 2px;
-  border: 1px solid currentColor;
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-
-.econ-events__keylist-move {
-  font-variant-numeric: tabular-nums;
-  font-weight: 700;
-  color: var(--accent-blue);
-  font-size: 0.7rem;
-  white-space: nowrap;
-}
-
-/* Brush below the scatter — the date pan/zoom control. The
-   .econ-events__brush-meta strip above the brush track names the
-   start, span, and end of the visible window so the reader sees the
-   numeric range without having to hover the brush handles. */
-.econ-events__brush {
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-  padding-top: 0.45rem;
-}
-
-.econ-events__brush-meta {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 0.6rem;
-  font-family: 'Courier New', monospace;
-  font-size: 0.7rem;
-  letter-spacing: 0.06em;
-  color: var(--text-secondary);
-  text-transform: uppercase;
-}
-
-.econ-events__brush-spread {
-  color: var(--text-primary);
   font-weight: 700;
 }
 
@@ -3223,8 +3104,15 @@
   .econ-events__hero-imove-pct {
     font-size: 0.95rem;
   }
-  .econ-events__chart-title {
+  .econ-events__timeline-title {
     font-size: 0.95rem;
+  }
+  .econ-events__timeline-row {
+    grid-template-columns: 70px 1fr;
+    gap: 0.5rem;
+  }
+  .econ-events__timeline-day {
+    font-size: 0.7rem;
   }
   .econ-events__row-summary {
     grid-template-columns: 4.4rem 1.1rem 1fr 1.2rem;

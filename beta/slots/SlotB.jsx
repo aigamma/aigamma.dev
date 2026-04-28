@@ -54,15 +54,20 @@
 //     past count is exposed both via the Hide-past toggle and the
 //     fading on past-event rows).
 //
-//   ImpliedMoveChart ─ Plotly bar chart, one bar per upcoming
-//     high+medium-impact USD event in scope. Y axis is implied move
-//     in % (translated to $ in hover), X axis is the chronologic
-//     event sequence labeled with day + time. Bars are colored by
-//     macro family (FOMC amber, CPI coral, NFP green, etc.) so the
-//     reader sees both magnitude and macro identity at a glance. The
-//     chart is the first explicit visualization on a page that was
-//     conspicuously chart-free; it's the page's quantitative
-//     centerpiece.
+//   TimelineStrip ─ horizontal week-of-events visualization. One row
+//     per calendar day; markers positioned at their hour-of-day X
+//     within a 6am–8pm window. Marker size keys impact (High = 6.5
+//     px, Medium = 4.5 px, Low = 3 px); marker color keys family.
+//     Today's row carries an accent-amber dashed NOW vertical line.
+//     Past markers fade. Hover any marker for the same forecast /
+//     previous / implied-move detail the schedule's click-to-expand
+//     carries. Replaced four prior chart drafts (Plotly bar with
+//     diagonal labels, custom SVG scatter with cluster labels above
+//     dots, term-structure overlay with rangeslider, and a
+//     KeyEventsList panel) — all of which collapsed under their
+//     own informational density on any reasonable week of data.
+//     The timeline keeps only what a desk reader can use at a
+//     glance: WHEN events sit relative to one another and to NOW.
 //
 //   SpotlightStrip ─ one card per macro family with at least one
 //     event in scope this week.
@@ -72,7 +77,6 @@
 //     .ics download / forecast-vs-previous interpretation.
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import RangeBrush from '../../src/components/RangeBrush';
 
 export const slotName = 'Economic Events';
 
@@ -434,7 +438,7 @@ export default function SlotB() {
 
       <Totals scoped={scoped} upcoming={upcoming} />
 
-      <ImpliedMoveChart events={chartEvents} ivContext={ivContext} />
+      <TimelineStrip events={chartEvents} now={now} />
 
       <SpotlightStrip events={scoped} now={now} />
 
@@ -814,38 +818,33 @@ function Stat({ label, value, accent }) {
   );
 }
 
-// ── Implied-move scatter chart ────────────────────────────────────────
-// Custom SVG scatter mirroring the /earnings page's chart pattern (see
-// src/components/EarningsCalendar.jsx ScatterChart). X axis is the set
-// of dates that carry at least one qualifying event in scope; Y axis
-// is implied move in %. Each event is a dot at (event_date, move%);
-// labels above the dot give the macro family abbreviation (FOMC,
-// CPI, NFP, ...) or a short title slug when no family matches. Same-
-// day same-bucket-Y events stack their labels into a comma-joined
-// group so the chart never carries diagonal text or overlapping
-// markers — the goal here is for the reader to see the week's vol
-// catalyst shape at a glance, with full per-event detail living in
-// the hover-anchored tooltip rather than on the canvas itself.
+
+// ── Timeline strip ───────────────────────────────────────────────────
+// Horizontal week-of-events strip. The earlier ImpliedMoveChart
+// drafts (Plotly bar, custom SVG scatter, term-structure overlay,
+// rangeslider, key-events panel) were all discarded — their common
+// flaw was that they tried to encode multiple dimensions on one
+// canvas (date AND implied-move AND family AND impact AND text-
+// labels-without-collision) and lost legibility on every reasonable
+// week of data. This component keeps only what a desk reader can
+// actually use at a glance: WHEN events sit relative to one another
+// and to the current moment. Implied move, forecast, previous,
+// full title, family — those all live in the schedule rows below
+// and the hover tooltip here.
 //
-// The earlier draft used a Plotly bar chart with -38° rotated
-// x-axis labels per row; on a typical week with 8-12 qualifying
-// events the diagonal labels rendered as an unreadable wall of
-// text below the bars. Eric's correction was to mirror the
-// earnings-page treatment, where dot scatter + horizontal label
-// stacks + hover details cleanly handles the same "many events
-// per week" cardinality.
-function ImpliedMoveChart({ events, ivContext }) {
+// Layout: one row per calendar day in the event set; each row has
+// a small label cell (day name + date + count) on the left and a
+// horizontal SVG track on the right showing event markers
+// positioned at their hour-of-day X within a 6am–8pm window. The
+// "today" row carries an accent-amber dashed NOW vertical line.
+// Past markers fade to 0.45 opacity. Hover any marker for the
+// same forecast / previous / implied-move detail the schedule's
+// click-to-expand carries.
+function TimelineStrip({ events, now }) {
   const containerRef = useRef(null);
   const [containerWidth, setContainerWidth] = useState(900);
   const [hovered, setHovered] = useState(null);
-  // windowMs is the visible X-axis range (date in ms). null means
-  // "use the default window" — first 21 days from refMs. The reader
-  // drags the RangeBrush below the chart to expand / pan to LEAPS.
-  const [windowMs, setWindowMs] = useState(null);
 
-  // ResizeObserver-driven width so the SVG re-renders with the right
-  // dimensions when the lab shell width changes (e.g. dev tools open
-  // / phone rotate). Matches the EarningsCalendar pattern.
   useEffect(() => {
     const el = containerRef.current;
     if (!el || typeof ResizeObserver === 'undefined') return;
@@ -857,549 +856,212 @@ function ImpliedMoveChart({ events, ivContext }) {
     return () => obs.disconnect();
   }, []);
 
-  // ---- All hooks must be called BEFORE any early return. Earlier
-  // versions of this component placed the `labelGroups` and
-  // `pointMeta` useMemo calls below the empty-state early returns,
-  // which produced a React #310 ("rendered more hooks than during
-  // the previous render") on the first transition from
-  // ivContext=null to ivContext=present. Hoisting all useMemo calls
-  // above the conditional renders fixes the violation. The empty-
-  // state branches read these memos but get back empty arrays /
-  // empty maps, which is fine because they don't actually use the
-  // values — they just need the hook count to match across
-  // renders. ----
-
-  // Term-structure datapoints: every expiration in the SPX surface
-  // turned into an implied 1-σ move from now, plotted underneath the
-  // event dots so a reader sees both the event-specific catalysts AND
-  // the natural vol-curve shape they sit inside. Each expiration's
-  // anchor X is its 16:00 ET expiry timestamp in ms (so 0DTE expirations
-  // sit at "today 4pm" and LEAPS sit at "next year 4pm").
-  const termPoints = useMemo(() => {
-    if (!ivContext) return [];
-    return ivContext.expirations.map((m) => {
-      const ms = new Date(`${m.expiration}T16:00:00-04:00`).getTime();
-      const movePct = m.atmIv * Math.sqrt(Math.max(m.dte, 0.04) / 365) * 100;
-      const moveDollars = ivContext.spotPrice * movePct / 100;
-      return {
-        expiration: m.expiration,
-        ms,
-        atmIv: m.atmIv,
-        dte: m.dte,
-        movePct,
-        moveDollars,
-      };
-    }).sort((a, b) => a.ms - b.ms);
-  }, [ivContext]);
-
-  // Per-event points carrying their event ms (used for X positioning
-  // on the new continuous-date axis). The `_ms` field is already on
-  // each event from the SlotB-level parsing pass; nothing else to do.
-  const points = useMemo(
-    () => events.map((e) => ({ ...e, ms: e._ms })),
-    [events],
-  );
-
-  // Cluster dots that fall in the same (calendar date, Y bucket of
-  // 0.05%) so overlapping markers spread horizontally and labels
-  // stack into a comma-joined group. Calendar date is the right
-  // grouping key (rather than ms) because two events on the same
-  // day at slightly different times still resolve to the same
-  // expiration's implied move and should cluster as one visual
-  // entity.
-  const labelGroups = useMemo(() => {
-    const bucket = 0.05;
-    const groups = new Map();
-    for (const p of points) {
-      const yBkt = Math.round(p._impliedMove.movePct / bucket);
-      const key = `${p.date}:${yBkt}`;
-      if (!groups.has(key)) {
-        groups.set(key, { date: p.date, yBkt, members: [], anchorMs: p.ms });
-      }
-      const g = groups.get(key);
-      g.members.push(p);
-      // Anchor the cluster at the earliest event ms so the dot/
-      // label sits at the start of the day's cluster on tighter
-      // zooms.
-      if (p.ms < g.anchorMs) g.anchorMs = p.ms;
+  // Group events by calendar date.
+  const dayBlocks = useMemo(() => {
+    const byDate = new Map();
+    for (const e of events) {
+      if (!byDate.has(e.date)) byDate.set(e.date, []);
+      byDate.get(e.date).push(e);
     }
-    return [...groups.values()];
-  }, [points]);
+    return [...byDate.entries()]
+      .sort((a, b) => a[0].localeCompare(b[0]))
+      .map(([date, list]) => ({
+        date,
+        events: list.sort((a, b) => a._ms - b._ms),
+      }));
+  }, [events]);
 
-  const pointMeta = useMemo(() => {
-    const map = new Map();
-    for (const g of labelGroups) {
-      g.members.forEach((m, i) => map.set(m._id, { group: g, idxInGroup: i }));
-    }
-    return map;
-  }, [labelGroups]);
-
-  // Full X domain (the brush's full range) and the visible window
-  // (the main chart's actual X range). The default window is
-  // [refMs, refMs + 21 days] — three weeks ahead, which covers the
-  // FF "this week" feed plus a bit of breathing room to see the next
-  // week's expirations on the term-structure curve. The reader
-  // expands or pans via the brush below the chart.
-  const fullStartMs = ivContext?.refMs ?? Date.now();
-  const fullEndMs = useMemo(() => {
-    if (termPoints.length === 0) return fullStartMs + 30 * 86400000;
-    return Math.max(...termPoints.map((p) => p.ms));
-  }, [termPoints, fullStartMs]);
-
-  const effectiveWindow = useMemo(() => {
-    if (windowMs) return windowMs;
-    return {
-      start: fullStartMs,
-      end: Math.min(fullEndMs, fullStartMs + 21 * 86400000),
-    };
-  }, [windowMs, fullStartMs, fullEndMs]);
-
-  const visibleTermPoints = useMemo(
-    () => termPoints.filter((p) => p.ms >= effectiveWindow.start && p.ms <= effectiveWindow.end),
-    [termPoints, effectiveWindow],
-  );
-  const visibleEvents = useMemo(
-    () => points.filter((p) => p.ms >= effectiveWindow.start && p.ms <= effectiveWindow.end),
-    [points, effectiveWindow],
-  );
-  const visibleLabelGroups = useMemo(
-    () => labelGroups.filter((g) => g.anchorMs >= effectiveWindow.start && g.anchorMs <= effectiveWindow.end),
-    [labelGroups, effectiveWindow],
-  );
-
-  // ---- End of hook calls. Early returns are safe below. ----
-
-  if (!ivContext) {
-    return (
-      <section className="econ-events__chart-card">
-        <div className="econ-events__chart-meta">
-          <span className="econ-events__chart-title">SPX Implied Move per Event</span>
-          <span className="econ-events__chart-source">awaiting /api/data — vol surface unavailable</span>
-        </div>
-        <div className="econ-events__chart-empty">
-          The vol-surface fetch hasn't returned yet (or the SPX intraday ingest is currently down).
-          Implied-move overlays will populate as soon as <code>/api/data</code> answers.
-        </div>
-      </section>
-    );
-  }
   if (events.length === 0) {
     return (
-      <section className="econ-events__chart-card">
-        <div className="econ-events__chart-meta">
-          <span className="econ-events__chart-title">SPX Implied Move per Event</span>
-          <span className="econ-events__chart-source">no qualifying events</span>
+      <section className="econ-events__timeline">
+        <div className="econ-events__timeline-meta">
+          <span className="econ-events__timeline-title">This Week's Catalysts</span>
+          <span className="econ-events__timeline-source">no qualifying events in scope</span>
         </div>
-        <div className="econ-events__chart-empty">
-          No upcoming high- or medium-impact events in the current scope. The chart populates
-          when the FF feed carries a print whose date resolves to an SPX expiration in the
-          fetched surface.
+        <div className="econ-events__timeline-empty">
+          The timeline populates when the FF feed carries an upcoming event in
+          the active impact filter.
         </div>
       </section>
     );
   }
 
-  // Layout. The plot area no longer carries per-event text labels
-  // (the prior vertical stacks blocked dots from adjacent days when
-  // a tall cluster's stack extended horizontally past its column),
-  // so top padding can be the prior fixed 52px regardless of cluster
-  // sizes — the events list lives in its own header panel above the
-  // SVG instead, where vertical real estate is cheap.
-  const width = Math.max(Math.min(containerWidth - 16, 1100), 320);
-  const height = Math.round(Math.min(width * 0.6, 560));
-  const PADDING = { top: 36, right: 60, bottom: 68, left: 76 };
-  const plotW = width - PADDING.left - PADDING.right;
-  const plotH = height - PADDING.top - PADDING.bottom;
+  const TRACK_LABEL_WIDTH = 88;
+  const TRACK_HORIZ_PAD = 14;
+  const trackWidth = Math.max(containerWidth - TRACK_LABEL_WIDTH - TRACK_HORIZ_PAD * 2, 200);
+  const ROW_HEIGHT = 44;
 
-  // Y axis: top = 1.15 × max move across visible term points + visible
-  // events, rounded up to nearest 0.5%. With the term-structure trace
-  // included, the Y range scales to whatever vol curve is visible —
-  // a near-term-only window stays low (~1-2%) while a multi-month
-  // window opens up to LEAPS-class moves (~5-10%+). Floor at 1.5%
-  // so a quiet week doesn't squish all dots against the top gridline.
-  const yMaxRaw = useMemo(() => {
-    const candidates = [0.015];
-    for (const p of visibleTermPoints) candidates.push(p.movePct / 100);
-    for (const p of visibleEvents) candidates.push(p._impliedMove.movePct / 100);
-    return Math.max(...candidates);
-  }, [visibleTermPoints, visibleEvents]);
-  const yMax = Math.ceil((yMaxRaw * 1.15) * 200) / 200;
-
-  const windowSpan = effectiveWindow.end - effectiveWindow.start || 1;
-  const xForMs = (ms) =>
-    PADDING.left + plotW * (ms - effectiveWindow.start) / windowSpan;
-  const yForMove = (movePct) => PADDING.top + plotH * (1 - (movePct / 100) / yMax);
-
-  const hoveredKey = hovered ? (hovered._kind === 'event' ? hovered._id : `term:${hovered.expiration}`) : null;
-
-  // Y-axis tick step: 0.25% under 2%, 0.5% under 5%, 1% above.
-  const yStep = yMax > 0.05 ? 0.01 : yMax > 0.02 ? 0.005 : 0.0025;
-
-  // X-axis tick locations as ISO dates inside the visible window.
-  // Step length scales with window width: dense for short windows,
-  // sparse for long ones, so the axis never carries more than ~10
-  // tick labels regardless of zoom level.
-  const xTicks = useMemo(
-    () => buildXTicks(effectiveWindow.start, effectiveWindow.end),
-    [effectiveWindow.start, effectiveWindow.end],
-  );
+  const todayIso = isoDateLocal(new Date(now));
 
   return (
-    <section className="econ-events__chart-card">
-      <div className="econ-events__chart-meta">
-        <span className="econ-events__chart-title">SPX Implied Move per Event</span>
-        <span className="econ-events__chart-source">
-          spot ${formatNum(ivContext.spotPrice, 0)} · {visibleTermPoints.length} expirations · {visibleEvents.length} events ·
-          {' '}±1σ = spot × ATM&nbsp;IV × √(DTE/365)
+    <section className="econ-events__timeline">
+      <div className="econ-events__timeline-meta">
+        <span className="econ-events__timeline-title">This Week's Catalysts</span>
+        <span className="econ-events__timeline-source">
+          {events.length} event{events.length === 1 ? '' : 's'} · circle size keys impact, color keys family
         </span>
       </div>
-      <KeyEventsList events={events} />
-      <div ref={containerRef} className="econ-events__scatter">
-        <svg width={width} height={height} role="img" aria-label="SPX implied move per event scatter chart">
-          {/* Y gridlines + tick labels */}
-          {(() => {
-            const ticks = [];
-            for (let v = 0; v <= yMax + 1e-9; v += yStep) {
-              const y = yForMove(v * 100);
-              ticks.push(
-                <g key={v}>
-                  <line
-                    x1={PADDING.left} x2={width - PADDING.right}
-                    y1={y} y2={y}
-                    stroke="rgba(160, 172, 200, 0.10)"
-                    strokeDasharray="2 4"
-                  />
-                  <text
-                    x={PADDING.left - 8}
-                    y={y + 4}
-                    textAnchor="end"
-                    fontFamily="Courier New, monospace"
-                    fontSize={12}
-                    fill="#9aa6c2"
-                  >
-                    {(v * 100).toFixed(yStep < 0.005 ? 2 : 1)}%
-                  </text>
-                </g>,
-              );
-            }
-            return ticks;
-          })()}
+      <div className="econ-events__timeline-rows" ref={containerRef}>
+        {dayBlocks.map((block) => {
+          const dayDate = new Date(`${block.date}T12:00:00`);
+          const dayName = dayDate.toLocaleDateString(undefined, { weekday: 'short' }).toUpperCase();
+          const dayShort = dayDate.toLocaleDateString(undefined, { month: 'numeric', day: 'numeric' });
+          const isToday = block.date === todayIso;
 
-          {/* X axis ticks */}
-          {xTicks.map((tick) => {
-            const x = xForMs(tick.ms);
-            if (x < PADDING.left - 1 || x > width - PADDING.right + 1) return null;
-            return (
-              <g key={tick.ms}>
-                <line
-                  x1={x} x2={x}
-                  y1={PADDING.top} y2={height - PADDING.bottom}
-                  stroke="rgba(160, 172, 200, 0.06)"
-                />
-                <text
-                  x={x}
-                  y={height - PADDING.bottom + 22}
-                  textAnchor="middle"
-                  fontFamily="Courier New, monospace"
-                  fontSize={13}
-                  fill="#cfd6e6"
-                >
-                  {tick.label}
-                </text>
-                {tick.subLabel && (
-                  <text
-                    x={x}
-                    y={height - PADDING.bottom + 40}
-                    textAnchor="middle"
-                    fontFamily="Courier New, monospace"
-                    fontSize={11}
-                    fill="#7e8aa0"
-                  >
-                    {tick.subLabel}
-                  </text>
-                )}
-              </g>
-            );
-          })}
-
-          {/* Y axis title */}
-          <text
-            x={-(PADDING.top + plotH / 2)}
-            y={18}
-            transform="rotate(-90)"
-            textAnchor="middle"
-            fontFamily="Courier New, monospace"
-            fontSize={14}
-            fontWeight={600}
-            fill="#cfd6e6"
-          >
-            Implied move (%)
-          </text>
-
-          {/* Plot border */}
-          <rect
-            x={PADDING.left} y={PADDING.top}
-            width={plotW} height={plotH}
-            fill="none"
-            stroke="rgba(160, 172, 200, 0.15)"
-          />
-
-          {/* Term-structure trace — connecting line through every
-              expiration in the visible window, then small marker
-              dots at each expiration. Rendered before the events so
-              the colored event dots layer on top. */}
-          {visibleTermPoints.length >= 2 && (
-            <polyline
-              points={visibleTermPoints
-                .map((p) => `${xForMs(p.ms)},${yForMove(p.movePct)}`)
-                .join(' ')}
-              fill="none"
-              stroke="rgba(74, 158, 255, 0.45)"
-              strokeWidth={1.5}
-            />
-          )}
-          {visibleTermPoints.map((p) => {
-            const cx = xForMs(p.ms);
-            const cy = yForMove(p.movePct);
-            const isHovered = hoveredKey === `term:${p.expiration}`;
-            return (
-              <circle
-                key={`term-${p.expiration}`}
-                cx={cx}
-                cy={cy}
-                r={isHovered ? 5.5 : 3}
-                fill="rgba(74, 158, 255, 0.35)"
-                stroke={isHovered ? '#4a9eff' : 'rgba(74, 158, 255, 0.55)'}
-                strokeWidth={isHovered ? 1.5 : 1}
-                style={{ cursor: 'pointer', transition: 'r 0.12s ease' }}
-                onMouseEnter={() => setHovered({ ...p, _kind: 'term' })}
-                onMouseLeave={() => setHovered(null)}
-              />
-            );
-          })}
-
-          {/* Event dots */}
-          {visibleEvents.map((p) => {
-            const meta = pointMeta.get(p._id);
-            const dotsInGroup = meta ? meta.group.members.length : 1;
-            const idx = meta ? meta.idxInGroup : 0;
-            const offset = (idx - (dotsInGroup - 1) / 2) * 7;
-            const cx = xForMs(p.ms) + offset;
-            const cy = yForMove(p._impliedMove.movePct);
-            const color = p._spotlight ? p._spotlight.hex : impactHex(p.impact);
-            const isHovered = hoveredKey === p._id;
-            return (
-              <circle
-                key={p._id}
-                cx={cx}
-                cy={cy}
-                r={isHovered ? 8 : 5}
-                fill={color}
-                stroke={isHovered ? '#f0a030' : 'rgba(8, 11, 16, 0.4)'}
-                strokeWidth={isHovered ? 2 : 1}
-                style={{ cursor: 'pointer', transition: 'r 0.12s ease' }}
-                onMouseEnter={() => setHovered({ ...p, _kind: 'event' })}
-                onMouseLeave={() => setHovered(null)}
-              />
-            );
-          })}
-
-          {/* Per-event labels live in the KeyEventsList panel above
-              the SVG (see the chart-card layout below), not on the
-              plot itself, so the dots and term-structure curve
-              render uncluttered. */}
-        </svg>
-
-        {/* Hover-anchored tooltip — branches on hovered._kind so a
-            term-structure dot gets a "next expiration only" tooltip
-            and an event dot gets the full event-detail tooltip. */}
-        {hovered && (() => {
-          let cx;
-          let cy;
-          if (hovered._kind === 'term') {
-            cx = xForMs(hovered.ms);
-            cy = yForMove(hovered.movePct);
-          } else {
-            const meta = pointMeta.get(hovered._id);
-            const dotsInGroup = meta ? meta.group.members.length : 1;
-            const idx = meta ? meta.idxInGroup : 0;
-            const offset = (idx - (dotsInGroup - 1) / 2) * 7;
-            cx = xForMs(hovered.ms) + offset;
-            cy = yForMove(hovered._impliedMove.movePct);
-          }
-          const openLeft = cx > width * 0.55;
-          const openDown = cy < height * 0.30;
-          const o = 14;
-          const style = {
-            position: 'absolute',
-            zIndex: 5,
-            pointerEvents: 'none',
-            background: 'rgba(8, 11, 16, 0.96)',
-            border: '1px solid rgba(160, 172, 200, 0.35)',
-            borderRadius: '4px',
-            padding: '0.7rem 0.95rem',
-            fontFamily: 'Courier New, monospace',
-            fontSize: '0.85rem',
-            color: '#e1e8f4',
-            minWidth: 280,
-            maxWidth: 400,
-            lineHeight: 1.5,
-            boxShadow: '0 2px 12px rgba(0, 0, 0, 0.6)',
+          // X scale within this day: 6:00 AM (0.0 frac) to 8:00 PM
+          // (1.0 frac). The bulk of US macro events fall in this
+          // 14-hour window; events outside it (e.g. an 11pm Trump
+          // speech) clip to the window edges.
+          const HOUR_START = 6;
+          const HOUR_END = 20;
+          const xForEvent = (e) => {
+            const d = e._at;
+            const hour = d.getHours() + d.getMinutes() / 60;
+            const clamped = Math.min(Math.max(hour, HOUR_START), HOUR_END);
+            const frac = (clamped - HOUR_START) / (HOUR_END - HOUR_START);
+            return frac * trackWidth;
           };
-          if (openLeft) style.right = (width - cx + o);
-          else style.left = cx + o;
-          if (openDown) style.top = cy + o;
-          else style.bottom = (height - cy + o);
-          if (hovered._kind === 'term') {
-            return <TermTooltip term={hovered} spotPrice={ivContext.spotPrice} style={style} />;
+
+          let nowX = null;
+          if (isToday) {
+            const nowDate = new Date(now);
+            const nowHour = nowDate.getHours() + nowDate.getMinutes() / 60;
+            if (nowHour >= HOUR_START && nowHour <= HOUR_END) {
+              const frac = (nowHour - HOUR_START) / (HOUR_END - HOUR_START);
+              nowX = frac * trackWidth;
+            }
           }
-          return <ChartTooltip event={hovered} style={style} />;
-        })()}
-      </div>
-      <div className="econ-events__brush">
-        <div className="econ-events__brush-meta">
-          <span>{formatLongRangeDate(effectiveWindow.start)}</span>
-          <span className="econ-events__brush-spread">
-            {formatRangeSpan(effectiveWindow.end - effectiveWindow.start)}
-          </span>
-          <span>{formatLongRangeDate(effectiveWindow.end)}</span>
-        </div>
-        <RangeBrush
-          min={fullStartMs}
-          max={fullEndMs}
-          activeMin={effectiveWindow.start}
-          activeMax={effectiveWindow.end}
-          onChange={(start, end) => setWindowMs({ start, end })}
-          height={36}
-          minWidth={86400000}
-        />
+
+          return (
+            <div key={block.date} className={`econ-events__timeline-row${isToday ? ' econ-events__timeline-row--today' : ''}`}>
+              <div className="econ-events__timeline-label">
+                <span className="econ-events__timeline-day">{dayName}</span>
+                <span className="econ-events__timeline-date">{dayShort}</span>
+                <span className="econ-events__timeline-count">{block.events.length}</span>
+              </div>
+              <div className="econ-events__timeline-track" style={{ height: ROW_HEIGHT }}>
+                <svg
+                  width={trackWidth}
+                  height={ROW_HEIGHT}
+                  style={{ display: 'block' }}
+                  role="img"
+                  aria-label={`${dayName} ${dayShort} timeline`}
+                >
+                  <line
+                    x1={0} x2={trackWidth}
+                    y1={ROW_HEIGHT / 2} y2={ROW_HEIGHT / 2}
+                    stroke="rgba(160, 172, 200, 0.18)"
+                    strokeWidth={1}
+                  />
+
+                  {[8, 10, 12, 14, 16, 18].map((hr) => {
+                    const frac = (hr - HOUR_START) / (HOUR_END - HOUR_START);
+                    const x = frac * trackWidth;
+                    return (
+                      <g key={hr}>
+                        <line
+                          x1={x} x2={x}
+                          y1={ROW_HEIGHT / 2 - 4} y2={ROW_HEIGHT / 2 + 4}
+                          stroke="rgba(160, 172, 200, 0.18)"
+                        />
+                        <text
+                          x={x}
+                          y={ROW_HEIGHT - 4}
+                          textAnchor="middle"
+                          fontFamily="Courier New, monospace"
+                          fontSize={9}
+                          fill="rgba(160, 172, 200, 0.55)"
+                        >
+                          {hr === 12 ? '12p' : hr > 12 ? `${hr - 12}p` : `${hr}a`}
+                        </text>
+                      </g>
+                    );
+                  })}
+
+                  {nowX != null && (
+                    <g>
+                      <line
+                        x1={nowX} x2={nowX}
+                        y1={2} y2={ROW_HEIGHT - 14}
+                        stroke="#f0a030"
+                        strokeWidth={1.5}
+                        strokeDasharray="2 3"
+                      />
+                      <text
+                        x={nowX + 3}
+                        y={10}
+                        fontFamily="Courier New, monospace"
+                        fontSize={9}
+                        fontWeight={700}
+                        fill="#f0a030"
+                      >
+                        NOW
+                      </text>
+                    </g>
+                  )}
+
+                  {block.events.map((e) => {
+                    const cx = xForEvent(e);
+                    const cy = ROW_HEIGHT / 2;
+                    const r = e.impact === 'High' ? 6.5
+                      : e.impact === 'Medium' ? 4.5
+                      : 3;
+                    const color = e._spotlight ? e._spotlight.hex : impactHex(e.impact);
+                    const past = e._ms < now;
+                    const isHovered = hovered?._id === e._id;
+                    return (
+                      <circle
+                        key={e._id}
+                        cx={cx}
+                        cy={cy}
+                        r={isHovered ? r + 2.5 : r}
+                        fill={color}
+                        stroke={isHovered ? '#f0a030' : 'rgba(8, 11, 16, 0.55)'}
+                        strokeWidth={isHovered ? 2 : 1}
+                        opacity={past && !isHovered ? 0.45 : 1}
+                        style={{ cursor: 'pointer', transition: 'r 0.12s ease' }}
+                        onMouseEnter={() => setHovered(e)}
+                        onMouseLeave={() => setHovered(null)}
+                      />
+                    );
+                  })}
+                </svg>
+
+                {hovered && hovered.date === block.date && (() => {
+                  const cx = xForEvent(hovered);
+                  const openLeft = cx > trackWidth * 0.55;
+                  const o = 14;
+                  const style = {
+                    position: 'absolute',
+                    zIndex: 5,
+                    pointerEvents: 'none',
+                    background: 'rgba(8, 11, 16, 0.96)',
+                    border: '1px solid rgba(160, 172, 200, 0.35)',
+                    borderRadius: '4px',
+                    padding: '0.7rem 0.95rem',
+                    fontFamily: 'Courier New, monospace',
+                    fontSize: '0.82rem',
+                    color: '#e1e8f4',
+                    minWidth: 260,
+                    maxWidth: 360,
+                    lineHeight: 1.5,
+                    boxShadow: '0 2px 12px rgba(0, 0, 0, 0.6)',
+                    bottom: ROW_HEIGHT + 4,
+                  };
+                  if (openLeft) style.right = (trackWidth - cx + o);
+                  else style.left = cx + o;
+                  return <TimelineTooltip event={hovered} style={style} />;
+                })()}
+              </div>
+            </div>
+          );
+        })}
       </div>
     </section>
   );
 }
 
-// ── X-axis ticks ─────────────────────────────────────────────────────
-// Pick a sensible step length based on the visible window's span.
-// Returns up to ~10 tick objects { ms, label, subLabel }.
-function buildXTicks(startMs, endMs) {
-  const span = endMs - startMs;
-  const day = 86400000;
-  const out = [];
-  if (span <= 0) return out;
-  if (span <= 8 * day) {
-    // Per-day ticks. Snap each to local-midnight + 12 noon so the
-    // label sits visually centered on the day rather than at its
-    // boundary.
-    const start = midnightLocalMs(startMs);
-    for (let ms = start; ms <= endMs + day; ms += day) {
-      const noon = ms + 12 * 3600000;
-      if (noon < startMs || noon > endMs) continue;
-      const d = new Date(noon);
-      out.push({
-        ms: noon,
-        label: `${d.getMonth() + 1}/${d.getDate()}`,
-        subLabel: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][d.getDay()],
-      });
-    }
-  } else if (span <= 60 * day) {
-    // Weekly ticks anchored to Mondays.
-    const start = midnightLocalMs(startMs);
-    const startDow = new Date(start).getDay();
-    const offsetToMon = ((1 - startDow) + 7) % 7;
-    let ms = start + offsetToMon * day;
-    while (ms <= endMs + day) {
-      if (ms >= startMs - day) {
-        const d = new Date(ms);
-        out.push({
-          ms,
-          label: `${d.getMonth() + 1}/${d.getDate()}`,
-          subLabel: 'Mon',
-        });
-      }
-      ms += 7 * day;
-    }
-  } else if (span <= 200 * day) {
-    // ~Bi-weekly ticks every 14 days.
-    const start = midnightLocalMs(startMs);
-    let ms = start;
-    while (ms <= endMs + day) {
-      if (ms >= startMs - day) {
-        const d = new Date(ms);
-        out.push({
-          ms,
-          label: d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
-          subLabel: null,
-        });
-      }
-      ms += 14 * day;
-    }
-  } else {
-    // Monthly ticks anchored to the 1st of each month.
-    const d0 = new Date(startMs);
-    let y = d0.getFullYear();
-    let m = d0.getMonth();
-    for (let i = 0; i < 18; i++) {
-      const d = new Date(y, m, 1, 12, 0, 0);
-      const ms = d.getTime();
-      if (ms > endMs) break;
-      if (ms >= startMs) {
-        out.push({
-          ms,
-          label: d.toLocaleDateString(undefined, { month: 'short', year: '2-digit' }),
-          subLabel: null,
-        });
-      }
-      m += 1;
-      if (m >= 12) { m = 0; y += 1; }
-    }
-  }
-  return out;
-}
-
-function midnightLocalMs(ms) {
-  const d = new Date(ms);
-  d.setHours(0, 0, 0, 0);
-  return d.getTime();
-}
-
-function formatLongRangeDate(ms) {
-  if (!Number.isFinite(ms)) return '';
-  const d = new Date(ms);
-  return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
-}
-
-function formatRangeSpan(ms) {
-  if (!Number.isFinite(ms) || ms <= 0) return '';
-  const days = Math.round(ms / 86400000);
-  if (days < 14) return `${days}-day window`;
-  if (days < 60) return `${Math.round(days / 7)}-week window`;
-  return `${Math.round(days / 30)}-month window`;
-}
-
-// Term-structure tooltip — simpler than the event tooltip because
-// the only meaningful payload is the expiration's vol-implied move
-// numbers. No forecast/previous/family detail since the dot is the
-// expiration itself, not an event.
-function TermTooltip({ term, spotPrice, style }) {
-  return (
-    <div className="econ-events__chart-tooltip" style={style}>
-      <div className="econ-events__chart-tooltip-head">
-        <strong style={{ color: '#4a9eff' }}>SPX Expiration</strong>
-        <span style={{ color: '#9aa6c2' }}>{term.expiration}</span>
-      </div>
-      <div className="econ-events__chart-tooltip-divider" />
-      <ChartTooltipRow
-        label="Implied move"
-        value={`±${formatPct(term.movePct)} (±$${formatNum(spotPrice * term.movePct / 100, 0)})`}
-        highlight
-      />
-      <ChartTooltipRow label="ATM IV" value={formatPct(term.atmIv * 100)} />
-      <ChartTooltipRow label="DTE" value={formatNum(term.dte, 1)} />
-    </div>
-  );
-}
-
-function ChartTooltip({ event: e, style }) {
+function TimelineTooltip({ event: e, style }) {
   const family = e._spotlight;
   const familyColor = family ? family.hex : impactHex(e.impact);
   return (
@@ -1417,125 +1079,33 @@ function ChartTooltip({ event: e, style }) {
       <div className="econ-events__chart-tooltip-when">
         {formatLongWhen(e._at, e.dayKind)}
       </div>
+      {e._impliedMove && (
+        <>
+          <div className="econ-events__chart-tooltip-divider" />
+          <div className="econ-events__chart-tooltip-row">
+            <span className="econ-events__chart-tooltip-label">Implied move</span>
+            <span className="econ-events__chart-tooltip-value econ-events__chart-tooltip-value--highlight">
+              ±{formatPct(e._impliedMove.movePct)} (±${formatNum(e._impliedMove.moveDollars, 0)})
+            </span>
+          </div>
+          <div className="econ-events__chart-tooltip-row">
+            <span className="econ-events__chart-tooltip-label">ATM IV</span>
+            <span className="econ-events__chart-tooltip-value">{formatPct(e._impliedMove.atmIv * 100)}</span>
+          </div>
+        </>
+      )}
       <div className="econ-events__chart-tooltip-divider" />
-      <ChartTooltipRow
-        label="Implied move"
-        value={`±${formatPct(e._impliedMove.movePct)} (±$${formatNum(e._impliedMove.moveDollars, 0)})`}
-        highlight
-      />
-      <ChartTooltipRow label="ATM IV" value={formatPct(e._impliedMove.atmIv * 100)} />
-      <ChartTooltipRow label="DTE" value={formatNum(e._impliedMove.dte, 1)} />
-      <ChartTooltipRow label="Next exp" value={e._impliedMove.expiration} />
-      <div className="econ-events__chart-tooltip-divider" />
-      <ChartTooltipRow label="Forecast" value={e.forecast || '—'} />
-      <ChartTooltipRow label="Previous" value={e.previous || '—'} />
-    </div>
-  );
-}
-
-function ChartTooltipRow({ label, value, highlight }) {
-  return (
-    <div className="econ-events__chart-tooltip-row">
-      <span className="econ-events__chart-tooltip-label">{label}</span>
-      <span className={`econ-events__chart-tooltip-value${highlight ? ' econ-events__chart-tooltip-value--highlight' : ''}`}>
-        {value}
-      </span>
-    </div>
-  );
-}
-
-// Short human-readable label for non-family events, used as the
-// Key Events list — the human-readable counterpart to the chart's
-// scatter dots. Lives at the top of the chart card above the SVG so
-// the plot area stays uncluttered (per Eric's directive after the
-// vertical-stack-of-labels variant blocked dots from adjacent days
-// when a tall cluster's stack extended horizontally past its
-// column). Events are grouped by date with a small day-header per
-// block; each event line carries a family-colored bullet, a time
-// stamp, the full title, and a family pill for non-FOMC matches.
-// The list shows the FULL set of upcoming-in-scope events
-// regardless of the brush window — this is the "table of contents"
-// for the week, and a reader who pans the brush to a future window
-// shouldn't lose visibility into what's coming earlier.
-function KeyEventsList({ events }) {
-  if (!events || events.length === 0) return null;
-
-  // Group by date, preserve chronological order within each day.
-  const byDate = new Map();
-  for (const e of events) {
-    if (!byDate.has(e.date)) byDate.set(e.date, []);
-    byDate.get(e.date).push(e);
-  }
-  const dayBlocks = [...byDate.entries()]
-    .sort((a, b) => a[0].localeCompare(b[0]))
-    .map(([date, list]) => ({
-      date,
-      events: list.sort((a, b) => a._ms - b._ms),
-    }));
-
-  return (
-    <div className="econ-events__keylist">
-      <div className="econ-events__keylist-label">Key Events</div>
-      <div className="econ-events__keylist-grid">
-        {dayBlocks.map((block) => {
-          const at = new Date(`${block.date}T12:00:00`);
-          const dayName = at.toLocaleDateString(undefined, { weekday: 'short' }).toUpperCase();
-          const dayDate = at.toLocaleDateString(undefined, { month: 'numeric', day: 'numeric' });
-          return (
-            <div key={block.date} className="econ-events__keylist-day">
-              <div className="econ-events__keylist-day-header">
-                <span className="econ-events__keylist-day-name">{dayName}</span>
-                <span className="econ-events__keylist-day-date">{dayDate}</span>
-                <span className="econ-events__keylist-day-count">
-                  {block.events.length}
-                </span>
-              </div>
-              <div className="econ-events__keylist-rows">
-                {block.events.map((e) => {
-                  const sp = e._spotlight;
-                  const color = sp ? sp.hex : '#8a8f9c';
-                  return (
-                    <div
-                      key={e._id}
-                      className="econ-events__keylist-row"
-                      title={`${e.title} · forecast ${e.forecast || '—'} · previous ${e.previous || '—'}`}
-                    >
-                      <span
-                        className="econ-events__keylist-bullet"
-                        style={{ background: color }}
-                        aria-hidden="true"
-                      />
-                      <span className="econ-events__keylist-time">
-                        {formatTimeOnly(e._at, e.dayKind)}
-                      </span>
-                      <span className="econ-events__keylist-title">
-                        {e.title}
-                      </span>
-                      {sp && (
-                        <span
-                          className="econ-events__keylist-family"
-                          style={{ color, borderColor: color }}
-                        >
-                          {sp.label}
-                        </span>
-                      )}
-                      {e._impliedMove && (
-                        <span className="econ-events__keylist-move">
-                          ±{formatPct(e._impliedMove.movePct)}
-                        </span>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          );
-        })}
+      <div className="econ-events__chart-tooltip-row">
+        <span className="econ-events__chart-tooltip-label">Forecast</span>
+        <span className="econ-events__chart-tooltip-value">{e.forecast || '—'}</span>
+      </div>
+      <div className="econ-events__chart-tooltip-row">
+        <span className="econ-events__chart-tooltip-label">Previous</span>
+        <span className="econ-events__chart-tooltip-value">{e.previous || '—'}</span>
       </div>
     </div>
   );
 }
-
 
 // ── Spotlight strip ───────────────────────────────────────────────────
 function SpotlightStrip({ events, now }) {
