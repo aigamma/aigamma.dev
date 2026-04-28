@@ -72,6 +72,7 @@
 //     .ics download / forecast-vs-previous interpretation.
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import RangeBrush from '../../src/components/RangeBrush';
 
 export const slotName = 'Economic Events';
 
@@ -837,6 +838,10 @@ function ImpliedMoveChart({ events, ivContext }) {
   const containerRef = useRef(null);
   const [containerWidth, setContainerWidth] = useState(900);
   const [hovered, setHovered] = useState(null);
+  // windowMs is the visible X-axis range (date in ms). null means
+  // "use the default window" — first 21 days from refMs. The reader
+  // drags the RangeBrush below the chart to expand / pan to LEAPS.
+  const [windowMs, setWindowMs] = useState(null);
 
   // ResizeObserver-driven width so the SVG re-renders with the right
   // dimensions when the lab shell width changes (e.g. dev tools open
@@ -864,46 +869,59 @@ function ImpliedMoveChart({ events, ivContext }) {
   // values — they just need the hook count to match across
   // renders. ----
 
-  const chartDays = useMemo(() => {
-    const byDate = new Map();
-    for (const e of events) {
-      if (!byDate.has(e.date)) byDate.set(e.date, []);
-      byDate.get(e.date).push(e);
-    }
-    return [...byDate.keys()]
-      .sort()
-      .map((iso) => ({
-        isoDate: iso,
-        dow: new Date(`${iso}T12:00:00`).getDay(),
-        events: byDate.get(iso).sort((a, b) => a._ms - b._ms),
-      }));
-  }, [events]);
+  // Term-structure datapoints: every expiration in the SPX surface
+  // turned into an implied 1-σ move from now, plotted underneath the
+  // event dots so a reader sees both the event-specific catalysts AND
+  // the natural vol-curve shape they sit inside. Each expiration's
+  // anchor X is its 16:00 ET expiry timestamp in ms (so 0DTE expirations
+  // sit at "today 4pm" and LEAPS sit at "next year 4pm").
+  const termPoints = useMemo(() => {
+    if (!ivContext) return [];
+    return ivContext.expirations.map((m) => {
+      const ms = new Date(`${m.expiration}T16:00:00-04:00`).getTime();
+      const movePct = m.atmIv * Math.sqrt(Math.max(m.dte, 0.04) / 365) * 100;
+      const moveDollars = ivContext.spotPrice * movePct / 100;
+      return {
+        expiration: m.expiration,
+        ms,
+        atmIv: m.atmIv,
+        dte: m.dte,
+        movePct,
+        moveDollars,
+      };
+    }).sort((a, b) => a.ms - b.ms);
+  }, [ivContext]);
 
-  // Flatten chartDays to per-event points carrying their dayIdx.
-  // Memoized so labelGroups (which depends on points) only
-  // recomputes when chartDays actually changes, not on every render.
+  // Per-event points carrying their event ms (used for X positioning
+  // on the new continuous-date axis). The `_ms` field is already on
+  // each event from the SlotB-level parsing pass; nothing else to do.
   const points = useMemo(
-    () =>
-      chartDays.flatMap((d, dayIdx) =>
-        d.events.map((e) => ({ ...e, dayIdx, isoDate: d.isoDate })),
-      ),
-    [chartDays],
+    () => events.map((e) => ({ ...e, ms: e._ms })),
+    [events],
   );
 
-  // Cluster dots that fall in the same (dayIdx, Y bucket of 0.05%)
-  // so overlapping markers spread horizontally and labels stack
-  // into a comma-joined group. Bucket width is tighter than the
-  // earnings-page chart (0.75%) because most same-date events here
-  // map to the same SPX expiration's IV — they literally share
-  // the same Y, not just neighbor it.
+  // Cluster dots that fall in the same (calendar date, Y bucket of
+  // 0.05%) so overlapping markers spread horizontally and labels
+  // stack into a comma-joined group. Calendar date is the right
+  // grouping key (rather than ms) because two events on the same
+  // day at slightly different times still resolve to the same
+  // expiration's implied move and should cluster as one visual
+  // entity.
   const labelGroups = useMemo(() => {
     const bucket = 0.05;
     const groups = new Map();
     for (const p of points) {
       const yBkt = Math.round(p._impliedMove.movePct / bucket);
-      const key = `${p.dayIdx}:${yBkt}`;
-      if (!groups.has(key)) groups.set(key, { dayIdx: p.dayIdx, yBkt, members: [] });
-      groups.get(key).members.push(p);
+      const key = `${p.date}:${yBkt}`;
+      if (!groups.has(key)) {
+        groups.set(key, { date: p.date, yBkt, members: [], anchorMs: p.ms });
+      }
+      const g = groups.get(key);
+      g.members.push(p);
+      // Anchor the cluster at the earliest event ms so the dot/
+      // label sits at the start of the day's cluster on tighter
+      // zooms.
+      if (p.ms < g.anchorMs) g.anchorMs = p.ms;
     }
     return [...groups.values()];
   }, [points]);
@@ -915,6 +933,39 @@ function ImpliedMoveChart({ events, ivContext }) {
     }
     return map;
   }, [labelGroups]);
+
+  // Full X domain (the brush's full range) and the visible window
+  // (the main chart's actual X range). The default window is
+  // [refMs, refMs + 21 days] — three weeks ahead, which covers the
+  // FF "this week" feed plus a bit of breathing room to see the next
+  // week's expirations on the term-structure curve. The reader
+  // expands or pans via the brush below the chart.
+  const fullStartMs = ivContext?.refMs ?? Date.now();
+  const fullEndMs = useMemo(() => {
+    if (termPoints.length === 0) return fullStartMs + 30 * 86400000;
+    return Math.max(...termPoints.map((p) => p.ms));
+  }, [termPoints, fullStartMs]);
+
+  const effectiveWindow = useMemo(() => {
+    if (windowMs) return windowMs;
+    return {
+      start: fullStartMs,
+      end: Math.min(fullEndMs, fullStartMs + 21 * 86400000),
+    };
+  }, [windowMs, fullStartMs, fullEndMs]);
+
+  const visibleTermPoints = useMemo(
+    () => termPoints.filter((p) => p.ms >= effectiveWindow.start && p.ms <= effectiveWindow.end),
+    [termPoints, effectiveWindow],
+  );
+  const visibleEvents = useMemo(
+    () => points.filter((p) => p.ms >= effectiveWindow.start && p.ms <= effectiveWindow.end),
+    [points, effectiveWindow],
+  );
+  const visibleLabelGroups = useMemo(
+    () => labelGroups.filter((g) => g.anchorMs >= effectiveWindow.start && g.anchorMs <= effectiveWindow.end),
+    [labelGroups, effectiveWindow],
+  );
 
   // ---- End of hook calls. Early returns are safe below. ----
 
@@ -948,45 +999,53 @@ function ImpliedMoveChart({ events, ivContext }) {
     );
   }
 
-  // Layout. Top padding (52px) gives multi-event cluster labels room
-  // to render above the topmost dot without overhanging the chart
-  // border or colliding with the meta header. Left padding (76px)
-  // gives the y-axis title and tick labels (e.g. "1.50%") clear
-  // breathing room. Right padding (60px) leaves room for a label
-  // anchored to the rightmost column to extend leftward without
-  // butting against the plot border.
+  // Layout.
   const width = Math.max(Math.min(containerWidth - 16, 1100), 320);
   const height = Math.round(Math.min(width * 0.6, 560));
   const PADDING = { top: 52, right: 60, bottom: 68, left: 76 };
   const plotW = width - PADDING.left - PADDING.right;
   const plotH = height - PADDING.top - PADDING.bottom;
 
-  // Y axis: top = 1.15 × max move, rounded up to nearest 0.5%. The
-  // 1.15 (vs the prior 1.10) headroom factor gives the topmost
-  // cluster's label more vertical air so it never crowds the chart
-  // border. Floor at 1.5% so a low-vol week doesn't squish all dots
-  // against the top gridline.
-  const yMaxRaw = Math.max(0.015, Math.max(...events.map((e) => e._impliedMove.movePct / 100)));
+  // Y axis: top = 1.15 × max move across visible term points + visible
+  // events, rounded up to nearest 0.5%. With the term-structure trace
+  // included, the Y range scales to whatever vol curve is visible —
+  // a near-term-only window stays low (~1-2%) while a multi-month
+  // window opens up to LEAPS-class moves (~5-10%+). Floor at 1.5%
+  // so a quiet week doesn't squish all dots against the top gridline.
+  const yMaxRaw = useMemo(() => {
+    const candidates = [0.015];
+    for (const p of visibleTermPoints) candidates.push(p.movePct / 100);
+    for (const p of visibleEvents) candidates.push(p._impliedMove.movePct / 100);
+    return Math.max(...candidates);
+  }, [visibleTermPoints, visibleEvents]);
   const yMax = Math.ceil((yMaxRaw * 1.15) * 200) / 200;
 
-  const xForDay = (dayIdx) => {
-    if (chartDays.length <= 1) return PADDING.left + plotW / 2;
-    return PADDING.left + (plotW * dayIdx) / (chartDays.length - 1);
-  };
+  const windowSpan = effectiveWindow.end - effectiveWindow.start || 1;
+  const xForMs = (ms) =>
+    PADDING.left + plotW * (ms - effectiveWindow.start) / windowSpan;
   const yForMove = (movePct) => PADDING.top + plotH * (1 - (movePct / 100) / yMax);
 
-  const hoveredKey = hovered ? hovered._id : null;
+  const hoveredKey = hovered ? (hovered._kind === 'event' ? hovered._id : `term:${hovered.expiration}`) : null;
 
   // Y-axis tick step: 0.25% under 2%, 0.5% under 5%, 1% above.
   const yStep = yMax > 0.05 ? 0.01 : yMax > 0.02 ? 0.005 : 0.0025;
+
+  // X-axis tick locations as ISO dates inside the visible window.
+  // Step length scales with window width: dense for short windows,
+  // sparse for long ones, so the axis never carries more than ~10
+  // tick labels regardless of zoom level.
+  const xTicks = useMemo(
+    () => buildXTicks(effectiveWindow.start, effectiveWindow.end),
+    [effectiveWindow.start, effectiveWindow.end],
+  );
 
   return (
     <section className="econ-events__chart-card">
       <div className="econ-events__chart-meta">
         <span className="econ-events__chart-title">SPX Implied Move per Event</span>
         <span className="econ-events__chart-source">
-          spot ${formatNum(ivContext.spotPrice, 0)} · {events.length} event{events.length === 1 ? '' : 's'} ·
-          {' '}±1σ move = spot × ATM&nbsp;IV × √(DTE/365) at next expiration
+          spot ${formatNum(ivContext.spotPrice, 0)} · {visibleTermPoints.length} expirations · {visibleEvents.length} events ·
+          {' '}±1σ = spot × ATM&nbsp;IV × √(DTE/365)
         </span>
       </div>
       <div ref={containerRef} className="econ-events__scatter">
@@ -1020,36 +1079,42 @@ function ImpliedMoveChart({ events, ivContext }) {
             return ticks;
           })()}
 
-          {/* X axis day columns */}
-          {chartDays.map((d, i) => (
-            <g key={d.isoDate}>
-              <line
-                x1={xForDay(i)} x2={xForDay(i)}
-                y1={PADDING.top} y2={height - PADDING.bottom}
-                stroke="rgba(160, 172, 200, 0.06)"
-              />
-              <text
-                x={xForDay(i)}
-                y={height - PADDING.bottom + 22}
-                textAnchor="middle"
-                fontFamily="Courier New, monospace"
-                fontSize={13}
-                fill="#cfd6e6"
-              >
-                {formatShortDate(d.isoDate)}
-              </text>
-              <text
-                x={xForDay(i)}
-                y={height - PADDING.bottom + 40}
-                textAnchor="middle"
-                fontFamily="Courier New, monospace"
-                fontSize={11}
-                fill="#7e8aa0"
-              >
-                {['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d.dow] || ''}
-              </text>
-            </g>
-          ))}
+          {/* X axis ticks */}
+          {xTicks.map((tick) => {
+            const x = xForMs(tick.ms);
+            if (x < PADDING.left - 1 || x > width - PADDING.right + 1) return null;
+            return (
+              <g key={tick.ms}>
+                <line
+                  x1={x} x2={x}
+                  y1={PADDING.top} y2={height - PADDING.bottom}
+                  stroke="rgba(160, 172, 200, 0.06)"
+                />
+                <text
+                  x={x}
+                  y={height - PADDING.bottom + 22}
+                  textAnchor="middle"
+                  fontFamily="Courier New, monospace"
+                  fontSize={13}
+                  fill="#cfd6e6"
+                >
+                  {tick.label}
+                </text>
+                {tick.subLabel && (
+                  <text
+                    x={x}
+                    y={height - PADDING.bottom + 40}
+                    textAnchor="middle"
+                    fontFamily="Courier New, monospace"
+                    fontSize={11}
+                    fill="#7e8aa0"
+                  >
+                    {tick.subLabel}
+                  </text>
+                )}
+              </g>
+            );
+          })}
 
           {/* Y axis title */}
           <text
@@ -1073,13 +1138,47 @@ function ImpliedMoveChart({ events, ivContext }) {
             stroke="rgba(160, 172, 200, 0.15)"
           />
 
-          {/* Dots */}
-          {points.map((p) => {
+          {/* Term-structure trace — connecting line through every
+              expiration in the visible window, then small marker
+              dots at each expiration. Rendered before the events so
+              the colored event dots layer on top. */}
+          {visibleTermPoints.length >= 2 && (
+            <polyline
+              points={visibleTermPoints
+                .map((p) => `${xForMs(p.ms)},${yForMove(p.movePct)}`)
+                .join(' ')}
+              fill="none"
+              stroke="rgba(74, 158, 255, 0.45)"
+              strokeWidth={1.5}
+            />
+          )}
+          {visibleTermPoints.map((p) => {
+            const cx = xForMs(p.ms);
+            const cy = yForMove(p.movePct);
+            const isHovered = hoveredKey === `term:${p.expiration}`;
+            return (
+              <circle
+                key={`term-${p.expiration}`}
+                cx={cx}
+                cy={cy}
+                r={isHovered ? 5.5 : 3}
+                fill="rgba(74, 158, 255, 0.35)"
+                stroke={isHovered ? '#4a9eff' : 'rgba(74, 158, 255, 0.55)'}
+                strokeWidth={isHovered ? 1.5 : 1}
+                style={{ cursor: 'pointer', transition: 'r 0.12s ease' }}
+                onMouseEnter={() => setHovered({ ...p, _kind: 'term' })}
+                onMouseLeave={() => setHovered(null)}
+              />
+            );
+          })}
+
+          {/* Event dots */}
+          {visibleEvents.map((p) => {
             const meta = pointMeta.get(p._id);
             const dotsInGroup = meta ? meta.group.members.length : 1;
             const idx = meta ? meta.idxInGroup : 0;
             const offset = (idx - (dotsInGroup - 1) / 2) * 7;
-            const cx = xForDay(p.dayIdx) + offset;
+            const cx = xForMs(p.ms) + offset;
             const cy = yForMove(p._impliedMove.movePct);
             const color = p._spotlight ? p._spotlight.hex : impactHex(p.impact);
             const isHovered = hoveredKey === p._id;
@@ -1093,63 +1192,49 @@ function ImpliedMoveChart({ events, ivContext }) {
                 stroke={isHovered ? '#f0a030' : 'rgba(8, 11, 16, 0.4)'}
                 strokeWidth={isHovered ? 2 : 1}
                 style={{ cursor: 'pointer', transition: 'r 0.12s ease' }}
-                onMouseEnter={() => setHovered(p)}
+                onMouseEnter={() => setHovered({ ...p, _kind: 'event' })}
                 onMouseLeave={() => setHovered(null)}
               />
             );
           })}
 
-          {/* Stacked labels above each cluster — multi-member groups
-              join with " · " and clip with ellipsis. textAnchor flips
-              based on column position so labels at the leftmost /
-              rightmost columns extend INTO the plot area rather than
-              overhang the Y-axis tick labels (the prior centered
-              anchor put a 200-character cluster like
-              "FOMC · GDP · Employment · JOBS · …" centered at the
-              left padding column, where its left half overflowed the
-              plot box and collided with the y-axis labels). */}
-          {labelGroups.map((g) => {
+          {/* Cluster labels — anchored at the cluster's earliest event
+              ms, with textAnchor flipping at the visible-window
+              edges so labels never overhang the y-axis or right
+              border. */}
+          {visibleLabelGroups.map((g) => {
             const member = g.members[0];
-            const cx = xForDay(g.dayIdx);
+            const cx = xForMs(g.anchorMs);
             const cy = yForMove(member._impliedMove.movePct);
             const labels = g.members.map((m) =>
               m._spotlight ? m._spotlight.label : shortLabelForEvent(m.title),
             );
-            // Dedupe consecutive same-family entries so a 3-row FOMC
-            // afternoon collapses to a single "FOMC" tag rather than
-            // "FOMC · FOMC · FOMC". The cap below is per-cluster,
-            // applied after dedup, so a Thursday 12:30 cluster of
-            // [GDP, PCE, Employment, JOBS, GDP] dedups to those four
-            // distinct families and renders without truncation.
             const dedup = [];
             for (const l of labels) {
               if (dedup[dedup.length - 1] !== l) dedup.push(l);
             }
-            // Cap at 5 entries before truncating with ellipsis. Per-
-            // cluster label widths past 5 entries start to collide
-            // with the next column even at the tightened 6-char
-            // shortLabelForEvent cap; 5 with " · " separators sits
-            // around 30-35 chars worst case, comfortable for a
-            // ~150px column allotment in a 900px chart. Family
-            // labels (FOMC, CPI, NFP, GDP, PCE, PPI, ISM, JOBS) are
-            // 3-4 chars each so 5 family entries renders ~25 chars.
             const CAP = 5;
             const display = dedup.length > CAP
               ? `${dedup.slice(0, CAP).join(' · ')} · …`
               : dedup.join(' · ');
 
-            // Anchor at the column edge: leftmost column anchors to
-            // 'start' (label extends rightward from the dot's X);
-            // rightmost column anchors to 'end' (label extends
-            // leftward); inner columns stay centered on the dot.
-            const isLeftEdge = g.dayIdx === 0;
-            const isRightEdge = g.dayIdx === chartDays.length - 1 && chartDays.length > 1;
-            const textAnchor = isLeftEdge ? 'start' : isRightEdge ? 'end' : 'middle';
-            const xOffset = isLeftEdge ? -4 : isRightEdge ? 4 : 0;
+            // Edge anchoring: when the cluster sits in the leftmost
+            // 18% / rightmost 18% of the visible plot, flip the
+            // textAnchor so the label extends inward rather than
+            // overhanging the Y-axis tick column or the right
+            // border. This is more permissive than the prior strict
+            // first/last-column gate because with a continuous date
+            // axis the leftmost CLUSTER doesn't have to sit at the
+            // exact left edge.
+            const fracX = (cx - PADDING.left) / plotW;
+            const isLeftZone = fracX < 0.18;
+            const isRightZone = fracX > 0.82;
+            const textAnchor = isLeftZone ? 'start' : isRightZone ? 'end' : 'middle';
+            const xOffset = isLeftZone ? -4 : isRightZone ? 4 : 0;
 
             return (
               <text
-                key={`lbl-${g.dayIdx}-${g.yBkt}`}
+                key={`lbl-${g.date}-${g.yBkt}`}
                 x={cx + xOffset}
                 y={cy - 12}
                 textAnchor={textAnchor}
@@ -1165,21 +1250,26 @@ function ImpliedMoveChart({ events, ivContext }) {
           })}
         </svg>
 
-        {/* Hover-anchored tooltip with full event detail. */}
+        {/* Hover-anchored tooltip — branches on hovered._kind so a
+            term-structure dot gets a "next expiration only" tooltip
+            and an event dot gets the full event-detail tooltip. */}
         {hovered && (() => {
-          const meta = pointMeta.get(hovered._id);
-          const dotsInGroup = meta ? meta.group.members.length : 1;
-          const idx = meta ? meta.idxInGroup : 0;
-          const offset = (idx - (dotsInGroup - 1) / 2) * 7;
-          const cx = xForDay(hovered.dayIdx) + offset;
-          const cy = yForMove(hovered._impliedMove.movePct);
+          let cx;
+          let cy;
+          if (hovered._kind === 'term') {
+            cx = xForMs(hovered.ms);
+            cy = yForMove(hovered.movePct);
+          } else {
+            const meta = pointMeta.get(hovered._id);
+            const dotsInGroup = meta ? meta.group.members.length : 1;
+            const idx = meta ? meta.idxInGroup : 0;
+            const offset = (idx - (dotsInGroup - 1) / 2) * 7;
+            cx = xForMs(hovered.ms) + offset;
+            cy = yForMove(hovered._impliedMove.movePct);
+          }
           const openLeft = cx > width * 0.55;
           const openDown = cy < height * 0.30;
           const o = 14;
-          // Tooltip widened from 240/320 → 280/400 so wider event
-          // titles (e.g. "Advance GDP Price Index q/q") render on a
-          // single line, plus word-wrap on the title row catches the
-          // rare row that exceeds even the 400px cap.
           const style = {
             position: 'absolute',
             zIndex: 5,
@@ -1200,10 +1290,152 @@ function ImpliedMoveChart({ events, ivContext }) {
           else style.left = cx + o;
           if (openDown) style.top = cy + o;
           else style.bottom = (height - cy + o);
+          if (hovered._kind === 'term') {
+            return <TermTooltip term={hovered} spotPrice={ivContext.spotPrice} style={style} />;
+          }
           return <ChartTooltip event={hovered} style={style} />;
         })()}
       </div>
+      <div className="econ-events__brush">
+        <div className="econ-events__brush-meta">
+          <span>{formatLongRangeDate(effectiveWindow.start)}</span>
+          <span className="econ-events__brush-spread">
+            {formatRangeSpan(effectiveWindow.end - effectiveWindow.start)}
+          </span>
+          <span>{formatLongRangeDate(effectiveWindow.end)}</span>
+        </div>
+        <RangeBrush
+          min={fullStartMs}
+          max={fullEndMs}
+          activeMin={effectiveWindow.start}
+          activeMax={effectiveWindow.end}
+          onChange={(start, end) => setWindowMs({ start, end })}
+          height={36}
+          minWidth={86400000}
+        />
+      </div>
     </section>
+  );
+}
+
+// ── X-axis ticks ─────────────────────────────────────────────────────
+// Pick a sensible step length based on the visible window's span.
+// Returns up to ~10 tick objects { ms, label, subLabel }.
+function buildXTicks(startMs, endMs) {
+  const span = endMs - startMs;
+  const day = 86400000;
+  const out = [];
+  if (span <= 0) return out;
+  if (span <= 8 * day) {
+    // Per-day ticks. Snap each to local-midnight + 12 noon so the
+    // label sits visually centered on the day rather than at its
+    // boundary.
+    const start = midnightLocalMs(startMs);
+    for (let ms = start; ms <= endMs + day; ms += day) {
+      const noon = ms + 12 * 3600000;
+      if (noon < startMs || noon > endMs) continue;
+      const d = new Date(noon);
+      out.push({
+        ms: noon,
+        label: `${d.getMonth() + 1}/${d.getDate()}`,
+        subLabel: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][d.getDay()],
+      });
+    }
+  } else if (span <= 60 * day) {
+    // Weekly ticks anchored to Mondays.
+    const start = midnightLocalMs(startMs);
+    const startDow = new Date(start).getDay();
+    const offsetToMon = ((1 - startDow) + 7) % 7;
+    let ms = start + offsetToMon * day;
+    while (ms <= endMs + day) {
+      if (ms >= startMs - day) {
+        const d = new Date(ms);
+        out.push({
+          ms,
+          label: `${d.getMonth() + 1}/${d.getDate()}`,
+          subLabel: 'Mon',
+        });
+      }
+      ms += 7 * day;
+    }
+  } else if (span <= 200 * day) {
+    // ~Bi-weekly ticks every 14 days.
+    const start = midnightLocalMs(startMs);
+    let ms = start;
+    while (ms <= endMs + day) {
+      if (ms >= startMs - day) {
+        const d = new Date(ms);
+        out.push({
+          ms,
+          label: d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
+          subLabel: null,
+        });
+      }
+      ms += 14 * day;
+    }
+  } else {
+    // Monthly ticks anchored to the 1st of each month.
+    const d0 = new Date(startMs);
+    let y = d0.getFullYear();
+    let m = d0.getMonth();
+    for (let i = 0; i < 18; i++) {
+      const d = new Date(y, m, 1, 12, 0, 0);
+      const ms = d.getTime();
+      if (ms > endMs) break;
+      if (ms >= startMs) {
+        out.push({
+          ms,
+          label: d.toLocaleDateString(undefined, { month: 'short', year: '2-digit' }),
+          subLabel: null,
+        });
+      }
+      m += 1;
+      if (m >= 12) { m = 0; y += 1; }
+    }
+  }
+  return out;
+}
+
+function midnightLocalMs(ms) {
+  const d = new Date(ms);
+  d.setHours(0, 0, 0, 0);
+  return d.getTime();
+}
+
+function formatLongRangeDate(ms) {
+  if (!Number.isFinite(ms)) return '';
+  const d = new Date(ms);
+  return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+function formatRangeSpan(ms) {
+  if (!Number.isFinite(ms) || ms <= 0) return '';
+  const days = Math.round(ms / 86400000);
+  if (days < 14) return `${days}-day window`;
+  if (days < 60) return `${Math.round(days / 7)}-week window`;
+  return `${Math.round(days / 30)}-month window`;
+}
+
+// Term-structure tooltip — simpler than the event tooltip because
+// the only meaningful payload is the expiration's vol-implied move
+// numbers. No forecast/previous/family detail since the dot is the
+// expiration itself, not an event.
+function TermTooltip({ term, spotPrice, style }) {
+  return (
+    <div className="econ-events__chart-tooltip" style={style}>
+      <div className="econ-events__chart-tooltip-head">
+        <strong style={{ color: '#4a9eff' }}>SPX Expiration</strong>
+        <span style={{ color: '#9aa6c2' }}>{term.expiration}</span>
+      </div>
+      <div className="econ-events__chart-tooltip-divider" />
+      <ChartTooltipRow
+        label="Implied move"
+        value={`±${formatPct(term.movePct)} (±$${formatNum(spotPrice * term.movePct / 100, 0)})`}
+        highlight
+      />
+      <ChartTooltipRow label="ATM IV" value={formatPct(term.atmIv * 100)} />
+      <ChartTooltipRow label="DTE" value={formatNum(term.dte, 1)} />
+    </div>
   );
 }
 
@@ -1266,11 +1498,6 @@ function shortLabelForEvent(title) {
   return firstWord;
 }
 
-function formatShortDate(iso) {
-  if (!iso) return '';
-  const [, m, d] = iso.split('-');
-  return `${m}/${d}`;
-}
 
 // ── Spotlight strip ───────────────────────────────────────────────────
 function SpotlightStrip({ events, now }) {

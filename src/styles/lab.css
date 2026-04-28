@@ -2932,6 +2932,34 @@
   font-weight: 700;
 }
 
+/* Brush below the scatter — the date pan/zoom control. The
+   .econ-events__brush-meta strip above the brush track names the
+   start, span, and end of the visible window so the reader sees the
+   numeric range without having to hover the brush handles. */
+.econ-events__brush {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding-top: 0.45rem;
+}
+
+.econ-events__brush-meta {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.6rem;
+  font-family: 'Courier New', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+}
+
+.econ-events__brush-spread {
+  color: var(--text-primary);
+  font-weight: 700;
+}
+
 /* Hero implied-move panel --------------------------------------- */
 .econ-events__hero-imove {
   margin-top: 0.5rem;

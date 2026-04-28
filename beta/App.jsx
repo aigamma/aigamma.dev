@@ -17,11 +17,15 @@ import SlotB, { slotName as slotBName } from './slots/SlotB';
 // resolves the next SPX expiration AT-OR-AFTER the event date and
 // computes the IV-implied 1-σ move = spot × ATM IV × √(DTE/365),
 // surfacing it inline on each schedule row, in the hero card, and
-// in a custom-SVG scatter chart (mirroring the /earnings page's
-// ScatterChart pattern) that plots every upcoming high+medium-
-// impact event as a family-colored dot at (event_date, move%) with
-// horizontal labels above and a hover-anchored tooltip carrying
-// the full IV + forecast detail. The hero card runs a live
+// in a custom-SVG scatter chart that plots two layered traces on a
+// continuous-date X axis: a faint blue term-structure curve through
+// every SPX expiration in the surface (small dots connected by a
+// line) and the family-colored event dots overlaid on top with
+// horizontal labels above. A RangeBrush below the chart drives the
+// visible date window — defaults to the next 21 days but the
+// reader can pan to LEAPS or zoom into a single-day window. Hover
+// a term dot for ATM-IV / DTE / implied-move detail; hover an
+// event dot for the full forecast / previous / family payload. The hero card runs a live
 // HH:MM:SS countdown (1-second tick, paused on hidden tabs);
 // an IntersectionObserver-driven sticky compact bar
 // pins the next-event countdown to the top of the viewport when
