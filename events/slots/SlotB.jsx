@@ -107,15 +107,16 @@ function classifySpotlight(title) {
   return null;
 }
 
-// Per-impact-tier dot/text color. Matches the existing High/Medium/
-// Low/Holiday accent palette used throughout the dashboard. Earnings
-// events get their own purple hex (rendered as a hollow ring on the
-// timeline so it visually distinguishes from a Holiday tier even
-// when the two share the same purple).
+// Per-impact-tier dot/text color. High = coral, Medium = amber,
+// Low = gray, Holiday = teal. Holiday previously shared the purple
+// hex with the earnings layer; Eric flagged the visual collision
+// (a Holiday-tier macro dot and an earnings dot would render in
+// the same color) so Holiday is now the platform's --accent-cyan
+// teal token, leaving purple uniquely associated with earnings.
 function impactHex(impact) {
   if (impact === 'High') return '#e74c3c';
   if (impact === 'Medium') return '#f1c40f';
-  if (impact === 'Holiday') return '#BF7FFF';
+  if (impact === 'Holiday') return '#1abc9c';
   return '#8a8f9c';
 }
 const EARNINGS_HEX = '#BF7FFF';
@@ -1170,41 +1171,56 @@ function TimelineStrip({ events, now }) {
                     </g>
                   )}
 
-                  {block.events.map((e) => {
-                    const cx = xForEvent(e);
+                  {clusterByMinute(block.events).map((cluster) => {
+                    // Anchor the cluster at its first event's hour-of-
+                    // day position. All events in a cluster share the
+                    // same minute by construction, so xForEvent is the
+                    // same for every member — pick any.
+                    const cx = xForEvent(cluster.events[0]);
                     const cy = ROW_HEIGHT / 2;
-                    // Single radius across all impact tiers — the prior
-                    // size-by-impact ladder (6.5/4.5/3) was misleading
-                    // (size and color both mapping to impact made the
-                    // signal redundant and visually confusing). Color
-                    // alone now keys impact; earnings dots render as
-                    // hollow purple rings to distinguish from filled
-                    // macro dots.
-                    const r = 5;
-                    const color = colorFor(e);
-                    const isEarnings = e._kind === 'earnings';
-                    const past = e._ms < now;
-                    const isHovered = hovered?._id === e._id;
+                    // Dot radius scales modestly with cluster size so a
+                    // dense BMO 7am cluster reads as visibly heavier
+                    // than a single-ticker AMC slot. Capped at +4px so
+                    // a 16-event cluster doesn't dominate the row.
+                    const r = 5 + Math.min(4, Math.log2(cluster.events.length));
+                    const appearance = clusterAppearance(cluster);
+                    const isHovered = hovered?.key === cluster.key;
+                    const past = cluster.events.every((e) => e._ms < now);
                     return (
-                      <circle
-                        key={e._id}
-                        cx={cx}
-                        cy={cy}
-                        r={isHovered ? r + 2.5 : r}
-                        fill={isEarnings ? 'transparent' : color}
-                        stroke={isHovered ? '#f0a030' : (isEarnings ? color : 'rgba(8, 11, 16, 0.55)')}
-                        strokeWidth={isHovered ? 2 : (isEarnings ? 1.5 : 1)}
-                        opacity={past && !isHovered ? 0.45 : 1}
-                        style={{ cursor: 'pointer', transition: 'r 0.12s ease' }}
-                        onMouseEnter={() => setHovered(e)}
-                        onMouseLeave={() => setHovered(null)}
-                      />
+                      <g key={cluster.key}>
+                        <circle
+                          cx={cx}
+                          cy={cy}
+                          r={isHovered ? r + 2.5 : r}
+                          fill={appearance.fill}
+                          stroke={isHovered ? '#f0a030' : appearance.stroke}
+                          strokeWidth={isHovered ? 2 : appearance.strokeWidth}
+                          opacity={past && !isHovered ? 0.45 : 1}
+                          style={{ cursor: 'pointer', transition: 'r 0.12s ease' }}
+                          onMouseEnter={() => setHovered(cluster)}
+                          onMouseLeave={() => setHovered(null)}
+                        />
+                        {cluster.events.length > 1 && (
+                          <text
+                            x={cx}
+                            y={cy + 3.5}
+                            textAnchor="middle"
+                            fontFamily="Courier New, monospace"
+                            fontSize={9}
+                            fontWeight={700}
+                            fill={appearance.fill === 'transparent' ? appearance.stroke : '#0d1016'}
+                            style={{ pointerEvents: 'none' }}
+                          >
+                            {cluster.events.length}
+                          </text>
+                        )}
+                      </g>
                     );
                   })}
                 </svg>
 
                 {hovered && hovered.date === block.date && (() => {
-                  const cx = xForEvent(hovered);
+                  const cx = xForEvent(hovered.events[0]);
                   const openLeft = cx > trackWidth * 0.55;
                   const o = 14;
                   const style = {
@@ -1219,16 +1235,23 @@ function TimelineStrip({ events, now }) {
                     fontSize: '0.82rem',
                     color: '#e1e8f4',
                     minWidth: 260,
-                    maxWidth: 360,
+                    maxWidth: 420,
                     lineHeight: 1.5,
                     boxShadow: '0 2px 12px rgba(0, 0, 0, 0.6)',
                     bottom: ROW_HEIGHT + 4,
                   };
                   if (openLeft) style.right = (trackWidth - cx + o);
                   else style.left = cx + o;
-                  return hovered._kind === 'earnings'
-                    ? <EarningsTooltip event={hovered} style={style} />
-                    : <TimelineTooltip event={hovered} style={style} />;
+                  // Single-event clusters use the existing detail
+                  // tooltip variants; multi-event clusters use the new
+                  // ClusterTooltip that lists every member.
+                  if (hovered.events.length === 1) {
+                    const single = hovered.events[0];
+                    return single._kind === 'earnings'
+                      ? <EarningsTooltip event={single} style={style} />
+                      : <TimelineTooltip event={single} style={style} />;
+                  }
+                  return <ClusterTooltip cluster={hovered} style={style} />;
                 })()}
               </div>
             </div>
@@ -1287,6 +1310,137 @@ function TimelineTooltip({ event: e, style }) {
 
 // Earnings-row tooltip — fields are the EarningsWhispers metadata
 // the /api/earnings function ships in calendarDays[].tickers[].
+// Cluster events that share the same hour:minute on the same day
+// so they render as a single dot rather than overlapping markers
+// at the same X position. Eric noticed Thursday's AMC cluster was
+// only showing one ticker (RIVN) when AAPL and other top-100 names
+// were also reporting at 4:30pm — the markers were stacking at the
+// identical X/Y position with only the topmost circle hit-testable
+// and visible.
+function clusterByMinute(events) {
+  const buckets = new Map();
+  for (const e of events) {
+    const minuteKey = Math.floor(e._ms / 60000);
+    if (!buckets.has(minuteKey)) {
+      buckets.set(minuteKey, {
+        key: `${e.date}-${minuteKey}`,
+        ms: e._ms,
+        date: e.date,
+        events: [],
+      });
+    }
+    buckets.get(minuteKey).events.push(e);
+  }
+  return [...buckets.values()].sort((a, b) => a.ms - b.ms);
+}
+
+// Cluster fill / stroke decision: pure-earnings clusters render as
+// hollow purple rings (preserving the earnings-layer visual
+// identity); any cluster containing a macro event picks the color
+// of the highest-impact macro member and renders filled. The
+// individual events still appear separately in the cluster
+// tooltip so a mixed cluster (rare — usually a macro release at
+// 8:30am can collide with a BMO earnings at 7:00am only when
+// rounded; in practice they're separate minutes and don't cluster)
+// keeps full per-event detail accessible on hover.
+function clusterAppearance(cluster) {
+  const macros = cluster.events.filter((e) => e._kind !== 'earnings');
+  if (macros.length === 0) {
+    return { fill: 'transparent', stroke: EARNINGS_HEX, strokeWidth: 1.5 };
+  }
+  const impactRank = { High: 3, Medium: 2, Low: 1, Holiday: 0 };
+  const top = macros.reduce(
+    (best, e) =>
+      (impactRank[e.impact] || 0) > (impactRank[best.impact] || 0) ? e : best,
+    macros[0],
+  );
+  return {
+    fill: impactHex(top.impact),
+    stroke: 'rgba(8, 11, 16, 0.55)',
+    strokeWidth: 1,
+  };
+}
+
+// Tooltip for a multi-event cluster — splits the membership into
+// macro and earnings sub-sections, each rendering one compact row
+// per event. Long earnings clusters cap at MAX_ROWS members with a
+// "+ N more" tail so a 30-name reporting day's tooltip stays
+// readable; the schedule below the chart still carries the full
+// list. Single-event clusters do NOT use this variant — they fall
+// through to the existing TimelineTooltip / EarningsTooltip
+// branches in the timeline render.
+function ClusterTooltip({ cluster, style }) {
+  const MAX_ROWS = 12;
+  const events = cluster.events.slice().sort((a, b) => a._ms - b._ms);
+  const macros = events.filter((e) => e._kind !== 'earnings');
+  const earnings = events.filter((e) => e._kind === 'earnings');
+  const time = events[0]._at.toLocaleTimeString(undefined, {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  });
+  return (
+    <div className="econ-events__chart-tooltip" style={style}>
+      <div className="econ-events__chart-tooltip-head">
+        <strong style={{ color: '#e1e8f4' }}>
+          {events.length} events at {time}
+        </strong>
+      </div>
+      <div className="econ-events__chart-tooltip-when">
+        {formatLongDate(cluster.date)}
+      </div>
+      {macros.length > 0 && (
+        <>
+          <div className="econ-events__chart-tooltip-divider" />
+          <div className="econ-events__cluster-section-label">
+            Macro releases · {macros.length}
+          </div>
+          {macros.map((e) => (
+            <div key={e._id} className="econ-events__cluster-row">
+              <span
+                className={`econ-events__dot econ-events__dot--${(e.impact || '').toLowerCase()}`}
+                aria-hidden="true"
+              />
+              <span className="econ-events__cluster-row-title">{e.title}</span>
+              {e.forecast && (
+                <span className="econ-events__cluster-row-meta">fcst {e.forecast}</span>
+              )}
+            </div>
+          ))}
+        </>
+      )}
+      {earnings.length > 0 && (
+        <>
+          <div className="econ-events__chart-tooltip-divider" />
+          <div className="econ-events__cluster-section-label">
+            Earnings · {earnings.length}
+          </div>
+          {earnings.slice(0, MAX_ROWS).map((e) => {
+            const t = e._earnings || {};
+            return (
+              <div key={e._id} className="econ-events__cluster-row">
+                <span className="econ-events__dot econ-events__dot--earnings" aria-hidden="true" />
+                <span className="econ-events__cluster-row-title">
+                  <strong style={{ color: EARNINGS_HEX }}>{t.ticker}</strong>
+                  <span className="econ-events__cluster-row-company">{t.company || ''}</span>
+                </span>
+                <span className="econ-events__cluster-row-meta">
+                  {formatRevenue(t.revenueEst)}
+                </span>
+              </div>
+            );
+          })}
+          {earnings.length > MAX_ROWS && (
+            <div className="econ-events__cluster-row econ-events__cluster-row--more">
+              + {earnings.length - MAX_ROWS} more · see schedule below
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
 function EarningsTooltip({ event: e, style }) {
   const t = e._earnings || {};
   const sessionLabel = t.sessionLabel === 'BMO' ? 'Before Market Open'
