@@ -17,8 +17,11 @@ import SlotB, { slotName as slotBName } from './slots/SlotB';
 // resolves the next SPX expiration AT-OR-AFTER the event date and
 // computes the IV-implied 1-σ move = spot × ATM IV × √(DTE/365),
 // surfacing it inline on each schedule row, in the hero card, and
-// in a Plotly bar chart that maps every upcoming high+medium-impact
-// event to its priced-in % move. The hero card runs a live
+// in a custom-SVG scatter chart (mirroring the /earnings page's
+// ScatterChart pattern) that plots every upcoming high+medium-
+// impact event as a family-colored dot at (event_date, move%) with
+// horizontal labels above and a hover-anchored tooltip carrying
+// the full IV + forecast detail. The hero card runs a live
 // HH:MM:SS countdown (1-second tick, paused on hidden tabs); a
 // green-pulsing "Listening to Forex Factory" status bar reports
 // poll cadence; an IntersectionObserver-driven sticky compact bar
@@ -38,6 +41,12 @@ import SlotB, { slotName as slotBName } from './slots/SlotB';
 // also carried a non-USD country-pill cluster in the FilterBar;
 // the surface committed to USD-only for SPX-positioning and the
 // country chrome was retired in favor of server-side filtering.
+// A second interim draft used a Plotly bar chart with diagonal
+// rotated x-axis labels for the implied-move visualization; on
+// any week with more than ~6 events the labels collided into an
+// unreadable wall and the chart was replaced with the custom-SVG
+// scatter described above (Eric pointed at the /earnings page's
+// dot-with-label-above pattern as the right reference).
 // Visual language intentionally mirrors the production dashboard
 // (dark card chrome, Courier New monospace accents, four-token
 // palette) so that a component developed here can be dropped into

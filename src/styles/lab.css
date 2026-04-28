@@ -2901,13 +2901,23 @@
   text-transform: uppercase;
 }
 
-.econ-events__chart {
+/* Scatter container — the SVG sizes itself from the container width
+   via ResizeObserver, so this rule just sets the well around the
+   chart. Position relative so the absolute-positioned hover tooltip
+   anchors against this box rather than the document. */
+.econ-events__scatter {
+  position: relative;
   width: 100%;
-  height: 360px;
   background: #141820;
   border: 1px solid var(--bg-card-border);
   border-radius: 4px;
   padding: 0.4rem;
+  overflow: visible;
+}
+
+.econ-events__scatter svg {
+  display: block;
+  max-width: 100%;
 }
 
 .econ-events__chart-empty {
@@ -2931,17 +2941,63 @@
   color: var(--text-primary);
 }
 
-/* Plotly inline-style font override matches the rest of the lab
-   pages so the chart's tick / hover text stays in Courier across
-   browsers where Plotly's default sans-serif inline beats class CSS. */
-.econ-events__chart text,
-.econ-events__chart .gtitle,
-.econ-events__chart .annotation-text,
-.econ-events__chart .xtitle,
-.econ-events__chart .ytitle,
-.econ-events__chart .xtick text,
-.econ-events__chart .ytick text {
-  font-family: 'Courier New', 'Liberation Mono', 'Consolas', 'DejaVu Sans Mono', monospace !important;
+/* Hover-anchored tooltip — full event + IV detail. Styles are
+   inline-set on the wrapping div for position; this class block
+   carries the inner row layout. */
+.econ-events__chart-tooltip-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  margin-bottom: 0.35rem;
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.econ-events__chart-tooltip-title {
+  font-size: 0.95rem;
+  color: #e1e8f4;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  margin-bottom: 0.2rem;
+}
+
+.econ-events__chart-tooltip-when {
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+  letter-spacing: 0.04em;
+}
+
+.econ-events__chart-tooltip-divider {
+  height: 1px;
+  background: rgba(160, 172, 200, 0.15);
+  margin: 0.5rem 0;
+}
+
+.econ-events__chart-tooltip-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.6rem;
+  line-height: 1.55;
+  font-size: 0.8rem;
+}
+
+.econ-events__chart-tooltip-label {
+  color: var(--text-secondary);
+  letter-spacing: 0.02em;
+}
+
+.econ-events__chart-tooltip-value {
+  color: #e1e8f4;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.econ-events__chart-tooltip-value--highlight {
+  color: var(--accent-blue);
+  font-weight: 700;
 }
 
 /* IV status pill in the StatusBar ------------------------------- */
@@ -3104,9 +3160,6 @@
   .econ-events__hero-imove-pct {
     font-size: 0.95rem;
   }
-  .econ-events__chart {
-    height: 300px;
-  }
   .econ-events__chart-title {
     font-size: 0.95rem;
   }
@@ -3157,8 +3210,5 @@
   .econ-events__day-chips {
     width: 100%;
     margin-left: 0;
-  }
-  .econ-events__chart {
-    height: 260px;
   }
 }
