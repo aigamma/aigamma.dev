@@ -1750,3 +1750,515 @@
     height: 320px;
   }
 }
+
+/* /beta/ Economic Events lab. Two stacked sections inside the lab
+   slot: a near-full-viewport TradingView Economic Calendar widget on
+   top, and a Forex Factory analytics panel beneath it. The widget
+   card sizes its iframe holder to calc(100vh - 220px) on desktop so
+   the visible TV calendar surface dominates the viewport, with a
+   small reserve for the lab header chrome above it and the analytics
+   summary row immediately below. The .lab-shell max-width 1100px cap
+   from above still applies — the widget fills the lab column, not the
+   full document width — so the cluster reads as "this lab's primary
+   surface" rather than as an unframed iframe. */
+.econ-events {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.econ-events__widget-card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--bg-card-border);
+  border-radius: 6px;
+  padding: 0.75rem 0.85rem 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.econ-events__widget-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.7rem;
+  flex-wrap: wrap;
+  font-family: 'Courier New', monospace;
+  letter-spacing: 0.04em;
+}
+
+.econ-events__widget-title {
+  font-size: 1.1rem;
+  color: var(--accent-blue);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.econ-events__widget-source {
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.econ-events__widget-frame {
+  width: 100%;
+  height: calc(100vh - 220px);
+  min-height: 520px;
+  border: 1px solid var(--bg-card-border);
+  border-radius: 4px;
+  background: #0d1016;
+  overflow: hidden;
+  position: relative;
+}
+
+/* Make the inner mount point and TV's iframe both fill the frame.
+   TV's loader injects a div with class .tradingview-widget-container__widget
+   that wraps the iframe; without explicit sizing the iframe sits at
+   its default 510×400 instead of filling the parent. */
+.econ-events__widget-frame .tradingview-widget-container__widget,
+.econ-events__widget-frame iframe {
+  width: 100% !important;
+  height: 100% !important;
+  display: block;
+  border: 0;
+}
+
+.econ-events__widget-error {
+  font-family: 'Courier New', monospace;
+  font-size: 0.78rem;
+  color: var(--accent-coral);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* Analytics panel ----------------------------------------------------- */
+.econ-events__analytics {
+  background-color: var(--bg-card);
+  border: 1px solid var(--bg-card-border);
+  border-radius: 6px;
+  padding: 1rem 1.1rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.econ-events__analytics-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.7rem;
+  flex-wrap: wrap;
+  font-family: 'Courier New', monospace;
+  letter-spacing: 0.04em;
+}
+
+.econ-events__analytics-title {
+  font-size: 1.1rem;
+  color: var(--accent-blue);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.econ-events__analytics-source {
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.econ-events__status {
+  padding: 2.5rem 1rem;
+  text-align: center;
+  color: var(--text-secondary);
+  font-family: 'Courier New', monospace;
+  font-size: 0.9rem;
+  letter-spacing: 0.04em;
+}
+
+.econ-events__status--error {
+  color: var(--accent-coral);
+}
+
+.econ-events__totals {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.econ-events__stat {
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid var(--bg-card-border);
+  border-radius: 4px;
+  padding: 0.55rem 0.85rem;
+  min-width: 100px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.econ-events__stat-value {
+  font-family: 'Courier New', monospace;
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.econ-events__stat-label {
+  font-family: 'Courier New', monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+.econ-events__stat--coral .econ-events__stat-value {
+  color: var(--accent-coral);
+}
+
+.econ-events__stat--amber .econ-events__stat-value {
+  color: var(--accent-amber);
+}
+
+.econ-events__stat--green .econ-events__stat-value {
+  color: var(--accent-green);
+}
+
+.econ-events__stat--muted .econ-events__stat-value {
+  color: var(--text-secondary);
+}
+
+/* Spotlight strip — one card per FOMC / CPI / NFP / GDP / etc. that
+   appears in the current week. Lays out as a horizontal-flow grid
+   that wraps to multiple rows on narrow viewports. Each card carries
+   a left border in its spotlight color so a reader can see at a
+   glance which macro family the card represents. */
+.econ-events__spotlight {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 0.7rem;
+}
+
+.econ-events__spotlight-card {
+  border: 1px solid var(--bg-card-border);
+  border-left: 3px solid;
+  border-radius: 4px;
+  padding: 0.7rem 0.9rem;
+  background: rgba(255, 255, 255, 0.025);
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.econ-events__spotlight-card--amber  { border-left-color: var(--accent-amber); }
+.econ-events__spotlight-card--coral  { border-left-color: var(--accent-coral); }
+.econ-events__spotlight-card--green  { border-left-color: var(--accent-green); }
+.econ-events__spotlight-card--blue   { border-left-color: var(--accent-blue); }
+.econ-events__spotlight-card--purple { border-left-color: var(--accent-purple); }
+.econ-events__spotlight-card--cyan   { border-left-color: var(--accent-cyan); }
+
+.econ-events__spotlight-key {
+  font-family: 'Courier New', monospace;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-primary);
+}
+
+.econ-events__spotlight-card--amber  .econ-events__spotlight-key { color: var(--accent-amber); }
+.econ-events__spotlight-card--coral  .econ-events__spotlight-key { color: var(--accent-coral); }
+.econ-events__spotlight-card--green  .econ-events__spotlight-key { color: var(--accent-green); }
+.econ-events__spotlight-card--blue   .econ-events__spotlight-key { color: var(--accent-blue); }
+.econ-events__spotlight-card--purple .econ-events__spotlight-key { color: var(--accent-purple); }
+.econ-events__spotlight-card--cyan   .econ-events__spotlight-key { color: var(--accent-cyan); }
+
+.econ-events__spotlight-when {
+  font-family: 'Courier New', monospace;
+  font-size: 0.85rem;
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.econ-events__spotlight-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-top: 0.2rem;
+}
+
+.econ-events__spotlight-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  font-family: 'Courier New', monospace;
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+  letter-spacing: 0.04em;
+}
+
+.econ-events__spotlight-row-title {
+  color: var(--text-primary);
+  text-transform: none;
+  font-size: 0.78rem;
+  flex: 1 1 100%;
+}
+
+.econ-events__spotlight-row-meta {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.econ-events__spotlight-row-meta strong {
+  color: var(--text-primary);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Two-column tables (Upcoming / Past Week) on desktop, stacked on mobile. */
+.econ-events__columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.2rem;
+}
+
+.econ-events__column {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.econ-events__column-title {
+  font-family: 'Courier New', monospace;
+  font-size: 0.85rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent-amber);
+  opacity: 0.85;
+}
+
+.econ-events__column-empty {
+  font-family: 'Courier New', monospace;
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  letter-spacing: 0.04em;
+  padding: 1rem;
+  border: 1px dashed var(--bg-card-border);
+  border-radius: 4px;
+  text-align: center;
+}
+
+.econ-events__table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--bg-card-border);
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.015);
+}
+
+.econ-events__table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-family: 'Courier New', monospace;
+  font-size: 0.78rem;
+  color: var(--text-primary);
+}
+
+.econ-events__table thead th {
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-secondary);
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-weight: 700;
+  text-align: left;
+  padding: 0.5rem 0.6rem;
+  border-bottom: 1px solid var(--bg-card-border);
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  white-space: nowrap;
+}
+
+.econ-events__table th,
+.econ-events__table td {
+  padding: 0.45rem 0.6rem;
+  border-bottom: 1px solid var(--bg-card-border);
+  vertical-align: top;
+}
+
+.econ-events__table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.econ-events__col-when {
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-secondary);
+  letter-spacing: 0.02em;
+}
+
+.econ-events__col-impact {
+  white-space: nowrap;
+  width: 1%;
+}
+
+.econ-events__col-title {
+  color: var(--text-primary);
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.econ-events__col-title a {
+  color: inherit;
+  text-decoration: none;
+  border-bottom: 1px dotted rgba(255, 255, 255, 0.18);
+}
+
+.econ-events__col-title a:hover,
+.econ-events__col-title a:focus-visible {
+  color: var(--accent-blue);
+  border-bottom-color: var(--accent-blue);
+  outline: none;
+}
+
+.econ-events__col-num {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  text-align: right;
+}
+
+.econ-events__row--past {
+  opacity: 0.78;
+}
+
+.econ-events__row--past .econ-events__col-when {
+  color: var(--text-secondary);
+}
+
+.econ-events__row--spotlight {
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.econ-events__row--amber  td:first-child { box-shadow: inset 3px 0 var(--accent-amber); }
+.econ-events__row--coral  td:first-child { box-shadow: inset 3px 0 var(--accent-coral); }
+.econ-events__row--green  td:first-child { box-shadow: inset 3px 0 var(--accent-green); }
+.econ-events__row--blue   td:first-child { box-shadow: inset 3px 0 var(--accent-blue); }
+.econ-events__row--purple td:first-child { box-shadow: inset 3px 0 var(--accent-purple); }
+.econ-events__row--cyan   td:first-child { box-shadow: inset 3px 0 var(--accent-cyan); }
+
+.econ-events__spotlight-tag {
+  display: inline-block;
+  font-family: 'Courier New', monospace;
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  padding: 0.05rem 0.35rem;
+  border-radius: 2px;
+  border: 1px solid currentColor;
+  width: fit-content;
+  text-transform: uppercase;
+  opacity: 0.78;
+}
+
+.econ-events__row--amber  .econ-events__spotlight-tag { color: var(--accent-amber); }
+.econ-events__row--coral  .econ-events__spotlight-tag { color: var(--accent-coral); }
+.econ-events__row--green  .econ-events__spotlight-tag { color: var(--accent-green); }
+.econ-events__row--blue   .econ-events__spotlight-tag { color: var(--accent-blue); }
+.econ-events__row--purple .econ-events__spotlight-tag { color: var(--accent-purple); }
+.econ-events__row--cyan   .econ-events__spotlight-tag { color: var(--accent-cyan); }
+
+.econ-events__impact {
+  font-family: 'Courier New', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.econ-events__impact--high  { color: var(--accent-coral); }
+.econ-events__impact--medium { color: var(--accent-amber); }
+.econ-events__impact--low   { color: var(--text-secondary); }
+.econ-events__impact--holiday { color: var(--accent-purple); }
+
+.econ-events__dot {
+  display: inline-block;
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.econ-events__impact-label {
+  font-size: 0.65rem;
+}
+
+.econ-events__footnote {
+  font-family: 'Courier New', monospace;
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  letter-spacing: 0.02em;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--bg-card-border);
+}
+
+.econ-events__footnote code {
+  font-size: 0.92em;
+  background: rgba(255, 255, 255, 0.04);
+  padding: 0.05rem 0.35rem;
+  border-radius: 2px;
+  border: 1px solid var(--bg-card-border);
+  color: var(--text-primary);
+}
+
+@media (max-width: 1024px) {
+  .econ-events__columns {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .econ-events__widget-frame {
+    height: calc(100vh - 280px);
+    min-height: 460px;
+  }
+  .econ-events__widget-title,
+  .econ-events__analytics-title {
+    font-size: 0.95rem;
+  }
+  .econ-events__stat {
+    min-width: 80px;
+    padding: 0.45rem 0.65rem;
+  }
+  .econ-events__stat-value {
+    font-size: 1.15rem;
+  }
+  .econ-events__table {
+    font-size: 0.72rem;
+  }
+  .econ-events__table th,
+  .econ-events__table td {
+    padding: 0.4rem 0.45rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .econ-events__widget-frame {
+    height: 70vh;
+    min-height: 380px;
+  }
+  .econ-events__spotlight {
+    grid-template-columns: 1fr;
+  }
+  .econ-events__totals {
+    gap: 0.4rem;
+  }
+}
