@@ -36,7 +36,6 @@ p/
 tmp/
 .claude/
 earnings/
-events/
 scripts/test-ingest.mjs
 scripts/backfill/.cache/
 CLAUDE.md

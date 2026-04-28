@@ -1,15 +1,22 @@
-// Slot B — Economic Events Listener (PoC, US-only)
+// Slot B — Economic Events Listener (production, US-only)
 //
-// First experimental tenant of the /beta/ shell after the SlotA-graduates
-// rotation cleared the lab. The earlier draft of this slot embedded a
-// TradingView "Economic Calendar" iframe widget on top of the Forex
-// Factory analytics panel; that draft was abandoned because the TV
-// widget rendered as a near-full-viewport white-screen funnel back to
-// tradingview.com instead of usable content. This rewrite cuts the
-// embed entirely and rebuilds the surface around the FF feed itself
-// joined with the platform's own SPX implied-volatility data, so a
-// reader sees both "what's coming" and "what's the SPX vol surface
-// pricing for it" on one page.
+// The body of the /events/ lab page (events/App.jsx mounts this
+// component as its sole tenant). Graduated from /beta/ after the
+// PoC iteration converged. The component name is preserved as
+// "SlotB" for parity with the /beta/ source — both locations carry
+// byte-identical code so a future change to either ports across
+// without drift; if the component matures further we can collapse
+// the duplicate by promoting it to src/components/.
+//
+// The earlier draft of this slot embedded a TradingView "Economic
+// Calendar" iframe widget on top of the Forex Factory analytics
+// panel; that draft was abandoned because the TV widget rendered
+// as a near-full-viewport white-screen funnel back to
+// tradingview.com instead of usable content. The current
+// implementation cuts the embed entirely and renders the surface
+// around the FF feed itself joined with the platform's own SPX
+// implied-volatility data, so a reader sees both "what's coming"
+// and "what's the SPX vol surface pricing for it" on one page.
 //
 // USD-only by design: this is an SPX-positioning surface, so the FF
 // proxy filters non-USD rows out at the server (see
@@ -20,9 +27,10 @@
 //
 // Two parallel data fetches drive the page:
 //
-//   1. /api/events-calendar — the FF weekly XML proxy. Polled every
-//      10 min; returns the USD subset (~30 events / week) with title /
-//      impact / forecast / previous / dateTime per row.
+//   1. /api/events-calendar — the FF rolling-4-week aggregator
+//      (XML for this week + HTML scrape for the next 3). Polled
+//      every 10 min; returns the USD subset (~80–100 events) with
+//      title / impact / forecast / previous / dateTime per row.
 //
 //   2. /api/data?skip_contracts=1 — the SPX intraday snapshot endpoint
 //      (the same wire path the main dashboard reads). With the
@@ -54,15 +62,20 @@
 //     past count is exposed both via the Hide-past toggle and the
 //     fading on past-event rows).
 //
-//   ImpliedMoveChart ─ Plotly bar chart, one bar per upcoming
-//     high+medium-impact USD event in scope. Y axis is implied move
-//     in % (translated to $ in hover), X axis is the chronologic
-//     event sequence labeled with day + time. Bars are colored by
-//     macro family (FOMC amber, CPI coral, NFP green, etc.) so the
-//     reader sees both magnitude and macro identity at a glance. The
-//     chart is the first explicit visualization on a page that was
-//     conspicuously chart-free; it's the page's quantitative
-//     centerpiece.
+//   TimelineStrip ─ horizontal week-of-events visualization. One row
+//     per calendar day; markers positioned at their hour-of-day X
+//     within a 6am–8pm window. Marker size keys impact (High = 6.5
+//     px, Medium = 4.5 px, Low = 3 px); marker color keys family.
+//     Today's row carries an accent-amber dashed NOW vertical line.
+//     Past markers fade. Hover any marker for the same forecast /
+//     previous / implied-move detail the schedule's click-to-expand
+//     carries. Replaced four prior chart drafts (Plotly bar with
+//     diagonal labels, custom SVG scatter with cluster labels above
+//     dots, term-structure overlay with rangeslider, and a
+//     KeyEventsList panel) — all of which collapsed under their
+//     own informational density on any reasonable week of data.
+//     The timeline keeps only what a desk reader can use at a
+//     glance: WHEN events sit relative to one another and to NOW.
 //
 //   SpotlightStrip ─ one card per macro family with at least one
 //     event in scope this week.
@@ -424,8 +437,8 @@ export default function SlotB() {
         ) : (
           <div className="econ-events__hero econ-events__hero--empty">
             <div className="econ-events__hero-empty-text">
-              No remaining events this week inside the current scope.
-              Broaden the filter or wait for next week's feed refresh.
+              No upcoming events match the current filter scope.
+              Broaden the impact filter or wait for the next feed refresh.
             </div>
           </div>
         )}
@@ -433,7 +446,7 @@ export default function SlotB() {
 
       <Totals scoped={scoped} upcoming={upcoming} />
 
-      <ImpliedMoveChart events={chartEvents} ivContext={ivContext} />
+      <TimelineStrip events={chartEvents} now={now} />
 
       <SpotlightStrip events={scoped} now={now} />
 
@@ -445,15 +458,16 @@ export default function SlotB() {
       />
 
       <footer className="econ-events__footnote">
-        Source: Forex Factory weekly XML at <code>nfs.faireconomy.media/ff_calendar_thisweek.xml</code> +
-        the platform's SPX intraday snapshot at <code>/api/data</code> for the implied-move overlays.
+        Source: Forex Factory rolling 4-week aggregate (XML for the current week from
+        <code>nfs.faireconomy.media/ff_calendar_thisweek.xml</code> plus the next three weeks
+        scraped from <code>forexfactory.com/calendar?week=&lt;slug&gt;</code>) joined with the
+        platform's SPX intraday snapshot at <code>/api/data</code> for the implied-move overlays.
         The FF proxy filters to USD events only at the server (this is an SPX-positioning surface).
         Implied move per event = <code>spot × ATM IV × √(DTE/365)</code> evaluated against the next
         SPX expiration AT-OR-AFTER the event date — the move you'd be hedging if you bought a
         straddle at that expiration today, conditional on the event being the next material catalyst.
         Click any row to expose its FF source link, an .ics calendar download, and a 5-minute
-        lead-time notification toggle. Times render in your local timezone after server-side
-        normalization to America/New_York.
+        lead-time notification toggle. Times render in your local timezone.
       </footer>
     </div>
   );
@@ -813,34 +827,33 @@ function Stat({ label, value, accent }) {
   );
 }
 
-// ── Implied-move scatter chart ────────────────────────────────────────
-// Custom SVG scatter mirroring the /earnings page's chart pattern (see
-// src/components/EarningsCalendar.jsx ScatterChart). X axis is the set
-// of dates that carry at least one qualifying event in scope; Y axis
-// is implied move in %. Each event is a dot at (event_date, move%);
-// labels above the dot give the macro family abbreviation (FOMC,
-// CPI, NFP, ...) or a short title slug when no family matches. Same-
-// day same-bucket-Y events stack their labels into a comma-joined
-// group so the chart never carries diagonal text or overlapping
-// markers — the goal here is for the reader to see the week's vol
-// catalyst shape at a glance, with full per-event detail living in
-// the hover-anchored tooltip rather than on the canvas itself.
+
+// ── Timeline strip ───────────────────────────────────────────────────
+// Horizontal week-of-events strip. The earlier ImpliedMoveChart
+// drafts (Plotly bar, custom SVG scatter, term-structure overlay,
+// rangeslider, key-events panel) were all discarded — their common
+// flaw was that they tried to encode multiple dimensions on one
+// canvas (date AND implied-move AND family AND impact AND text-
+// labels-without-collision) and lost legibility on every reasonable
+// week of data. This component keeps only what a desk reader can
+// actually use at a glance: WHEN events sit relative to one another
+// and to the current moment. Implied move, forecast, previous,
+// full title, family — those all live in the schedule rows below
+// and the hover tooltip here.
 //
-// The earlier draft used a Plotly bar chart with -38° rotated
-// x-axis labels per row; on a typical week with 8-12 qualifying
-// events the diagonal labels rendered as an unreadable wall of
-// text below the bars. Eric's correction was to mirror the
-// earnings-page treatment, where dot scatter + horizontal label
-// stacks + hover details cleanly handles the same "many events
-// per week" cardinality.
-function ImpliedMoveChart({ events, ivContext }) {
+// Layout: one row per calendar day in the event set; each row has
+// a small label cell (day name + date + count) on the left and a
+// horizontal SVG track on the right showing event markers
+// positioned at their hour-of-day X within a 6am–8pm window. The
+// "today" row carries an accent-amber dashed NOW vertical line.
+// Past markers fade to 0.45 opacity. Hover any marker for the
+// same forecast / previous / implied-move detail the schedule's
+// click-to-expand carries.
+function TimelineStrip({ events, now }) {
   const containerRef = useRef(null);
   const [containerWidth, setContainerWidth] = useState(900);
   const [hovered, setHovered] = useState(null);
 
-  // ResizeObserver-driven width so the SVG re-renders with the right
-  // dimensions when the lab shell width changes (e.g. dev tools open
-  // / phone rotate). Matches the EarningsCalendar pattern.
   useEffect(() => {
     const el = containerRef.current;
     if (!el || typeof ResizeObserver === 'undefined') return;
@@ -852,362 +865,233 @@ function ImpliedMoveChart({ events, ivContext }) {
     return () => obs.disconnect();
   }, []);
 
-  // ---- All hooks must be called BEFORE any early return. Earlier
-  // versions of this component placed the `labelGroups` and
-  // `pointMeta` useMemo calls below the empty-state early returns,
-  // which produced a React #310 ("rendered more hooks than during
-  // the previous render") on the first transition from
-  // ivContext=null to ivContext=present. Hoisting all useMemo calls
-  // above the conditional renders fixes the violation. The empty-
-  // state branches read these memos but get back empty arrays /
-  // empty maps, which is fine because they don't actually use the
-  // values — they just need the hook count to match across
-  // renders. ----
-
-  const chartDays = useMemo(() => {
+  // Group events by calendar date.
+  const dayBlocks = useMemo(() => {
     const byDate = new Map();
     for (const e of events) {
       if (!byDate.has(e.date)) byDate.set(e.date, []);
       byDate.get(e.date).push(e);
     }
-    return [...byDate.keys()]
-      .sort()
-      .map((iso) => ({
-        isoDate: iso,
-        dow: new Date(`${iso}T12:00:00`).getDay(),
-        events: byDate.get(iso).sort((a, b) => a._ms - b._ms),
+    return [...byDate.entries()]
+      .sort((a, b) => a[0].localeCompare(b[0]))
+      .map(([date, list]) => ({
+        date,
+        events: list.sort((a, b) => a._ms - b._ms),
       }));
   }, [events]);
 
-  // Flatten chartDays to per-event points carrying their dayIdx.
-  // Memoized so labelGroups (which depends on points) only
-  // recomputes when chartDays actually changes, not on every render.
-  const points = useMemo(
-    () =>
-      chartDays.flatMap((d, dayIdx) =>
-        d.events.map((e) => ({ ...e, dayIdx, isoDate: d.isoDate })),
-      ),
-    [chartDays],
-  );
-
-  // Cluster dots that fall in the same (dayIdx, Y bucket of 0.05%)
-  // so overlapping markers spread horizontally and labels stack
-  // into a comma-joined group. Bucket width is tighter than the
-  // earnings-page chart (0.75%) because most same-date events here
-  // map to the same SPX expiration's IV — they literally share
-  // the same Y, not just neighbor it.
-  const labelGroups = useMemo(() => {
-    const bucket = 0.05;
-    const groups = new Map();
-    for (const p of points) {
-      const yBkt = Math.round(p._impliedMove.movePct / bucket);
-      const key = `${p.dayIdx}:${yBkt}`;
-      if (!groups.has(key)) groups.set(key, { dayIdx: p.dayIdx, yBkt, members: [] });
-      groups.get(key).members.push(p);
-    }
-    return [...groups.values()];
-  }, [points]);
-
-  const pointMeta = useMemo(() => {
-    const map = new Map();
-    for (const g of labelGroups) {
-      g.members.forEach((m, i) => map.set(m._id, { group: g, idxInGroup: i }));
-    }
-    return map;
-  }, [labelGroups]);
-
-  // ---- End of hook calls. Early returns are safe below. ----
-
-  if (!ivContext) {
-    return (
-      <section className="econ-events__chart-card">
-        <div className="econ-events__chart-meta">
-          <span className="econ-events__chart-title">SPX Implied Move per Event</span>
-          <span className="econ-events__chart-source">awaiting /api/data — vol surface unavailable</span>
-        </div>
-        <div className="econ-events__chart-empty">
-          The vol-surface fetch hasn't returned yet (or the SPX intraday ingest is currently down).
-          Implied-move overlays will populate as soon as <code>/api/data</code> answers.
-        </div>
-      </section>
-    );
-  }
+  // The title is derived from the actual data on the page rather
+  // than a fixed "Next 4 Weeks" promise — the function attempts to
+  // fetch 4 weeks, but the HTML scrape for any of weeks 1-3 can fail
+  // (Cloudflare bot-challenge spike, FF rate-limit, etc.) and on
+  // those days the page only carries the XML week. A fixed-horizon
+  // header would mislead the reader into thinking 4 weeks of data
+  // is shown when it isn't.
   if (events.length === 0) {
     return (
-      <section className="econ-events__chart-card">
-        <div className="econ-events__chart-meta">
-          <span className="econ-events__chart-title">SPX Implied Move per Event</span>
-          <span className="econ-events__chart-source">no qualifying events</span>
+      <section className="econ-events__timeline">
+        <div className="econ-events__timeline-meta">
+          <span className="econ-events__timeline-title">Upcoming Catalysts</span>
+          <span className="econ-events__timeline-source">no qualifying events in scope</span>
         </div>
-        <div className="econ-events__chart-empty">
-          No upcoming high- or medium-impact events in the current scope. The chart populates
-          when the FF feed carries a print whose date resolves to an SPX expiration in the
-          fetched surface.
+        <div className="econ-events__timeline-empty">
+          The timeline populates when the FF feed carries an upcoming event in
+          the active impact filter.
         </div>
       </section>
     );
   }
 
-  // Layout. Top padding (52px) gives multi-event cluster labels room
-  // to render above the topmost dot without overhanging the chart
-  // border or colliding with the meta header. Left padding (76px)
-  // gives the y-axis title and tick labels (e.g. "1.50%") clear
-  // breathing room. Right padding (60px) leaves room for a label
-  // anchored to the rightmost column to extend leftward without
-  // butting against the plot border.
-  const width = Math.max(Math.min(containerWidth - 16, 1100), 320);
-  const height = Math.round(Math.min(width * 0.6, 560));
-  const PADDING = { top: 52, right: 60, bottom: 68, left: 76 };
-  const plotW = width - PADDING.left - PADDING.right;
-  const plotH = height - PADDING.top - PADDING.bottom;
+  const TRACK_LABEL_WIDTH = 88;
+  const TRACK_HORIZ_PAD = 14;
+  const trackWidth = Math.max(containerWidth - TRACK_LABEL_WIDTH - TRACK_HORIZ_PAD * 2, 200);
+  const ROW_HEIGHT = 44;
 
-  // Y axis: top = 1.15 × max move, rounded up to nearest 0.5%. The
-  // 1.15 (vs the prior 1.10) headroom factor gives the topmost
-  // cluster's label more vertical air so it never crowds the chart
-  // border. Floor at 1.5% so a low-vol week doesn't squish all dots
-  // against the top gridline.
-  const yMaxRaw = Math.max(0.015, Math.max(...events.map((e) => e._impliedMove.movePct / 100)));
-  const yMax = Math.ceil((yMaxRaw * 1.15) * 200) / 200;
+  const todayIso = isoDateLocal(new Date(now));
 
-  const xForDay = (dayIdx) => {
-    if (chartDays.length <= 1) return PADDING.left + plotW / 2;
-    return PADDING.left + (plotW * dayIdx) / (chartDays.length - 1);
-  };
-  const yForMove = (movePct) => PADDING.top + plotH * (1 - (movePct / 100) / yMax);
-
-  const hoveredKey = hovered ? hovered._id : null;
-
-  // Y-axis tick step: 0.25% under 2%, 0.5% under 5%, 1% above.
-  const yStep = yMax > 0.05 ? 0.01 : yMax > 0.02 ? 0.005 : 0.0025;
+  // Compute the actual horizon from the data: latest event's date.
+  // The title and meta line both quote this so the page never claims
+  // a wider horizon than what's actually shown.
+  const lastEventMs = events.reduce((m, e) => (e._ms > m ? e._ms : m), 0);
+  const horizonDate = lastEventMs > 0 ? new Date(lastEventMs) : null;
+  const horizonLabel = horizonDate
+    ? horizonDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
+    : null;
+  const horizonDays = horizonDate
+    ? Math.max(1, Math.ceil((horizonDate.getTime() - now) / 86400000))
+    : 0;
 
   return (
-    <section className="econ-events__chart-card">
-      <div className="econ-events__chart-meta">
-        <span className="econ-events__chart-title">SPX Implied Move per Event</span>
-        <span className="econ-events__chart-source">
-          spot ${formatNum(ivContext.spotPrice, 0)} · {events.length} event{events.length === 1 ? '' : 's'} ·
-          {' '}±1σ move = spot × ATM&nbsp;IV × √(DTE/365) at next expiration
+    <section className="econ-events__timeline">
+      <div className="econ-events__timeline-meta">
+        <span className="econ-events__timeline-title">
+          {horizonLabel ? `Catalysts through ${horizonLabel}` : 'Upcoming Catalysts'}
+        </span>
+        <span className="econ-events__timeline-source">
+          {events.length} event{events.length === 1 ? '' : 's'} · {horizonDays} day{horizonDays === 1 ? '' : 's'} forward · circle size keys impact, color keys family
         </span>
       </div>
-      <div ref={containerRef} className="econ-events__scatter">
-        <svg width={width} height={height} role="img" aria-label="SPX implied move per event scatter chart">
-          {/* Y gridlines + tick labels */}
-          {(() => {
-            const ticks = [];
-            for (let v = 0; v <= yMax + 1e-9; v += yStep) {
-              const y = yForMove(v * 100);
-              ticks.push(
-                <g key={v}>
-                  <line
-                    x1={PADDING.left} x2={width - PADDING.right}
-                    y1={y} y2={y}
-                    stroke="rgba(160, 172, 200, 0.10)"
-                    strokeDasharray="2 4"
-                  />
-                  <text
-                    x={PADDING.left - 8}
-                    y={y + 4}
-                    textAnchor="end"
-                    fontFamily="Courier New, monospace"
-                    fontSize={12}
-                    fill="#9aa6c2"
-                  >
-                    {(v * 100).toFixed(yStep < 0.005 ? 2 : 1)}%
-                  </text>
-                </g>,
-              );
-            }
-            return ticks;
-          })()}
+      <div className="econ-events__timeline-rows" ref={containerRef}>
+        {dayBlocks.map((block) => {
+          const dayDate = new Date(`${block.date}T12:00:00`);
+          const dayName = dayDate.toLocaleDateString(undefined, { weekday: 'short' }).toUpperCase();
+          const dayShort = dayDate.toLocaleDateString(undefined, { month: 'numeric', day: 'numeric' });
+          const isToday = block.date === todayIso;
 
-          {/* X axis day columns */}
-          {chartDays.map((d, i) => (
-            <g key={d.isoDate}>
-              <line
-                x1={xForDay(i)} x2={xForDay(i)}
-                y1={PADDING.top} y2={height - PADDING.bottom}
-                stroke="rgba(160, 172, 200, 0.06)"
-              />
-              <text
-                x={xForDay(i)}
-                y={height - PADDING.bottom + 22}
-                textAnchor="middle"
-                fontFamily="Courier New, monospace"
-                fontSize={13}
-                fill="#cfd6e6"
-              >
-                {formatShortDate(d.isoDate)}
-              </text>
-              <text
-                x={xForDay(i)}
-                y={height - PADDING.bottom + 40}
-                textAnchor="middle"
-                fontFamily="Courier New, monospace"
-                fontSize={11}
-                fill="#7e8aa0"
-              >
-                {['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d.dow] || ''}
-              </text>
-            </g>
-          ))}
-
-          {/* Y axis title */}
-          <text
-            x={-(PADDING.top + plotH / 2)}
-            y={18}
-            transform="rotate(-90)"
-            textAnchor="middle"
-            fontFamily="Courier New, monospace"
-            fontSize={14}
-            fontWeight={600}
-            fill="#cfd6e6"
-          >
-            Implied move (%)
-          </text>
-
-          {/* Plot border */}
-          <rect
-            x={PADDING.left} y={PADDING.top}
-            width={plotW} height={plotH}
-            fill="none"
-            stroke="rgba(160, 172, 200, 0.15)"
-          />
-
-          {/* Dots */}
-          {points.map((p) => {
-            const meta = pointMeta.get(p._id);
-            const dotsInGroup = meta ? meta.group.members.length : 1;
-            const idx = meta ? meta.idxInGroup : 0;
-            const offset = (idx - (dotsInGroup - 1) / 2) * 7;
-            const cx = xForDay(p.dayIdx) + offset;
-            const cy = yForMove(p._impliedMove.movePct);
-            const color = p._spotlight ? p._spotlight.hex : impactHex(p.impact);
-            const isHovered = hoveredKey === p._id;
-            return (
-              <circle
-                key={p._id}
-                cx={cx}
-                cy={cy}
-                r={isHovered ? 8 : 5}
-                fill={color}
-                stroke={isHovered ? '#f0a030' : 'rgba(8, 11, 16, 0.4)'}
-                strokeWidth={isHovered ? 2 : 1}
-                style={{ cursor: 'pointer', transition: 'r 0.12s ease' }}
-                onMouseEnter={() => setHovered(p)}
-                onMouseLeave={() => setHovered(null)}
-              />
-            );
-          })}
-
-          {/* Stacked labels above each cluster — multi-member groups
-              join with " · " and clip with ellipsis. textAnchor flips
-              based on column position so labels at the leftmost /
-              rightmost columns extend INTO the plot area rather than
-              overhang the Y-axis tick labels (the prior centered
-              anchor put a 200-character cluster like
-              "FOMC · GDP · Employment · JOBS · …" centered at the
-              left padding column, where its left half overflowed the
-              plot box and collided with the y-axis labels). */}
-          {labelGroups.map((g) => {
-            const member = g.members[0];
-            const cx = xForDay(g.dayIdx);
-            const cy = yForMove(member._impliedMove.movePct);
-            const labels = g.members.map((m) =>
-              m._spotlight ? m._spotlight.label : shortLabelForEvent(m.title),
-            );
-            // Dedupe consecutive same-family entries so a 3-row FOMC
-            // afternoon collapses to a single "FOMC" tag rather than
-            // "FOMC · FOMC · FOMC". The cap below is per-cluster,
-            // applied after dedup, so a Thursday 12:30 cluster of
-            // [GDP, PCE, Employment, JOBS, GDP] dedups to those four
-            // distinct families and renders without truncation.
-            const dedup = [];
-            for (const l of labels) {
-              if (dedup[dedup.length - 1] !== l) dedup.push(l);
-            }
-            // Cap at 5 entries before truncating with ellipsis. Per-
-            // cluster label widths past 5 entries start to collide
-            // with the next column even at the tightened 6-char
-            // shortLabelForEvent cap; 5 with " · " separators sits
-            // around 30-35 chars worst case, comfortable for a
-            // ~150px column allotment in a 900px chart. Family
-            // labels (FOMC, CPI, NFP, GDP, PCE, PPI, ISM, JOBS) are
-            // 3-4 chars each so 5 family entries renders ~25 chars.
-            const CAP = 5;
-            const display = dedup.length > CAP
-              ? `${dedup.slice(0, CAP).join(' · ')} · …`
-              : dedup.join(' · ');
-
-            // Anchor at the column edge: leftmost column anchors to
-            // 'start' (label extends rightward from the dot's X);
-            // rightmost column anchors to 'end' (label extends
-            // leftward); inner columns stay centered on the dot.
-            const isLeftEdge = g.dayIdx === 0;
-            const isRightEdge = g.dayIdx === chartDays.length - 1 && chartDays.length > 1;
-            const textAnchor = isLeftEdge ? 'start' : isRightEdge ? 'end' : 'middle';
-            const xOffset = isLeftEdge ? -4 : isRightEdge ? 4 : 0;
-
-            return (
-              <text
-                key={`lbl-${g.dayIdx}-${g.yBkt}`}
-                x={cx + xOffset}
-                y={cy - 12}
-                textAnchor={textAnchor}
-                fontFamily="Courier New, monospace"
-                fontSize={11.5}
-                fontWeight={600}
-                fill="#dde4f0"
-                style={{ pointerEvents: 'none' }}
-              >
-                {display}
-              </text>
-            );
-          })}
-        </svg>
-
-        {/* Hover-anchored tooltip with full event detail. */}
-        {hovered && (() => {
-          const meta = pointMeta.get(hovered._id);
-          const dotsInGroup = meta ? meta.group.members.length : 1;
-          const idx = meta ? meta.idxInGroup : 0;
-          const offset = (idx - (dotsInGroup - 1) / 2) * 7;
-          const cx = xForDay(hovered.dayIdx) + offset;
-          const cy = yForMove(hovered._impliedMove.movePct);
-          const openLeft = cx > width * 0.55;
-          const openDown = cy < height * 0.30;
-          const o = 14;
-          // Tooltip widened from 240/320 → 280/400 so wider event
-          // titles (e.g. "Advance GDP Price Index q/q") render on a
-          // single line, plus word-wrap on the title row catches the
-          // rare row that exceeds even the 400px cap.
-          const style = {
-            position: 'absolute',
-            zIndex: 5,
-            pointerEvents: 'none',
-            background: 'rgba(8, 11, 16, 0.96)',
-            border: '1px solid rgba(160, 172, 200, 0.35)',
-            borderRadius: '4px',
-            padding: '0.7rem 0.95rem',
-            fontFamily: 'Courier New, monospace',
-            fontSize: '0.85rem',
-            color: '#e1e8f4',
-            minWidth: 280,
-            maxWidth: 400,
-            lineHeight: 1.5,
-            boxShadow: '0 2px 12px rgba(0, 0, 0, 0.6)',
+          // X scale within this day: 6:00 AM (0.0 frac) to 8:00 PM
+          // (1.0 frac). The bulk of US macro events fall in this
+          // 14-hour window; events outside it (e.g. an 11pm Trump
+          // speech) clip to the window edges.
+          const HOUR_START = 6;
+          const HOUR_END = 20;
+          const xForEvent = (e) => {
+            const d = e._at;
+            const hour = d.getHours() + d.getMinutes() / 60;
+            const clamped = Math.min(Math.max(hour, HOUR_START), HOUR_END);
+            const frac = (clamped - HOUR_START) / (HOUR_END - HOUR_START);
+            return frac * trackWidth;
           };
-          if (openLeft) style.right = (width - cx + o);
-          else style.left = cx + o;
-          if (openDown) style.top = cy + o;
-          else style.bottom = (height - cy + o);
-          return <ChartTooltip event={hovered} style={style} />;
-        })()}
+
+          let nowX = null;
+          if (isToday) {
+            const nowDate = new Date(now);
+            const nowHour = nowDate.getHours() + nowDate.getMinutes() / 60;
+            if (nowHour >= HOUR_START && nowHour <= HOUR_END) {
+              const frac = (nowHour - HOUR_START) / (HOUR_END - HOUR_START);
+              nowX = frac * trackWidth;
+            }
+          }
+
+          return (
+            <div key={block.date} className={`econ-events__timeline-row${isToday ? ' econ-events__timeline-row--today' : ''}`}>
+              <div className="econ-events__timeline-label">
+                <span className="econ-events__timeline-day">{dayName}</span>
+                <span className="econ-events__timeline-date">{dayShort}</span>
+                <span className="econ-events__timeline-count">{block.events.length}</span>
+              </div>
+              <div className="econ-events__timeline-track" style={{ height: ROW_HEIGHT }}>
+                <svg
+                  width={trackWidth}
+                  height={ROW_HEIGHT}
+                  style={{ display: 'block' }}
+                  role="img"
+                  aria-label={`${dayName} ${dayShort} timeline`}
+                >
+                  <line
+                    x1={0} x2={trackWidth}
+                    y1={ROW_HEIGHT / 2} y2={ROW_HEIGHT / 2}
+                    stroke="rgba(160, 172, 200, 0.18)"
+                    strokeWidth={1}
+                  />
+
+                  {[8, 10, 12, 14, 16, 18].map((hr) => {
+                    const frac = (hr - HOUR_START) / (HOUR_END - HOUR_START);
+                    const x = frac * trackWidth;
+                    return (
+                      <g key={hr}>
+                        <line
+                          x1={x} x2={x}
+                          y1={ROW_HEIGHT / 2 - 4} y2={ROW_HEIGHT / 2 + 4}
+                          stroke="rgba(160, 172, 200, 0.18)"
+                        />
+                        <text
+                          x={x}
+                          y={ROW_HEIGHT - 4}
+                          textAnchor="middle"
+                          fontFamily="Courier New, monospace"
+                          fontSize={9}
+                          fill="rgba(160, 172, 200, 0.55)"
+                        >
+                          {hr === 12 ? '12p' : hr > 12 ? `${hr - 12}p` : `${hr}a`}
+                        </text>
+                      </g>
+                    );
+                  })}
+
+                  {nowX != null && (
+                    <g>
+                      <line
+                        x1={nowX} x2={nowX}
+                        y1={2} y2={ROW_HEIGHT - 14}
+                        stroke="#f0a030"
+                        strokeWidth={1.5}
+                        strokeDasharray="2 3"
+                      />
+                      <text
+                        x={nowX + 3}
+                        y={10}
+                        fontFamily="Courier New, monospace"
+                        fontSize={9}
+                        fontWeight={700}
+                        fill="#f0a030"
+                      >
+                        NOW
+                      </text>
+                    </g>
+                  )}
+
+                  {block.events.map((e) => {
+                    const cx = xForEvent(e);
+                    const cy = ROW_HEIGHT / 2;
+                    const r = e.impact === 'High' ? 6.5
+                      : e.impact === 'Medium' ? 4.5
+                      : 3;
+                    const color = e._spotlight ? e._spotlight.hex : impactHex(e.impact);
+                    const past = e._ms < now;
+                    const isHovered = hovered?._id === e._id;
+                    return (
+                      <circle
+                        key={e._id}
+                        cx={cx}
+                        cy={cy}
+                        r={isHovered ? r + 2.5 : r}
+                        fill={color}
+                        stroke={isHovered ? '#f0a030' : 'rgba(8, 11, 16, 0.55)'}
+                        strokeWidth={isHovered ? 2 : 1}
+                        opacity={past && !isHovered ? 0.45 : 1}
+                        style={{ cursor: 'pointer', transition: 'r 0.12s ease' }}
+                        onMouseEnter={() => setHovered(e)}
+                        onMouseLeave={() => setHovered(null)}
+                      />
+                    );
+                  })}
+                </svg>
+
+                {hovered && hovered.date === block.date && (() => {
+                  const cx = xForEvent(hovered);
+                  const openLeft = cx > trackWidth * 0.55;
+                  const o = 14;
+                  const style = {
+                    position: 'absolute',
+                    zIndex: 5,
+                    pointerEvents: 'none',
+                    background: 'rgba(8, 11, 16, 0.96)',
+                    border: '1px solid rgba(160, 172, 200, 0.35)',
+                    borderRadius: '4px',
+                    padding: '0.7rem 0.95rem',
+                    fontFamily: 'Courier New, monospace',
+                    fontSize: '0.82rem',
+                    color: '#e1e8f4',
+                    minWidth: 260,
+                    maxWidth: 360,
+                    lineHeight: 1.5,
+                    boxShadow: '0 2px 12px rgba(0, 0, 0, 0.6)',
+                    bottom: ROW_HEIGHT + 4,
+                  };
+                  if (openLeft) style.right = (trackWidth - cx + o);
+                  else style.left = cx + o;
+                  return <TimelineTooltip event={hovered} style={style} />;
+                })()}
+              </div>
+            </div>
+          );
+        })}
       </div>
     </section>
   );
 }
 
-function ChartTooltip({ event: e, style }) {
+function TimelineTooltip({ event: e, style }) {
   const family = e._spotlight;
   const familyColor = family ? family.hex : impactHex(e.impact);
   return (
@@ -1225,51 +1109,32 @@ function ChartTooltip({ event: e, style }) {
       <div className="econ-events__chart-tooltip-when">
         {formatLongWhen(e._at, e.dayKind)}
       </div>
+      {e._impliedMove && (
+        <>
+          <div className="econ-events__chart-tooltip-divider" />
+          <div className="econ-events__chart-tooltip-row">
+            <span className="econ-events__chart-tooltip-label">Implied move</span>
+            <span className="econ-events__chart-tooltip-value econ-events__chart-tooltip-value--highlight">
+              ±{formatPct(e._impliedMove.movePct)} (±${formatNum(e._impliedMove.moveDollars, 0)})
+            </span>
+          </div>
+          <div className="econ-events__chart-tooltip-row">
+            <span className="econ-events__chart-tooltip-label">ATM IV</span>
+            <span className="econ-events__chart-tooltip-value">{formatPct(e._impliedMove.atmIv * 100)}</span>
+          </div>
+        </>
+      )}
       <div className="econ-events__chart-tooltip-divider" />
-      <ChartTooltipRow
-        label="Implied move"
-        value={`±${formatPct(e._impliedMove.movePct)} (±$${formatNum(e._impliedMove.moveDollars, 0)})`}
-        highlight
-      />
-      <ChartTooltipRow label="ATM IV" value={formatPct(e._impliedMove.atmIv * 100)} />
-      <ChartTooltipRow label="DTE" value={formatNum(e._impliedMove.dte, 1)} />
-      <ChartTooltipRow label="Next exp" value={e._impliedMove.expiration} />
-      <div className="econ-events__chart-tooltip-divider" />
-      <ChartTooltipRow label="Forecast" value={e.forecast || '—'} />
-      <ChartTooltipRow label="Previous" value={e.previous || '—'} />
+      <div className="econ-events__chart-tooltip-row">
+        <span className="econ-events__chart-tooltip-label">Forecast</span>
+        <span className="econ-events__chart-tooltip-value">{e.forecast || '—'}</span>
+      </div>
+      <div className="econ-events__chart-tooltip-row">
+        <span className="econ-events__chart-tooltip-label">Previous</span>
+        <span className="econ-events__chart-tooltip-value">{e.previous || '—'}</span>
+      </div>
     </div>
   );
-}
-
-function ChartTooltipRow({ label, value, highlight }) {
-  return (
-    <div className="econ-events__chart-tooltip-row">
-      <span className="econ-events__chart-tooltip-label">{label}</span>
-      <span className={`econ-events__chart-tooltip-value${highlight ? ' econ-events__chart-tooltip-value--highlight' : ''}`}>
-        {value}
-      </span>
-    </div>
-  );
-}
-
-// Short human-readable label for non-family events, used as the
-// scatter label above the dot when the title doesn't match any of
-// the spotlight families. First word, capped at 6 chars + ellipsis
-// so multi-event clusters stay narrow enough to fit in their
-// column's allotment without colliding with the next column or
-// overhanging the chart's left/right edges.
-function shortLabelForEvent(title) {
-  if (!title) return '?';
-  const cleaned = title.replace(/\s+m\/m$|\s+y\/y$|\s+q\/q$/i, '').trim();
-  const firstWord = cleaned.split(/\s+/)[0];
-  if (firstWord.length > 6) return firstWord.slice(0, 5) + '…';
-  return firstWord;
-}
-
-function formatShortDate(iso) {
-  if (!iso) return '';
-  const [, m, d] = iso.split('-');
-  return `${m}/${d}`;
 }
 
 // ── Spotlight strip ───────────────────────────────────────────────────

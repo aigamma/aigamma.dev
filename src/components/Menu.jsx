@@ -55,6 +55,7 @@ const MENU_ITEMS = [
   { type: 'header', label: 'Tools' },
   { type: 'item', href: '/stocks/',         label: '/stocks/',         desc: 'Top option-liquid single names, performance + rotation' },
   { type: 'item', href: '/heatmap/',        label: '/heatmap/',        desc: 'Equal-size top-250-by-options-volume heatmap by sector' },
+  { type: 'item', href: '/events/',         label: '/events/',         desc: 'US macro release calendar with SPX implied-move overlays' },
   { type: 'item', href: '/expiring-gamma/', label: '/expiring-gamma/', desc: 'Gamma scheduled to expire per date' },
   { type: 'item', href: '/parity/',         label: '/parity/',         desc: 'Put-call parity, box-spread rate, implied forward' },
   { type: 'header', label: 'Research' },

@@ -99,6 +99,7 @@ const TOOLS_ITEMS = [
   { href: '/seasonality/',    label: '/seasonality/',    desc: 'SPX intraday and daily seasonality grids' },
   { href: '/stocks/',         label: '/stocks/',         desc: 'Top option-liquid single names, performance + rotation' },
   { href: '/heatmap/',        label: '/heatmap/',        desc: 'Equal-size top-250-by-options-volume heatmap by sector' },
+  { href: '/events/',         label: '/events/',         desc: 'US macro release calendar with SPX implied-move overlays' },
   { href: '/expiring-gamma/', label: '/expiring-gamma/', desc: 'Gamma scheduled to expire per date' },
   { href: '/parity/',         label: '/parity/',         desc: 'Put-call parity, box-spread rate, implied forward' },
 ];
