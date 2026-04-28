@@ -1527,19 +1527,39 @@ function EventRow({ event: e, past, expanded, onToggle }) {
 
 function EventRowDetail({ event: e, past }) {
   const onIcs = useCallback(() => downloadIcs(e), [e]);
+  const [news, setNews] = useState({ status: 'loading', items: [] });
+
+  // Lazy fetch the news feed when the row is expanded. The function
+  // proxies Google News RSS keyed off a query derived from the
+  // event title (or "{TICKER} earnings" for earnings rows). Cached
+  // 30 min on the edge so re-expanding the same row is essentially
+  // free — the cache key is the query string, not the row id, so
+  // an FOMC Statement and an FOMC Press Conference share the same
+  // upstream fetch when they land on the same query (they don't
+  // here — they have distinct titles — but the principle holds).
+  useEffect(() => {
+    let cancelled = false;
+    const query = newsQueryForEvent(e);
+    if (!query) return undefined;
+    setNews({ status: 'loading', items: [] });
+    fetch(`/api/event-news?q=${encodeURIComponent(query)}`, {
+      headers: { Accept: 'application/json' },
+    })
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error(`HTTP ${r.status}`))))
+      .then((json) => {
+        if (cancelled) return;
+        setNews({ status: 'ready', items: Array.isArray(json.items) ? json.items : [] });
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setNews({ status: 'error', items: [] });
+      });
+    return () => { cancelled = true; };
+  }, [e._id]);
+
   return (
     <div className="econ-events__row-detail">
       <div className="econ-events__row-detail-row">
-        {e.url && (
-          <a
-            className="econ-events__row-action econ-events__row-action--link"
-            href={e.url}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Open source page ↗
-          </a>
-        )}
         <button
           type="button"
           className="econ-events__row-action"
@@ -1564,11 +1584,76 @@ function EventRowDetail({ event: e, past }) {
         previous={e.previous}
         title={e.title}
       />
-      {past && e.actual == null && (
-        <div className="econ-events__row-detail-note">
-          This event has been released. The public feed does not publish post-print actual values; click "Open source page" to see what hit the wire.
+      <NewsFeed news={news} />
+    </div>
+  );
+}
+
+// Build the news query string for an event. Macro events use the
+// title with the trailing m/m / y/y / q/q rate-frequency suffix
+// stripped (the suffix is irrelevant to news search and pollutes
+// the query). Earnings rows use "{TICKER} earnings" so a row for
+// Apple's quarterly maps to "AAPL earnings" — Google News returns
+// pre-print analyst expectations and post-print results equally
+// well from that anchor.
+function newsQueryForEvent(e) {
+  if (!e) return '';
+  if (e._kind === 'earnings') {
+    const ticker = e._earnings?.ticker;
+    return ticker ? `${ticker} earnings` : '';
+  }
+  return (e.title || '').replace(/\s+m\/m$|\s+y\/y$|\s+q\/q$/i, '').trim();
+}
+
+function NewsFeed({ news }) {
+  if (news.status === 'loading') {
+    return (
+      <div className="econ-events__news">
+        <div className="econ-events__news-label">News</div>
+        <div className="econ-events__news-status">loading…</div>
+      </div>
+    );
+  }
+  if (news.status === 'error') {
+    return (
+      <div className="econ-events__news">
+        <div className="econ-events__news-label">News</div>
+        <div className="econ-events__news-status econ-events__news-status--error">
+          news fetch failed
         </div>
-      )}
+      </div>
+    );
+  }
+  if (news.items.length === 0) {
+    return (
+      <div className="econ-events__news">
+        <div className="econ-events__news-label">News</div>
+        <div className="econ-events__news-status">no recent coverage</div>
+      </div>
+    );
+  }
+  return (
+    <div className="econ-events__news">
+      <div className="econ-events__news-label">News · {news.items.length}</div>
+      <ul className="econ-events__news-list">
+        {news.items.map((it, i) => (
+          <li key={`${it.link}-${i}`} className="econ-events__news-item">
+            <a
+              className="econ-events__news-link"
+              href={it.link}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {it.title}
+            </a>
+            <div className="econ-events__news-meta">
+              <span className="econ-events__news-source">{it.source || '—'}</span>
+              <span className="econ-events__news-sep">·</span>
+              <span className="econ-events__news-time">{it.pubDateRelative || ''}</span>
+            </div>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }

@@ -3098,6 +3098,101 @@
   font-weight: 700;
 }
 
+/* Per-event news feed inside expanded rows. Lazy-fetched on
+   expand from /api/event-news (Google News RSS proxy keyed off
+   the event title or "{TICKER} earnings"). Compact list — title
+   on the first line as a clickable link, source · time-ago
+   meta line below. */
+.econ-events__news {
+  padding-top: 0.4rem;
+  border-top: 1px dashed var(--bg-card-border);
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.econ-events__news-label {
+  font-family: 'Courier New', monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  font-weight: 700;
+}
+
+.econ-events__news-status {
+  font-family: 'Courier New', monospace;
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+  font-style: italic;
+  letter-spacing: 0.04em;
+}
+
+.econ-events__news-status--error {
+  color: var(--accent-coral);
+}
+
+.econ-events__news-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.econ-events__news-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding-left: 0.4rem;
+  border-left: 2px solid transparent;
+  transition: border-color 0.15s ease;
+}
+
+.econ-events__news-item:hover {
+  border-left-color: var(--accent-blue);
+}
+
+.econ-events__news-link {
+  font-family: 'Courier New', monospace;
+  font-size: 0.82rem;
+  line-height: 1.45;
+  color: var(--text-primary);
+  text-decoration: none;
+  letter-spacing: 0.01em;
+}
+
+.econ-events__news-link:hover,
+.econ-events__news-link:focus-visible {
+  color: var(--accent-blue);
+  text-decoration: underline;
+  outline: none;
+}
+
+.econ-events__news-meta {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  font-family: 'Courier New', monospace;
+  font-size: 0.68rem;
+  color: var(--text-secondary);
+  letter-spacing: 0.04em;
+}
+
+.econ-events__news-source {
+  color: var(--text-secondary);
+  font-weight: 700;
+}
+
+.econ-events__news-sep {
+  opacity: 0.5;
+}
+
+.econ-events__news-time {
+  font-variant-numeric: tabular-nums;
+}
+
 /* Sticky compact bar — implied-move chip when present */
 .econ-events__sticky-move {
   font-family: 'Courier New', monospace;
