@@ -1,18 +1,26 @@
-// Slot B — replace the default export with the model under test, and
-// update the `slotName` constant below so the lab-slot label reflects
-// the new model.
+// =====================================================================
+//   IMPORTANT — DO NOT REBUILD THE EVENTS LISTENER HERE.
+// =====================================================================
 //
-// This slot is a peer of Slot A, intended for either a second independent
-// model or an alternate version of the same model mounted in A (for
-// side-by-side comparison). The three slots share no state with each
-// other by default, so "version X vs version Y" of one model means
-// importing both versions and rendering them in different slots.
+// The Economic Events listener that was developed in this slot
+// across late April 2026 has GRADUATED to its own production lab
+// page at /events/. The canonical source files now live at:
 //
-// The Economic Events listener that previously lived in this slot
-// graduated to /events/ as a permanent production lab page (see
-// events/App.jsx + events/slots/SlotB.jsx + netlify/functions/
-// events-calendar.mjs). This slot is back to its empty-placeholder
-// state, ready to hold the next model under test.
+//   events/App.jsx                           (page shell)
+//   events/index.html                        (HTML entry)
+//   events/main.jsx                          (React mount)
+//   events/slots/SlotB.jsx                   (the component)
+//   netlify/functions/events-calendar.mjs    (the FF aggregator API)
+//
+// If you (Claude or future-me) are tempted to add events-related
+// code here, STOP and edit the /events/ directory instead. The
+// /beta/ shell is a generic experimental lab holding pad — its
+// purpose is to host whatever model is currently under test,
+// nothing more. Forking events code into both locations would
+// cause silent drift on the next iteration.
+//
+// This slot is currently empty, ready for the next experimental
+// tenant.
 
 export const slotName = '(empty)';
 
@@ -22,8 +30,8 @@ export default function SlotB() {
       <div className="lab-placeholder-title">Empty Slot</div>
       <div className="lab-placeholder-hint">
         Replace the default export of <code>beta/slots/SlotB.jsx</code> with
-        a component. Use this slot to A/B against Slot A, or to hold a
-        second unrelated model under test.
+        a component. The Economic Events listener that lived here graduated
+        to <code>/events/</code>; do not rebuild it in this slot.
       </div>
     </div>
   );

@@ -107,16 +107,28 @@ function classifySpotlight(title) {
   return null;
 }
 
-// Default-by-impact bar color for events that don't match a macro family.
+// Per-impact-tier dot/text color. Matches the existing High/Medium/
+// Low/Holiday accent palette used throughout the dashboard. Earnings
+// events get their own purple hex (rendered as a hollow ring on the
+// timeline so it visually distinguishes from a Holiday tier even
+// when the two share the same purple).
 function impactHex(impact) {
   if (impact === 'High') return '#e74c3c';
   if (impact === 'Medium') return '#f1c40f';
   if (impact === 'Holiday') return '#BF7FFF';
   return '#8a8f9c';
 }
+const EARNINGS_HEX = '#BF7FFF';
 
 const ALL_IMPACTS = ['High', 'Medium', 'Low', 'Holiday'];
 const DEFAULT_IMPACTS = ['High'];
+
+// Window covered by the timeline visualization at the top of the
+// page, in milliseconds. Eric's "This Week's Catalysts" framing
+// implies the chart shows ~7 forward days regardless of how much
+// data the FF aggregator returned (the schedule below still shows
+// the full 4-week scope). 7 days × 24h × 3600s × 1000ms.
+const TIMELINE_WINDOW_MS = 7 * 24 * 3600 * 1000;
 
 const POLL_MS = 10 * 60 * 1000;
 const CLOCK_TICK_MS = 1000;
@@ -129,7 +141,9 @@ function eventId(e) {
 export default function SlotB() {
   const [feed, setFeed] = useState({ status: 'loading', data: null, error: null, fetchedAt: null });
   const [iv, setIv] = useState({ status: 'loading', data: null });
+  const [earningsFeed, setEarningsFeed] = useState({ status: 'loading', data: null });
   const [impacts, setImpacts] = useState(new Set(DEFAULT_IMPACTS));
+  const [showEarnings, setShowEarnings] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [hidePast, setHidePast] = useState(false);
   const [expandedId, setExpandedId] = useState(null);
@@ -176,13 +190,37 @@ export default function SlotB() {
     }
   }, []);
 
+  // Earnings calendar fetch — /api/earnings's calendarDays returns
+  // the next 4 weeks of confirmed releases for the default top-100-OV
+  // universe, with EW metadata only (no implied moves; the function
+  // skips per-name Massive snapshot fan-out for the calendar window
+  // to stay inside the Netlify sync timeout). Polled on the same
+  // 10-minute cadence as the FF feed and the IV snapshot. The
+  // earnings layer on the timeline is purely reference data — the
+  // page treats every entry as a known catalyst with its own
+  // pre-determined session timing (BMO / AMC / unknown) and renders
+  // the dots in the same hour-of-day strip as the macro events.
+  const fetchEarnings = useCallback(async (signal) => {
+    try {
+      const res = await fetch('/api/earnings', { signal, headers: { Accept: 'application/json' } });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const json = await res.json();
+      setEarningsFeed({ status: 'ready', data: json });
+    } catch (err) {
+      if (err?.name === 'AbortError') return;
+      setEarningsFeed((cur) => ({ status: cur.data ? 'ready' : 'error', data: cur.data }));
+    }
+  }, []);
+
   useEffect(() => {
     const ac = new AbortController();
     fetchFeed(ac.signal);
     fetchIv(ac.signal);
+    fetchEarnings(ac.signal);
     const interval = setInterval(() => {
       fetchFeed(ac.signal);
       fetchIv(ac.signal);
+      fetchEarnings(ac.signal);
     }, POLL_MS);
     const onVis = () => {
       if (document.visibilityState === 'visible') {
@@ -190,6 +228,7 @@ export default function SlotB() {
         if (idleFor > 5 * 60 * 1000) {
           fetchFeed(ac.signal);
           fetchIv(ac.signal);
+          fetchEarnings(ac.signal);
         }
       }
     };
@@ -199,7 +238,7 @@ export default function SlotB() {
       clearInterval(interval);
       document.removeEventListener('visibilitychange', onVis);
     };
-  }, [fetchFeed, fetchIv]);
+  }, [fetchFeed, fetchIv, fetchEarnings]);
 
   // Clock tick.
   useEffect(() => {
@@ -319,21 +358,68 @@ export default function SlotB() {
     return { anchor: head, events: cluster };
   }, [upcoming]);
 
-  // Chart input: upcoming high+medium-impact events with computed
-  // implied moves. Filtered to the impact tiers that actually move
-  // SPX (Low rarely matters for vol traders) and to events that
-  // resolved to a valid IV (events without IV data are skipped from
-  // the chart even when in scope, since plotting them with a null
-  // bar would be visually noisy). Country filtering already happened
-  // server-side, so every row in `upcoming` is USD by construction.
+  // Earnings calendar — flatten the per-day calendar payload into
+  // event-shaped records that share the same `_kind` / `_at` / `_ms`
+  // contract the macro events use. Each ticker maps to a single
+  // record with a session-derived hour-of-day position so the
+  // timeline can plot it on the same per-day track as the macro
+  // events. Earnings entries are tagged `_kind: 'earnings'` so the
+  // render branches on color (purple) and the tooltip branches on
+  // the EarningsTooltip variant.
+  const earningsEvents = useMemo(() => {
+    if (!earningsFeed.data) return [];
+    const out = [];
+    for (const day of earningsFeed.data.calendarDays || []) {
+      const isoDate = day.isoDate;
+      if (!isoDate) continue;
+      for (const t of day.tickers || []) {
+        // Position the dot at the session's expected wall-clock time:
+        //   BMO → 7:00 AM (typical pre-open release window 6:30-9:00)
+        //   AMC → 4:30 PM (typical post-close window 4:00-5:00)
+        //   Unknown → 12:00 noon as a sentinel mid-day position
+        let hour = 12;
+        let minute = 0;
+        if (t.sessionLabel === 'BMO') { hour = 7; minute = 0; }
+        else if (t.sessionLabel === 'AMC') { hour = 16; minute = 30; }
+        else if (t.epsTime) {
+          const m = /T(\d{2}):(\d{2})/.exec(t.epsTime);
+          if (m) { hour = Number(m[1]); minute = Number(m[2]); }
+        }
+        const at = new Date(`${isoDate}T${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}:00`);
+        if (Number.isNaN(at.getTime())) continue;
+        out.push({
+          _kind: 'earnings',
+          _id: `earnings-${t.ticker}-${isoDate}`,
+          _at: at,
+          _ms: at.getTime(),
+          date: isoDate,
+          dateTime: at.toISOString(),
+          dayKind: 'timed',
+          title: `${t.ticker} earnings`,
+          country: 'USD',
+          impact: null,
+          _earnings: t,
+        });
+      }
+    }
+    return out.sort((a, b) => a._ms - b._ms);
+  }, [earningsFeed.data]);
+
+  // Chart input: upcoming events from the FF feed (any impact tier
+  // that the user has on in the active impacts filter) plus the
+  // earnings layer when the Earnings toggle is on. The macro events
+  // are already filtered through the `upcoming` pipeline so they
+  // respect the user's active impact selection; earnings are added
+  // unconditionally when the toggle is on (no per-impact gate, since
+  // earnings have no FF impact tier — they're their own layer).
+  // The TimelineStrip itself further constrains the visible set to a
+  // 7-day forward window.
   const chartEvents = useMemo(() => {
-    return upcoming.filter(
-      (e) =>
-        (e.impact === 'High' || e.impact === 'Medium') &&
-        e._impliedMove &&
-        e._impliedMove.movePct > 0,
-    );
-  }, [upcoming]);
+    const macro = upcoming;
+    if (!showEarnings) return macro;
+    const upcomingEarnings = earningsEvents.filter((e) => e._ms >= now);
+    return [...macro, ...upcomingEarnings].sort((a, b) => a._ms - b._ms);
+  }, [upcoming, earningsEvents, showEarnings, now]);
 
   // Notification scheduling.
   const notifyTimeoutRef = useRef(null);
@@ -424,7 +510,6 @@ export default function SlotB() {
       )}
 
       <FilterBar
-        impacts={impacts} setImpacts={setImpacts}
         searchQuery={searchQuery} setSearchQuery={setSearchQuery}
         hidePast={hidePast} setHidePast={setHidePast}
         notifyEnabled={notifyEnabled} notifyDenied={notifyDenied}
@@ -445,6 +530,14 @@ export default function SlotB() {
       </div>
 
       <Totals scoped={scoped} upcoming={upcoming} />
+
+      <ChartFilters
+        impacts={impacts}
+        setImpacts={setImpacts}
+        showEarnings={showEarnings}
+        setShowEarnings={setShowEarnings}
+        earningsCount={earningsEvents.filter((e) => e._ms >= now).length}
+      />
 
       <TimelineStrip events={chartEvents} now={now} />
 
@@ -562,41 +655,20 @@ function CompactCountdown({ ms, dayKind }) {
 }
 
 // ── Filter bar ────────────────────────────────────────────────────────
+// FilterBar carries the page-wide chrome that is NOT tied to the
+// timeline's data scope: the title-substring search input, the Hide-
+// past toggle, and the browser-Notification opt-in. Impact tier
+// pills used to live here too but were moved up to the ChartFilters
+// row directly above the timeline so the inviting "+ Medium / + Low"
+// pattern Eric called for sits next to the visualization those
+// toggles affect.
 function FilterBar({
-  impacts, setImpacts,
   searchQuery, setSearchQuery,
   hidePast, setHidePast,
   notifyEnabled, notifyDenied, toggleNotify,
 }) {
-  const toggleImpact = (i) => {
-    setImpacts((prev) => {
-      const next = new Set(prev);
-      if (next.has(i)) next.delete(i); else next.add(i);
-      return next;
-    });
-  };
   return (
     <div className="econ-events__filterbar">
-      <div className="econ-events__filtergroup">
-        <span className="econ-events__filtergroup-label">Impact</span>
-        <div className="econ-events__pills">
-          {ALL_IMPACTS.map((i) => {
-            const active = impacts.has(i);
-            return (
-              <button
-                key={i}
-                type="button"
-                className={`econ-events__pill econ-events__pill--impact econ-events__pill--impact-${i.toLowerCase()} ${active ? 'econ-events__pill--active' : ''}`}
-                onClick={() => toggleImpact(i)}
-                aria-pressed={active}
-              >
-                <span className={`econ-events__dot econ-events__dot--${i.toLowerCase()}`} aria-hidden="true" />
-                {i}
-              </button>
-            );
-          })}
-        </div>
-      </div>
       <div className="econ-events__filtergroup">
         <span className="econ-events__filtergroup-label">Search</span>
         <input
@@ -626,6 +698,70 @@ function FilterBar({
           disabled={notifyDenied}
         >
           {notifyDenied ? 'Notifications blocked' : (notifyEnabled ? 'Notify · ON' : 'Notify · OFF')}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ── Chart filters ────────────────────────────────────────────────────
+// Sits directly above the TimelineStrip and drives both the chart
+// scope and the page-wide impact filter. Two pill clusters: one for
+// macro impact tiers (High default-on, Medium / Low / Holiday off
+// by default), one for the optional Earnings layer (default on).
+// The High pill is special — it carries an "anchor" treatment
+// (always-active styling, can't be turned off via single click)
+// because the page is fundamentally a high-impact-catalyst surface
+// and a reader who deselects every impact tier would be left
+// staring at an empty chart with no obvious recovery path.
+function ChartFilters({ impacts, setImpacts, showEarnings, setShowEarnings, earningsCount }) {
+  const toggleImpact = (tier) => {
+    setImpacts((prev) => {
+      const next = new Set(prev);
+      if (next.has(tier)) {
+        // Don't allow deselecting the last remaining impact tier —
+        // keeps the chart from going blank with no clear recovery.
+        if (next.size === 1) return next;
+        next.delete(tier);
+      } else {
+        next.add(tier);
+      }
+      return next;
+    });
+  };
+  return (
+    <div className="econ-events__chart-filters">
+      <div className="econ-events__chart-filters-group">
+        <span className="econ-events__chart-filters-label">Macro</span>
+        {ALL_IMPACTS.map((tier) => {
+          const active = impacts.has(tier);
+          const cls = tier.toLowerCase();
+          const verb = active ? '' : '+ ';
+          return (
+            <button
+              key={tier}
+              type="button"
+              className={`econ-events__chart-filter-pill econ-events__chart-filter-pill--${cls} ${active ? 'econ-events__chart-filter-pill--active' : ''}`}
+              onClick={() => toggleImpact(tier)}
+              aria-pressed={active}
+            >
+              <span className={`econ-events__dot econ-events__dot--${cls}`} aria-hidden="true" />
+              {verb}{tier}
+            </button>
+          );
+        })}
+      </div>
+      <div className="econ-events__chart-filters-group">
+        <span className="econ-events__chart-filters-label">Layers</span>
+        <button
+          type="button"
+          className={`econ-events__chart-filter-pill econ-events__chart-filter-pill--earnings ${showEarnings ? 'econ-events__chart-filter-pill--active' : ''}`}
+          onClick={() => setShowEarnings((v) => !v)}
+          aria-pressed={showEarnings}
+          title={showEarnings ? 'Hide top-100-OV earnings releases' : 'Show top-100-OV earnings releases'}
+        >
+          <span className="econ-events__dot econ-events__dot--earnings" aria-hidden="true" />
+          {showEarnings ? '' : '+ '}Earnings (top 100 OV){earningsCount ? ` · ${earningsCount}` : ''}
         </button>
       </div>
     </div>
@@ -865,10 +1001,21 @@ function TimelineStrip({ events, now }) {
     return () => obs.disconnect();
   }, []);
 
-  // Group events by calendar date.
+  // Filter to a 7-day rolling window (today through today + 7 days).
+  // The title is fixed at "This Week's Catalysts" — the schedule
+  // section below the timeline still shows the full 4-week scope,
+  // so a reader who needs to plan further out scrolls past the
+  // chart. The chart's job is the next-week glance.
+  const windowEndMs = now + TIMELINE_WINDOW_MS;
+  const windowEvents = useMemo(
+    () => events.filter((e) => e._ms >= now && e._ms <= windowEndMs),
+    [events, now, windowEndMs],
+  );
+
+  // Group events by calendar date inside the visible window.
   const dayBlocks = useMemo(() => {
     const byDate = new Map();
-    for (const e of events) {
+    for (const e of windowEvents) {
       if (!byDate.has(e.date)) byDate.set(e.date, []);
       byDate.get(e.date).push(e);
     }
@@ -878,25 +1025,19 @@ function TimelineStrip({ events, now }) {
         date,
         events: list.sort((a, b) => a._ms - b._ms),
       }));
-  }, [events]);
+  }, [windowEvents]);
 
-  // The title is derived from the actual data on the page rather
-  // than a fixed "Next 4 Weeks" promise — the function attempts to
-  // fetch 4 weeks, but the HTML scrape for any of weeks 1-3 can fail
-  // (Cloudflare bot-challenge spike, FF rate-limit, etc.) and on
-  // those days the page only carries the XML week. A fixed-horizon
-  // header would mislead the reader into thinking 4 weeks of data
-  // is shown when it isn't.
-  if (events.length === 0) {
+  if (windowEvents.length === 0) {
     return (
       <section className="econ-events__timeline">
         <div className="econ-events__timeline-meta">
-          <span className="econ-events__timeline-title">Upcoming Catalysts</span>
-          <span className="econ-events__timeline-source">no qualifying events in scope</span>
+          <span className="econ-events__timeline-title">This Week's Catalysts</span>
+          <span className="econ-events__timeline-source">no qualifying events in the next 7 days</span>
         </div>
         <div className="econ-events__timeline-empty">
-          The timeline populates when the FF feed carries an upcoming event in
-          the active impact filter.
+          The timeline populates when the FF feed (or the earnings layer) carries
+          an upcoming event in the active impact filter. Try adding Medium / Low
+          impact tiers above, or wait for the next feed refresh.
         </div>
       </section>
     );
@@ -909,26 +1050,25 @@ function TimelineStrip({ events, now }) {
 
   const todayIso = isoDateLocal(new Date(now));
 
-  // Compute the actual horizon from the data: latest event's date.
-  // The title and meta line both quote this so the page never claims
-  // a wider horizon than what's actually shown.
-  const lastEventMs = events.reduce((m, e) => (e._ms > m ? e._ms : m), 0);
-  const horizonDate = lastEventMs > 0 ? new Date(lastEventMs) : null;
-  const horizonLabel = horizonDate
-    ? horizonDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
-    : null;
-  const horizonDays = horizonDate
-    ? Math.max(1, Math.ceil((horizonDate.getTime() - now) / 86400000))
-    : 0;
+  // Per-event color: macro events use their impact tier color (High
+  // = coral, Medium = amber, Low = gray, Holiday = purple); earnings
+  // events use the EARNINGS_HEX (purple) and render as a hollow ring
+  // so they visually distinguish from filled-purple Holiday tier
+  // events even when the two share the same hex.
+  const colorFor = (e) => (e._kind === 'earnings' ? EARNINGS_HEX : impactHex(e.impact));
+
+  // Macro and earnings counts for the meta strip below the title.
+  const macroCount = windowEvents.filter((e) => e._kind !== 'earnings').length;
+  const earningsCount = windowEvents.length - macroCount;
 
   return (
     <section className="econ-events__timeline">
       <div className="econ-events__timeline-meta">
-        <span className="econ-events__timeline-title">
-          {horizonLabel ? `Catalysts through ${horizonLabel}` : 'Upcoming Catalysts'}
-        </span>
+        <span className="econ-events__timeline-title">This Week's Catalysts</span>
         <span className="econ-events__timeline-source">
-          {events.length} event{events.length === 1 ? '' : 's'} · {horizonDays} day{horizonDays === 1 ? '' : 's'} forward · circle size keys impact, color keys family
+          {macroCount} macro release{macroCount === 1 ? '' : 's'}
+          {earningsCount > 0 ? ` · ${earningsCount} earnings` : ''}
+          {' · color keys impact tier · earnings render as a hollow purple ring'}
         </span>
       </div>
       <div className="econ-events__timeline-rows" ref={containerRef}>
@@ -1033,10 +1173,16 @@ function TimelineStrip({ events, now }) {
                   {block.events.map((e) => {
                     const cx = xForEvent(e);
                     const cy = ROW_HEIGHT / 2;
-                    const r = e.impact === 'High' ? 6.5
-                      : e.impact === 'Medium' ? 4.5
-                      : 3;
-                    const color = e._spotlight ? e._spotlight.hex : impactHex(e.impact);
+                    // Single radius across all impact tiers — the prior
+                    // size-by-impact ladder (6.5/4.5/3) was misleading
+                    // (size and color both mapping to impact made the
+                    // signal redundant and visually confusing). Color
+                    // alone now keys impact; earnings dots render as
+                    // hollow purple rings to distinguish from filled
+                    // macro dots.
+                    const r = 5;
+                    const color = colorFor(e);
+                    const isEarnings = e._kind === 'earnings';
                     const past = e._ms < now;
                     const isHovered = hovered?._id === e._id;
                     return (
@@ -1045,9 +1191,9 @@ function TimelineStrip({ events, now }) {
                         cx={cx}
                         cy={cy}
                         r={isHovered ? r + 2.5 : r}
-                        fill={color}
-                        stroke={isHovered ? '#f0a030' : 'rgba(8, 11, 16, 0.55)'}
-                        strokeWidth={isHovered ? 2 : 1}
+                        fill={isEarnings ? 'transparent' : color}
+                        stroke={isHovered ? '#f0a030' : (isEarnings ? color : 'rgba(8, 11, 16, 0.55)')}
+                        strokeWidth={isHovered ? 2 : (isEarnings ? 1.5 : 1)}
                         opacity={past && !isHovered ? 0.45 : 1}
                         style={{ cursor: 'pointer', transition: 'r 0.12s ease' }}
                         onMouseEnter={() => setHovered(e)}
@@ -1080,7 +1226,9 @@ function TimelineStrip({ events, now }) {
                   };
                   if (openLeft) style.right = (trackWidth - cx + o);
                   else style.left = cx + o;
-                  return <TimelineTooltip event={hovered} style={style} />;
+                  return hovered._kind === 'earnings'
+                    ? <EarningsTooltip event={hovered} style={style} />
+                    : <TimelineTooltip event={hovered} style={style} />;
                 })()}
               </div>
             </div>
@@ -1135,6 +1283,62 @@ function TimelineTooltip({ event: e, style }) {
       </div>
     </div>
   );
+}
+
+// Earnings-row tooltip — fields are the EarningsWhispers metadata
+// the /api/earnings function ships in calendarDays[].tickers[].
+function EarningsTooltip({ event: e, style }) {
+  const t = e._earnings || {};
+  const sessionLabel = t.sessionLabel === 'BMO' ? 'Before Market Open'
+    : t.sessionLabel === 'AMC' ? 'After Market Close'
+    : t.sessionLabel === 'Unknown' ? 'Unknown timing'
+    : (t.sessionLabel || 'Unknown timing');
+  return (
+    <div className="econ-events__chart-tooltip" style={style}>
+      <div className="econ-events__chart-tooltip-head">
+        <strong style={{ color: EARNINGS_HEX }}>EARNINGS</strong>
+        <span style={{ color: EARNINGS_HEX, fontSize: '0.75rem' }}>
+          {t.ticker || ''}
+        </span>
+      </div>
+      <div className="econ-events__chart-tooltip-title">{t.company || t.ticker || 'Earnings release'}</div>
+      <div className="econ-events__chart-tooltip-when">
+        {formatLongDate(e.date)} · {sessionLabel}
+      </div>
+      <div className="econ-events__chart-tooltip-divider" />
+      <div className="econ-events__chart-tooltip-row">
+        <span className="econ-events__chart-tooltip-label">Revenue est</span>
+        <span className="econ-events__chart-tooltip-value">{formatRevenue(t.revenueEst)}</span>
+      </div>
+      <div className="econ-events__chart-tooltip-row">
+        <span className="econ-events__chart-tooltip-label">EPS est</span>
+        <span className="econ-events__chart-tooltip-value">{t.epsEst != null ? `$${Number(t.epsEst).toFixed(2)}` : '—'}</span>
+      </div>
+      {t.ovRank != null && (
+        <div className="econ-events__chart-tooltip-row">
+          <span className="econ-events__chart-tooltip-label">OV rank · MC rank</span>
+          <span className="econ-events__chart-tooltip-value">
+            ov{t.ovRank}{t.mcRank != null ? ` · mc${t.mcRank}` : ''}
+          </span>
+        </div>
+      )}
+      {t.weight != null && (
+        <div className="econ-events__chart-tooltip-row">
+          <span className="econ-events__chart-tooltip-label">SP500 weight</span>
+          <span className="econ-events__chart-tooltip-value">{Number(t.weight).toFixed(2)}%</span>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function formatRevenue(v) {
+  if (v == null || !Number.isFinite(Number(v))) return '—';
+  const n = Number(v);
+  if (n >= 1e12) return `$${(n / 1e12).toFixed(2)}T`;
+  if (n >= 1e9) return `$${(n / 1e9).toFixed(2)}B`;
+  if (n >= 1e6) return `$${(n / 1e6).toFixed(0)}M`;
+  return `$${n.toFixed(0)}`;
 }
 
 // ── Spotlight strip ───────────────────────────────────────────────────

@@ -2791,6 +2791,110 @@
   border-radius: 3px;
 }
 
+/* Chart filters — pills directly above the timeline strip that
+   drive the page-wide impact filter and the optional Earnings
+   layer. The "Macro" group repeats the High/Medium/Low/Holiday
+   tier toggles that used to live in the FilterBar; the "Layers"
+   group is a single Earnings on/off pill. Eric's framing: a
+   reader looking at a sparse High-only timeline should see the
+   "+ Medium / + Low" invitation right there next to the chart,
+   not buried in a filter strip elsewhere on the page. */
+.econ-events__chart-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem 1.4rem;
+  padding: 0.55rem 0.85rem;
+  background: rgba(255, 255, 255, 0.018);
+  border: 1px solid var(--bg-card-border);
+  border-radius: 6px 6px 0 0;
+  border-bottom: none;
+  margin-bottom: -1px;
+}
+
+.econ-events__chart-filters-group {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.econ-events__chart-filters-label {
+  font-family: 'Courier New', monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  margin-right: 0.25rem;
+}
+
+.econ-events__chart-filter-pill {
+  appearance: none;
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--bg-card-border);
+  border-radius: 999px;
+  padding: 0.28rem 0.65rem;
+  font-family: 'Courier New', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.econ-events__chart-filter-pill:hover {
+  color: var(--text-primary);
+  border-color: rgba(255, 255, 255, 0.22);
+}
+
+.econ-events__chart-filter-pill--active {
+  background: rgba(255, 255, 255, 0.035);
+  color: var(--text-primary);
+  border-color: rgba(255, 255, 255, 0.28);
+}
+
+.econ-events__chart-filter-pill--high.econ-events__chart-filter-pill--active {
+  color: var(--accent-coral);
+  border-color: rgba(231, 76, 60, 0.55);
+  background: rgba(231, 76, 60, 0.1);
+}
+.econ-events__chart-filter-pill--medium.econ-events__chart-filter-pill--active {
+  color: var(--accent-amber);
+  border-color: rgba(241, 196, 15, 0.55);
+  background: rgba(241, 196, 15, 0.1);
+}
+.econ-events__chart-filter-pill--low.econ-events__chart-filter-pill--active {
+  color: var(--text-secondary);
+  border-color: rgba(138, 143, 156, 0.55);
+  background: rgba(138, 143, 156, 0.12);
+}
+.econ-events__chart-filter-pill--holiday.econ-events__chart-filter-pill--active {
+  color: var(--accent-purple);
+  border-color: rgba(191, 127, 255, 0.55);
+  background: rgba(191, 127, 255, 0.1);
+}
+.econ-events__chart-filter-pill--earnings.econ-events__chart-filter-pill--active {
+  color: var(--accent-purple);
+  border-color: rgba(191, 127, 255, 0.55);
+  background: rgba(191, 127, 255, 0.1);
+}
+
+.econ-events__dot--earnings {
+  color: var(--accent-purple);
+}
+
+/* When the chart-filters bar is followed by the timeline section,
+   square off the bottom and let the timeline take the matching
+   bottom-rounded corners so the two read as one bordered unit. */
+.econ-events__chart-filters + .econ-events__timeline {
+  border-radius: 0 0 6px 6px;
+  border-top: none;
+}
+
 /* Timeline strip ------------------------------------------------ */
 .econ-events__timeline {
   background-color: var(--bg-card);
