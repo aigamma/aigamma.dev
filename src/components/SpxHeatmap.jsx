@@ -233,33 +233,24 @@ export default function SpxHeatmap() {
       if (!bySector.has(key)) bySector.set(key, []);
       bySector.get(key).push(t);
     }
-    // Within each sector, sort by SP500 market-cap weight descending
-    // so the durable anchor names (NVDA / AAPL / MSFT in Information
-    // Technology, AMZN / TSLA in Consumer Discretionary, JPM / V / MA
-    // in Financials, …) cluster at the top-left of each sector band.
-    // Non-SP500 names (MSTR / IREN / HIMS / TSM / MRVL — the ~50% of
-    // the OV roster that doesn't intersect SP500) carry weight=null
-    // and sort below all SP500 names in the band, ordered by their
-    // existing options-volume rank so the most-active dynamic-tail
-    // names still cluster reasonably within their non-SP500 sub-group.
-    // Tile sizes remain equal — only the ORDER changes; the visual
-    // hierarchy now matches the mental map "big anchors first, hype
-    // tail trails" without violating the equal-tile principle that
-    // motivated rejecting cap-weighted treemaps in the first place.
-    // Symbol-asc tiebreaker keeps the layout deterministic when two
-    // tiles share both weight (rare; same SP500 cap-rank) and
-    // optionsVolume (rare).
+    // Within each sector, sort by options volume descending so the
+    // most actively traded names in the sector cluster at the top-left
+    // of the band and the long tail trails toward the bottom-right.
+    // This is the right ordering for a vol-trader audience: the names
+    // worth reading first are the ones with the deepest order books,
+    // not the ones with the largest market caps. The previous ordering
+    // sorted by SP500 cap-weight first (anchors → non-SP500 by ovRank)
+    // which clustered NVDA/AAPL/MSFT/AMZN/JPM/V/MA/etc. at the top
+    // regardless of whether they were the most-traded names in their
+    // sector that session; switching to a pure options-volume sort
+    // unifies the ranking across SP500 and non-SP500 names so
+    // MSTR / IREN / HIMS / TSM / MRVL can interleave with the SP500
+    // anchors based on actual session activity. Tile sizes remain
+    // equal — only the ORDER changes. Symbol-asc tiebreaker keeps the
+    // layout deterministic when two tiles share an optionsVolume
+    // (rare in practice but possible for very low-volume tail names).
     for (const [, list] of bySector) {
       list.sort((a, b) => {
-        const wa = a.weight;
-        const wb = b.weight;
-        if (wa != null && wb != null) {
-          if (wb !== wa) return wb - wa;
-        } else if (wa != null) {
-          return -1; // SP500-anchored above non-SP500
-        } else if (wb != null) {
-          return 1;
-        }
         const ova = a.optionsVolume || 0;
         const ovb = b.optionsVolume || 0;
         if (ovb !== ova) return ovb - ova;
