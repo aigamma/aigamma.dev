@@ -411,7 +411,7 @@ export default function SlotB() {
     return (
       <section className="econ-events econ-events--bare">
         <div className="econ-events__status econ-events__status--error">
-          Could not reach /api/events-calendar — {feed.error}
+          Could not reach /api/events-calendar: {feed.error}
         </div>
       </section>
     );
@@ -459,12 +459,11 @@ export default function SlotB() {
 
       <footer className="econ-events__footnote">
         Implied move per event = <code>spot × ATM IV × √(DTE/365)</code> evaluated against the next
-        SPX expiration AT-OR-AFTER the event date — the move you'd be hedging if you bought a
-        straddle at that expiration today, conditional on the event being the next material
-        catalyst. Click any row to add the event to Google Calendar or Outlook in one click —
-        both open the destination's web compose form in a new tab pre-populated with the
-        event's title, time, and detail payload. Times render
-        in your local timezone.
+        SPX expiration AT-OR-AFTER the event date. This is the move you'd be hedging if you bought
+        a straddle at that expiration today, conditional on the event being the next material
+        catalyst. Click any row to add the event to Google Calendar or Outlook in one click; both
+        open the destination's web compose form in a new tab pre-populated with the event's
+        title, time, and detail payload. Times render in your local timezone.
       </footer>
     </div>
   );
@@ -527,7 +526,7 @@ function StickyHeroBar({ group, now }) {
       )}
       <span className={`econ-events__hero-impact econ-events__hero-impact--${(a.impact || '').toLowerCase()}`}>
         <span className={`econ-events__dot econ-events__dot--${(a.impact || '').toLowerCase()}`} aria-hidden="true" />
-        {a.impact || '—'}
+        {a.impact || '-'}
       </span>
       <span className="econ-events__sticky-countdown">
         <CompactCountdown ms={ms} dayKind={a.dayKind} />
@@ -710,7 +709,7 @@ function HeroNumber({ label, value, accent, pending }) {
     <div className={`econ-events__hero-num econ-events__hero-num--${accent}${pending ? ' econ-events__hero-num--pending' : ''}`}>
       <div className="econ-events__hero-num-label">{label}</div>
       <div className="econ-events__hero-num-value">
-        {value || (pending ? '—' : '—')}
+        {value || (pending ? '-' : '-')}
       </div>
     </div>
   );
@@ -768,7 +767,7 @@ function ForecastInterpretation({ forecast, previous, title }) {
   const delta = formatDelta(f, p, forecast);
   return (
     <div className={`econ-events__hero-interp ${colorClass}`}>
-      Consensus expects <strong>{direction}</strong> reading vs prior — {delta}.
+      Consensus expects <strong>{direction}</strong> reading vs prior, {delta}.
     </div>
   );
 }
@@ -1126,7 +1125,7 @@ function TimelineTooltip({ event: e, style }) {
         </strong>
         <span className={`econ-events__hero-impact econ-events__hero-impact--${(e.impact || '').toLowerCase()}`}>
           <span className={`econ-events__dot econ-events__dot--${(e.impact || '').toLowerCase()}`} aria-hidden="true" />
-          {e.impact || '—'}
+          {e.impact || '-'}
         </span>
       </div>
       <div className="econ-events__chart-tooltip-title">{e.title}</div>
@@ -1151,11 +1150,11 @@ function TimelineTooltip({ event: e, style }) {
       <div className="econ-events__chart-tooltip-divider" />
       <div className="econ-events__chart-tooltip-row">
         <span className="econ-events__chart-tooltip-label">Forecast</span>
-        <span className="econ-events__chart-tooltip-value">{e.forecast || '—'}</span>
+        <span className="econ-events__chart-tooltip-value">{e.forecast || '-'}</span>
       </div>
       <div className="econ-events__chart-tooltip-row">
         <span className="econ-events__chart-tooltip-label">Previous</span>
-        <span className="econ-events__chart-tooltip-value">{e.previous || '—'}</span>
+        <span className="econ-events__chart-tooltip-value">{e.previous || '-'}</span>
       </div>
     </div>
   );
@@ -1319,7 +1318,7 @@ function EarningsTooltip({ event: e, style }) {
       </div>
       <div className="econ-events__chart-tooltip-row">
         <span className="econ-events__chart-tooltip-label">EPS est</span>
-        <span className="econ-events__chart-tooltip-value">{t.epsEst != null ? `$${Number(t.epsEst).toFixed(2)}` : '—'}</span>
+        <span className="econ-events__chart-tooltip-value">{t.epsEst != null ? `$${Number(t.epsEst).toFixed(2)}` : '-'}</span>
       </div>
       {t.ovRank != null && (
         <div className="econ-events__chart-tooltip-row">
@@ -1340,7 +1339,7 @@ function EarningsTooltip({ event: e, style }) {
 }
 
 function formatRevenue(v) {
-  if (v == null || !Number.isFinite(Number(v))) return '—';
+  if (v == null || !Number.isFinite(Number(v))) return '-';
   const n = Number(v);
   if (n >= 1e12) return `$${(n / 1e12).toFixed(2)}T`;
   if (n >= 1e9) return `$${(n / 1e9).toFixed(2)}B`;
@@ -1509,14 +1508,14 @@ function EventRow({ event: e, past, expanded, onToggle }) {
         </span>
         <span className="econ-events__row-num">
           <span className="econ-events__row-num-label">F</span>
-          {e.forecast || '—'}
+          {e.forecast || '-'}
         </span>
         <span className="econ-events__row-num">
           <span className="econ-events__row-num-label">P</span>
-          {e.previous || '—'}
+          {e.previous || '-'}
         </span>
         <span className={`econ-events__row-imove${e._impliedMove ? '' : ' econ-events__row-imove--empty'}`}>
-          {e._impliedMove ? `±${formatPct(e._impliedMove.movePct)}` : '—'}
+          {e._impliedMove ? `±${formatPct(e._impliedMove.movePct)}` : '-'}
         </span>
         <span className="econ-events__row-toggle" aria-hidden="true">{expanded ? '▾' : '▸'}</span>
       </button>
@@ -1663,7 +1662,7 @@ function NewsFeed({ news }) {
               {it.title}
             </a>
             <div className="econ-events__news-meta">
-              <span className="econ-events__news-source">{it.source || '—'}</span>
+              <span className="econ-events__news-source">{it.source || '-'}</span>
               <span className="econ-events__news-sep">·</span>
               <span className="econ-events__news-time">{it.pubDateRelative || ''}</span>
             </div>
@@ -1764,7 +1763,7 @@ function buildEventDescription(e) {
 
 // ── Formatting helpers ────────────────────────────────────────────────
 function formatNum(n, decimals) {
-  if (!Number.isFinite(n)) return '—';
+  if (!Number.isFinite(n)) return '-';
   return n.toLocaleString(undefined, {
     minimumFractionDigits: decimals,
     maximumFractionDigits: decimals,
@@ -1772,12 +1771,12 @@ function formatNum(n, decimals) {
 }
 
 function formatPct(n) {
-  if (!Number.isFinite(n)) return '—';
+  if (!Number.isFinite(n)) return '-';
   return n < 1 ? `${n.toFixed(2)}%` : `${n.toFixed(1)}%`;
 }
 
 function formatLongWhen(dt, dayKind) {
-  if (!(dt instanceof Date) || Number.isNaN(dt.getTime())) return '—';
+  if (!(dt instanceof Date) || Number.isNaN(dt.getTime())) return '-';
   const day = dt.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' });
   if (dayKind === 'all-day') return `${day} · All Day`;
   if (dayKind === 'tentative') return `${day} · Tentative`;
@@ -1787,14 +1786,14 @@ function formatLongWhen(dt, dayKind) {
 }
 
 function formatTimeOnly(dt, dayKind) {
-  if (!(dt instanceof Date) || Number.isNaN(dt.getTime())) return '—';
+  if (!(dt instanceof Date) || Number.isNaN(dt.getTime())) return '-';
   if (dayKind === 'all-day') return 'All Day';
   if (dayKind === 'tentative') return 'Tentative';
   return dt.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit', hour12: true });
 }
 
 function formatRelativeWhen(dt, dayKind, now) {
-  if (!(dt instanceof Date) || Number.isNaN(dt.getTime())) return '—';
+  if (!(dt instanceof Date) || Number.isNaN(dt.getTime())) return '-';
   const ms = dt.getTime() - now;
   if (dayKind === 'all-day' || dayKind === 'tentative') {
     return formatTimeOnly(dt, dayKind);
