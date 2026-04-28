@@ -103,7 +103,7 @@ function impactHex(impact) {
 }
 
 const ALL_IMPACTS = ['High', 'Medium', 'Low', 'Holiday'];
-const DEFAULT_IMPACTS = ['High', 'Medium'];
+const DEFAULT_IMPACTS = ['High'];
 
 const POLL_MS = 10 * 60 * 1000;
 const CLOCK_TICK_MS = 1000;
