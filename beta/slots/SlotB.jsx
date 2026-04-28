@@ -999,10 +999,30 @@ function ImpliedMoveChart({ events, ivContext }) {
     );
   }
 
-  // Layout.
+  // Per-cluster max size in the visible window. The label stack
+  // above each cluster's dot is one row per event (vs the prior
+  // truncated comma-joined single line), so the chart's top padding
+  // grows with the worst-case stack height to keep the topmost
+  // cluster's stack clear of the chart border. A dense FOMC day
+  // (3-4 same-expiration events) needs ~50-65px of headroom; a
+  // GDP/PCE Thursday morning (5 events at 12:30) needs ~75px. The
+  // base padding of 36px covers the gap between the chart top and
+  // the topmost line of the tallest stack.
+  const maxClusterSize = visibleLabelGroups.length > 0
+    ? Math.max(...visibleLabelGroups.map((g) => uniqueTitles(g.members).length))
+    : 1;
+  const STACK_LINE_HEIGHT = 14;
+  const STACK_DOT_GAP = 12; // pixels between bottom line and dot
+  const stackReserve = STACK_DOT_GAP + STACK_LINE_HEIGHT * maxClusterSize;
+
   const width = Math.max(Math.min(containerWidth - 16, 1100), 320);
   const height = Math.round(Math.min(width * 0.6, 560));
-  const PADDING = { top: 52, right: 60, bottom: 68, left: 76 };
+  const PADDING = {
+    top: Math.max(52, 36 + stackReserve),
+    right: 60,
+    bottom: 68,
+    left: 76,
+  };
   const plotW = width - PADDING.left - PADDING.right;
   const plotH = height - PADDING.top - PADDING.bottom;
 
@@ -1198,55 +1218,102 @@ function ImpliedMoveChart({ events, ivContext }) {
             );
           })}
 
-          {/* Cluster labels — anchored at the cluster's earliest event
-              ms, with textAnchor flipping at the visible-window
-              edges so labels never overhang the y-axis or right
-              border. */}
+          {/* Cluster labels — vertical stack of per-event titles
+              above the cluster's dot, one line per event, each
+              colored by family. Replaces the prior single-line
+              comma-joined display that truncated past 5 events
+              with " · …" — Eric flagged that as a hard ceiling
+              that lost information for any cluster larger than
+              the cap. Vertical stacking has no such ceiling: the
+              chart's top padding adapts to the worst-case stack
+              height (see maxClusterSize / stackReserve above), so
+              every event in every cluster gets its own readable
+              line. Lines are ordered chronologically with the
+              earliest event at the TOP and the last event at the
+              BOTTOM closest to the dot, so reading top-to-bottom
+              is reading chronologically; the bottom line "anchors"
+              the stack to the dot. */}
           {visibleLabelGroups.map((g) => {
             const member = g.members[0];
             const cx = xForMs(g.anchorMs);
             const cy = yForMove(member._impliedMove.movePct);
-            const labels = g.members.map((m) =>
-              m._spotlight ? m._spotlight.label : shortLabelForEvent(m.title),
-            );
-            const dedup = [];
-            for (const l of labels) {
-              if (dedup[dedup.length - 1] !== l) dedup.push(l);
+
+            // Per-event lines, deduped by title (rare same-title
+            // duplicates collapse to one line). Each line carries
+            // its event's family hex for tinting, or the default
+            // text-primary off-white if no family matched.
+            const seen = new Set();
+            const lines = [];
+            for (const m of g.members) {
+              const text = truncTitle(m.title);
+              if (seen.has(text)) continue;
+              seen.add(text);
+              lines.push({
+                text,
+                color: m._spotlight ? m._spotlight.hex : '#dde4f0',
+              });
             }
-            const CAP = 5;
-            const display = dedup.length > CAP
-              ? `${dedup.slice(0, CAP).join(' · ')} · …`
-              : dedup.join(' · ');
 
             // Edge anchoring: when the cluster sits in the leftmost
             // 18% / rightmost 18% of the visible plot, flip the
             // textAnchor so the label extends inward rather than
-            // overhanging the Y-axis tick column or the right
-            // border. This is more permissive than the prior strict
-            // first/last-column gate because with a continuous date
-            // axis the leftmost CLUSTER doesn't have to sit at the
-            // exact left edge.
+            // overhanging the Y-axis or the right border.
             const fracX = (cx - PADDING.left) / plotW;
             const isLeftZone = fracX < 0.18;
             const isRightZone = fracX > 0.82;
             const textAnchor = isLeftZone ? 'start' : isRightZone ? 'end' : 'middle';
             const xOffset = isLeftZone ? -4 : isRightZone ? 4 : 0;
 
-            return (
-              <text
-                key={`lbl-${g.date}-${g.yBkt}`}
-                x={cx + xOffset}
-                y={cy - 12}
-                textAnchor={textAnchor}
-                fontFamily="Courier New, monospace"
-                fontSize={11.5}
-                fontWeight={600}
-                fill="#dde4f0"
-                style={{ pointerEvents: 'none' }}
-              >
-                {display}
-              </text>
-            );
+            // Stack the lines upward from the dot. The bottommost
+            // line sits STACK_DOT_GAP above the dot, the next line
+            // STACK_LINE_HEIGHT above that, etc. Iterate the lines
+            // array in REVERSE so the last (chronologically latest)
+            // event lands at the bottom of the stack and the first
+            // event lands at the top — top-to-bottom reading order
+            // is chronological order.
+            const stackElements = [];
+            for (let i = 0; i < lines.length; i++) {
+              const fromBottom = lines.length - 1 - i;
+              const y = cy - STACK_DOT_GAP - fromBottom * STACK_LINE_HEIGHT;
+              stackElements.push(
+                <text
+                  key={`lbl-${g.date}-${g.yBkt}-${i}`}
+                  x={cx + xOffset}
+                  y={y}
+                  textAnchor={textAnchor}
+                  fontFamily="Courier New, monospace"
+                  fontSize={11.5}
+                  fontWeight={600}
+                  fill={lines[i].color}
+                  style={{ pointerEvents: 'none' }}
+                >
+                  {lines[i].text}
+                </text>,
+              );
+            }
+
+            // Thin leader line from just below the bottom label down
+            // to just above the dot — the visual "arrow" that ties
+            // the multi-line stack to its single anchor point. Only
+            // rendered for clusters with 2+ lines (a single-event
+            // cluster doesn't need a leader because the text already
+            // sits directly above the dot).
+            if (lines.length >= 2) {
+              const lineTop = cy - STACK_DOT_GAP + 2;
+              const lineBottom = cy - 6;
+              stackElements.push(
+                <line
+                  key={`lead-${g.date}-${g.yBkt}`}
+                  x1={cx} x2={cx}
+                  y1={lineTop} y2={lineBottom}
+                  stroke="rgba(160, 172, 200, 0.45)"
+                  strokeWidth={1}
+                  style={{ pointerEvents: 'none' }}
+                />,
+              );
+            }
+
+            return stackElements;
           })}
         </svg>
 
@@ -1485,17 +1552,34 @@ function ChartTooltipRow({ label, value, highlight }) {
 }
 
 // Short human-readable label for non-family events, used as the
-// scatter label above the dot when the title doesn't match any of
-// the spotlight families. First word, capped at 6 chars + ellipsis
-// so multi-event clusters stay narrow enough to fit in their
-// column's allotment without colliding with the next column or
-// overhanging the chart's left/right edges.
-function shortLabelForEvent(title) {
+// Per-event label rendered as a single line in the cluster stack
+// above the dot. Trims FF's trailing rate-frequency suffixes
+// (m/m, y/y, q/q) for visual tidiness — a reader who needs the
+// frequency sees it in the hover tooltip — and clips at 28 chars
+// with an ellipsis so the label band never grows wide enough to
+// collide with the next column even on a fully-zoomed-out brush.
+function truncTitle(title) {
   if (!title) return '?';
   const cleaned = title.replace(/\s+m\/m$|\s+y\/y$|\s+q\/q$/i, '').trim();
-  const firstWord = cleaned.split(/\s+/)[0];
-  if (firstWord.length > 6) return firstWord.slice(0, 5) + '…';
-  return firstWord;
+  if (cleaned.length <= 28) return cleaned;
+  return cleaned.slice(0, 27) + '…';
+}
+
+// Same dedup pass the cluster-render block uses; lifted as a
+// helper so the per-cluster max-size calculation that drives the
+// chart's adaptive top padding agrees with what actually renders
+// (rendering 4 unique lines but reserving padding for 5 raw
+// members would leave wasted whitespace).
+function uniqueTitles(members) {
+  const seen = new Set();
+  const out = [];
+  for (const m of members) {
+    const t = truncTitle(m.title);
+    if (seen.has(t)) continue;
+    seen.add(t);
+    out.push(t);
+  }
+  return out;
 }
 
 
