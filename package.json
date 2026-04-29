@@ -11,7 +11,8 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "test:reconcile": "node --test scripts/reconcile/harness/*.test.mjs"
+    "test:reconcile": "node --test scripts/reconcile/harness/*.test.mjs",
+    "ingest:rag": "node --env-file=.env.local scripts/rag/ingest.mjs"
   },
   "dependencies": {
     "react": "^19.2.4",
