@@ -91,27 +91,37 @@ const DEFAULT_FILTER_MODE = 'topN-100';
 // Text size multipliers — applied to chart SVG text, tooltip,
 // header summary, calendar grid, and toggle pills so a user who
 // wants larger fonts can dial up the whole component in one move.
-// 'M' is the default, sized so even the smallest labels are
-// comfortably legible at 1080p without zooming. 'S' is a 10%
-// shrink for power users on dense layouts; 'L' is a 15% bump for
-// readability needs (ambient lighting, larger viewing distance,
-// or general preference). Selection persists across reloads via
-// localStorage.
+// 'S' is a 10% shrink, 'M' is the baseline, 'L' is a 15% bump.
+// First-render default is viewport-derived: phones (≤768px, the
+// platform-wide mobile breakpoint shared with lab.css and the
+// MobileNav swap) get 'S' so the SVG text doesn't crowd the
+// container-width-sized chart, desktops get 'L' so labels read
+// cleanly without a manual toggle. The user's explicit toggle
+// choice still wins and persists across reloads via localStorage.
 const TEXT_SCALES = { S: 0.9, M: 1.0, L: 1.15 };
 const TEXT_SCALE_OPTIONS = [
   { id: 'S', label: 'S' },
   { id: 'M', label: 'M' },
   { id: 'L', label: 'L' },
 ];
-const DEFAULT_TEXT_SCALE = 'M';
+const MOBILE_BREAKPOINT_PX = 768;
 
 function readStoredTextScale() {
-  if (typeof window === 'undefined') return DEFAULT_TEXT_SCALE;
+  if (typeof window === 'undefined') return 'L';
   try {
     const stored = window.localStorage?.getItem('earnings_text_scale');
     if (stored && TEXT_SCALES[stored] != null) return stored;
   } catch { /* localStorage may be unavailable in private mode */ }
-  return DEFAULT_TEXT_SCALE;
+  // No stored preference — derive the default from the viewport so
+  // a first-time visitor on a phone doesn't have to shrink the text
+  // manually and a first-time visitor on desktop gets the larger
+  // reading size Eric asked for.
+  try {
+    if (window.matchMedia?.(`(max-width: ${MOBILE_BREAKPOINT_PX}px)`).matches) {
+      return 'S';
+    }
+  } catch { /* matchMedia may be unavailable */ }
+  return 'L';
 }
 
 export default function EarningsCalendar() {
