@@ -6,9 +6,9 @@ import { useEffect, useMemo, useState } from 'react';
 // Each pill scopes a forward time window relative to the reader's
 // current wall clock:
 //
-//   Red    (left)   → catalysts firing in the next 0-24 hours
-//   Orange (center) → 24-48 hours
-//   Yellow (right)  → 48-72 hours
+//   Red    (top)    → catalysts firing in the next 0-24 hours
+//   Orange (middle) → 24-48 hours
+//   Yellow (bottom) → 48-72 hours
 //
 // A pill with zero items renders nothing — the banner reserves no
 // whitespace for an empty bucket so a quiet 72-hour window collapses
@@ -235,9 +235,8 @@ export default function CatalystBanner() {
         marginBottom: '1rem',
         padding: '0.7rem 0.85rem',
         display: 'flex',
-        flexWrap: 'wrap',
-        gap: '0.55rem',
-        alignItems: 'stretch',
+        flexDirection: 'column',
+        gap: '0.5rem',
       }}
     >
       <CatalystPill
@@ -276,12 +275,11 @@ function CatalystPill({ label, title, items, accent }) {
     <div
       title={title}
       style={{
-        flex: '1 1 220px',
-        minWidth: 0,
+        width: '100%',
         background: accent.bg,
         border: `1px solid ${accent.border}`,
-        borderRadius: '999px',
-        padding: '0.5rem 0.95rem',
+        borderRadius: '8px',
+        padding: '0.5rem 0.9rem',
         display: 'flex',
         flexWrap: 'wrap',
         alignItems: 'center',
