@@ -189,6 +189,17 @@ export const PAGES = {
     title: 'Disclaimer',
   },
 
+  // ---- Public analytics surface (not in any nav dropdown either;
+  //      reachable from the page-footer link added alongside the
+  //      disclaimer entry). Renders the rolled-up payload from
+  //      /api/stats. Same data, same view, for every visitor.
+  //      No auth, no privileged dashboard, no cookies. --------------------
+  '/stats/': {
+    vite: 'stats',
+    html: 'stats/index.html',
+    title: 'Stats',
+  },
+
   // ---- Dev sandboxes (vite-only, no nav, no chat) ----------------------
   // These are active development environments, not retired pages. They
   // intentionally do not mount the Chat component because the experimental

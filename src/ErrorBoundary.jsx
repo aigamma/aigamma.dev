@@ -1,4 +1,5 @@
 import { Component } from 'react';
+import { trackView } from './analytics';
 
 export default class ErrorBoundary extends Component {
   constructor(props) {
@@ -8,6 +9,21 @@ export default class ErrorBoundary extends Component {
 
   static getDerivedStateFromError(error) {
     return { error };
+  }
+
+  // ErrorBoundary wraps every per-page App across the site, so its
+  // mount fires exactly once per page load. Piggybacking the analytics
+  // view-event here means every existing page already participates in
+  // the public /stats counters without needing 16 separate edits, and
+  // any future page added under the same main.jsx / ErrorBoundary
+  // pattern is auto-wired.
+  componentDidMount() {
+    try {
+      trackView();
+    } catch {
+      // Analytics is fire-and-forget; never let a tracking exception
+      // unmount the page or trip the boundary's error state.
+    }
   }
 
   render() {
