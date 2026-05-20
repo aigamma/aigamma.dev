@@ -92,6 +92,7 @@ const MENU_ITEMS = [
     desc: 'Dynamic regime icon + AI highlights and key metrics',
   },
   { type: 'header', label: 'About' },
+  { type: 'item', href: '/stats/', label: 'Stats', desc: 'Public, cookieless traffic numbers. Same view for everyone.' },
   { type: 'item', href: 'https://about.aigamma.com/', label: 'About This Page', desc: 'Created by Eric Allione' },
 ];
 
