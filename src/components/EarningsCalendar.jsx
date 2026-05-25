@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import useIsMobile from '../hooks/useIsMobile.js';
 
 // Earnings Calendar — visual centerpiece of /earnings. Two surfaces
 // rendered from one /api/earnings response payload:
@@ -507,6 +508,7 @@ function LegendDot({ color, label, scale = 1 }) {
 
 function ScatterChart({ chartDays, containerWidth, impliedMovesLive, impliedMoveDegrade, scale = 1 }) {
   const [hovered, setHovered] = useState(null);
+  const isMobile = useIsMobile();
 
   const width = Math.max(Math.min(containerWidth - 16, 1100), 320);
   // Aspect ratio: on mobile (containerWidth < 600px, which catches every
@@ -747,8 +749,8 @@ function ScatterChart({ chartDays, containerWidth, impliedMovesLive, impliedMove
               stroke={isHovered ? '#f0a030' : 'rgba(8, 11, 16, 0.4)'}
               strokeWidth={isHovered ? 2 : 1}
               style={{ cursor: 'pointer', transition: 'r 0.12s ease' }}
-              onMouseEnter={() => setHovered(p)}
-              onMouseLeave={() => setHovered(null)}
+              onMouseEnter={isMobile ? undefined : () => setHovered(p)}
+              onMouseLeave={isMobile ? undefined : () => setHovered(null)}
             />
           );
         })}
@@ -782,8 +784,10 @@ function ScatterChart({ chartDays, containerWidth, impliedMovesLive, impliedMove
       </svg>
 
       {/* Hover-anchored tooltip, positioned absolutely over the SVG.
-          Same flip-on-edge logic as SkewScanner. */}
-      {hovered && (() => {
+          Same flip-on-edge logic as SkewScanner. Suppressed on mobile
+          where touch-event emulation would fire the tooltip on tap and
+          occlude the dot the reader just tapped. */}
+      {hovered && !isMobile && (() => {
         const meta = pointMeta.get(`${hovered.isoDate}:${hovered.ticker}`);
         const dotsInGroup = meta ? meta.group.members.length : 1;
         const idx = meta ? meta.idxInGroup : 0;

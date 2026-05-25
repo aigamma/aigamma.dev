@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import useIsMobile from '../hooks/useIsMobile.js';
 
 // SPX Skew Scanner — the visual centerpiece of /scan. Renders a 2x2
 // quadrant of the top-40 options-active single-name stocks by:
@@ -554,6 +555,7 @@ function Quadrant({
   spec, side, outsideLabels, plotted, ivRank, skewRank,
   topTenSymbols, optionsVolumeRanks, hoveredSymbol, onHover,
 }) {
+  const isMobile = useIsMobile();
   const PADDING = 8;
   const PLOT_SIZE = side - PADDING * 2;
   const HALF = PLOT_SIZE / 2;
@@ -781,8 +783,8 @@ function Quadrant({
             <g
               key={t.symbol}
               style={{ pointerEvents: 'auto', cursor: 'pointer' }}
-              onMouseEnter={() => onHover(t.symbol)}
-              onMouseLeave={() => onHover(null)}
+              onMouseEnter={isMobile ? undefined : () => onHover(t.symbol)}
+              onMouseLeave={isMobile ? undefined : () => onHover(null)}
             >
               <rect
                 x={hitX}
@@ -864,8 +866,11 @@ function Quadrant({
           dot itself, not the mouse. Position-flips horizontally if
           the dot is in the right half (so the tooltip opens leftward
           instead of clipping the canvas) and vertically if the dot is
-          near the top (so the tooltip opens downward). */}
+          near the top (so the tooltip opens downward). Suppressed on
+          mobile where touch-event emulation would fire the tooltip on
+          tap and occlude the dot the reader just tapped. */}
       {(() => {
+        if (isMobile) return null;
         if (!hoveredSymbol) return null;
         const t = plotted.find((p) => p.symbol === hoveredSymbol);
         if (!t) return null;

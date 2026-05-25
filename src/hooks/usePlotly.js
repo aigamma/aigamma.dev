@@ -2,21 +2,59 @@ import { useEffect, useState } from 'react';
 
 let plotlyPromise = null;
 
+// Mobile tooltip suppression: native Plotly hover labels activate on tap on
+// touch devices, which the project treats as broken UX (the tap that should
+// be panning or selecting fires the hover tooltip instead, and the tooltip
+// then occludes the tapped data). Patch react / newPlot once at script-load
+// time so every chart on the site inherits hover-off on mobile without
+// per-component edits. Checked at call time via matchMedia so a desktop
+// browser resized below the breakpoint mid-session also picks it up.
+function isMobileViewport() {
+  return typeof window !== 'undefined'
+    && typeof window.matchMedia === 'function'
+    && window.matchMedia('(max-width: 768px)').matches;
+}
+
+function patchPlotlyForMobile(plotly) {
+  if (!plotly || plotly.__aigammaMobilePatched) return;
+  const originalReact = plotly.react?.bind(plotly);
+  const originalNewPlot = plotly.newPlot?.bind(plotly);
+  if (originalReact) {
+    plotly.react = (gd, data, layout, config) => {
+      if (isMobileViewport()) {
+        layout = { ...(layout || {}), hovermode: false, hoverlabel: undefined };
+      }
+      return originalReact(gd, data, layout, config);
+    };
+  }
+  if (originalNewPlot) {
+    plotly.newPlot = (gd, data, layout, config) => {
+      if (isMobileViewport()) {
+        layout = { ...(layout || {}), hovermode: false, hoverlabel: undefined };
+      }
+      return originalNewPlot(gd, data, layout, config);
+    };
+  }
+  plotly.__aigammaMobilePatched = true;
+}
+
 function loadPlotly() {
   if (plotlyPromise) return plotlyPromise;
   if (typeof window === 'undefined') {
     return Promise.resolve({ plotly: null, error: null });
   }
   if (window.Plotly) {
+    patchPlotlyForMobile(window.Plotly);
     return Promise.resolve({ plotly: window.Plotly, error: null });
   }
 
   plotlyPromise = new Promise((resolve) => {
     const existing = document.querySelector('script[data-plotly-cdn]');
     if (existing) {
-      existing.addEventListener('load', () =>
-        resolve({ plotly: window.Plotly, error: null })
-      );
+      existing.addEventListener('load', () => {
+        patchPlotlyForMobile(window.Plotly);
+        resolve({ plotly: window.Plotly, error: null });
+      });
       existing.addEventListener('error', () => {
         // Invalidate the cached promise so a subsequent mount can retry rather
         // than latching a one-time failure for the session lifetime.
@@ -44,7 +82,10 @@ function loadPlotly() {
     // preload tag so the browser reuses the preload cache entry.
     script.src = '/vendor/plotly-cartesian-2.35.2.min.js';
     script.setAttribute('data-plotly-cdn', 'true');
-    script.onload = () => resolve({ plotly: window.Plotly, error: null });
+    script.onload = () => {
+      patchPlotlyForMobile(window.Plotly);
+      resolve({ plotly: window.Plotly, error: null });
+    };
     script.onerror = () => {
       plotlyPromise = null;
       resolve({ plotly: null, error: 'Plotly CDN failed to load' });
@@ -57,6 +98,7 @@ function loadPlotly() {
 export default function usePlotly() {
   const [state, setState] = useState(() => {
     if (typeof window !== 'undefined' && window.Plotly) {
+      patchPlotlyForMobile(window.Plotly);
       return { plotly: window.Plotly, error: null };
     }
     return { plotly: null, error: null };
