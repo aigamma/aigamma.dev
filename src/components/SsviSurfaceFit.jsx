@@ -367,7 +367,12 @@ function pickTenors(expirations, capturedAt, target = 6) {
   return [...picked].sort((a, b) => a - b).map((idx) => withDte[idx].exp);
 }
 
-export default function SsviSurfaceFit() {
+// `compact` collapses the panel to header + picker + stat row + chart only,
+// dropping the per-slice RMSE vs raw-SVI table and the multi-paragraph
+// methodological prose. The landing page renders the compact form because
+// the table and the prose are the kind of slice-level detail that belongs
+// on /discrete/'s sixth slot, which is where the full read still lives.
+export default function SsviSurfaceFit({ compact = false } = {}) {
   const chartRef = useRef(null);
   const { plotly: Plotly, error: plotlyError } = usePlotly();
   const mobile = useIsMobile();
@@ -757,7 +762,7 @@ export default function SsviSurfaceFit() {
 
       <div ref={chartRef} style={{ width: '100%', height: mobile ? 460 : 560 }} />
 
-      {ssvi?.slicePerf?.length > 0 && (
+      {!compact && ssvi?.slicePerf?.length > 0 && (
         <div
           style={{
             marginTop: '1rem',
@@ -849,6 +854,7 @@ export default function SsviSurfaceFit() {
         </div>
       )}
 
+      {!compact && (
       <div
         style={{
           marginTop: '0.9rem',
@@ -934,6 +940,7 @@ export default function SsviSurfaceFit() {
           tool when the question is "does the whole surface hang together."
         </p>
       </div>
+      )}
     </div>
   );
 }

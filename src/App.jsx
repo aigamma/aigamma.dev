@@ -606,18 +606,26 @@ export default function App() {
 
           {/* SSVI · Joint Surface Fit Across Tenors. Shared component
               with /discrete/'s SlotF — same Nelder-Mead solver, same
-              six-tenor rainbow palette, same per-slice RMSE table and
-              arbitrage diagnostics. Sits between the Gamma Index
+              six-tenor rainbow palette, same global ρ / η / γ stat row,
+              same arbitrage diagnostics. Sits between the Gamma Index
               oscillator above and the RV vs Flip scatter below so the
               dealer-positioning sequence (regime / oscillator / scatter)
               is interrupted by exactly one vol-surface tool that
               answers a structurally different question: "does the whole
-              IV surface hang together across tenors". LazyMount height
-              matches the rendered height (chart 560 + stat-cell row +
-              picker row + per-slice RMSE table + multi-paragraph prose
-              explainer) so the placeholder occupies the same vertical
-              footprint as the mounted card and there is no CLS. */}
-          <ErrorBoundary><LazyMount height="1700px"><SsviSurfaceFit /></LazyMount></ErrorBoundary>
+              IV surface hang together across tenors". The `compact` prop
+              drops the per-slice RMSE-vs-raw-SVI table and the
+              methodological prose explainer that live on /discrete/'s
+              deeper read — the landing page reads as a dashboard, not a
+              tutorial, so the chart and its stat-row diagnostics carry
+              the panel here and the reader who wants the table or the
+              writeup follows the menu link to /discrete/. LazyMount
+              height tracks the rendered height of the compact form
+              (header + picker + 6-stat row + 560-px chart on desktop,
+              460-px chart on mobile with the stat row reflowing to a
+              taller 3-row 2-col grid) so the placeholder occupies the
+              same vertical footprint as the mounted card and there is
+              no CLS. */}
+          <ErrorBoundary><LazyMount height="820px"><SsviSurfaceFit compact /></LazyMount></ErrorBoundary>
 
           <ErrorBoundary><LazyMount height="640px"><GammaIndexScatter /></LazyMount></ErrorBoundary>
         </>
