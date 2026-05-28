@@ -30,6 +30,7 @@ const GammaInflectionChart = lazy(() => import('./components/GammaInflectionChar
 const DealerGammaRegime = lazy(() => import('./components/DealerGammaRegime'));
 const SpxVolFlip = lazy(() => import('./components/SpxVolFlip'));
 const GammaIndexOscillator = lazy(() => import('./components/GammaIndexOscillator'));
+const SsviSurfaceFit = lazy(() => import('./components/SsviSurfaceFit'));
 const GammaIndexScatter = lazy(() => import('./components/GammaIndexScatter'));
 const Chat = lazy(() => import('./components/Chat'));
 import useOptionsData from './hooks/useOptionsData';
@@ -135,6 +136,7 @@ function prefetchBelowFoldChunks() {
     import('./components/SpxVolFlip');
     import('./components/DealerGammaRegime');
     import('./components/GammaIndexOscillator');
+    import('./components/SsviSurfaceFit');
     import('./components/GammaIndexScatter');
     import('./components/Chat');
   });
@@ -601,6 +603,21 @@ export default function App() {
           <ErrorBoundary><LazyMount height="604px"><DealerGammaRegime /></LazyMount></ErrorBoundary>
 
           <ErrorBoundary><LazyMount height="600px"><GammaIndexOscillator /></LazyMount></ErrorBoundary>
+
+          {/* SSVI · Joint Surface Fit Across Tenors. Shared component
+              with /discrete/'s SlotF — same Nelder-Mead solver, same
+              six-tenor rainbow palette, same per-slice RMSE table and
+              arbitrage diagnostics. Sits between the Gamma Index
+              oscillator above and the RV vs Flip scatter below so the
+              dealer-positioning sequence (regime / oscillator / scatter)
+              is interrupted by exactly one vol-surface tool that
+              answers a structurally different question: "does the whole
+              IV surface hang together across tenors". LazyMount height
+              matches the rendered height (chart 560 + stat-cell row +
+              picker row + per-slice RMSE table + multi-paragraph prose
+              explainer) so the placeholder occupies the same vertical
+              footprint as the mounted card and there is no CLS. */}
+          <ErrorBoundary><LazyMount height="1700px"><SsviSurfaceFit /></LazyMount></ErrorBoundary>
 
           <ErrorBoundary><LazyMount height="640px"><GammaIndexScatter /></LazyMount></ErrorBoundary>
         </>
