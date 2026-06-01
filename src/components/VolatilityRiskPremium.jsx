@@ -632,6 +632,13 @@ export default function VolatilityRiskPremium({ spotPrice, capturedAt }) {
           );
         })}
       </div>
+      <p
+        className="text-muted"
+        style={{ fontSize: '0.85rem', margin: '0.5rem 0 0', lineHeight: 1.5 }}
+      >
+        Spread is 30-day constant-maturity implied vol minus 20-day Yang-Zhang
+        realized vol (different horizons by design).
+      </p>
       <RangeBrush
         min={isoToMs(firstDate)}
         max={isoToMs(lastDate)}

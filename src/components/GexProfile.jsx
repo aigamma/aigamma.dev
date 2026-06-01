@@ -283,7 +283,7 @@ export default function GexProfile({ contracts, spotPrice, levels, prevContracts
         type: 'bar',
         name: 'Put Gamma',
         marker: { color: PLOTLY_COLORS.negative, opacity: PLOTLY_SERIES_OPACITY },
-        hovertemplate: 'Strike %{x}<br>Put Gamma: %{customdata:.3s}<extra></extra>',
+        hovertemplate: 'Strike %{x}<br>Put GEX (display sign): %{customdata:.3s}<extra></extra>',
       },
     );
 

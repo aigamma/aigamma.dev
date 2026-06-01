@@ -12,6 +12,12 @@ import {
   PLOTLY_HEATMAP_COLORSCALE,
   PLOTLY_COLORBAR,
 } from '../../src/lib/plotlyTheme';
+import {
+  buildSurface,
+  computeDupire,
+  coverageStats,
+  Y_HALF_WIDTH,
+} from '../dupire';
 
 // -----------------------------------------------------------------------------
 // Dupire Local Volatility Surface (whole-surface heatmap).
@@ -56,135 +62,7 @@ import {
 // the input surface that those diagnostics consume.
 // -----------------------------------------------------------------------------
 
-const DUPIRE_MIN_VARIANCE = 1e-5;         // floor for σ²_LV to keep sqrt real
-const TARGET_T_POINTS = 28;               // rows in the heatmap
-const TARGET_Y_POINTS = 60;               // cols in the heatmap
-const Y_HALF_WIDTH = 0.18;                // ±18% log-moneyness window
-const MIN_T_YEARS = 7 / 365;              // floor to avoid 1/T blow-up near 0DTE
-const MAX_RMSE = 0.012;                   // skip slices that didn't converge cleanly
-
-// --------- SVI y-derivatives (analytic) -----------------------------------
-
-function sviW(params, y) {
-  const { a, b, rho, m, sigma } = params;
-  const u = y - m;
-  return a + b * (rho * u + Math.sqrt(u * u + sigma * sigma));
-}
-function sviDw(params, y) {
-  const { b, rho, m, sigma } = params;
-  const u = y - m;
-  return b * (rho + u / Math.sqrt(u * u + sigma * sigma));
-}
-function sviD2w(params, y) {
-  const { b, m, sigma } = params;
-  const u = y - m;
-  const denom = Math.pow(u * u + sigma * sigma, 1.5);
-  return (b * sigma * sigma) / denom;
-}
-
-// --------- Surface object from backend sviFits ----------------------------
-
-function buildSurface(sviFits) {
-  if (!Array.isArray(sviFits) || sviFits.length === 0) return null;
-  const clean = sviFits
-    .filter((f) => f && f.params && f.t_years > 0 && Number.isFinite(f.rmse_iv))
-    .filter((f) => f.rmse_iv <= MAX_RMSE)
-    .map((f) => ({
-      T: f.t_years,
-      F: f.forward_price,
-      params: f.params,
-      rmse: f.rmse_iv,
-    }))
-    .sort((a, b) => a.T - b.T);
-  if (clean.length < 3) return null;
-  return clean;
-}
-
-// Locate two slices bracketing T among sorted surface; return (i, j, wt)
-// such that T ≈ wt·slices[j].T + (1-wt)·slices[i].T.
-function bracketIndex(surface, T) {
-  const n = surface.length;
-  if (T <= surface[0].T) return { i: 0, j: 1, wt: 0 };
-  if (T >= surface[n - 1].T) return { i: n - 2, j: n - 1, wt: 1 };
-  for (let k = 0; k < n - 1; k++) {
-    if (T >= surface[k].T && T <= surface[k + 1].T) {
-      const span = surface[k + 1].T - surface[k].T;
-      const wt = span > 0 ? (T - surface[k].T) / span : 0;
-      return { i: k, j: k + 1, wt };
-    }
-  }
-  return { i: 0, j: 1, wt: 0 };
-}
-
-// Dupire local variance on the (y, T) grid. Returns σ_LV per unit time
-// (annualized vol). y is log-moneyness against the forward at tenor T,
-// where the forward is linearly interpolated between adjacent slices
-// (a small approximation; the SPX forward grows almost linearly in T at
-// (r − q) so the interpolation bias is ~second-order in T).
-function computeDupire(surface) {
-  const TYs = new Array(TARGET_T_POINTS);
-  const Ys = new Array(TARGET_Y_POINTS);
-
-  const Tmin = Math.max(surface[0].T, MIN_T_YEARS);
-  const Tmax = surface[surface.length - 1].T;
-  const logTmin = Math.log(Tmin);
-  const logTmax = Math.log(Tmax);
-  for (let i = 0; i < TARGET_T_POINTS; i++) {
-    const t = i / (TARGET_T_POINTS - 1);
-    TYs[i] = Math.exp(logTmin + t * (logTmax - logTmin));
-  }
-  for (let j = 0; j < TARGET_Y_POINTS; j++) {
-    Ys[j] = -Y_HALF_WIDTH + (j / (TARGET_Y_POINTS - 1)) * (2 * Y_HALF_WIDTH);
-  }
-
-  const sigma = new Array(TARGET_T_POINTS);
-  for (let i = 0; i < TARGET_T_POINTS; i++) {
-    sigma[i] = new Array(TARGET_Y_POINTS);
-  }
-
-  for (let i = 0; i < TARGET_T_POINTS; i++) {
-    const T = TYs[i];
-    const { i: iA, j: iB, wt } = bracketIndex(surface, T);
-    const A = surface[iA];
-    const B = surface[iB];
-    const dT = B.T - A.T;
-
-    for (let j = 0; j < TARGET_Y_POINTS; j++) {
-      const y = Ys[j];
-      const wA = sviW(A.params, y);
-      const wB = sviW(B.params, y);
-      const dwA = sviDw(A.params, y);
-      const dwB = sviDw(B.params, y);
-      const d2wA = sviD2w(A.params, y);
-      const d2wB = sviD2w(B.params, y);
-
-      // Interpolate w and its y-derivatives linearly in T
-      const w = (1 - wt) * wA + wt * wB;
-      const dw_dy = (1 - wt) * dwA + wt * dwB;
-      const d2w_dy2 = (1 - wt) * d2wA + wt * d2wB;
-      const dw_dT = dT > 0 ? (wB - wA) / dT : 0;
-
-      // Dupire denominator in y, w form
-      if (w <= 0 || !Number.isFinite(w)) {
-        sigma[i][j] = null;
-        continue;
-      }
-      const N = 1
-        - (y / w) * dw_dy
-        + 0.25 * (-0.25 - 1 / w + (y * y) / (w * w)) * dw_dy * dw_dy
-        + 0.5 * d2w_dy2;
-
-      const locVar = N > 0 ? dw_dT / N : null;
-      if (locVar == null || !(locVar >= DUPIRE_MIN_VARIANCE)) {
-        sigma[i][j] = null;
-        continue;
-      }
-      sigma[i][j] = Math.sqrt(locVar);
-    }
-  }
-
-  return { Ts: TYs, Ys, sigma };
-}
+// Grid math: ../dupire.js (shared with SlotB/C/D).
 
 // --------- UI -------------------------------------------------------------
 
@@ -293,6 +171,8 @@ export default function SlotE() {
   }, [sviArray]);
   const surface = surfaceState.surface;
   const dupire = surfaceState.dupire;
+
+  const coverage = useMemo(() => coverageStats(dupire), [dupire]);
 
   const summaryStats = useMemo(() => {
     if (!dupire) return null;
@@ -460,7 +340,11 @@ export default function SlotE() {
         <StatCell
           label="slices used"
           value={surface.length.toString()}
-          sub={`T ∈ [${surface[0].T.toFixed(2)}, ${surface[surface.length - 1].T.toFixed(2)}]y`}
+          sub={
+            coverage
+              ? `T ∈ [${surface[0].T.toFixed(2)}, ${surface[surface.length - 1].T.toFixed(2)}]y · ${(coverage.coverage * 100).toFixed(0)}% ok cells`
+              : `T ∈ [${surface[0].T.toFixed(2)}, ${surface[surface.length - 1].T.toFixed(2)}]y`
+          }
         />
         <StatCell
           label="σ_LV median"
@@ -483,7 +367,7 @@ export default function SlotE() {
         <StatCell
           label="short put skew"
           value={summaryStats ? formatPct(summaryStats.shortPutSkew, 1) : '-'}
-          sub="σ_LV(−18%) − σ_LV(0)"
+          sub={`σ_LV(−${(Y_HALF_WIDTH * 100).toFixed(0)}%) − σ_LV(0)`}
           accent={
             summaryStats && summaryStats.shortPutSkew > 0.1 ? PLOTLY_COLORS.secondary : undefined
           }

@@ -1099,7 +1099,9 @@ export function forecastCgarch(model, lastEps, lastVar, horizon) {
 // --- GARCH-in-Mean (Engle-Lilien-Robins 1987) ------------------------------
 // r_t = μ + λ·σ_t + ε_t with ε_t ~ N(0, h_t) and h_t GARCH(1,1). λ is the
 // risk-premium coefficient: λ > 0 means the asset requires a higher expected
-// return when conditional volatility is elevated.
+// return when conditional volatility is elevated. The in-mean term uses
+// √h_t (contemporaneous with the return at t), not √h_{t−1}; the zoo labels
+// that timing explicitly so it is not read as a strictly causal MLE spec.
 
 function garchMCondVarAndEps(returns, mu, lambda, omega, alpha, beta, initVar) {
   const n = returns.length;

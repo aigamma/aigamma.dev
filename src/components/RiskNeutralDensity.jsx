@@ -170,9 +170,8 @@ export default function RiskNeutralDensity({ fits, spotPrice, capturedAt, loadin
         }
       }
 
-      // customdata carries [cdf, densityRelativeToPeak] so the hover
-      // can show both the cumulative probability and how close this
-      // strike is to the optimal butterfly center for this expiration.
+      // customdata carries [cdf, densityRelativeToPeak]. CDF is integrated
+      // on the full strike grid before the 75–125% spot window is applied.
       const customdata = windowed.strikes.map((_, i) => [
         windowed.cdf[i],
         peakVal > 0 ? windowed.values[i] / peakVal : 0,

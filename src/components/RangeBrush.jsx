@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { PLOTLY_COLORS } from '../lib/plotlyTheme';
 
 // Site-wide range brush — three absolutely-positioned divs inside a
@@ -48,7 +48,7 @@ export default function RangeBrush({
   const farPct =
     totalSpan > 0 ? Math.max(0, ((max - displayMax) / totalSpan) * 100) : 0;
 
-  const handlePointerDown = (e) => {
+  const handlePointerDown = useCallback((e) => {
     const handle = e.currentTarget.dataset.handle;
     if (!handle) return;
     const track = e.currentTarget.parentElement;
@@ -64,9 +64,9 @@ export default function RangeBrush({
       currentMin: activeMin,
       currentMax: activeMax,
     });
-  };
+  }, [isVertical, activeMin, activeMax]);
 
-  const handlePointerMove = (e) => {
+  const handlePointerMove = useCallback((e) => {
     if (!dragState) return;
     const { handle, startClient, startMin, startMax, rect } = dragState;
     const rectLen = isVertical ? rect.height : rect.width;
@@ -100,40 +100,47 @@ export default function RangeBrush({
       }
     }
     setDragState({ ...dragState, currentMin: newMin, currentMax: newMax });
-  };
+  }, [dragState, isVertical, min, max, minWidth, totalSpan]);
 
-  const handlePointerUp = () => {
+  const handlePointerUp = useCallback(() => {
     if (!dragState) return;
     onChange(dragState.currentMin, dragState.currentMax);
     setDragState(null);
-  };
+  }, [dragState, onChange]);
 
-  const baseTrackStyle = {
-    backgroundColor: 'rgba(138, 143, 156, 0.32)',
-    position: 'relative',
-    userSelect: 'none',
-    touchAction: 'none',
-  };
+  // Style objects are memoized so React skips DOM updates on the inner
+  // divs when the dependent values have not changed. During a drag of
+  // one handle the other handle's style stays referentially stable and
+  // its DOM node does not get a fresh style attribute write per pointer
+  // event, which removes the per-frame layout cost the audit identified
+  // for slower devices.
+  const trackStyle = useMemo(() => {
+    const base = {
+      backgroundColor: 'rgba(138, 143, 156, 0.32)',
+      position: 'relative',
+      userSelect: 'none',
+      touchAction: 'none',
+    };
+    return isVertical
+      ? {
+          ...base,
+          width: `${width}px`,
+          height: '100%',
+          borderTop: `1px solid ${PLOTLY_COLORS.grid}`,
+          borderBottom: `1px solid ${PLOTLY_COLORS.grid}`,
+          borderRight: `1px solid ${PLOTLY_COLORS.grid}`,
+        }
+      : {
+          ...base,
+          width: '100%',
+          height: `${height}px`,
+          borderLeft: `1px solid ${PLOTLY_COLORS.grid}`,
+          borderRight: `1px solid ${PLOTLY_COLORS.grid}`,
+          borderBottom: `1px solid ${PLOTLY_COLORS.grid}`,
+        };
+  }, [isVertical, width, height]);
 
-  const trackStyle = isVertical
-    ? {
-        ...baseTrackStyle,
-        width: `${width}px`,
-        height: '100%',
-        borderTop: `1px solid ${PLOTLY_COLORS.grid}`,
-        borderBottom: `1px solid ${PLOTLY_COLORS.grid}`,
-        borderRight: `1px solid ${PLOTLY_COLORS.grid}`,
-      }
-    : {
-        ...baseTrackStyle,
-        width: '100%',
-        height: `${height}px`,
-        borderLeft: `1px solid ${PLOTLY_COLORS.grid}`,
-        borderRight: `1px solid ${PLOTLY_COLORS.grid}`,
-        borderBottom: `1px solid ${PLOTLY_COLORS.grid}`,
-      };
-
-  const windowStyle = isVertical
+  const windowStyle = useMemo(() => (isVertical
     ? {
         position: 'absolute',
         left: 0,
@@ -151,9 +158,9 @@ export default function RangeBrush({
         right: `${farPct}%`,
         backgroundColor: PLOTLY_COLORS.plot,
         cursor: dragState?.handle === 'window' ? 'grabbing' : 'grab',
-      };
+      }), [isVertical, nearPct, farPct, dragState?.handle]);
 
-  const minHandleStyle = isVertical
+  const minHandleStyle = useMemo(() => (isVertical
     ? {
         position: 'absolute',
         left: 0,
@@ -171,9 +178,9 @@ export default function RangeBrush({
         width: '6px',
         backgroundColor: PLOTLY_COLORS.titleText,
         cursor: 'ew-resize',
-      };
+      }), [isVertical, nearPct]);
 
-  const maxHandleStyle = isVertical
+  const maxHandleStyle = useMemo(() => (isVertical
     ? {
         position: 'absolute',
         left: 0,
@@ -191,7 +198,7 @@ export default function RangeBrush({
         width: '6px',
         backgroundColor: PLOTLY_COLORS.titleText,
         cursor: 'ew-resize',
-      };
+      }), [isVertical, farPct]);
 
   return (
     <div

@@ -959,8 +959,9 @@ export default function GarchZoo() {
             <strong style={{ color: FAMILY_COLORS.mean }}>
               In-mean (GARCH-M)
             </strong>
-            : lets vol feed back into expected return. Use it as a read
-            on the risk premium currently priced into SPX.
+            : lets vol feed back into expected return via λ·√h_t at the
+            same date (not lagged √h at t−1). Use it as a read on the risk
+            premium currently priced into SPX.
           </li>
           <li>
             <strong style={{ color: FAMILY_COLORS.score }}>
@@ -989,7 +990,8 @@ export default function GarchZoo() {
             <strong style={{ color: FAMILY_COLORS.realized }}>
               Realized (Realized GARCH, HEAVY)
             </strong>
-            : pulls in a 5-day realized-variance proxy. Reacts faster
+            : pulls in a 5-day sum-of-squared-daily-returns proxy (not
+            full Hansen et al. intraday RV). Reacts faster
             to observed stress than the pure return-based models.
           </li>
         </ul>

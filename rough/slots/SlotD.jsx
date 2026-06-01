@@ -418,12 +418,23 @@ export default function SlotD() {
         <StatCell
           label="slices used"
           value={points.length.toString()}
-          sub={`T ∈ [${points[0].T.toFixed(2)}, ${points[points.length - 1].T.toFixed(2)}]y`}
+          sub={
+            points.length > 0
+              ? `mean ∂σ/∂k = ${formatFixed(
+                points.reduce((s, p) => s + p.skew, 0) / points.length,
+                4,
+              )}`
+              : '-'
+          }
         />
         <StatCell
           label="short T skew"
-          value={formatFixed(points[0]?.absSkew, 4)}
-          sub={`at T = ${points[0]?.T.toFixed(3)}y`}
+          value={formatFixed(points[0]?.skew, 4)}
+          sub={
+            points[0]
+              ? `|skew| ${formatFixed(points[0].absSkew, 4)} · T = ${points[0].T.toFixed(3)}y`
+              : '-'
+          }
           accent={PLOTLY_COLORS.highlight}
         />
       </div>
