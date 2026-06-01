@@ -10,6 +10,7 @@ import {
   plotlyTitle,
 } from '../../src/lib/plotlyTheme';
 import { daysToExpiration, pickDefaultExpiration, filterPickerExpirations } from '../../src/lib/dates';
+import { LAB_R as RATE_R, LAB_Q as RATE_Q } from '../../src/lib/marketRates.js';
 
 // -----------------------------------------------------------------------------
 // Merton (1976) Jump Diffusion. The original "Black-Scholes plus jumps"
@@ -41,8 +42,6 @@ import { daysToExpiration, pickDefaultExpiration, filterPickerExpirations } from
 // slice, identical observation set to the Heston slot above.
 // -----------------------------------------------------------------------------
 
-const RATE_R = 0.045;
-const RATE_Q = 0.013;
 const N_TERMS = 60;
 const NM_MAX_ITERS = 220;
 

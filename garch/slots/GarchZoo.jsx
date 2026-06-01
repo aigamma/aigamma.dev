@@ -11,7 +11,7 @@ import {
 } from '../../src/lib/plotlyTheme';
 import RangeBrush from '../../src/components/RangeBrush';
 import ResetButton from '../../src/components/ResetButton';
-import { fitAll, forecastAll, annualize, horizonSigma } from '../garch';
+import { fitAll, forecastAll, annualize, horizonSigma, bicWeightEnsemble } from '../garch';
 
 // -----------------------------------------------------------------------------
 // GARCH family zoo — single slot on /garch/
@@ -204,6 +204,7 @@ export default function GarchZoo() {
   const { data, loading, error } = useGexHistory({});
   const [fitState, setFitState] = useState({ fit: null, forecast: null, error: null });
   const [hiddenFamilies, setHiddenFamilies] = useState(() => new Set());
+  const [ensembleWeighting, setEnsembleWeighting] = useState('equal');
 
   const returnsWithDate = useMemo(() => {
     if (!data?.series) return null;
@@ -296,31 +297,39 @@ export default function GarchZoo() {
     );
   }, [fitState, hiddenFamilies]);
 
-  // Equal-weight ensemble over just the visible subset, recomputed any
-  // time the picker toggles. Matches in-sample condVar with the forecast
-  // by model name so a hidden family drops out of both panels at once.
+  // Ensemble over the visible subset (equal or BIC-weighted), recomputed
+  // when the picker or weighting mode changes.
   const visibleEnsemble = useMemo(() => {
     if (!fitState.forecast || visibleModels.length === 0) return null;
+    const blended = ensembleWeighting === 'bic'
+      ? bicWeightEnsemble(visibleModels)
+      : null;
     const T = visibleModels[0].condVar.length;
-    const condVar = new Array(T).fill(0);
-    for (let t = 0; t < T; t++) {
-      for (const m of visibleModels) condVar[t] += m.condVar[t] / visibleModels.length;
-    }
-    const keep = new Set(visibleModels.map((m) => m.name));
-    const fs = fitState.forecast.perModel.filter((f) => keep.has(f.name));
+    const condVar = blended?.condVar ?? (() => {
+      const out = new Array(T).fill(0);
+      for (let t = 0; t < T; t++) {
+        for (const m of visibleModels) out[t] += m.condVar[t] / visibleModels.length;
+      }
+      return out;
+    })();
+    const modelWeights = blended?.weights ?? visibleModels.map(() => 1 / visibleModels.length);
+    const fs = visibleModels
+      .map((m) => fitState.forecast.perModel.find((f) => f.name === m.name))
+      .filter(Boolean);
     const H = fs[0]?.path.length ?? 0;
     const path = new Array(H).fill(0);
     for (let h = 0; h < H; h++) {
-      for (const f of fs) path[h] += f.path[h] / fs.length;
+      for (let m = 0; m < fs.length; m++) path[h] += modelWeights[m] * fs[m].path[h];
     }
     return {
       condVar,
       path,
+      weighting: ensembleWeighting,
       sigma1d: H > 0 ? annualize(path[0]) : null,
       sigma10d: horizonSigma(path, 10),
       sigma21d: horizonSigma(path, 21),
     };
-  }, [fitState, visibleModels]);
+  }, [fitState, visibleModels, ensembleWeighting]);
 
   useEffect(() => {
     if (!Plotly || !chartRef.current || !fitState.fit || !visibleEnsemble || !returnsWithDate || !activeRange) return;
@@ -372,9 +381,11 @@ export default function GarchZoo() {
       y: toAnnPct(visibleEnsemble.condVar),
       mode: 'lines',
       type: 'scatter',
-      name: 'Ensemble average',
+      name: ensembleWeighting === 'bic' ? 'Ensemble (BIC-weighted)' : 'Ensemble average',
       line: { color: ENSEMBLE_COLOR, width: 2.4 },
-      hovertemplate: '<b>%{x}</b><br>ensemble average σ: %{y:.2f}%<extra></extra>',
+      hovertemplate: ensembleWeighting === 'bic'
+        ? '<b>%{x}</b><br>ensemble BIC-weighted σ: %{y:.2f}%<extra></extra>'
+        : '<b>%{x}</b><br>ensemble average σ: %{y:.2f}%<extra></extra>',
     });
 
     // Forecast tail
@@ -524,7 +535,7 @@ export default function GarchZoo() {
       responsive: true,
       displayModeBar: false,
     });
-  }, [Plotly, fitState, visibleModels, visibleEnsemble, returnsWithDate, mobile, activeRange]);
+  }, [Plotly, fitState, visibleModels, visibleEnsemble, returnsWithDate, mobile, activeRange, ensembleWeighting]);
 
   if (loading && !data) {
     return (
@@ -661,7 +672,7 @@ export default function GarchZoo() {
         />
       </div>
 
-      {/* Family picker: toggle a family on or off. The ensemble recomputes. */}
+      {/* Ensemble weighting + family picker */}
       <div
         style={{
           display: 'flex',
@@ -678,6 +689,36 @@ export default function GarchZoo() {
             textTransform: 'uppercase',
             letterSpacing: '0.1em',
             marginRight: '0.25rem',
+          }}
+        >
+          ensemble:
+        </span>
+        {(['equal', 'bic']).map((mode) => (
+          <button
+            key={mode}
+            type="button"
+            onClick={() => setEnsembleWeighting(mode)}
+            style={{
+              background: ensembleWeighting === mode ? `${ENSEMBLE_COLOR}1a` : 'transparent',
+              border: `1px solid ${ensembleWeighting === mode ? ENSEMBLE_COLOR : 'var(--bg-card-border)'}`,
+              color: ensembleWeighting === mode ? ENSEMBLE_COLOR : 'var(--text-secondary)',
+              padding: '0.3rem 0.65rem',
+              fontFamily: "Calibri, 'Segoe UI', system-ui, sans-serif",
+              fontSize: '0.74rem',
+              cursor: 'pointer',
+              borderRadius: '3px',
+            }}
+          >
+            {mode === 'equal' ? 'equal weight' : 'BIC weight'}
+          </button>
+        ))}
+        <span
+          style={{
+            fontSize: '0.7rem',
+            color: 'var(--text-secondary)',
+            textTransform: 'uppercase',
+            letterSpacing: '0.1em',
+            margin: '0 0.25rem 0 0.5rem',
           }}
         >
           families:
@@ -886,8 +927,9 @@ export default function GarchZoo() {
           <strong style={{ color: ENSEMBLE_COLOR }}>
             bold green line is the ensemble average
           </strong>{' '}
-          (equal-weight mean across the visible models), and the dashed
-          green tail is its 30-day forward forecast. The dotted white line
+          ({ensembleWeighting === 'bic' ? 'BIC-weighted mean' : 'equal-weight mean'}{' '}
+          across the visible models), and the dashed green tail is its 30-day
+          forward forecast. The dotted white line
           is realized vol over the trailing 10 trading days, shown as a
           reality check against the model fits.
         </p>
@@ -959,9 +1001,9 @@ export default function GarchZoo() {
             <strong style={{ color: FAMILY_COLORS.mean }}>
               In-mean (GARCH-M)
             </strong>
-            : lets vol feed back into expected return via λ·√h_t at the
-            same date (not lagged √h at t−1). Use it as a read on the risk
-            premium currently priced into SPX.
+            : lets vol feed back into expected return via λ times lagged
+            conditional vol (causal GARCH-M, √h at t−1). Use it as a read on
+            the risk premium currently priced into SPX.
           </li>
           <li>
             <strong style={{ color: FAMILY_COLORS.score }}>

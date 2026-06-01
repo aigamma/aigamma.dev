@@ -10,6 +10,7 @@ import {
   plotlyTitle,
 } from '../../src/lib/plotlyTheme';
 import { daysToExpiration, pickDefaultExpiration, filterPickerExpirations } from '../../src/lib/dates';
+import { LAB_R as RATE_R, LAB_Q as RATE_Q } from '../../src/lib/marketRates.js';
 
 // -----------------------------------------------------------------------------
 // Vanna-Volga Decomposition.
@@ -58,9 +59,6 @@ import { daysToExpiration, pickDefaultExpiration, filterPickerExpirations } from
 // numbers exactly and lets the reader watch how the full smile curve
 // extends off the anchors.
 // -----------------------------------------------------------------------------
-
-const RATE_R = 0.045;
-const RATE_Q = 0.013;
 
 // ---- BSM analytic ---------------------------------------------------------
 

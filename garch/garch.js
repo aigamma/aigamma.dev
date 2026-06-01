@@ -958,6 +958,25 @@ export function equalWeightEnsemble(models) {
   return { condVar, weights: models.map(() => w) };
 }
 
+// BIC-weighted ensemble: w_m ∝ exp(−½·BIC_m), normalized. Dominant models
+// pull the average; useful when the zoo is used as a forecast panel.
+export function bicWeightEnsemble(models) {
+  if (models.length === 0) return null;
+  const n = models[0].condVar.length;
+  const bics = models.map((m) => m.bic);
+  const minBic = Math.min(...bics);
+  const raw = bics.map((bic) => Math.exp(-0.5 * (bic - minBic)));
+  const sum = raw.reduce((a, b) => a + b, 0);
+  const weights = raw.map((r) => r / sum);
+  const condVar = new Array(n).fill(0);
+  for (let t = 0; t < n; t++) {
+    for (let m = 0; m < models.length; m++) {
+      condVar[t] += weights[m] * models[m].condVar[t];
+    }
+  }
+  return { condVar, weights };
+}
+
 export function blendForecasts(forecasts, weights) {
   const h = forecasts[0].path.length;
   const path = new Array(h).fill(0);
@@ -1099,9 +1118,8 @@ export function forecastCgarch(model, lastEps, lastVar, horizon) {
 // --- GARCH-in-Mean (Engle-Lilien-Robins 1987) ------------------------------
 // r_t = μ + λ·σ_t + ε_t with ε_t ~ N(0, h_t) and h_t GARCH(1,1). λ is the
 // risk-premium coefficient: λ > 0 means the asset requires a higher expected
-// return when conditional volatility is elevated. The in-mean term uses
-// √h_t (contemporaneous with the return at t), not √h_{t−1}; the zoo labels
-// that timing explicitly so it is not read as a strictly causal MLE spec.
+// return when conditional volatility is elevated. Causal GARCH-M: the mean
+// uses √h_{t−1} (σ_{t−1}) while h_t follows the usual GARCH(1,1) recursion.
 
 function garchMCondVarAndEps(returns, mu, lambda, omega, alpha, beta, initVar) {
   const n = returns.length;
@@ -1113,7 +1131,7 @@ function garchMCondVarAndEps(returns, mu, lambda, omega, alpha, beta, initVar) {
     const prevEps = eps[t - 1];
     h[t] = omega + alpha * prevEps * prevEps + beta * h[t - 1];
     if (!(h[t] > 0)) h[t] = 1e-20;
-    eps[t] = returns[t] - mu - lambda * Math.sqrt(h[t]);
+    eps[t] = returns[t] - mu - lambda * Math.sqrt(h[t - 1]);
   }
   return { h, eps };
 }

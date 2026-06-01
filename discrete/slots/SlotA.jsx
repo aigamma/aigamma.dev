@@ -12,6 +12,7 @@ import {
   plotlyTitle,
 } from '../../src/lib/plotlyTheme';
 import { daysToExpiration, pickDefaultExpiration, filterPickerExpirations } from '../../src/lib/dates';
+import { LAB_R as RATE_R, LAB_Q as RATE_Q } from '../../src/lib/marketRates.js';
 
 // -----------------------------------------------------------------------------
 // Binomial Tree (Cox, Ross, Rubinstein 1979).
@@ -58,9 +59,6 @@ import { daysToExpiration, pickDefaultExpiration, filterPickerExpirations } from
 // continuous-limit price," not "does the tree produce the right IV," which
 // is a separate and harder question that SVI answers in Slots C-F.
 // -----------------------------------------------------------------------------
-
-const RATE_R = 0.045;  // SOFR-ish
-const RATE_Q = 0.013;  // SPX trailing dividend yield
 
 const N_MIN = 5;
 const N_MAX = 400;

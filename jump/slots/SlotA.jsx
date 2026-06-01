@@ -10,6 +10,7 @@ import {
   plotlyTitle,
 } from '../../src/lib/plotlyTheme';
 import { daysToExpiration, pickDefaultExpiration, filterPickerExpirations } from '../../src/lib/dates';
+import { LAB_R as RATE_R, LAB_Q as RATE_Q } from '../../src/lib/marketRates.js';
 
 // -----------------------------------------------------------------------------
 // Variance Gamma (Madan, Carr, Chang 1998). Pure-jump infinite-activity
@@ -51,8 +52,6 @@ import { daysToExpiration, pickDefaultExpiration, filterPickerExpirations } from
 // pure-jump model, no diffusion.
 // -----------------------------------------------------------------------------
 
-const RATE_R = 0.045;
-const RATE_Q = 0.013;
 const INT_N = 601;
 const NM_MAX_ITERS = 240;
 

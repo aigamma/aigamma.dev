@@ -470,9 +470,9 @@ export function fitSviSlice({
 //   2. C(S, K, T, sigma)  — Black-Scholes, r = q = 0
 //   3. f(K) = d2C / dK2   — evaluated by central differences
 //
-// r = q = 0 is a deliberate simplification: the dashboard reads a single spot
-// and does not carry a dividend yield. The shape of the density is what the
-// user cares about and is not sensitive to a 1-2% rate shift.
+// r = q = 0 matches src/lib/marketRates.js (SVI_R, SVI_Q). Lab pages use
+// LAB_R / LAB_Q instead; see marketRates.js. The shape of the density is
+// what the reader cares about and is not sensitive to a 1-2% carry shift.
 
 function normCdf(x) {
   // Abramowitz & Stegun 7.1.26 — 6dp accuracy, fine for plotting.

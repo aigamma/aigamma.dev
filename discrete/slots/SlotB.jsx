@@ -12,6 +12,7 @@ import {
   plotlyTitle,
 } from '../../src/lib/plotlyTheme';
 import { daysToExpiration, pickDefaultExpiration, filterPickerExpirations } from '../../src/lib/dates';
+import { LAB_R as RATE_R, LAB_Q as RATE_Q } from '../../src/lib/marketRates.js';
 
 // -----------------------------------------------------------------------------
 // Trinomial Tree (Boyle 1986, Kamrad-Ritchken 1991 stretched form).
@@ -56,9 +57,6 @@ import { daysToExpiration, pickDefaultExpiration, filterPickerExpirations } from
 // cost win that has nothing to do with IV modeling and everything to do
 // with which lattice you picked.
 // -----------------------------------------------------------------------------
-
-const RATE_R = 0.045;
-const RATE_Q = 0.013;
 
 const N_MIN = 5;
 const N_MAX = 400;

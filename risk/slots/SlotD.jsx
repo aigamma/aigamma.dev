@@ -10,6 +10,7 @@ import {
   plotlyTitle,
 } from '../../src/lib/plotlyTheme';
 import { daysToExpiration, pickDefaultExpiration, filterPickerExpirations } from '../../src/lib/dates';
+import { LAB_R as RATE_R, LAB_Q as RATE_Q } from '../../src/lib/marketRates.js';
 
 // -----------------------------------------------------------------------------
 // Second-Order Greeks.
@@ -53,9 +54,6 @@ import { daysToExpiration, pickDefaultExpiration, filterPickerExpirations } from
 // strike so the reader can see how the hedge burden varies with
 // moneyness, not just at the three pivots.
 // -----------------------------------------------------------------------------
-
-const RATE_R = 0.045;
-const RATE_Q = 0.013;
 
 // ---- BSM analytic ---------------------------------------------------------
 

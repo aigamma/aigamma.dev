@@ -22,7 +22,7 @@ const BASE_LAYOUT = {
   // 15px bump in margin.l absorbs that extra spacing without crowding the
   // rotated y-axis title.
   yaxis: plotlyAxis('Risk-Neutral Density', {
-    tickformat: '.2s',
+    tickformat: '.1e',
     ticks: 'outside',
     ticklen: 8,
     tickcolor: 'rgba(0,0,0,0)',
@@ -48,32 +48,16 @@ const BASE_LAYOUT = {
   },
 };
 
-// Compute the CDF via trapezoidal integration on the FULL density, then
-// window density + CDF together so P(SPX < K) is accurate even at the
-// left edge of the visible range. Without computing on the full array
-// first, the CDF would start at zero at the left window boundary instead
-// of reflecting the probability mass in the far left tail.
-function windowDensityWithCdf({ strikes, values }, spotPrice) {
-  const lo = spotPrice * 0.75;
-  const hi = spotPrice * 1.25;
-
+// CDF via trapezoidal integration on the full SVI strike grid. The x-axis
+// brush only changes the visible range; P(SPX < K) always includes tail
+// mass to the left of K.
+function densityWithCdf({ strikes, values }) {
   const cdf = new Array(strikes.length);
   cdf[0] = 0;
   for (let i = 1; i < strikes.length; i++) {
     cdf[i] = cdf[i - 1] + (values[i - 1] + values[i]) / 2 * (strikes[i] - strikes[i - 1]);
   }
-
-  const outStrikes = [];
-  const outValues = [];
-  const outCdf = [];
-  for (let i = 0; i < strikes.length; i++) {
-    if (strikes[i] >= lo && strikes[i] <= hi) {
-      outStrikes.push(strikes[i]);
-      outValues.push(values[i]);
-      outCdf.push(cdf[i]);
-    }
-  }
-  return { strikes: outStrikes, values: outValues, cdf: outCdf };
+  return { strikes, values, cdf };
 }
 
 // Monthly SPX options expire on the third Friday of the month, shifting back
@@ -153,10 +137,10 @@ export default function RiskNeutralDensity({ fits, spotPrice, capturedAt, loadin
     const modeHover = [];
 
     sortedExps.forEach((fit, idx) => {
-      const windowed = windowDensityWithCdf(
-        { strikes: fit.density.strikes, values: fit.density.values },
-        spotPrice,
-      );
+      const windowed = densityWithCdf({
+        strikes: fit.density.strikes,
+        values: fit.density.values,
+      });
       const color = PLOTLY_SERIES_PALETTE[idx % PLOTLY_SERIES_PALETTE.length];
       const label = `${fit.expirationDate} (${fit.dte.toFixed(0)}d)`;
 
@@ -170,8 +154,7 @@ export default function RiskNeutralDensity({ fits, spotPrice, capturedAt, loadin
         }
       }
 
-      // customdata carries [cdf, densityRelativeToPeak]. CDF is integrated
-      // on the full strike grid before the 75–125% spot window is applied.
+      // customdata carries [cdf, densityRelativeToPeak] on the full grid.
       const customdata = windowed.strikes.map((_, i) => [
         windowed.cdf[i],
         peakVal > 0 ? windowed.values[i] / peakVal : 0,
@@ -227,7 +210,7 @@ export default function RiskNeutralDensity({ fits, spotPrice, capturedAt, loadin
       ...(mobile ? {
         margin: { t: 45, r: 15, b: 40, l: 50 },
         showlegend: false,
-        yaxis: plotlyAxis('', { tickformat: '.2s', tickpad: 10 }),
+        yaxis: plotlyAxis('', { tickformat: '.1e', tickpad: 10 }),
       } : {}),
       title: {
         ...plotlyTitle('Breeden-Litzenberger'),

@@ -11,6 +11,8 @@ import {
   plotlyTitle,
 } from '../../src/lib/plotlyTheme';
 import { daysToExpiration, pickDefaultExpiration, filterPickerExpirations } from '../../src/lib/dates';
+import { LAB_R as RATE_R, LAB_Q as RATE_Q } from '../../src/lib/marketRates.js';
+import { minimumVarianceDelta } from '../../src/lib/hullWhiteMvDelta.js';
 
 // -----------------------------------------------------------------------------
 // Delta Comparison.
@@ -55,19 +57,8 @@ import { daysToExpiration, pickDefaultExpiration, filterPickerExpirations } from
 // assumption that enters through a single ∂σ/∂S term.
 // -----------------------------------------------------------------------------
 
-const RATE_R = 0.045;
-const RATE_Q = 0.013;
-
-// Hull-White (2017) MV delta cubic φ(δ) = a + b·δ + c·δ², fitted on daily
-// SPX vanillas at the ~1-month horizon in the original paper. These are
-// illustrative defaults. A production hedging desk would refit them on
-// its own realized return / IV-change time series; in the absence of a
-// persisted time series in this snapshot, the paper's published band
-// produces the correct sign and scale of the MV adjustment for an SPX
-// monthly slice.
-const HW_A = -3.0;
-const HW_B = 4.0;
-const HW_C = -2.0;
+// Rates: src/lib/marketRates.js (LAB_R, LAB_Q). MV delta: hullWhiteMvDelta.js
+// (Hull and White 2017 eq. 6, canonical ν/(S√T) scaling).
 
 // ---- BSM analytic ---------------------------------------------------------
 
@@ -265,10 +256,7 @@ export default function SlotB() {
         ? dBSM + vega * (-dSigmaDk / S)
         : null;
 
-      // Hull-White 2017 cubic adjustment φ(δ) = a + b·δ + c·δ²:
-      //   δ_MV = δ_BSM + (vega / (S·√T)) · φ(δ_BSM)
-      const phiHW = HW_A + HW_B * dBSM + HW_C * dBSM * dBSM;
-      const mvDelta = dBSM + (vega / (S * Math.sqrt(T))) * (phiHW / 100);
+      const mvDelta = minimumVarianceDelta(dBSM, vega, S, T);
 
       return {
         K,
@@ -618,10 +606,10 @@ export default function SlotB() {
           typical SPX pattern (MV below BSM on calls, MV further below BSM
           on puts, sticky-delta on the other side), the smile is doing real
           hedging work and using the MV line is the cleanest way to bank
-          that work into your PnL. The Hull-White coefficients here are the
-          paper's published values rather than a live refit on your own
-          return series, so the direction of the adjustment is reliable but
-          the exact magnitude should be sized conservatively.
+          that work into your PnL.           Coefficients follow Hull and White (2017) equation (6) on the
+          canonical ν/(S√T) scale (see src/lib/hullWhiteMvDelta.js). They are
+          illustrative, not a live refit on your return series; direction is
+          reliable, magnitude should be sized conservatively.
         </p>
       </div>
     </div>

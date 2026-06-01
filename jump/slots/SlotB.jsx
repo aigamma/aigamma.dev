@@ -10,6 +10,7 @@ import {
   plotlyTitle,
 } from '../../src/lib/plotlyTheme';
 import { daysToExpiration, pickDefaultExpiration, filterPickerExpirations } from '../../src/lib/dates';
+import { LAB_R as RATE_R, LAB_Q as RATE_Q } from '../../src/lib/marketRates.js';
 
 // -----------------------------------------------------------------------------
 // Heston (1993) Stochastic Variance. The benchmark stochastic-vol model
@@ -46,8 +47,6 @@ import { daysToExpiration, pickDefaultExpiration, filterPickerExpirations } from
 // against the same SPX expiration slice the other four slots use.
 // -----------------------------------------------------------------------------
 
-const RATE_R = 0.045;
-const RATE_Q = 0.013;
 const INT_N = 601;
 const NM_MAX_ITERS = 240;
 

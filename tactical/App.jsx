@@ -303,7 +303,9 @@ export default function App() {
             The page fits <strong style={{ color: 'var(--text-primary)' }}>Gatheral's SVI</strong>{' '}
             to each expiration's smile and analytically differentiates the resulting call-price
             function, sidestepping the numerical instability of differentiating observed market
-            prices twice.
+            prices twice. Model zoos on /jump/, /risk/, and /discrete/ pin carry at{' '}
+            <strong style={{ color: 'var(--text-primary)' }}>r ≈ 4.5%, q ≈ 1.3%</strong>{' '}
+            via src/lib/marketRates.js; this surface uses r = q = 0 for smile shape.
           </p>
           <p style={{ margin: 0 }}>
             <strong style={{ color: 'var(--text-primary)' }}>Fixed-Strike IV Matrix.</strong>{' '}
