@@ -468,15 +468,15 @@ export default function SlotE() {
         }}
       >
         <StatCell
-          label="v_t · ATM σ²"
+          label="v_t · ATM σ"
           value={jw ? formatPct(Math.sqrt(Math.max(jw.v, 0)), 2) : '-'}
-          sub="as ann. vol"
+          sub="√(w(0)/T), ann. vol"
           accent={PLOTLY_COLORS.secondary}
         />
         <StatCell
           label="ψ_t · ATM skew"
           value={jw ? formatFixed(jw.psi, 3) : '-'}
-          sub="∂σ/∂k at k=0"
+          sub={jw && fit?.T ? `JW ψ_t; ∂σ/∂k ≈ ${formatFixed(jw.psi / Math.sqrt(fit.T), 3)}` : 'JW ψ_t'}
           accent={jw && jw.psi < -0.5 ? PLOTLY_COLORS.secondary : PLOTLY_COLORS.positive}
         />
         <StatCell

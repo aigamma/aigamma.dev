@@ -25,7 +25,7 @@ export function computeGexByStrike(contracts, spotPrice) {
 
 // Symmetric log with linear threshold C: below C the mapping is nearly
 // linear; above C magnitudes compress logarithmically. C is computed per
-// render as P75(|netGex|) so the crossover adapts to each dataset.
+// render as P90 of bar magnitudes (see GexProfile.jsx) so the crossover adapts.
 export const symlog = (x, C) => Math.sign(x) * Math.log1p(Math.abs(x) / C) * C;
 
 export function formatSI(v) {

@@ -316,6 +316,14 @@ export default function TermStructure({ expirationMetrics, capturedAt, cloudBand
     <div className="card" style={{ marginBottom: '1rem', position: 'relative' }}>
       <ResetButton visible={timeRange != null} onClick={() => setTimeRange(null)} />
       <div ref={chartRef} style={{ width: '100%', height: '500px', backgroundColor: 'var(--bg-card)' }} />
+      <p
+        className="text-muted"
+        style={{ fontSize: '0.85rem', margin: '0.5rem 0 0', lineHeight: 1.5 }}
+      >
+        Cloud color ranks where today&apos;s ATM IV sits in each tenor&apos;s historical
+        distribution (green = low percentile, red = high), not whether vol rose or fell
+        on the session.
+      </p>
       {brushDomain && (
         <RangeBrush
           min={isoToMs(brushDomain.axisStart)}

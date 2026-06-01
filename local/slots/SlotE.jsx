@@ -552,8 +552,8 @@ export default function SlotE() {
         <p style={{ margin: '0 0 0.75rem' }}>
           <strong>How this card relates to the three above.</strong> The
           pricing self-check (top of the page) confirms that simulating the
-          Dupire SDE under this surface prices the smile back exactly per
-          Gyongy. The slice viewer (middle) cuts the same surface into 1D
+          Dupire SDE under this surface prices the smile back within MC and
+          discretization error (Gyongy). The slice viewer (middle) cuts the same surface into 1D
           y-slices and T-slices so the reader can isolate one row or one
           column and read the local-vol smile or term structure point by
           point. The forward-smile pathology (just above this card) takes the

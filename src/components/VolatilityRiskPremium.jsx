@@ -273,17 +273,13 @@ export default function VolatilityRiskPremium({ spotPrice, capturedAt }) {
 
   const vrpSegments = useMemo(() => buildVrpSegments(series), [series]);
 
-  // Latest VRP reading in pp. Walks backward through fullSeries until it
-  // finds a row with both iv and hv populated — protects against the very
-  // first backfill rows where one side may be null. Used to color the
-  // chart title and append the value to the title text so the model name
-  // and the current reading both read in green (positive VRP, options
-  // pricing more vol than realized — the calm-regime default) or red
-  // (negative VRP, realized has overrun implied — the spike regime).
+  // Latest VRP reading in percentage points. iv and hv in fullSeries are
+  // already scaled to percent (decimal × 100), so the spread is IV − RV
+  // directly. Walks backward until both sides are populated.
   const latestVrp = useMemo(() => {
     for (let i = fullSeries.length - 1; i >= 0; i--) {
       const r = fullSeries[i];
-      if (r.iv != null && r.hv != null) return (r.iv - r.hv) * 100;
+      if (r.iv != null && r.hv != null) return r.iv - r.hv;
     }
     return null;
   }, [fullSeries]);

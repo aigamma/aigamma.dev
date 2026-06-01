@@ -118,7 +118,7 @@ function persistenceOf(m) {
   if (m.name === 'IGARCH(1,1)') return 1;
   if (m.name === 'GJR-GARCH') return p.alpha + p.gamma / 2 + p.beta;
   if (m.name === 'EGARCH(1,1)') return Math.abs(p.beta);
-  if (m.name === 'TGARCH') return (p.alphaPos + p.alphaNeg) * Math.sqrt(1 / (2 * Math.PI)) * 2 + p.beta;
+  if (m.name === 'TGARCH') return (p.alphaPos + p.alphaNeg) * Math.sqrt(1 / (2 * Math.PI)) + p.beta;
   if (m.name === 'NAGARCH') return p.alpha * (1 + p.theta * p.theta) + p.beta;
   if (m.name === 'APARCH') return p.alpha + p.beta;
   if (m.name === 'NGARCH') return p.alpha + p.beta;

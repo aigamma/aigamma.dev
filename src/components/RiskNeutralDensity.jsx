@@ -202,8 +202,7 @@ export default function RiskNeutralDensity({ fits, spotPrice, capturedAt, loadin
     });
 
     // Single scatter trace for all mode markers — diamond dots at each
-    // curve's peak. The mode is the most probable settlement strike for
-    // that expiration and the optimal center for a butterfly.
+    // curve's peak (mode of the risk-neutral density at that tenor).
     if (modeX.length > 0) {
       traces.push({
         x: modeX,

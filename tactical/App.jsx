@@ -295,7 +295,9 @@ export default function App() {
             The <strong style={{ color: 'var(--text-primary)' }}>Breeden-Litzenberger construction</strong>:
             the <strong style={{ color: 'var(--text-primary)' }}>second partial derivative of European
             call price with respect to strike</strong> equals the risk-neutral probability density of
-            terminal spot, discounted by the risk-free rate (Breeden and Litzenberger 1978).
+            terminal spot at expiration (Breeden and Litzenberger 1978). The SVI fitter here uses{' '}
+            <strong style={{ color: 'var(--text-primary)' }}>r = q = 0</strong>, so the plotted density
+            is the undiscounted second derivative of the fitted call curve.
           </p>
           <p style={{ margin: '0 0 0.7rem' }}>
             The page fits <strong style={{ color: 'var(--text-primary)' }}>Gatheral's SVI</strong>{' '}
